@@ -1,0 +1,29 @@
+      <SectionLabel
+        aside={
+          mediaTotal > 0 && (
+            <span
+              className="meta-chip meta-chip--dim"
+              style={{ fontSize: '10px', padding: '2px 7px' }}
+            >
+              {fmt(mediaProcessed)} / {fmt(mediaTotal)}
+            </span>
+          )
+        }
+      >
+        Media Ingestion
+      </SectionLabel>
+
+      <div className="progress-wrap">
+        <div className="track">
+          <div
+            className="fill fill--media"
+            style={{
+              width: `${Math.max(mediaPctSafe, mediaPctSafe > 0 ? 0.4 : 0)}%`,
+            }}
+          >
+            <div className="fill-shimmer" />
+          </div>
+        </div>
+        <span className="pct">{mediaTotal > 0 ? mediaPctSafe.toFixed(1) : '—'}%</span>
+      </div>
+

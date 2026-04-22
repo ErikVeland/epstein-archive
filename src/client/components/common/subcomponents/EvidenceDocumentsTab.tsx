@@ -4,6 +4,7 @@ import { FixedSizeList as List } from 'react-window';
 import { InfiniteLoader } from 'react-window-infinite-loader';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { EvidenceCard } from './EvidenceCard';
+import { useListScrollRestoration } from '../../../hooks/useListScrollRestoration';
 import s from './EvidenceDocumentsTab.module.css';
 
 // Type-safe wrappers for virtualized components to bypass React 18/TS mismatches
@@ -47,6 +48,7 @@ interface EvidenceDocumentsTabProps {
   isItemLoaded: (index: number) => boolean;
   isNextPageLoading: boolean;
   usePlainEvidenceList: boolean;
+  entityId: string;
   entityName: string;
   openDocument: (id: string | number | undefined, options?: { newTab?: boolean }) => void;
 }
@@ -62,9 +64,14 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
   isItemLoaded,
   isNextPageLoading,
   usePlainEvidenceList,
+  entityId,
   entityName,
   openDocument,
 }) => {
+  const { initialScrollOffset, onScroll } = useListScrollRestoration(
+    `evidence-documents-${entityId}`,
+  );
+
   return (
     <div className={s.tabContainer} data-testid="entity-modal-tab-evidence">
       {/* FILTERS TOOLBAR */}
@@ -181,10 +188,12 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                           className={s.virtualList}
                           data-testid="entity-evidence-virtual-list"
                           height={effectiveHeight}
+                          initialScrollOffset={initialScrollOffset}
                           itemCount={totalDocs}
                           itemSize={180}
                           width={effectiveWidth}
                           onItemsRendered={onItemsRendered}
+                          onScroll={onScroll}
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           ref={ref as any}
                         >

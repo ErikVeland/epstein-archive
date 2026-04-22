@@ -21,6 +21,7 @@ import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { SEO } from '../common/SEO';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { AutoSizer } from '../common/AutoSizer';
+import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
 import {
   Surface,
   Button,
@@ -267,6 +268,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const { initialScrollOffset: restoredScrollOffset, onScroll: handleListScroll } =
+    useListScrollRestoration('/media/audio');
 
   const {
     items,
@@ -427,11 +430,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   return (
                     <List
                       height={height}
+                      initialScrollOffset={restoredScrollOffset}
                       itemCount={rowCount}
                       itemSize={460}
                       width={width}
                       itemData={{ ...rowData, columns }}
                       onScroll={({ scrollOffset }) => {
+                        handleListScroll({ scrollOffset });
                         const threshold = rowCount * 460 - 1000;
                         if (scrollOffset > threshold && hasMore && !loading) {
                           void loadMore();

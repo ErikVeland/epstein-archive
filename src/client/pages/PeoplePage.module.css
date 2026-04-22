@@ -210,21 +210,11 @@
     padding-bottom: calc(var(--space-4) + 80px); /* Space for bottom nav */
   }
 
+  /* Filter toolbar hidden on mobile — its dropdowns create a z-index stacking context
+     (z-index: 40) whose open menus (z-index: 1200 inside) overlap and block the card
+     grid below. Removed until a proper mobile filter sheet is added. */
   .toolbarCard {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-2);
-    padding: var(--space-3) !important;
-  }
-
-  .toolbarMetaRow {
-    justify-content: center;
-  }
-
-  .toolbarControls {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--space-2);
+    display: none;
   }
 
   .toolbarSummary {
@@ -234,6 +224,7 @@
   .resultsShell {
     padding: var(--space-2);
     margin-top: var(--space-2);
+    min-height: auto;
   }
 
   .pagination {

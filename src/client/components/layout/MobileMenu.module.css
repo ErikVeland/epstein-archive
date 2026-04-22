@@ -105,7 +105,7 @@
 .searchFieldRoot .ds-inputField {
   background: var(--glass-bg);
   border-color: var(--glass-border);
-  border-radius: var(--radius-lg);
+  border-radius: 9999px;
   box-shadow: none;
 }
 
@@ -156,6 +156,7 @@
   width: 100%;
   display: flex;
   align-items: center;
+  justify-content: flex-start; /* Left-align icon + label */
   gap: var(--space-3);
   min-height: 2.75rem; /* 44px touch target */
   padding: 0.6875rem var(--space-3);

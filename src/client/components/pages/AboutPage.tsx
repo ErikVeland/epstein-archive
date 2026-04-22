@@ -292,11 +292,16 @@ export const AboutPage: React.FC = () => {
   }, [pipelineOverview]);
 
   useEffect(() => {
-    fetchData();
+    const kickoff = setTimeout(() => {
+      void fetchData();
+    }, 0);
     const timer = setInterval(() => {
       setActiveFaq((prev) => (prev + 1) % faqs.length);
     }, 8000);
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(kickoff);
+      clearInterval(timer);
+    };
   }, [fetchData]);
 
   return (

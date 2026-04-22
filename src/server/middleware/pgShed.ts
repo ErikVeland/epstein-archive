@@ -2,8 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import { getApiPool } from '../db/connection.js';
 import { logger } from '../services/Logger.js';
 
-const SATURATION_RATIO = 0.9; // shed when 90%+ of pool is occupied
-const WAITING_THRESHOLD = Math.max(1, Number(process.env.PG_SHED_WAITING_THRESHOLD ?? 3) || 3);
+const SATURATION_RATIO = Math.max(
+  0,
+  Math.min(1, Number(process.env.PG_SHED_SATURATION_RATIO ?? 0.95) || 0.95),
+);
+const WAITING_THRESHOLD = Math.max(1, Number(process.env.PG_SHED_WAITING_THRESHOLD ?? 8) || 8);
 
 function isBypassPath(pathname: string): boolean {
   return (
@@ -35,8 +38,10 @@ export function pgSaturationShed(req: Request, res: Response, next: NextFunction
     18;
   const ratio = configuredMax > 0 ? occupied / configuredMax : 0;
 
-  // Shed only when queueing is sustained or near-exhaustion; brief single waiters are transient.
-  if (pool.waitingCount >= WAITING_THRESHOLD || ratio >= SATURATION_RATIO) {
+  if (
+    pool.waitingCount >= WAITING_THRESHOLD ||
+    (pool.waitingCount > 0 && ratio >= SATURATION_RATIO)
+  ) {
     const retryAfter = pool.waitingCount > 5 ? '10' : '5';
     logger.warn(
       `[PG SHED] requestId=${req.requestId || 'no-req-id'} ${req.method} ${req.originalUrl} ` +

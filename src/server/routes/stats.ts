@@ -12,10 +12,17 @@ import {
 } from '../db/routesDb.js';
 import { BackupService } from '../services/BackupService.js';
 import { cacheMiddleware } from '../middleware/cache.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 
 const router = Router();
+const execFileAsync = promisify(execFile);
+const READINESS_TIMEOUT_MS = Math.max(
+  100,
+  Number.parseInt(process.env.READINESS_TIMEOUT_MS ?? '250', 10) || 250,
+);
 
 interface StatsInput {
   likelihoodDistribution?: unknown[];
@@ -139,7 +146,7 @@ router.get('/health/ready', async (req, res) => {
   try {
     const pingStart = Date.now();
     const pingPromise = pingDatabase();
-    const timeoutMs = soft ? 5000 : 50;
+    const timeoutMs = soft ? 5000 : READINESS_TIMEOUT_MS;
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), timeoutMs),
     );
@@ -361,26 +368,114 @@ router.get('/health/deep', async (_req, res) => {
 });
 
 // Manual Ingestion Control
-router.post('/pipeline/control', authenticateRequest, async (req, res, next) => {
-  try {
-    const { runId, signal } = req.body;
-    if (!runId || !['pause', 'resume', 'stop'].includes(signal)) {
-      return res.status(400).json({ error: 'Invalid runId or signal' });
+router.post(
+  '/pipeline/control',
+  authenticateRequest,
+  requireRole('admin'),
+  async (req, res, next) => {
+    try {
+      const { runId, signal } = req.body;
+      if (!runId || !['pause', 'resume', 'stop'].includes(signal)) {
+        return res.status(400).json({ error: 'Invalid runId or signal' });
+      }
+
+      const { PipelineService } = await import('../services/pipelineService.js');
+      await PipelineService.setControlSignal(Number(runId), signal);
+
+      // If signal is resume, also set status back to running immediately
+      if (signal === 'resume') {
+        await PipelineService.updateRunStatus(Number(runId), 'running');
+        await PipelineService.setControlSignal(Number(runId), null);
+      }
+
+      res.json({ success: true, signal });
+    } catch (e) {
+      next(e);
     }
+  },
+);
 
-    const { PipelineService } = await import('../services/pipelineService.js');
-    await PipelineService.setControlSignal(Number(runId), signal);
+router.post(
+  '/ingestion/process',
+  authenticateRequest,
+  requireRole('admin'),
+  async (req, res, next) => {
+    try {
+      const { action } = req.body as { action?: unknown };
+      const a = typeof action === 'string' ? action : '';
+      if (!['start', 'stop', 'restart'].includes(a)) {
+        return res.status(400).json({ error: 'Invalid action' });
+      }
 
-    // If signal is resume, also set status back to running immediately
-    if (signal === 'resume') {
-      await PipelineService.updateRunStatus(Number(runId), 'running');
-      await PipelineService.setControlSignal(Number(runId), null);
+      const args =
+        a === 'start'
+          ? ['start', 'ecosystem.config.cjs', '--only', 'ingest-intelligence', '--update-env']
+          : a === 'stop'
+            ? ['stop', 'ingest-intelligence']
+            : ['restart', 'ingest-intelligence'];
+
+      const { stdout } = await execFileAsync('pm2', args, {
+        cwd: process.cwd(),
+        timeout: 20_000,
+      });
+
+      res.json({ success: true, action: a, output: String(stdout || '').trim() });
+    } catch (e) {
+      next(e);
     }
+  },
+);
 
-    res.json({ success: true, signal });
-  } catch (e) {
-    next(e);
-  }
-});
+router.get(
+  '/ingestion/status',
+  authenticateRequest,
+  requireRole('admin'),
+  async (_req, res, next) => {
+    try {
+      const { stdout } = await execFileAsync('pm2', ['jlist'], { timeout: 10_000 });
+
+      let list: unknown[] = [];
+      try {
+        list = JSON.parse(String(stdout || '[]'));
+      } catch {
+        list = [];
+      }
+
+      const rawProc =
+        list.find((p) => (p as Record<string, unknown>)?.name === 'ingest-intelligence') || null;
+      const proc = rawProc as Record<string, unknown> | null;
+      const pm2Env =
+        proc && typeof proc.pm2_env === 'object' && proc.pm2_env !== null
+          ? (proc.pm2_env as Record<string, unknown>)
+          : null;
+      const monit =
+        proc && typeof proc.monit === 'object' && proc.monit !== null
+          ? (proc.monit as Record<string, unknown>)
+          : null;
+
+      const pipeline = await statsRepository.getPipelineProgress();
+      res.json({
+        process: proc
+          ? {
+              name: String(proc.name || 'ingest-intelligence'),
+              pid: typeof proc.pid === 'number' ? proc.pid : null,
+              pmId: typeof proc.pm_id === 'number' ? proc.pm_id : null,
+              status: typeof pm2Env?.status === 'string' ? pm2Env.status : 'unknown',
+              restarts: typeof pm2Env?.restart_time === 'number' ? pm2Env.restart_time : null,
+              uptime:
+                typeof pm2Env?.pm_uptime === 'number'
+                  ? new Date(pm2Env.pm_uptime).toISOString()
+                  : null,
+              memoryBytes: typeof monit?.memory === 'number' ? monit.memory : null,
+              cpuPercent: typeof monit?.cpu === 'number' ? monit.cpu : null,
+            }
+          : null,
+        pipeline,
+      });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
 
 export default router;

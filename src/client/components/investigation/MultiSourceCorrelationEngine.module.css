@@ -701,6 +701,42 @@
   }
 }
 
+@media (max-width: 1023px) {
+  .autoGen308 {
+    padding: var(--space-4);
+  }
+
+  .fullScreenMobile {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: var(--lq-surface-1);
+    animation: msce-slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fullScreenContent {
+    flex: 1;
+    max-width: none;
+    border: none;
+    border-radius: 0;
+    overflow-y: auto;
+    padding: var(--space-4);
+    padding-bottom: calc(var(--space-12) + env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes msce-slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 @keyframes correlationSpin {
   from {
     transform: rotate(0deg);

@@ -18,6 +18,7 @@
   gap: var(--space-3);
   cursor: pointer;
   transition: opacity var(--duration-fast) var(--easing-swift);
+  min-width: 0;
 }
 
 .logoArea:hover {
@@ -233,27 +234,20 @@
   min-width: 0;
 }
 
-.headerSearchFieldRoot .ds-inputSearchShell {
-  width: 100%;
-}
-
-.headerSearchFieldRoot .ds-inputField {
+.headerSearchFieldInput.headerSearchFieldInput {
   height: 44px;
   min-height: 44px;
   border-radius: 9999px;
   background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: none;
+  padding-right: 5.25rem;
 }
 
-.headerSearchFieldRoot .ds-inputField:focus-visible {
+.headerSearchFieldInput.headerSearchFieldInput:focus-visible {
   outline: none;
   border-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
-}
-
-.headerSearchFieldInput.headerSearchFieldInput {
-  padding-right: 5.25rem;
 }
 
 .searchClearButton {
@@ -317,6 +311,13 @@
   overflow-y: auto;
   background: var(--lq-surface-2) !important;
   border: 1px solid var(--glass-border-strong);
+}
+
+.mobileSheetDropdown {
+  position: static;
+  width: 100%;
+  max-height: none;
+  margin-top: 0;
 }
 
 @media (min-width: 768px) {
@@ -515,6 +516,10 @@
   gap: var(--space-3);
 }
 
+.mobileDateFields {
+  gap: var(--space-4);
+}
+
 .dateFilterLabel {
   display: block;
   margin-bottom: 0.25rem;
@@ -567,6 +572,105 @@
   }
 }
 
+.mobileHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mobileHeaderStack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.mobileHeaderTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.mobileHeaderBrandSpacer {
+  flex: 1;
+}
+
+.mobileHeaderControls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.mobileHeaderButton,
+.mobileMenuButton {
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobileHeaderButtonActive {
+  color: var(--accent-warning);
+  border-color: color-mix(in srgb, var(--accent-warning) 35%, transparent);
+}
+
+.mobileControlButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.8rem 0.95rem;
+  border-radius: 1rem;
+  text-align: left;
+  background: color-mix(in srgb, var(--glass-bg-strong) 88%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mobileControlLead {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+}
+
+.mobileControlLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobileControlValue {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.3;
+}
+
+.mobileSheetStack {
+  gap: var(--space-4);
+}
+
+.mobileSheetSearchRoot {
+  width: 100%;
+}
+
+.mobileSheetSearchInput.mobileSheetSearchInput {
+  min-height: 44px;
+}
+
+.mobileSearchEmptyState {
+  padding: var(--space-4);
+}
+
 .hFull {
   height: 100%;
   overflow: hidden;
@@ -587,6 +691,33 @@
   margin: 0 auto;
   padding: 0 var(--space-4);
   box-sizing: border-box;
+}
+
+@media (max-width: 767px) {
+  .header {
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+  }
+
+  .actionsArea {
+    flex: 0 0 auto;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+
+  .logoArea {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .contentShell {
+    padding: 0 var(--space-3);
+  }
 }
 
 .navShell {
@@ -639,10 +770,15 @@
 }
 
 .navLabelInline {
-  display: inline;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.01em;
+  line-height: 1;
+  min-height: 1rem;
+  transform: translateY(-0.5px);
 }
 
 .navLabelHidden {
@@ -681,6 +817,7 @@
   width: 100%;
   min-width: 0;
   height: 100%;
+  line-height: 1;
   white-space: nowrap;
   background: transparent;
   border: 0;
@@ -688,6 +825,12 @@
   transition: color var(--duration-fast) var(--easing-liquid);
   position: relative;
   z-index: 1;
+}
+
+.navSegmentBase :global(svg) {
+  display: block;
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .navSegmentBase::before {

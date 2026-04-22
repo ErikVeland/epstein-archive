@@ -14,6 +14,13 @@
   }
 }
 
+@media (max-width: 767px) {
+  .contentWrap {
+    padding: var(--space-3);
+    padding-bottom: calc(var(--space-6) + 80px);
+  }
+}
+
 .filterMotion {
   overflow: hidden;
 }

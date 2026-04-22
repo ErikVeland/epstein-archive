@@ -15,6 +15,8 @@ import {
   User,
 } from 'lucide-react';
 import { Button, Select } from '../../design-system/lib';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { MobileStackHeader } from '../layout/MobileStackHeader';
 import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './FinancialTransactionMapper.module.css';
@@ -185,6 +187,7 @@ function detectFinancialPatterns(transactions: Transaction[]): FinancialPattern[
 export default function FinancialTransactionMapper({
   investigationId,
 }: FinancialTransactionMapperProps = {}) {
+  const isMobile = useIsMobile();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [viewMode, setViewMode] = useState<'flow' | 'network' | 'timeline' | 'patterns'>('flow');
   const [filterRisk, setFilterRisk] = useState<string>('all');
@@ -283,13 +286,15 @@ export default function FinancialTransactionMapper({
   return (
     <div className={styles.page}>
       <div className={styles.container}>
-        {/* Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Financial Transaction Mapper</h1>
-          <p className={styles.subtitle}>
-            Advanced forensic analysis of financial flows and suspicious patterns
-          </p>
-        </div>
+        {/* Header - HIDDEN ON MOBILE (Uses Workspace Header) */}
+        {!isMobile && (
+          <div className={styles.header}>
+            <h1 className={styles.title}>Financial Transaction Mapper</h1>
+            <p className={styles.subtitle}>
+              Advanced forensic analysis of financial flows and suspicious patterns
+            </p>
+          </div>
+        )}
 
         {/* Controls - Stacked Layout */}
         <div className={`${styles.panel} ${styles.controls}`}>
@@ -408,7 +413,9 @@ export default function FinancialTransactionMapper({
             <div className={styles.summaryRow}>
               <div>
                 <p className={styles.summaryLabel}>Total Transactions</p>
-                <p className={`${styles.summaryValue} ${styles.summaryAccent}`}>
+                <p
+                  className={`${styles.summaryValue} ${styles.summaryAccent} ${isMobile ? styles.summaryMobile : ''}`}
+                >
                   {filteredTransactions.length}
                 </p>
               </div>
@@ -420,7 +427,9 @@ export default function FinancialTransactionMapper({
             <div className={styles.summaryRow}>
               <div>
                 <p className={styles.summaryLabel}>Total Value</p>
-                <p className={`${styles.summaryValue} ${styles.summaryGreen}`}>
+                <p
+                  className={`${styles.summaryValue} ${styles.summaryGreen} ${isMobile ? styles.summaryMobile : ''}`}
+                >
                   {formatCurrency(filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0))}
                 </p>
               </div>
@@ -432,7 +441,9 @@ export default function FinancialTransactionMapper({
             <div className={styles.summaryRow}>
               <div>
                 <p className={styles.summaryLabel}>High Risk</p>
-                <p className={`${styles.summaryValue} ${styles.summaryYellow}`}>
+                <p
+                  className={`${styles.summaryValue} ${styles.summaryYellow} ${isMobile ? styles.summaryMobile : ''}`}
+                >
                   {
                     filteredTransactions.filter(
                       (tx) => tx.riskLevel === 'high' || tx.riskLevel === 'critical',
@@ -444,17 +455,19 @@ export default function FinancialTransactionMapper({
             </div>
           </div>
 
-          <div className={styles.summaryCard}>
-            <div className={styles.summaryRow}>
-              <div>
-                <p className={styles.summaryLabel}>Patterns Detected</p>
-                <p className={`${styles.summaryValue} ${styles.summaryRed}`}>
-                  {detectedPatterns.length}
-                </p>
+          {!isMobile && (
+            <div className={styles.summaryCard}>
+              <div className={styles.summaryRow}>
+                <div>
+                  <p className={styles.summaryLabel}>Patterns Detected</p>
+                  <p className={`${styles.summaryValue} ${styles.summaryRed}`}>
+                    {detectedPatterns.length}
+                  </p>
+                </div>
+                <Filter className={`${styles.summaryIcon} ${styles.summaryRed}`} />
               </div>
-              <Filter className={`${styles.summaryIcon} ${styles.summaryRed}`} />
             </div>
-          </div>
+          )}
         </div>
 
         {/* Main Content */}
@@ -652,22 +665,31 @@ export default function FinancialTransactionMapper({
               </div>
             )}
 
-            {/* Transaction Details - Modal on Mobile, Inline on Desktop */}
+            {/* Transaction Details - Full Screen Stack on Mobile */}
             {selectedTransaction && (
               <div className={styles.detailsOverlay}>
+                {isMobile && (
+                  <MobileStackHeader
+                    title="Transaction Details"
+                    subtitle={`${selectedTransaction.fromEntity} -> ${selectedTransaction.toEntity}`}
+                    onBack={() => setSelectedTransaction(null)}
+                  />
+                )}
                 <div className={styles.detailsCard}>
-                  {/* Mobile Close Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedTransaction(null)}
-                    className={styles.mobileClose}
-                  >
-                    <Icon name="X" className={styles.closeIcon} />
-                  </Button>
+                  {/* Mobile Close Button - HUD Only */}
+                  {!isMobile && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTransaction(null)}
+                      className={styles.mobileClose}
+                    >
+                      <Icon name="X" className={styles.closeIcon} />
+                    </Button>
+                  )}
 
                   <div className={`${styles.detailsHeader} ${styles.detailsHeaderCompact}`}>
-                    <h3 className={styles.sectionTitle}>Transaction Details</h3>
+                    {!isMobile && <h3 className={styles.sectionTitle}>Details</h3>}
                     <AddToInvestigationButton
                       item={{
                         id: selectedTransaction.id,

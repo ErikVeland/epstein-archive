@@ -55,8 +55,17 @@
   background: color-mix(in srgb, var(--bg-dark) 50%, transparent);
 }
 
+.routeTextSummary {
+  justify-content: center;
+  padding: var(--space-4) var(--space-6);
+  gap: var(--space-6);
+}
+
 .passengerRow {
   padding: var(--space-2) var(--space-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .roleIcon {
@@ -97,6 +106,7 @@
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--bg-dark) 30%, transparent);
+  word-break: break-word;
 }
 
 .actions {
@@ -163,4 +173,44 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+}
+
+.fullScreenMobile {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--lq-surface-1);
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.3s var(--easing-liquid);
+}
+
+.fullScreenMobile .content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1023px) {
+  .routeGrid {
+    flex-direction: column;
+  }
+
+  .infoCard {
+    padding: var(--space-4);
+  }
+
+  .passengerRow {
+    padding: var(--space-3) var(--space-4);
+  }
 }

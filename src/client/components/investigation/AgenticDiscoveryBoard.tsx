@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   Cpu,
   Search,
@@ -34,6 +35,7 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { addToast } = useToasts();
+  const isMobile = useIsMobile();
 
   const loadLeads = useCallback(
     async (isSilent = false) => {
@@ -208,25 +210,45 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
                         style={{ width: `${(lead.confidence || 0.5) * 100}%` }}
                       />
                     </div>
-                    <LqText variant="xxs" color="muted" weight="bold">
+                    <LqText
+                      variant="xxs"
+                      color="muted"
+                      weight="black"
+                      className="uppercase tracking-widest"
+                    >
                       Neural Match
                     </LqText>
                   </div>
 
-                  <Flex gap="sm">
-                    <Button variant="ghost" size="sm">
-                      <ExternalLink size={12} />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 size={12} />
-                    </Button>
+                  <Flex
+                    gap="sm"
+                    direction={isMobile ? 'column' : 'row'}
+                    style={{ width: isMobile ? '100%' : 'auto' }}
+                  >
+                    <Flex gap="sm" style={{ width: isMobile ? '100%' : 'auto' }}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        style={{ width: isMobile ? '100%' : undefined }}
+                      >
+                        <ExternalLink size={14} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        style={{ width: isMobile ? '100%' : undefined }}
+                      >
+                        <Trash2 size={14} />
+                      </Button>
+                    </Flex>
                     <Button
                       variant="glass-highlight"
                       size="sm"
+                      style={{ width: isMobile ? '100%' : undefined }}
                       onClick={() => handlePromote(lead)}
                       disabled={lead.status === 'pursued'}
                     >
-                      {lead.status === 'pursued' ? 'Promoted' : 'Promote'}
+                      {lead.status === 'pursued' ? 'Promoted' : 'Promote Lead'}
                     </Button>
                   </Flex>
                 </div>

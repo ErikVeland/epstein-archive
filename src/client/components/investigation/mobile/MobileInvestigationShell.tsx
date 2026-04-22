@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import type {
   Investigation,
@@ -52,9 +53,39 @@ export function MobileInvestigationShell({
   onTimelineChanged,
 }: MobileInvestigationShellProps) {
   const invId = String(selectedInvestigation.id);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-  const [activeDest, setActiveDest] = useState<ActiveDest>('board');
-  const [moreDest, setMoreDest] = useState<MoreTool | null>(null);
+  const VALID_TABS = new Set<string>(['board', 'evidence', 'activity']);
+  const VALID_TOOLS = new Set<string>([
+    'timeline',
+    'forensic',
+    'communications',
+    'hypotheses',
+    'export',
+  ]);
+
+  const rawTab = searchParams.get('tab') ?? 'board';
+  const activeDest: ActiveDest = VALID_TABS.has(rawTab) ? (rawTab as ActiveDest) : 'board';
+  const rawTool = searchParams.get('tool');
+  const moreDest: MoreTool | null =
+    rawTool && VALID_TOOLS.has(rawTool) ? (rawTool as MoreTool) : null;
+
+  const setActiveDest = useCallback(
+    (dest: ActiveDest) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (dest === 'board') next.delete('tab');
+          else next.set('tab', dest);
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
   const [captureOpen, setCaptureOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
@@ -63,13 +94,24 @@ export function MobileInvestigationShell({
     setCaptureOpen(false);
   }, []);
 
-  const handleSelectMore = useCallback((tool: MoreTool) => {
-    setMoreDest(tool);
-  }, []);
+  const handleSelectMore = useCallback(
+    (tool: MoreTool) => {
+      // Push a new history entry so device back button returns to board
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('tool', tool);
+          return next;
+        },
+        { replace: false },
+      );
+    },
+    [setSearchParams],
+  );
 
   const handleBackFromTool = useCallback(() => {
-    setMoreDest(null);
-  }, []);
+    navigate(-1);
+  }, [navigate]);
 
   const handleHypothesesUpdate = useCallback((updated: unknown[]) => {
     setHypotheses(updated as Hypothesis[]);

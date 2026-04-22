@@ -1,5 +1,6 @@
 import { documentsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { CacheKeys, queryCache } from './cache.js';
 
 const PREVIEW_MAX_CHARS = 320;
 
@@ -197,8 +198,7 @@ export const documentsRepository = {
         word_count as "wordCount",
         red_flag_rating as "redFlagRating",
         COALESCE(NULLIF(title, ''), file_name) as "title",
-        source_collection as "sourceCollection",
-        COUNT(*) OVER () as "totalCount"
+        source_collection as "sourceCollection"
       FROM documents
       WHERE (
           $1::text IS NULL
@@ -218,9 +218,9 @@ export const documentsRepository = {
           $12::boolean = true
           OR (
             COALESCE(evidence_type, '') != 'media'
-            AND file_type NOT ILIKE 'image/%'
-            AND file_type NOT ILIKE 'video/%'
-            AND file_type NOT ILIKE 'audio/%'
+            AND file_type NOT LIKE 'image/%'
+            AND file_type NOT LIKE 'video/%'
+            AND file_type NOT LIKE 'audio/%'
           )
         )
         AND (file_type != ALL($13::text[]) OR $13::text[] IS NULL)
@@ -248,32 +248,19 @@ export const documentsRepository = {
           $10::boolean = true
           OR (
             COALESCE(evidence_type, '') != 'media'
-            AND file_type NOT ILIKE 'image/%'
-            AND file_type NOT ILIKE 'video/%'
-            AND file_type NOT ILIKE 'audio/%'
+            AND file_type NOT LIKE 'image/%'
+            AND file_type NOT LIKE 'video/%'
+            AND file_type NOT LIKE 'audio/%'
           )
         )
         AND (file_type != ALL($11::text[]) OR $11::text[] IS NULL)
     `;
-    const docsRes = await getApiPool().query(docsSql, [
-      search ? `%${search}%` : null,
-      fileTypes,
-      evidenceType,
-      sources,
-      filters.startDate || null,
-      filters.endDate || null,
-      filters.minRedFlag ?? null,
-      filters.maxRedFlag ?? null,
-      limit,
-      offset,
-      fullTextSearch,
-      !!filters.includeMedia,
-      filters.excludedFileTypes || null,
-    ]);
-    const docs = docsRes.rows as Array<Record<string, unknown>>;
-    let total = Number((docs[0] as { totalCount?: string | number } | undefined)?.totalCount ?? 0);
-    if (docs.length === 0) {
-      const countRes = await getApiPool().query(countSql, [
+
+    const pool = getApiPool();
+    const docsRes = await pool.query({
+      name: 'documents.getDocuments.list',
+      text: docsSql,
+      values: [
         search ? `%${search}%` : null,
         fileTypes,
         evidenceType,
@@ -282,11 +269,65 @@ export const documentsRepository = {
         filters.endDate || null,
         filters.minRedFlag ?? null,
         filters.maxRedFlag ?? null,
+        limit,
+        offset,
         fullTextSearch,
         !!filters.includeMedia,
         filters.excludedFileTypes || null,
-      ]);
-      total = Number(countRes.rows[0]?.total ?? 0);
+      ],
+    });
+
+    const docs = docsRes.rows as Array<Record<string, unknown>>;
+    const shouldUseCachedCount =
+      !search &&
+      !fileTypes &&
+      !evidenceType &&
+      !sources &&
+      !filters.startDate &&
+      !filters.endDate &&
+      filters.minRedFlag === undefined &&
+      filters.maxRedFlag === undefined &&
+      !filters.includeMedia &&
+      (!filters.excludedFileTypes || filters.excludedFileTypes.length === 0);
+
+    let total = 0;
+    try {
+      const countResult = shouldUseCachedCount
+        ? await queryCache.getOrSetAsync(
+            CacheKeys.documentCount(),
+            async () => {
+              const res = await pool.query<{ total: string | number }>({
+                name: 'documents.getDocuments.count.cached',
+                text: countSql,
+                values: [null, null, null, null, null, null, null, null, null, false, null],
+              });
+              return Number(res.rows[0]?.total ?? 0);
+            },
+            120,
+          )
+        : await (async () => {
+            const res = await pool.query<{ total: string | number }>({
+              name: 'documents.getDocuments.count',
+              text: countSql,
+              values: [
+                search ? `%${search}%` : null,
+                fileTypes,
+                evidenceType,
+                sources,
+                filters.startDate || null,
+                filters.endDate || null,
+                filters.minRedFlag ?? null,
+                filters.maxRedFlag ?? null,
+                fullTextSearch,
+                !!filters.includeMedia,
+                filters.excludedFileTypes || null,
+              ],
+            });
+            return Number(res.rows[0]?.total ?? 0);
+          })();
+      total = Number(countResult ?? 0);
+    } catch {
+      total = Math.max(offset + docs.length, 0);
     }
 
     // Batch-fetch top entities for all documents in a single query (eliminates N+1)

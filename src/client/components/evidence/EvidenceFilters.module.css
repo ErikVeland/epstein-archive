@@ -184,10 +184,44 @@
   background: #22c55e;
 }
 
+/* ─── Advanced filters trigger (mobile only) ─────────────── */
+
+.filtersTrigger {
+  flex-shrink: 0;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .filtersTrigger {
+    display: none;
+  }
+}
+
+.filtersBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  background: var(--accent);
+  color: var(--app-bg);
+  font-size: 0.625rem;
+  font-weight: var(--weight-bold);
+  border-radius: 9999px;
+  line-height: 1;
+}
+
 /* ─── Details filter panel ───────────────────────────────── */
 
 .detailsPanel {
   padding: var(--space-4) var(--space-5);
+}
+
+@media (max-width: 767px) {
+  .detailsPanel {
+    display: none;
+  }
 }
 
 .titleWrapper {

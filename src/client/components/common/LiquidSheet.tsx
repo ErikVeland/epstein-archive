@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls, useAnimation } from 'framer-motion';
+import type { PanInfo } from 'framer-motion';
 import { cn } from '../../utils/cn';
 import s from './LiquidSheet.module.css';
 
@@ -30,7 +31,7 @@ export const LiquidSheet: React.FC<LiquidSheetProps> = ({
     }
   }, [isOpen, controls]);
 
-  const handleDragEnd = (_: any, info: any) => {
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const shouldClose = info.velocity.y > 200 || info.offset.y > 150;
     if (shouldClose) {
       onClose();

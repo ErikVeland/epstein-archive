@@ -40,6 +40,7 @@ import {
   Surface,
   cn,
 } from '../../design-system/lib';
+import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './ForensicAnalysisWorkspace.module.css';
 
 const css = <T,>(style: T) => style;
@@ -59,6 +60,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
   timelineEvents,
   useGlobalContext = false,
 }) => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+
   const { addToast } = useToasts();
   const [activeTool, setActiveTool] = useState<
     'documents' | 'entities' | 'financial' | 'correlation' | 'reports'
@@ -289,6 +292,37 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
     return 'danger';
   };
 
+  const selectedConfidenceDetails = selectedConfidenceTool
+    ? (stats[selectedConfidenceTool as keyof typeof stats]?.confidenceDetails ?? null)
+    : null;
+  const selectedConfidenceToolName = selectedConfidenceTool
+    ? (forensicTools.find((tool) => tool.id === selectedConfidenceTool)?.name ?? 'Confidence')
+    : 'Confidence';
+  const desktopConfidenceFactors = selectedConfidenceDetails
+    ? [
+        {
+          label: 'Evidence Coverage',
+          value: selectedConfidenceDetails.factors.coverage,
+          weight: '40%',
+        },
+        {
+          label: 'Signal Quality',
+          value: selectedConfidenceDetails.factors.signalQuality,
+          weight: '25%',
+        },
+        {
+          label: 'Cross-Corroboration',
+          value: selectedConfidenceDetails.factors.corroboration,
+          weight: '25%',
+        },
+        {
+          label: 'Model Certainty',
+          value: selectedConfidenceDetails.factors.modelCertainty,
+          weight: '10%',
+        },
+      ]
+    : [];
+
   return (
     <Box className={styles.autoGen71} style={css({ backgroundColor: 'var(--lq-surface-1)' })}>
       {/* Global Header */}
@@ -406,171 +440,176 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
       </Surface>
 
       <Flex className={styles.autoGen82}>
-        {/* Module Sidebar */}
-        <Surface
-          variant="glass-highlight"
-          style={css({ width: toolsCollapsed ? 80 : 320 })}
-          className={styles.autoGen83}
-        >
-          <Stack gap="xl" p="lg" className={styles.autoGen84}>
-            <Flex justify="between" align="center">
-              {!toolsCollapsed && (
-                <LqText
-                  variant="small"
-                  weight="bold"
-                  color="muted"
-                  style={css({ textTransform: 'uppercase' })}
+        {!isMobile && (
+          <Surface
+            variant="glass"
+            className={cn(styles.autoGen83, toolsCollapsed && styles.autoGen84)}
+            style={{ width: toolsCollapsed ? 80 : 320 }}
+          >
+            <Stack p="md" gap="lg" className={styles.autoGen84}>
+              <Flex justify="between" align="center">
+                {!toolsCollapsed && (
+                  <LqText
+                    variant="small"
+                    weight="bold"
+                    color="muted"
+                    style={css({ textTransform: 'uppercase' })}
+                  >
+                    Forensic Tools
+                  </LqText>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setToolsCollapsed(!toolsCollapsed)}
                 >
-                  Forensic Tools
-                </LqText>
-              )}
-              <Button variant="ghost" size="sm" onClick={() => setToolsCollapsed(!toolsCollapsed)}>
-                {toolsCollapsed ? <ArrowRight size={16} /> : <ChevronLeft size={16} />}
-              </Button>
-            </Flex>
+                  {toolsCollapsed ? <ArrowRight size={16} /> : <ChevronLeft size={16} />}
+                </Button>
+              </Flex>
 
-            <Box className={styles.autoGen85}>
-              <Stack gap="md">
-                {enabledToolsList.map((tool) => {
-                  const toolStats = stats[tool.id as keyof typeof stats];
-                  const score = toolStats?.confidenceDetails.finalScore ?? null;
-                  const isActive = activeTool === tool.id;
+              <Box className={styles.autoGen85}>
+                <Stack gap="md">
+                  {enabledToolsList.map((tool) => {
+                    const toolStats = stats[tool.id as keyof typeof stats];
+                    const score = toolStats?.confidenceDetails.finalScore ?? null;
+                    const isActive = activeTool === tool.id;
 
-                  return (
-                    <Surface
-                      key={tool.id}
-                      variant={isActive ? 'glass' : 'glass-highlight'}
-                      p="md"
-                      className={cn(
-                        'cursor-pointer border-l-2 transition-all hover:translate-x-1',
-                        isActive ? 'border-l-[var(--lq-accent)]' : 'border-l-transparent',
-                      )}
-                      onClick={() => setActiveTool(tool.id as typeof activeTool)}
-                    >
-                      <Flex align="center" gap="md">
-                        <Box
-                          className={cn(
-                            styles.p2,
-                            'rounded-lg',
-                            isActive
-                              ? 'bg-[var(--lq-accent)] text-white'
-                              : 'bg-[var(--lq-surface-3)] text-[var(--lq-text-muted)]',
+                    return (
+                      <Surface
+                        key={tool.id}
+                        variant={isActive ? 'glass' : 'glass-highlight'}
+                        p="md"
+                        className={cn(
+                          'cursor-pointer border-l-2 transition-all hover:translate-x-1',
+                          isActive ? 'border-l-[var(--lq-accent)]' : 'border-l-transparent',
+                        )}
+                        onClick={() => setActiveTool(tool.id as typeof activeTool)}
+                      >
+                        <Flex align="center" gap="md">
+                          <Box
+                            className={cn(
+                              styles.p2,
+                              'rounded-lg',
+                              isActive
+                                ? 'bg-[var(--lq-accent)] text-white'
+                                : 'bg-[var(--lq-surface-3)] text-[var(--lq-text-muted)]',
+                            )}
+                          >
+                            <tool.icon size={20} />
+                          </Box>
+                          {!toolsCollapsed && (
+                            <Stack gap="none" className={styles.autoGen86}>
+                              <LqText variant="xs" weight="bold">
+                                {tool.name}
+                              </LqText>
+                              <LqText variant="xs" color="muted">
+                                {tool.description}
+                              </LqText>
+                            </Stack>
                           )}
-                        >
-                          <tool.icon size={20} />
-                        </Box>
+                        </Flex>
+
                         {!toolsCollapsed && (
-                          <Stack gap="none" className={styles.autoGen86}>
-                            <LqText variant="xs" weight="bold">
-                              {tool.name}
-                            </LqText>
-                            <LqText variant="xs" color="muted">
-                              {tool.description}
-                            </LqText>
+                          <Stack
+                            gap="sm"
+                            style={css({
+                              marginTop: 'var(--spacing-md)',
+                              paddingTop: 'var(--spacing-md)',
+                            })}
+                            className={styles.autoGen87}
+                          >
+                            <Flex justify="between">
+                              <LqText variant="xs" weight="bold">
+                                {toolStats.count} items detected
+                              </LqText>
+                              <Badge
+                                tone={
+                                  getConfidenceLevel(score) as
+                                    | 'success'
+                                    | 'warning'
+                                    | 'accent'
+                                    | 'danger'
+                                    | 'neutral'
+                                    | undefined
+                                }
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedConfidenceTool(tool.id);
+                                }}
+                              >
+                                {score === null ? 'N/A' : `${score}% CONF`}
+                              </Badge>
+                            </Flex>
+                            <Flex gap="sm">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  runTool(tool.id);
+                                }}
+                              >
+                                {toolRunState[tool.id] === 'running' ? (
+                                  <RefreshCw
+                                    style={css({ marginRight: '0.25rem' })}
+                                    className={styles.spin}
+                                    size={10}
+                                  />
+                                ) : (
+                                  <Activity size={10} style={css({ marginRight: '0.25rem' })} />
+                                )}
+                                Process Signal
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                View
+                              </Button>
+                            </Flex>
                           </Stack>
                         )}
-                      </Flex>
-
-                      {!toolsCollapsed && (
-                        <Stack
-                          gap="sm"
-                          style={css({
-                            marginTop: 'var(--spacing-md)',
-                            paddingTop: 'var(--spacing-md)',
-                          })}
-                          className={styles.autoGen87}
-                        >
-                          <Flex justify="between">
-                            <LqText variant="xs" weight="bold">
-                              {toolStats.count} items detected
-                            </LqText>
-                            <Badge
-                              tone={
-                                getConfidenceLevel(score) as
-                                  | 'success'
-                                  | 'warning'
-                                  | 'accent'
-                                  | 'danger'
-                                  | 'neutral'
-                                  | undefined
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedConfidenceTool(tool.id);
-                              }}
-                            >
-                              {score === null ? 'N/A' : `${score}% CONF`}
-                            </Badge>
-                          </Flex>
-                          <Flex gap="sm">
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                runTool(tool.id);
-                              }}
-                            >
-                              {toolRunState[tool.id] === 'running' ? (
-                                <RefreshCw
-                                  style={css({ marginRight: '0.25rem' })}
-                                  className={styles.spin}
-                                  size={10}
-                                />
-                              ) : (
-                                <Activity size={10} style={css({ marginRight: '0.25rem' })} />
-                              )}
-                              Process Signal
-                            </Button>
-                            <Button variant="ghost" size="sm">
-                              View
-                            </Button>
-                          </Flex>
-                        </Stack>
-                      )}
-                    </Surface>
-                  );
-                })}
-              </Stack>
-            </Box>
-
-            {!toolsCollapsed && (
-              <Surface variant="glass" p="md" className={styles.autoGen88}>
-                <LqText
-                  variant="xs"
-                  weight="bold"
-                  color="muted"
-                  style={css({ textTransform: 'uppercase', marginBottom: 'var(--spacing-sm)' })}
-                >
-                  Case Context
-                </LqText>
-                <Stack gap="xs">
-                  <Flex justify="between">
-                    <LqText variant="xs">Priority</LqText>
-                    <Badge tone={PRIORITY_VARIANT[investigation.priority]}>
-                      {investigation.priority?.toUpperCase()}
-                    </Badge>
-                  </Flex>
-                  <Flex justify="between">
-                    <LqText variant="xs">Evidence</LqText>
-                    <LqText variant="xs" weight="bold">
-                      {evidence.length}
-                    </LqText>
-                  </Flex>
-                  <Flex justify="between">
-                    <LqText variant="xs">Team</LqText>
-                    <LqText variant="xs" weight="bold">
-                      {investigation.team.length} agents
-                    </LqText>
-                  </Flex>
+                      </Surface>
+                    );
+                  })}
                 </Stack>
-              </Surface>
-            )}
-          </Stack>
-        </Surface>
+              </Box>
+
+              {!toolsCollapsed && (
+                <Surface variant="glass" p="md" className={styles.autoGen88}>
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="muted"
+                    style={css({ textTransform: 'uppercase', marginBottom: 'var(--spacing-sm)' })}
+                  >
+                    Case Context
+                  </LqText>
+                  <Stack gap="xs">
+                    <Flex justify="between">
+                      <LqText variant="xs">Priority</LqText>
+                      <Badge tone={PRIORITY_VARIANT[investigation.priority]}>
+                        {investigation.priority?.toUpperCase()}
+                      </Badge>
+                    </Flex>
+                    <Flex justify="between">
+                      <LqText variant="xs">Evidence</LqText>
+                      <LqText variant="xs" weight="bold">
+                        {evidence.length}
+                      </LqText>
+                    </Flex>
+                    <Flex justify="between">
+                      <LqText variant="xs">Team</LqText>
+                      <LqText variant="xs" weight="bold">
+                        {investigation.team.length} agents
+                      </LqText>
+                    </Flex>
+                  </Stack>
+                </Surface>
+              )}
+            </Stack>
+          </Surface>
+        )}
 
         {/* Workbench */}
-        <Box className={styles.autoGen89}>
+        <Box className={cn(styles.autoGen89, isMobile && styles.mobileWorkbench)}>
           <Box className={styles.autoGen90}>
             {activeTool === 'documents' && (
               <ForensicDocumentAnalyzer documentId={docIdParam || evidence[0]?.id || ''} />
@@ -596,50 +635,127 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
         </Box>
       </Flex>
 
-      {/* Confidence Detail Modal */}
-      {selectedConfidenceTool && (
-        <Box className={styles.autoGen91} onClick={() => setSelectedConfidenceTool(null)}>
-          <Surface
-            variant="glass"
-            style={css({
-              width: '95vw',
-              maxWidth: 500,
-              padding: 'var(--spacing-xl)',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            })}
-            className={styles.autoGen92}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Stack gap="xl">
-              <Flex justify="between" align="center">
-                <Stack gap="none">
-                  <LqText variant="h3" weight="bold">
-                    Intelligence Confidence
-                  </LqText>
-                  <LqText variant="small" color="muted">
-                    {forensicTools.find((t) => t.id === selectedConfidenceTool)?.name} Breakdown
-                  </LqText>
-                </Stack>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedConfidenceTool(null)}>
-                  <XCircle size={18} />
-                </Button>
-              </Flex>
+      {/* Mobile Toolbelt */}
+      {isMobile && (
+        <div className={styles.mobileToolbelt}>
+          {enabledToolsList.map((tool) => (
+            <button
+              key={tool.id}
+              className={cn(
+                styles.mobileToolItem,
+                activeTool === tool.id && styles.mobileToolItemActive,
+              )}
+              onClick={() => setActiveTool(tool.id as typeof activeTool)}
+            >
+              <tool.icon size={20} />
+              <span className={styles.mobileToolLabel}>{tool.name.split(' ')[0]}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
-              {(() => {
-                const details =
-                  stats[selectedConfidenceTool as keyof typeof stats]?.confidenceDetails;
-                if (!details) return null;
-                return (
+      {/* Confidence Detail Modal */}
+      {selectedConfidenceTool &&
+        (isMobile ? (
+          <Box className={styles.fullScreenMobile}>
+            <MobileStackHeader
+              title="Intelligence Confidence"
+              subtitle={`${selectedConfidenceToolName} Breakdown`}
+              onBack={() => setSelectedConfidenceTool(null)}
+            />
+            <div className={styles.fullScreenContent}>
+              {selectedConfidenceDetails && (
+                <Stack gap="lg">
+                  <Grid cols={1} gap="md">
+                    <Surface variant="glass-highlight" p="md" className={styles.autoGen93}>
+                      <LqText
+                        variant="h2"
+                        weight="bold"
+                        color={getConfidenceLevel(selectedConfidenceDetails.finalScore)}
+                      >
+                        {selectedConfidenceDetails.finalScore}%
+                      </LqText>
+                      <LqText variant="xs" color="muted">
+                        Global Reliability
+                      </LqText>
+                    </Surface>
+                    <Surface variant="glass-highlight" p="md" className={styles.autoGen94}>
+                      <LqText variant="small" weight="bold">
+                        {selectedConfidenceDetails.algorithm}
+                      </LqText>
+                      <LqText variant="xs" color="muted">
+                        Validator Engine
+                      </LqText>
+                    </Surface>
+                  </Grid>
+
+                  <Stack gap="sm">
+                    <LqText
+                      variant="xs"
+                      weight="bold"
+                      color="muted"
+                      style={css({ textTransform: 'uppercase' })}
+                    >
+                      Weighting & Telemetry
+                    </LqText>
+                    {desktopConfidenceFactors.map((factor) => (
+                      <Surface key={factor.label} variant="panel" p="md">
+                        <Flex justify="between" align="center">
+                          <Stack gap="none">
+                            <LqText variant="small" weight="bold">
+                              {factor.label}
+                            </LqText>
+                            <LqText variant="xs" color="muted">
+                              Weight: {factor.weight}
+                            </LqText>
+                          </Stack>
+                          <Badge tone="accent">{((factor.value ?? 0) * 100).toFixed(0)}%</Badge>
+                        </Flex>
+                      </Surface>
+                    ))}
+                  </Stack>
+                </Stack>
+              )}
+            </div>
+          </Box>
+        ) : (
+          <Box className={styles.autoGen91} onClick={() => setSelectedConfidenceTool(null)}>
+            <Surface
+              variant="glass"
+              style={css({
+                width: '95vw',
+                maxWidth: 500,
+                padding: 'var(--spacing-xl)',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+              })}
+              className={styles.autoGen92}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Stack gap="xl">
+                <Flex justify="between" align="center">
+                  <Stack gap="none">
+                    <LqText variant="h3" weight="bold">
+                      Intelligence Confidence
+                    </LqText>
+                    <LqText variant="small" color="muted">
+                      {selectedConfidenceToolName} Breakdown
+                    </LqText>
+                  </Stack>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedConfidenceTool(null)}>
+                    <XCircle size={18} />
+                  </Button>
+                </Flex>
+                {selectedConfidenceDetails && (
                   <Stack gap="lg">
                     <Grid cols={2} gap="md">
                       <Surface variant="glass-highlight" p="md" className={styles.autoGen93}>
                         <LqText
                           variant="h2"
                           weight="bold"
-                          color={getConfidenceLevel(details.finalScore)}
+                          color={getConfidenceLevel(selectedConfidenceDetails.finalScore)}
                         >
-                          {details.finalScore}%
+                          {selectedConfidenceDetails.finalScore}%
                         </LqText>
                         <LqText variant="xs" color="muted">
                           Global Reliability
@@ -647,7 +763,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                       </Surface>
                       <Surface variant="glass-highlight" p="md" className={styles.autoGen94}>
                         <LqText variant="small" weight="bold">
-                          {details.algorithm}
+                          {selectedConfidenceDetails.algorithm}
                         </LqText>
                         <LqText variant="xs" color="muted">
                           Validator Engine
@@ -657,43 +773,22 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
 
                     <Stack gap="sm">
                       <LqText variant="small" weight="bold" color="muted">
-                        PRIMARY VECTORS
+                        Primary Vectors
                       </LqText>
                       <Stack gap="xs">
-                        {[
-                          {
-                            label: 'Evidence Coverage',
-                            val: details.factors.coverage,
-                            weight: '40%',
-                          },
-                          {
-                            label: 'Signal Quality',
-                            val: details.factors.signalQuality,
-                            weight: '25%',
-                          },
-                          {
-                            label: 'Cross-Corroboration',
-                            val: details.factors.corroboration,
-                            weight: '25%',
-                          },
-                          {
-                            label: 'Model Certainty',
-                            val: details.factors.modelCertainty,
-                            weight: '10%',
-                          },
-                        ].map((f) => (
-                          <Surface key={f.label} variant="glass-highlight" p="sm">
+                        {desktopConfidenceFactors.map((factor) => (
+                          <Surface key={factor.label} variant="glass-highlight" p="sm">
                             <Flex justify="between">
                               <Stack gap="none">
                                 <LqText variant="xs" weight="bold">
-                                  {f.label}
+                                  {factor.label}
                                 </LqText>
                                 <LqText variant="xs" color="muted">
-                                  Weight: {f.weight}
+                                  Weight: {factor.weight}
                                 </LqText>
                               </Stack>
                               <LqText variant="small" weight="bold">
-                                {((f.val ?? 0) * 100).toFixed(0)}%
+                                {((factor.value ?? 0) * 100).toFixed(0)}%
                               </LqText>
                             </Flex>
                           </Surface>
@@ -704,18 +799,17 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => console.log(details.factorInputs)}
+                      onClick={() => console.log(selectedConfidenceDetails.factorInputs)}
                     >
-                      <ShieldCheck size={14} style={css({ marginRight: '0.25rem' })} /> Log Raw
-                      Factor Inputs to Console
+                      <ShieldCheck size={14} style={css({ marginRight: '0.25rem' })} />
+                      Log Raw Factor Inputs to Console
                     </Button>
                   </Stack>
-                );
-              })()}
-            </Stack>
-          </Surface>
-        </Box>
-      )}
+                )}
+              </Stack>
+            </Surface>
+          </Box>
+        ))}
     </Box>
   );
 };

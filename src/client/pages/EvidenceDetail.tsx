@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { useIsTouch } from '../hooks/useIsTouch';
 import { useParams, Link } from 'react-router-dom';
 import {
   FileText,
@@ -76,10 +77,12 @@ interface Evidence {
 
 export function EvidenceDetail() {
   const { id } = useParams<{ id: string }>();
+  const isTouch = useIsTouch();
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [mobileTab, setMobileTab] = useState<'document' | 'info'>('document');
   const noticeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -356,17 +359,57 @@ export function EvidenceDetail() {
         </Box>
       </Surface>
 
+      {/* Mobile viewer/info tab strip */}
+      {isTouch && (
+        <div className={styles.mobileTabStrip}>
+          <button
+            type="button"
+            className={[styles.mobileTab, mobileTab === 'document' ? styles.mobileTabActive : '']
+              .filter(Boolean)
+              .join(' ')}
+            onClick={() => setMobileTab('document')}
+          >
+            Document
+          </button>
+          <button
+            type="button"
+            className={[styles.mobileTab, mobileTab === 'info' ? styles.mobileTabActive : '']
+              .filter(Boolean)
+              .join(' ')}
+            onClick={() => setMobileTab('info')}
+          >
+            Info &amp; Entities
+          </button>
+        </div>
+      )}
+
       <Box className={styles.contentShell}>
         <Grid cols={{ base: 1, lg: 4 }} gap="lg">
           {/* Main Content */}
-          <Box className={styles.layoutMain}>
+          <Box
+            className={[
+              styles.layoutMain,
+              isTouch && mobileTab !== 'document' ? styles.hiddenOnMobile : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
             <Surface variant="glass" className={styles.mainSurface}>
               {renderViewer()}
             </Surface>
           </Box>
 
           {/* Sidebar */}
-          <Flex direction="column" gap={6} className={styles.layoutSide}>
+          <Flex
+            direction="column"
+            gap={6}
+            className={[
+              styles.layoutSide,
+              isTouch && mobileTab !== 'info' ? styles.hiddenOnMobile : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
             {/* Claims & Facts */}
             {evidence.claims && evidence.claims.length > 0 && (
               <ClaimsList

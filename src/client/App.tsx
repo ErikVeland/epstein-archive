@@ -42,12 +42,14 @@ import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 import {
+  BottomSheet,
   Box,
   Button,
   Flex,
   Input,
   LqText,
   SearchField,
+  Stack,
   Surface,
   TooltipProvider,
 } from './design-system/lib';
@@ -56,6 +58,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
 import { useSeoConfig } from './hooks/useSeoConfig';
 import { useAppNavigation, tabLabels } from './hooks/useAppNavigation';
+import { useIsMobile } from './hooks/useIsMobile';
 import { parseReleaseNotes } from './utils/releaseNotes';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 import { useApiStatus } from './contexts/ApiStatusContext';
@@ -76,6 +79,14 @@ const TimelinePage = lazyWithRetry(
 const FlightsPage = lazyWithRetry(
   () => import('./pages/FlightsPage').then((m) => ({ default: m.FlightsPage })),
   'FlightsPage',
+);
+const FlightDetailPage = lazyWithRetry(
+  () => import('./pages/FlightDetailPage').then((m) => ({ default: m.FlightDetailPage })),
+  'FlightDetailPage',
+);
+const ArticleDetailPage = lazyWithRetry(
+  () => import('./pages/ArticleDetailPage').then((m) => ({ default: m.ArticleDetailPage })),
+  'ArticleDetailPage',
 );
 const PropertyPage = lazyWithRetry(
   () => import('./pages/PropertyPage').then((m) => ({ default: m.PropertyPage })),
@@ -184,6 +195,7 @@ function App() {
   const { activeTab, location } = useAppNavigation();
   const navigate = useNavigate();
   const { user: currentUser, isAdmin } = useAuth();
+  const isMobile = useIsMobile();
 
   const seoConfig = useSeoConfig();
 
@@ -191,11 +203,25 @@ function App() {
 
   // UNUSED STATE REMOVED:  const [people, setPeople] = useState<Person[]>([]);
   // filteredPeople removed - unused
-  const [sortBy, setSortBy] = useState<'name' | 'mentions' | 'red_flag' | 'risk'>('red_flag');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [entityType, setEntityType] = useState<string>('all');
+
+  // People filter state — initialized from URL params on first load so that
+  // sharing or refreshing a people URL restores the active filters.
+  const [sortBy, setSortBy] = useState<'name' | 'mentions' | 'red_flag' | 'risk'>(() => {
+    const v = new URLSearchParams(window.location.search).get('sort');
+    return v === 'name' || v === 'mentions' || v === 'red_flag' || v === 'risk' ? v : 'red_flag';
+  });
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => {
+    const v = new URLSearchParams(window.location.search).get('order');
+    return v === 'asc' ? 'asc' : 'desc';
+  });
+  const [entityType, setEntityType] = useState<string>(() => {
+    return new URLSearchParams(window.location.search).get('type') ?? 'all';
+  });
   const [selectedRiskLevel, setSelectedRiskLevel] = useState<'HIGH' | 'MEDIUM' | 'LOW' | null>(
-    null,
+    () => {
+      const v = new URLSearchParams(window.location.search).get('risk');
+      return v === 'HIGH' || v === 'MEDIUM' || v === 'LOW' ? v : null;
+    },
   );
 
   // Modal State
@@ -226,6 +252,7 @@ function App() {
 
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
   const [showCreateEntityModal, setShowCreateEntityModal] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [showDateRangePicker, setShowDateRangePicker] = useState(false);
   const dateRangePickerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -638,6 +665,12 @@ function App() {
     return () => window.removeEventListener('toggleMobileMenu', handleToggleMobileMenu);
   }, []);
 
+  useEffect(() => {
+    if (isMobile) return;
+    setIsMobileSearchOpen(false);
+    setShowDateRangePicker(false);
+  }, [isMobile]);
+
   // Initialize optimized data service (caches first page to sessionStorage)
   const { isLoading: isInitializing } = useQuery<boolean>({
     queryKey: ['initDataService'],
@@ -820,6 +853,31 @@ function App() {
     };
   }, [updatePopoverPos]);
 
+  // Sync people filter state to URL so back navigation and sharing preserve filters.
+  // Only writes when on a people-related path; omits params that equal the default.
+  useEffect(() => {
+    const isPeoplePath =
+      location.pathname === '/' ||
+      location.pathname === '/people' ||
+      location.pathname.startsWith('/entity/');
+    if (!isPeoplePath) return;
+
+    const next = new URLSearchParams(location.search);
+    // Preserve non-filter params (e.g. ?q= from search)
+    ['sort', 'order', 'type', 'risk'].forEach((k) => next.delete(k));
+    if (sortBy !== 'red_flag') next.set('sort', sortBy);
+    if (sortOrder !== 'desc') next.set('order', sortOrder);
+    if (entityType !== 'all') next.set('type', entityType);
+    if (selectedRiskLevel) next.set('risk', selectedRiskLevel);
+
+    const newSearch = next.toString();
+    const currentSearch = new URLSearchParams(location.search).toString();
+    if (newSearch !== currentSearch) {
+      navigate(`${location.pathname}${newSearch ? `?${newSearch}` : ''}`, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excludes location.search to avoid loop
+  }, [sortBy, sortOrder, entityType, selectedRiskLevel, location.pathname]);
+
   // Handler for risk level click clicks
   const handleRiskLevelClick = useCallback((level: 'HIGH' | 'MEDIUM' | 'LOW') => {
     // Toggle: if clicking the same level, deselect it
@@ -925,6 +983,145 @@ function App() {
       navigate(`/documents/${encodeURIComponent(documentId)}`);
     },
     [location.pathname, location.search, navigate],
+  );
+
+  const openSearchResultsRoute = useCallback(() => {
+    if (searchTerm.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+    } else {
+      navigate('/search');
+    }
+    setIsMobileSearchOpen(false);
+  }, [navigate, searchTerm]);
+
+  const clearDateFilter = useCallback(() => {
+    setFilters({ timeRange: [null, null] });
+    setShowDateRangePicker(false);
+  }, [setFilters]);
+
+  const renderSearchSuggestions = useCallback(
+    (containerClassName?: string) => (
+      <Surface className={cn(styles.searchDropdown, containerClassName)}>
+        <div className={styles.searchDropdownHeader}>Search results for "{searchTerm}"</div>
+        {searchSuggestionsLoading ? (
+          <div className={styles.searchDropdownLoading}>
+            <div className={styles.miniSpinner}></div>
+            Searching…
+          </div>
+        ) : searchSuggestions.length > 0 ? (
+          searchSuggestions.slice(0, 8).map((suggestion, i) =>
+            suggestion.kind === 'entity' ? (
+              <Button
+                unstyled
+                key={`entity-sugg-${suggestion.id}-${i}`}
+                className={styles.searchSuggestionButton}
+                onClick={() => {
+                  handlePersonClick(suggestion);
+                  setIsMobileSearchOpen(false);
+                }}
+              >
+                <Icon name="User" size="sm" color="gray" />
+                <span className={styles.searchSuggestionText}>
+                  {suggestion.canonicalName || suggestion.name}
+                  {suggestion.matchedAlias && (
+                    <span className={styles.searchSuggestionAlias}>
+                      ({suggestion.matchedAlias})
+                    </span>
+                  )}
+                </span>
+                <span className={styles.searchSuggestionMeta}>
+                  {suggestion.role !== 'Unknown' ? suggestion.role : 'Subject'}
+                </span>
+              </Button>
+            ) : (
+              <Button
+                unstyled
+                key={`doc-sugg-${suggestion.id}-${i}`}
+                className={styles.searchDocButton}
+                onClick={() => {
+                  handleDocumentSuggestionClick(suggestion.id);
+                  setIsMobileSearchOpen(false);
+                }}
+              >
+                <Icon name="FileText" size="sm" color="gray" className={styles.searchDocIcon} />
+                <span className={styles.searchDocBody}>
+                  <span className={styles.searchDocTitle}>{suggestion.title}</span>
+                  {suggestion.snippet && (
+                    <span className={styles.searchDocSnippet}>
+                      {suggestion.snippet.replace(/<[^>]+>/g, '')}
+                    </span>
+                  )}
+                </span>
+                <span className={styles.searchDocMeta}>
+                  {suggestion.evidenceType || 'Document'}
+                </span>
+              </Button>
+            ),
+          )
+        ) : (
+          <div className={styles.searchDropdownEmpty}>No subjects or documents found</div>
+        )}
+        <div className={styles.searchDropdownFooter}>
+          <Button unstyled className={styles.searchAllButton} onClick={openSearchResultsRoute}>
+            <Icon name="Search" size="sm" />
+            <span>Search all documents for "{searchTerm}"</span>
+          </Button>
+        </div>
+      </Surface>
+    ),
+    [
+      handleDocumentSuggestionClick,
+      handlePersonClick,
+      openSearchResultsRoute,
+      searchSuggestions,
+      searchSuggestionsLoading,
+      searchTerm,
+    ],
+  );
+
+  const renderDateFilterFields = useCallback(
+    (className?: string) => (
+      <div className={cn(styles.dateFilterFields, className)}>
+        <div>
+          <label htmlFor="global-date-from" className={styles.dateFilterLabel}>
+            From
+          </label>
+          <Input
+            id="global-date-from"
+            type="date"
+            className={styles.dateInput}
+            value={filters.timeRange[0] ?? ''}
+            onChange={(e) =>
+              setFilters({
+                timeRange: [e.target.value || null, filters.timeRange[1]],
+              })
+            }
+          />
+        </div>
+        <div>
+          <label htmlFor="global-date-to" className={styles.dateFilterLabel}>
+            To
+          </label>
+          <Input
+            id="global-date-to"
+            type="date"
+            className={styles.dateInput}
+            value={filters.timeRange[1] ?? ''}
+            onChange={(e) =>
+              setFilters({
+                timeRange: [filters.timeRange[0], e.target.value || null],
+              })
+            }
+          />
+        </div>
+        {(filters.timeRange[0] || filters.timeRange[1]) && (
+          <Button unstyled onClick={clearDateFilter} className={styles.dateClearButton}>
+            Clear date filter
+          </Button>
+        )}
+      </div>
+    ),
+    [clearDateFilter, filters.timeRange, setFilters],
   );
 
   const navThemeClassByTab: Record<string, string> = {
@@ -1045,300 +1242,215 @@ function App() {
 
                     {/* RIGHT: Actions and Search */}
                     <div className={styles.actionsArea}>
-                      {/* Button Group */}
-                      <div className={styles.buttonGroup}>
-                        {/* New Investigation */}
-                        <Button
-                          unstyled
-                          onClick={() => navigate('/investigations')}
-                          className={styles.controlButton}
-                          title="New Investigation"
-                        >
-                          <Icon name="Plus" size="sm" color="white" />
-                          <span className={styles.buttonText}>New</span>
-                        </Button>
-
-                        {/* Shortcuts */}
-                        <Button
-                          unstyled
-                          onClick={() => setShowKeyboardShortcuts(true)}
-                          className={styles.controlButton}
-                          title="Keyboard Shortcuts"
-                        >
-                          <Icon name="Command" size="sm" color="info" />
-                          <span className={styles.buttonText}>Shortcuts</span>
-                        </Button>
-
-                        {/* Sources */}
-                        <Button
-                          unstyled
-                          onClick={() => navigate('/about')}
-                          className={styles.controlButton}
-                          title="Verified Sources"
-                        >
-                          <Icon name="Shield" size="sm" color="success" />
-                          <span className={styles.buttonText}>Sources</span>
-                        </Button>
-
-                        {/* What's New */}
-                        <Button
-                          unstyled
-                          onClick={() => setShowReleaseNotes(true)}
-                          className={styles.controlButton}
-                          title="What's New"
-                        >
-                          <Icon name="Book" size="sm" color="info" />
-                          <span className={styles.buttonText}>What's New</span>
-                        </Button>
-
-                        {/* Admin Dashboard */}
-                        {isAdmin && (
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/admin')}
-                            className={styles.controlButton}
-                            title="Admin Dashboard"
-                          >
-                            <Icon name="Shield" size="sm" className={styles.adminIcon} />
-                            <span className={cn(styles.buttonText, styles.adminButtonText)}>
-                              Admin
-                            </span>
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Search Bar */}
-                      <div className={styles.searchWrapper}>
-                        <div className={styles.headerSearchPill}>
-                          <SearchField
-                            type="text"
-                            placeholder="Search evidence..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && searchTerm.trim()) {
-                                navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-                              } else if (e.key === 'Escape') {
-                                setSearchTerm('');
-                                e.currentTarget.blur();
-                              }
-                            }}
-                            rootClassName={styles.headerSearchFieldRoot}
-                            className={styles.headerSearchFieldInput}
-                          />
-                          {searchTerm.trim().length > 0 && (
+                      {!isMobile && (
+                        <>
+                          <div className={styles.buttonGroup}>
                             <Button
                               unstyled
-                              type="button"
-                              onClick={() => setSearchTerm('')}
-                              aria-label="Clear search"
-                              className={styles.searchClearButton}
+                              onClick={() => navigate('/investigations')}
+                              className={styles.controlButton}
+                              title="New Investigation"
                             >
-                              <Icon name="X" size="xs" />
+                              <Icon name="Plus" size="sm" color="white" />
+                              <span className={styles.buttonText}>New</span>
                             </Button>
-                          )}
-                          <Button
-                            unstyled
-                            onClick={() => {
-                              if (searchTerm.trim()) {
-                                navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-                              } else {
-                                navigate('/search');
-                              }
-                            }}
-                            aria-label="Run search"
-                            className={cn(styles.searchButton)}
-                          >
-                            <Icon name="Search" size="sm" />
-                          </Button>
-                        </div>
-                        {searchTerm.trim().length >= 2 && (
-                          <Surface className={styles.searchDropdown}>
-                            <div className={styles.searchDropdownHeader}>
-                              Search results for "{searchTerm}"
-                            </div>
-                            {searchSuggestionsLoading ? (
-                              <div className={styles.searchDropdownLoading}>
-                                <div className={styles.miniSpinner}></div>
-                                Searching...
-                              </div>
-                            ) : searchSuggestions.length > 0 ? (
-                              searchSuggestions.slice(0, 8).map((suggestion, i) =>
-                                suggestion.kind === 'entity' ? (
-                                  <Button
-                                    unstyled
-                                    key={`entity-sugg-${suggestion.id}-${i}`}
-                                    className={styles.searchSuggestionButton}
-                                    onClick={() => handlePersonClick(suggestion)}
-                                  >
-                                    <Icon name="User" size="sm" color="gray" />
-                                    <span className={styles.searchSuggestionText}>
-                                      {suggestion.canonicalName || suggestion.name}
-                                      {suggestion.matchedAlias && (
-                                        <span className={styles.searchSuggestionAlias}>
-                                          ({suggestion.matchedAlias})
-                                        </span>
-                                      )}
-                                    </span>
-                                    <span className={styles.searchSuggestionMeta}>
-                                      {suggestion.role !== 'Unknown' ? suggestion.role : 'Subject'}
-                                    </span>
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    unstyled
-                                    key={`doc-sugg-${suggestion.id}-${i}`}
-                                    className={styles.searchDocButton}
-                                    onClick={() => handleDocumentSuggestionClick(suggestion.id)}
-                                  >
-                                    <Icon
-                                      name="FileText"
-                                      size="sm"
-                                      color="gray"
-                                      className={styles.searchDocIcon}
-                                    />
-                                    <span className={styles.searchDocBody}>
-                                      <span className={styles.searchDocTitle}>
-                                        {suggestion.title}
-                                      </span>
-                                      {suggestion.snippet && (
-                                        <span className={styles.searchDocSnippet}>
-                                          {suggestion.snippet.replace(/<[^>]+>/g, '')}
-                                        </span>
-                                      )}
-                                    </span>
-                                    <span className={styles.searchDocMeta}>
-                                      {suggestion.evidenceType || 'Document'}
-                                    </span>
-                                  </Button>
-                                ),
-                              )
-                            ) : (
-                              <div className={styles.searchDropdownEmpty}>
-                                No subjects or documents found
-                              </div>
-                            )}
-                            <div className={styles.searchDropdownFooter}>
+
+                            <Button
+                              unstyled
+                              onClick={() => setShowKeyboardShortcuts(true)}
+                              className={styles.controlButton}
+                              title="Keyboard Shortcuts"
+                            >
+                              <Icon name="Command" size="sm" color="info" />
+                              <span className={styles.buttonText}>Shortcuts</span>
+                            </Button>
+
+                            <Button
+                              unstyled
+                              onClick={() => navigate('/about')}
+                              className={styles.controlButton}
+                              title="Verified Sources"
+                            >
+                              <Icon name="Shield" size="sm" color="success" />
+                              <span className={styles.buttonText}>Sources</span>
+                            </Button>
+
+                            <Button
+                              unstyled
+                              onClick={() => setShowReleaseNotes(true)}
+                              className={styles.controlButton}
+                              title="What's New"
+                            >
+                              <Icon name="Book" size="sm" color="info" />
+                              <span className={styles.buttonText}>What's New</span>
+                            </Button>
+
+                            {isAdmin && (
                               <Button
                                 unstyled
-                                className={styles.searchAllButton}
-                                onClick={() =>
-                                  navigate(`/search?q=${encodeURIComponent(searchTerm)}`)
-                                }
+                                onClick={() => navigate('/admin')}
+                                className={styles.controlButton}
+                                title="Admin Dashboard"
                               >
-                                <Icon name="Search" size="sm" />
-                                <span>Search all documents for "{searchTerm}"</span>
+                                <Icon name="Shield" size="sm" className={styles.adminIcon} />
+                                <span className={cn(styles.buttonText, styles.adminButtonText)}>
+                                  Admin
+                                </span>
                               </Button>
-                            </div>
-                          </Surface>
-                        )}
-                      </div>
+                            )}
+                          </div>
 
-                      {/* Global Date Range Filter */}
-                      <div ref={dateRangePickerRef} className={styles.dateFilterWrap}>
-                        <Button
-                          onClick={() => setShowDateRangePicker((v) => !v)}
-                          aria-expanded={showDateRangePicker}
-                          aria-haspopup="dialog"
-                          variant="ghost"
-                          size="sm"
-                          className={cn(
-                            styles.dateFilterButton,
-                            (filters.timeRange[0] || filters.timeRange[1]) &&
-                              styles.dateFilterButtonActive,
-                          )}
-                          title="Global date range filter"
-                        >
-                          <Icon
-                            name="Calendar"
-                            size="sm"
-                            color={
-                              filters.timeRange[0] || filters.timeRange[1] ? 'warning' : 'gray'
-                            }
-                          />
-                          {(filters.timeRange[0] || filters.timeRange[1]) && (
-                            <span className={styles.dateFilterValue}>
-                              {filters.timeRange[0] ?? '…'} – {filters.timeRange[1] ?? '…'}
-                            </span>
-                          )}
-                        </Button>
-                        {showDateRangePicker && (
-                          <Surface
-                            className={styles.dateFilterPanel}
-                            role="dialog"
-                            aria-label="Global date range filter"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Escape') {
-                                setShowDateRangePicker(false);
-                              }
-                            }}
-                          >
-                            <div className={styles.dateFilterTitle}>Global Date Filter</div>
-                            <div className={styles.dateFilterFields}>
-                              <div>
-                                <label
-                                  htmlFor="global-date-from"
-                                  className={styles.dateFilterLabel}
-                                >
-                                  From
-                                </label>
-                                <Input
-                                  id="global-date-from"
-                                  type="date"
-                                  className={styles.dateInput}
-                                  value={filters.timeRange[0] ?? ''}
-                                  onChange={(e) =>
-                                    setFilters({
-                                      timeRange: [e.target.value || null, filters.timeRange[1]],
-                                    })
+                          <div className={styles.searchWrapper}>
+                            <div className={styles.headerSearchPill}>
+                              <SearchField
+                                type="text"
+                                placeholder="Search evidence..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' && searchTerm.trim()) {
+                                    openSearchResultsRoute();
+                                  } else if (e.key === 'Escape') {
+                                    setSearchTerm('');
+                                    e.currentTarget.blur();
                                   }
-                                />
-                              </div>
-                              <div>
-                                <label htmlFor="global-date-to" className={styles.dateFilterLabel}>
-                                  To
-                                </label>
-                                <Input
-                                  id="global-date-to"
-                                  type="date"
-                                  className={styles.dateInput}
-                                  value={filters.timeRange[1] ?? ''}
-                                  onChange={(e) =>
-                                    setFilters({
-                                      timeRange: [filters.timeRange[0], e.target.value || null],
-                                    })
-                                  }
-                                />
-                              </div>
-                              {(filters.timeRange[0] || filters.timeRange[1]) && (
+                                }}
+                                rootClassName={styles.headerSearchFieldRoot}
+                                className={styles.headerSearchFieldInput}
+                              />
+                              {searchTerm.trim().length > 0 && (
                                 <Button
                                   unstyled
-                                  onClick={() => {
-                                    setFilters({ timeRange: [null, null] });
-                                    setShowDateRangePicker(false);
-                                  }}
-                                  className={styles.dateClearButton}
+                                  type="button"
+                                  onClick={() => setSearchTerm('')}
+                                  aria-label="Clear search"
+                                  className={styles.searchClearButton}
                                 >
-                                  Clear date filter
+                                  <Icon name="X" size="xs" />
                                 </Button>
                               )}
+                              <Button
+                                unstyled
+                                onClick={openSearchResultsRoute}
+                                aria-label="Run search"
+                                className={cn(styles.searchButton)}
+                              >
+                                <Icon name="Search" size="sm" />
+                              </Button>
                             </div>
-                          </Surface>
-                        )}
-                      </div>
+                            {searchTerm.trim().length >= 2 && renderSearchSuggestions()}
+                          </div>
 
-                      {/* Mobile Menu Toggle */}
-                      <Button
-                        unstyled
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className={styles.mobileMenuButton}
-                      >
-                        {isMobileMenuOpen ? (
-                          <Icon name="X" size="sm" />
-                        ) : (
-                          <Icon name="Menu" size="sm" />
-                        )}
-                      </Button>
+                          <div ref={dateRangePickerRef} className={styles.dateFilterWrap}>
+                            <Button
+                              onClick={() => setShowDateRangePicker((v) => !v)}
+                              aria-expanded={showDateRangePicker}
+                              aria-haspopup="dialog"
+                              variant="ghost"
+                              size="sm"
+                              className={cn(
+                                styles.dateFilterButton,
+                                (filters.timeRange[0] || filters.timeRange[1]) &&
+                                  styles.dateFilterButtonActive,
+                              )}
+                              title="Global date range filter"
+                            >
+                              <Icon
+                                name="Calendar"
+                                size="sm"
+                                color={
+                                  filters.timeRange[0] || filters.timeRange[1] ? 'warning' : 'gray'
+                                }
+                              />
+                              {(filters.timeRange[0] || filters.timeRange[1]) && (
+                                <span className={styles.dateFilterValue}>
+                                  {filters.timeRange[0] ?? '…'} – {filters.timeRange[1] ?? '…'}
+                                </span>
+                              )}
+                            </Button>
+                            {showDateRangePicker && (
+                              <Surface
+                                className={styles.dateFilterPanel}
+                                role="dialog"
+                                aria-label="Global date range filter"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Escape') {
+                                    setShowDateRangePicker(false);
+                                  }
+                                }}
+                              >
+                                <div className={styles.dateFilterTitle}>Global Date Filter</div>
+                                {renderDateFilterFields()}
+                              </Surface>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {isMobile && (
+                        <div className={styles.mobileHeaderStack}>
+                          <div className={styles.mobileHeaderTopRow}>
+                            <div className={styles.mobileHeaderBrandSpacer} />
+                            <Button
+                              unstyled
+                              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                              className={styles.mobileMenuButton}
+                              aria-label={
+                                isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
+                              }
+                            >
+                              {isMobileMenuOpen ? (
+                                <Icon name="X" size="sm" />
+                              ) : (
+                                <Icon name="Menu" size="sm" />
+                              )}
+                            </Button>
+                          </div>
+
+                          <div className={styles.mobileHeaderControls}>
+                            <Button
+                              unstyled
+                              onClick={() => setIsMobileSearchOpen(true)}
+                              className={cn(
+                                styles.mobileControlButton,
+                                searchTerm.trim() && styles.mobileHeaderButtonActive,
+                              )}
+                              aria-label="Open search"
+                            >
+                              <span className={styles.mobileControlLead}>
+                                <Icon name="Search" size="sm" />
+                                <span className={styles.mobileControlLabel}>Search Archive</span>
+                              </span>
+                              <span className={styles.mobileControlValue}>
+                                {searchTerm.trim() || 'People, evidence, documents'}
+                              </span>
+                            </Button>
+
+                            <Button
+                              unstyled
+                              onClick={() => setShowDateRangePicker(true)}
+                              className={cn(
+                                styles.mobileControlButton,
+                                (filters.timeRange[0] || filters.timeRange[1]) &&
+                                  styles.mobileHeaderButtonActive,
+                              )}
+                              aria-label="Open global date filter"
+                            >
+                              <span className={styles.mobileControlLead}>
+                                <Icon name="Calendar" size="sm" />
+                                <span className={styles.mobileControlLabel}>
+                                  Global Date Filter
+                                </span>
+                              </span>
+                              <span className={styles.mobileControlValue}>
+                                {filters.timeRange[0] || filters.timeRange[1]
+                                  ? `${filters.timeRange[0] ?? '…'} – ${filters.timeRange[1] ?? '…'}`
+                                  : 'All dates'}
+                              </span>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1592,6 +1704,53 @@ function App() {
                     setIsMobileMenuOpen(false);
                   }}
                 />
+                {isMobile && (
+                  <BottomSheet
+                    isOpen={isMobileSearchOpen}
+                    onClose={() => setIsMobileSearchOpen(false)}
+                    title="Search Archive"
+                  >
+                    <Stack gap="md" className={styles.mobileSheetStack}>
+                      <SearchField
+                        type="text"
+                        placeholder="Search evidence…"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            openSearchResultsRoute();
+                          }
+                        }}
+                        rootClassName={styles.mobileSheetSearchRoot}
+                        className={styles.mobileSheetSearchInput}
+                        aria-label="Search the archive"
+                      />
+                      {searchTerm.trim().length >= 2 ? (
+                        renderSearchSuggestions(styles.mobileSheetDropdown)
+                      ) : (
+                        <Surface variant="panel" className={styles.mobileSearchEmptyState}>
+                          <LqText variant="small" color="secondary">
+                            Search people, evidence, and document excerpts from a single place.
+                          </LqText>
+                        </Surface>
+                      )}
+                    </Stack>
+                  </BottomSheet>
+                )}
+                {isMobile && (
+                  <BottomSheet
+                    isOpen={showDateRangePicker}
+                    onClose={() => setShowDateRangePicker(false)}
+                    title="Global Date Filter"
+                  >
+                    <Stack gap="md" className={styles.mobileSheetStack}>
+                      <LqText variant="small" color="secondary">
+                        Apply one time window across people, search, documents, and investigations.
+                      </LqText>
+                      {renderDateFilterFields(styles.mobileDateFields)}
+                    </Stack>
+                  </BottomSheet>
+                )}
 
                 {/* Tab Content */}
                 <div id="main-content" className={styles.mainContent}>
@@ -1750,9 +1909,11 @@ function App() {
                             }
                           />
                           <Route path="/timeline/*" element={<TimelinePage />} />
+                          <Route path="/flights/:id" element={<FlightDetailPage />} />
                           <Route path="/flights/*" element={<FlightsPage />} />
                           <Route path="/properties/*" element={<PropertyPage />} />
                           <Route path="/emails/*" element={<EmailPage />} />
+                          <Route path="/media/article/:id" element={<ArticleDetailPage />} />
                           <Route path="/media/*" element={<MediaPage />} />
                           <Route path="/about/*" element={<AboutPage />} />
                           <Route path="/privacy" element={<LegalPage mode="privacy" />} />

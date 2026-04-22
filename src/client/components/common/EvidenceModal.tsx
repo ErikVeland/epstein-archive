@@ -766,6 +766,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 isItemLoaded={isItemLoaded}
                 isNextPageLoading={isNextPageLoading}
                 usePlainEvidenceList
+                entityId={entityId}
                 entityName={entity?.fullName || ''}
                 openDocument={openDocumentFromEvidence}
               />
@@ -888,6 +889,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 isItemLoaded={isItemLoaded}
                 isNextPageLoading={isNextPageLoading}
                 usePlainEvidenceList
+                entityId={entityId}
                 entityName={entity?.fullName || ''}
                 openDocument={openDocumentFromEvidence}
               />

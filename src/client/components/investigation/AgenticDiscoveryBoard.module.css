@@ -33,15 +33,25 @@
 
 .discoveryGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: var(--space-6);
-  overflow-y: auto;
-  padding-bottom: var(--space-8);
+  padding: var(--space-6);
+}
+
+@media (max-width: 1023px) {
+  .discoveryGrid {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+    gap: var(--space-4);
+  }
 }
 
 .signalCard {
   position: relative;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.4s ease;
+  will-change: transform;
   display: flex;
   flex-direction: column;
   border: 1px solid var(--glass-border);

@@ -1,0 +1,100 @@
+.root {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: env(safe-area-inset-top, 0) var(--space-2) 0;
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg-strong) 95%, transparent);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.content {
+  height: var(--control-height);
+  padding: 0 var(--space-2);
+}
+
+.backButton {
+  margin-left: calc(var(--space-1) * -1);
+}
+
+.titleStack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.eyebrow {
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  font-size: 8px;
+}
+
+.title {
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.subtitle {
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.closeButton {
+  margin-right: calc(var(--space-1) * -1);
+}
+
+/* ─── Breadcrumb trail (replaces "Forensic Intelligence" eyebrow) ── */
+
+.breadcrumbTrail {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  line-height: 1;
+  margin-bottom: 1px;
+}
+
+.breadcrumbItem {
+  display: inline-flex;
+  align-items: center;
+}
+
+.breadcrumbSep {
+  font-size: 8px;
+  color: var(--text-muted);
+  margin: 0 2px;
+  user-select: none;
+}
+
+.breadcrumbLink {
+  font-size: 8px;
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.8;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.breadcrumbLink:active {
+  opacity: 1;
+}
+
+.breadcrumbCurrent {
+  font-size: 8px;
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}

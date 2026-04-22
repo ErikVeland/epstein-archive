@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SubjectCardDTO } from '../../types';
 import { formatNumber } from '../../utils/search';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import { CardActionSheet } from '../common/CardActionSheet';
 import Icon from '../common/Icon';
 import { getEntityTypeIcon } from '../../utils/entityTypeIcons';
 import { SignalPanel } from './cards/SignalPanel';
@@ -15,6 +16,9 @@ import { Flex } from '../../design-system/components/layout/Flex';
 import { Stack } from '../../design-system/components/layout/Stack';
 import { Grid } from '../../design-system/components/layout/Grid';
 import { Button } from '../../design-system/lib';
+import { useIsTouch } from '../../hooks/useIsTouch';
+import { useLongPress } from '../../hooks/useLongPress';
+import { useInvestigations } from '../../contexts/InvestigationsContext';
 import styles from './SubjectCardV2.module.css';
 
 interface SubjectCardV2Props {
@@ -25,6 +29,15 @@ interface SubjectCardV2Props {
 
 const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style, onClick }) => {
   const navigate = useNavigate();
+  const isTouch = useIsTouch();
+  const { addToInvestigation, selectedInvestigation, investigations } = useInvestigations();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const {
+    consumeClick,
+    onContextMenu: lpContextMenu,
+    ...longPressHandlers
+  } = useLongPress(() => setMenuOpen(true));
   const portraitUrl = `/api/entities/${subject.id}/portrait`;
   const hasPhotos = subject.topPhotoId != null;
 
@@ -47,8 +60,25 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
   const riskTone = riskToneFromRating(riskRating);
 
   const handleCardClick = () => {
+    if (consumeClick()) return;
     if (onClick) onClick();
     else navigate(`/entity/${subject.id}`);
+  };
+
+  const handleQuickAddToInvestigation = async () => {
+    const targetId = selectedInvestigation?.id ?? investigations[0]?.id;
+    if (!targetId) return;
+    await addToInvestigation(
+      targetId,
+      {
+        id: subject.id,
+        title: subject.name,
+        description: subject.role,
+        type: 'entity',
+        sourceId: subject.id,
+      },
+      'medium',
+    );
   };
 
   const handleProfileClick = (e: React.MouseEvent) => {
@@ -70,9 +100,11 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
         data-testid="subject-card"
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
+        onContextMenu={lpContextMenu}
         role="button"
         tabIndex={0}
         className={styles.card}
+        {...longPressHandlers}
         style={{
           boxShadow: `inset 0 1px 0 color-mix(in srgb, var(--text-strong) 5%, transparent), 0 12px 26px color-mix(in srgb, var(--bg-dark) 36%, transparent), 0 0 0 1px color-mix(in srgb, ${riskTone.cssVar} 22%, transparent)`,
         }}
@@ -139,47 +171,92 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
         </Grid>
 
         <Flex align="center" justify="between" className={styles.footerRow}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <AddToInvestigationButton
-                  item={{
-                    id: subject.id,
-                    title: subject.name,
-                    description: subject.role,
-                    type: 'entity',
-                    sourceId: subject.id,
-                  }}
-                  variant="icon"
-                  stopPropagation
-                />
-              </span>
-            </TooltipTrigger>
-            <TooltipPortal>
-              <TooltipContent side="top" align="end">
-                Add this entity to the current investigation
-              </TooltipContent>
-            </TooltipPortal>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="glass"
-                size="sm"
-                onClick={handleProfileClick}
-                className={styles.viewButton}
-              >
-                View <Icon name="ArrowRight" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipPortal>
-              <TooltipContent side="top" align="end">
-                Open full profile for this entity
-              </TooltipContent>
-            </TooltipPortal>
-          </Tooltip>
+          {isTouch ? (
+            <AddToInvestigationButton
+              item={{
+                id: subject.id,
+                title: subject.name,
+                description: subject.role,
+                type: 'entity',
+                sourceId: subject.id,
+              }}
+              variant="icon"
+              stopPropagation
+            />
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <AddToInvestigationButton
+                    item={{
+                      id: subject.id,
+                      title: subject.name,
+                      description: subject.role,
+                      type: 'entity',
+                      sourceId: subject.id,
+                    }}
+                    variant="icon"
+                    stopPropagation
+                  />
+                </span>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" align="end">
+                  Add this entity to the current investigation
+                </TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          )}
+          {isTouch ? (
+            <Button
+              variant="glass"
+              size="sm"
+              onClick={handleProfileClick}
+              className={styles.viewButton}
+              aria-label="Open full profile for this entity"
+            >
+              View <Icon name="ArrowRight" />
+            </Button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="glass"
+                  size="sm"
+                  onClick={handleProfileClick}
+                  className={styles.viewButton}
+                >
+                  View <Icon name="ArrowRight" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top" align="end">
+                  Open full profile for this entity
+                </TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          )}
         </Flex>
       </article>
+      <CardActionSheet
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        title={subject.name}
+        actions={[
+          {
+            label: 'View Profile',
+            icon: 'User',
+            onClick: () => navigate(`/entity/${subject.id}`),
+          },
+          {
+            label: 'Add to Investigation',
+            icon: 'Plus',
+            onClick: () => {
+              void handleQuickAddToInvestigation();
+            },
+          },
+        ]}
+      />
     </div>
   );
 });
@@ -193,6 +270,7 @@ const Metric = ({
   value: number;
   highlight?: boolean;
 }) => {
+  const isTouch = useIsTouch();
   const descriptions: Record<string, string> = {
     Mentions: 'Total mentions across documents. Higher implies broader exposure.',
     Docs: 'Approximate count of documents mentioning this entity.',
@@ -200,18 +278,23 @@ const Metric = ({
     Media: 'Verified photos or media linked to this entity.',
   };
   const content = descriptions[label] || '';
+
+  const inner = (
+    <Stack align="center" gap="xs" title={isTouch ? content : undefined}>
+      <span className={styles.metricLabel}>{label}</span>
+      <span
+        className={`${styles.metricValue} ${highlight ? styles.metricValueHighlight : ''} data-emphasis`}
+      >
+        {formatNumber(value)}
+      </span>
+    </Stack>
+  );
+
+  if (isTouch) return inner;
+
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Stack align="center" gap="xs">
-          <span className={styles.metricLabel}>{label}</span>
-          <span
-            className={`${styles.metricValue} ${highlight ? styles.metricValueHighlight : ''} data-emphasis`}
-          >
-            {formatNumber(value)}
-          </span>
-        </Stack>
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{inner}</TooltipTrigger>
       {content && (
         <TooltipPortal>
           <TooltipContent side="top">{content}</TooltipContent>

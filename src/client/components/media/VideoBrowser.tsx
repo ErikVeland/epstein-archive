@@ -33,6 +33,7 @@ import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { SEO } from '../common/SEO';
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
 import { EmptyCorpus } from '../common/EmptyCorpus';
+import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
 import styles from './VideoBrowser.module.css';
 
 interface VideoItem {
@@ -257,6 +258,8 @@ export const VideoBrowser: React.FC = () => {
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const { initialScrollOffset: restoredScrollOffset, onScroll: handleGridScroll } =
+    useListScrollRestoration('/media/videos');
 
   const {
     items,
@@ -504,11 +507,15 @@ export const VideoBrowser: React.FC = () => {
                       columnCount={columnCount}
                       columnWidth={columnWidth + gap}
                       height={height}
+                      initialScrollTop={restoredScrollOffset}
                       rowCount={rowCount}
                       rowHeight={rowHeight + gap}
                       width={width}
                       itemData={{ ...gridData, columnCount }}
                       className={styles.virtualScroller}
+                      onScroll={({ scrollTop }) => {
+                        handleGridScroll({ scrollTop });
+                      }}
                       onItemsRendered={({ visibleRowStopIndex }) => {
                         if (
                           visibleRowStopIndex * columnCount >= items.length - 12 &&

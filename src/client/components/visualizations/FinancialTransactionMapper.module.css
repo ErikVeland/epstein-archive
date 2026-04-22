@@ -672,3 +672,39 @@
     padding-right: 0;
   }
 }
+
+@media (max-width: 1023px) {
+  .summaryMobile {
+    font-size: 1.125rem !important;
+  }
+
+  .detailsOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: var(--lq-surface-1);
+    animation: ftm-slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .detailsCard {
+    flex: 1;
+    max-width: none;
+    border: none;
+    border-radius: 0;
+    overflow-y: auto;
+    padding: var(--space-4);
+    padding-bottom: calc(var(--space-12) + env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes ftm-slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

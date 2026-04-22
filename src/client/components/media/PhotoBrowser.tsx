@@ -46,6 +46,7 @@ import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { SEO } from '../common/SEO';
 import { EmptyCorpus } from '../common/EmptyCorpus';
+import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
 import styles from './PhotoBrowser.module.css';
 
 const css = <T,>(style: T) => style;
@@ -228,6 +229,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   const [undoStack, setUndoStack] = useState<
     Array<{ action: string; imageIds: number[]; prevState: MediaImage[] }>
   >([]);
+  const { initialScrollOffset: restoredScrollOffset, onScroll: handleListScroll } =
+    useListScrollRestoration('/media/photos');
   const {
     albums,
     images,
@@ -791,11 +794,15 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                           columnCount={columnCount}
                           columnWidth={columnWidth + gap}
                           height={height}
+                          initialScrollTop={restoredScrollOffset}
                           rowCount={rowCount}
                           rowHeight={rowHeight + gap}
                           width={width}
                           itemData={itemData}
                           className={styles.virtualScroller}
+                          onScroll={({ scrollTop }) => {
+                            handleListScroll({ scrollTop });
+                          }}
                           onItemsRendered={({ visibleRowStopIndex }) => {
                             if (
                               visibleRowStopIndex * columnCount >= images.length - 20 &&
@@ -823,11 +830,13 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                       return (
                         <List
                           height={height}
+                          initialScrollOffset={restoredScrollOffset}
                           itemCount={images.length}
                           itemSize={84}
                           width={width}
                           itemData={itemData}
                           className={styles.virtualScroller}
+                          onScroll={handleListScroll}
                           onItemsRendered={({ visibleStopIndex }) => {
                             if (visibleStopIndex >= images.length - 10 && hasMore && !loading) {
                               void loadMore();

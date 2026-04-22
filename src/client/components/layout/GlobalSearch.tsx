@@ -17,11 +17,12 @@ import {
   X,
   RotateCcw,
 } from 'lucide-react';
-import { Button, SearchField, Select, TextInput } from '../../design-system/lib';
+import { Box, Button, SearchField, Select, TextInput } from '../../design-system/lib';
 import { apiClient } from '../../services/apiClient';
 import { Person } from '../../types';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
+import { MobileStackHeader } from './MobileStackHeader';
 import s from './GlobalSearch.module.css';
 
 interface SearchResult {
@@ -99,7 +100,8 @@ const GlobalSearch: React.FC = () => {
   });
   const navigate = useNavigate();
   const [searchError, setSearchError] = useState<string | null>(null);
-  useScrollLock(!!selectedResult);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+  useScrollLock(!!selectedResult || (isMobile && searchTerm.length > 2));
 
   const handleDownload = (id: string, filename: string) => {
     const a = document.createElement('a');
@@ -702,26 +704,14 @@ const GlobalSearch: React.FC = () => {
 
       {/* Result Detail Modal */}
       {selectedResult &&
-        createPortal(
-          <div className={s.modalOverlay}>
-            <div className={s.modalContent}>
-              <div className={s.modalHeader}>
-                <div className={`${s.headerTop} ${s.headerTopCompact}`}>
-                  <span className={`${s.categoryBadge} ${s.categoryBadgeMedia}`}>
-                    {categories.find((c) => c.id === selectedResult.category)?.name}
-                  </span>
-                  <h3 className={`${s.itemTitle} ${s.itemTitleCompact}`}>
-                    {selectedResult.filename}
-                  </h3>
-                </div>
-                <CloseButton
-                  onClick={() => setSelectedResult(null)}
-                  size="sm"
-                  label="Close search result"
-                  className={s.actionButtonGlass}
-                />
-              </div>
-
+        (isMobile ? (
+          <Box className={s.fullScreenMobile}>
+            <MobileStackHeader
+              title={selectedResult.filename}
+              subtitle={categories.find((c) => c.id === selectedResult.category)?.name}
+              onBack={() => setSelectedResult(null)}
+            />
+            <div className={s.fullScreenContent}>
               <div className={s.modalBody}>
                 <div className={s.modalGrid}>
                   <div>
@@ -788,31 +778,133 @@ const GlobalSearch: React.FC = () => {
               <div className={s.modalFooter}>
                 <Button
                   type="button"
-                  onClick={() => setSelectedResult(null)}
-                  variant="secondary"
-                  size="sm"
-                  className={s.modalSecondaryButton}
-                >
-                  Close
-                </Button>
-                <Button
-                  type="button"
                   onClick={() => {
                     setSelectedResult(null);
                     navigate(`/documents/${encodeURIComponent(String(selectedResult.id))}`);
                   }}
                   variant="primary"
                   size="sm"
-                  className={s.modalPrimaryButton}
+                  className={s.mobileModalPrimaryButton}
                 >
                   <Eye className={s.modalButtonIcon} />
                   <span>View File</span>
                 </Button>
               </div>
             </div>
-          </div>,
-          document.body,
-        )}
+          </Box>
+        ) : (
+          createPortal(
+            <div className={s.modalOverlay}>
+              <div className={s.modalContent}>
+                <div className={s.modalHeader}>
+                  <div className={`${s.headerTop} ${s.headerTopCompact}`}>
+                    <span className={`${s.categoryBadge} ${s.categoryBadgeMedia}`}>
+                      {categories.find((c) => c.id === selectedResult.category)?.name}
+                    </span>
+                    <h3 className={`${s.itemTitle} ${s.itemTitleCompact}`}>
+                      {selectedResult.filename}
+                    </h3>
+                  </div>
+                  <CloseButton
+                    onClick={() => setSelectedResult(null)}
+                    size="sm"
+                    label="Close search result"
+                    className={s.actionButtonGlass}
+                  />
+                </div>
+
+                <div className={s.modalBody}>
+                  <div className={s.modalGrid}>
+                    <div>
+                      <label className={s.modalLabel}>File Path</label>
+                      <p className={`${s.modalValue} ${s.modalValueMono}`}>{selectedResult.file}</p>
+                    </div>
+                    <div>
+                      <label className={s.modalLabel}>Word Count</label>
+                      <p className={s.modalValue}>
+                        {(selectedResult.wordCount || 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <div>
+                      <label className={s.modalLabel}>Search Score</label>
+                      <p className={s.modalValueAccent}>{selectedResult.score}</p>
+                    </div>
+                    <div>
+                      <label className={s.modalLabel}>Category</label>
+                      <p className={s.modalValue}>{selectedResult.category}</p>
+                    </div>
+                  </div>
+
+                  {selectedResult.entities.length > 0 && (
+                    <div className={s.modalSection}>
+                      <label className={s.modalSectionLabel}>Entities Mentioned</label>
+                      <div className={s.modalChipList}>
+                        {selectedResult.entities.map((entity, idx) => (
+                          <span key={idx} className={s.modalChip}>
+                            {entity}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedResult.dates.length > 0 && (
+                    <div className={s.modalSection}>
+                      <label className={s.modalSectionLabel}>Dates Mentioned</label>
+                      <div className={s.modalChipList}>
+                        {selectedResult.dates.map((date, idx) => (
+                          <span key={idx} className={`${s.modalChip} ${s.modalDateChip}`}>
+                            <Calendar className={s.modalDateIcon} />
+                            <span>{date}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedResult.highlights.length > 0 && (
+                    <div>
+                      <label className={s.modalSectionLabel}>Search Highlights</label>
+                      <div className={s.modalHighlightList}>
+                        {selectedResult.highlights.map((highlight, idx) => (
+                          <div key={idx} className={s.modalHighlightCard}>
+                            <p className={s.modalHighlightText}>{highlight}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className={s.modalFooter}>
+                  <Button
+                    type="button"
+                    onClick={() => setSelectedResult(null)}
+                    variant="secondary"
+                    size="sm"
+                    className={s.modalSecondaryButton}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSelectedResult(null);
+                      navigate(`/documents/${encodeURIComponent(String(selectedResult.id))}`);
+                    }}
+                    variant="primary"
+                    size="sm"
+                    className={s.modalPrimaryButton}
+                  >
+                    <Eye className={s.modalButtonIcon} />
+                    <span>View File</span>
+                  </Button>
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        ))}
     </div>
   );
 };

@@ -28,6 +28,8 @@ import { DocumentMetadataPanel } from '../documents/DocumentMetadataPanel';
 import { Tabs } from '../common/Tabs';
 import { useForensicDocumentData } from '../../hooks/useForensicDocumentData';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { MobileStackHeader } from '../layout/MobileStackHeader';
 // UI Library
 import styles from './ForensicDocumentAnalyzer.module.css';
 import {
@@ -155,7 +157,6 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
   documentId,
   onAnalysisComplete,
   caseContext,
-  mobileMode,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -167,6 +168,8 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     factors: false,
   });
+  const isMobile = useIsMobile();
+  const [mobileTab, setMobileTab] = useState<'pdf' | 'analysis'>('pdf');
 
   const { analysis, isAnalyzing, metrics, setActiveId, startForensicAnalysis, summary, topRisk } =
     useForensicDocumentData({
@@ -232,14 +235,40 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     <Box className={styles.autoGen95} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
       <Flex className={styles.autoGen96}>
         {/* Document Viewer Column */}
-        <Box style={{ flex: 1 }} className={styles.autoGen97}>
+        <Box
+          style={{ flex: 1 }}
+          className={cn(styles.autoGen97, isMobile && mobileTab !== 'pdf' && 'hidden')}
+        >
           <PDFVariantViewer documentId={documentId} className={styles.autoGen98} />
+          {isMobile && (
+            <div className={styles.mobileFloatingActions}>
+              <Button
+                variant="glass"
+                size="sm"
+                onClick={() => setMobileTab('analysis')}
+                className={styles.analysisToggleFab}
+              >
+                <Activity size={16} /> Analysis Pane
+              </Button>
+            </div>
+          )}
         </Box>
 
         {/* Forensic Analysis Panel */}
-        {!mobileMode && (
-          <Box style={{ width: 450 }} className={styles.autoGen99}>
-            <Surface variant="glass" className={styles.autoGen100} style={{ height: '100%' }}>
+        {(!isMobile || mobileTab === 'analysis') && (
+          <Box style={{ width: isMobile ? '100%' : 450 }} className={styles.autoGen99}>
+            {isMobile && (
+              <MobileStackHeader
+                title="Forensic Data"
+                subtitle={metrics?.fileName || 'Investigation Intelligence'}
+                onBack={() => setMobileTab('pdf')}
+              />
+            )}
+            <Surface
+              variant="glass"
+              className={styles.autoGen100}
+              style={{ height: '100%', overflowY: 'auto' }}
+            >
               {!analysis && !isAnalyzing ? (
                 <Stack align="center" p="xxl" gap="xl" style={{ height: '100%' }}>
                   <Fingerprint size={64} className={styles.autoGen101} />
@@ -685,80 +714,143 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
       </Flex>
 
       {/* Entity Detail Overlay */}
-      {selectedEntity && (
-        <Box className={styles.autoGen115} onClick={() => setSelectedEntity(null)}>
-          <Surface
-            variant="panel"
-            style={{ width: 500 }}
-            p="xxl"
-            className={styles.autoGen116}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Stack gap="xl">
-              <Flex justify="between" align="start">
-                <Stack gap="none">
-                  <LqText variant="h3" weight="bold">
-                    {selectedEntity.text}
-                  </LqText>
-                  <LqText variant="small" color="accent" weight="bold">
-                    {selectedEntity.type.toUpperCase()}
-                  </LqText>
-                </Stack>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedEntity(null)}>
-                  <XCircle size={18} />
-                </Button>
-              </Flex>
+      {selectedEntity &&
+        (isMobile ? (
+          <div className={styles.fullScreenMobile}>
+            <MobileStackHeader
+              title={selectedEntity.text}
+              subtitle={selectedEntity.type.toUpperCase()}
+              onBack={() => setSelectedEntity(null)}
+            />
+            <div className={styles.fullScreenContent}>
+              <Stack gap="xl">
+                <Grid cols={2} gap="md">
+                  <Surface variant="glass-highlight" p="md">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      CONFIDENCE
+                    </LqText>
+                    <LqText variant="h2" weight="bold">
+                      {Math.round(selectedEntity.confidence * 100)}%
+                    </LqText>
+                  </Surface>
+                  <Surface variant="glass-highlight" p="md">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      TYPE
+                    </LqText>
+                    <LqText variant="small" weight="bold">
+                      {selectedEntity.type.toUpperCase()}
+                    </LqText>
+                  </Surface>
+                </Grid>
 
-              <Grid cols={{ base: 1, sm: 2 }} gap="md">
-                <Surface variant="glass" p="md">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    DETECTION CONFIDENCE
-                  </LqText>
-                  <LqText variant="h2" weight="bold">
-                    {Math.round(selectedEntity.confidence * 100)}%
-                  </LqText>
-                </Surface>
-                <Surface variant="glass" p="md">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    SOURCE TOKEN
-                  </LqText>
-                  <LqText variant="small" weight="bold">
-                    {selectedEntity.text}
-                  </LqText>
-                </Surface>
-              </Grid>
-
-              <Stack gap="sm">
-                <LqText variant="xs" weight="bold" color="muted">
-                  CONTEXTUAL PRESENCE
-                </LqText>
-                <Surface variant="glass" p="md">
-                  <LqText variant="xs" color="muted" style={{ fontStyle: 'italic' }}>
-                    "... {selectedEntity.context} ..."
-                  </LqText>
-                </Surface>
-              </Stack>
-
-              {selectedEntity.crossReferences.length > 0 && (
                 <Stack gap="sm">
                   <LqText variant="xs" weight="bold" color="muted">
-                    CROSS-REFERENCES
+                    CONTEXTUAL EXCERPT
                   </LqText>
-                  <Flex wrap="wrap" gap="xs">
-                    {selectedEntity.crossReferences.map((ref, i) => (
-                      <Badge key={i}>{ref}</Badge>
-                    ))}
-                  </Flex>
+                  <Surface variant="glass" p="md">
+                    <LqText variant="xs" color="muted" style={{ fontStyle: 'italic' }}>
+                      "... {selectedEntity.context} ..."
+                    </LqText>
+                  </Surface>
                 </Stack>
-              )}
 
-              <Button variant="primary" onClick={() => setSelectedEntity(null)}>
-                Close Intelligence Detail
-              </Button>
-            </Stack>
-          </Surface>
-        </Box>
-      )}
+                {selectedEntity.crossReferences.length > 0 && (
+                  <Stack gap="sm">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      RELATIONAL CROSS-REFERENCES
+                    </LqText>
+                    <Flex wrap="wrap" gap="xs">
+                      {selectedEntity.crossReferences.map((ref, i) => (
+                        <Badge key={i}>{ref}</Badge>
+                      ))}
+                    </Flex>
+                  </Stack>
+                )}
+
+                <Button
+                  variant="primary"
+                  style={{ width: '100%' }}
+                  onClick={() => setSelectedEntity(null)}
+                >
+                  Close Investigation Detail
+                </Button>
+              </Stack>
+            </div>
+          </div>
+        ) : (
+          <Box className={styles.autoGen115} onClick={() => setSelectedEntity(null)}>
+            <Surface
+              variant="panel"
+              style={{ width: 500 }}
+              p="xxl"
+              className={styles.autoGen116}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Stack gap="xl">
+                <Flex justify="between" align="start">
+                  <Stack gap="none">
+                    <LqText variant="h3" weight="bold">
+                      {selectedEntity.text}
+                    </LqText>
+                    <LqText variant="small" color="accent" weight="bold">
+                      {selectedEntity.type.toUpperCase()}
+                    </LqText>
+                  </Stack>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedEntity(null)}>
+                    <XCircle size={18} />
+                  </Button>
+                </Flex>
+
+                <Grid cols={{ base: 1, sm: 2 }} gap="md">
+                  <Surface variant="glass" p="md">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      DETECTION CONFIDENCE
+                    </LqText>
+                    <LqText variant="h2" weight="bold">
+                      {Math.round(selectedEntity.confidence * 100)}%
+                    </LqText>
+                  </Surface>
+                  <Surface variant="glass" p="md">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      SOURCE TOKEN
+                    </LqText>
+                    <LqText variant="small" weight="bold">
+                      {selectedEntity.text}
+                    </LqText>
+                  </Surface>
+                </Grid>
+
+                <Stack gap="sm">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    CONTEXTUAL PRESENCE
+                  </LqText>
+                  <Surface variant="glass" p="md">
+                    <LqText variant="xs" color="muted" style={{ fontStyle: 'italic' }}>
+                      "... {selectedEntity.context} ..."
+                    </LqText>
+                  </Surface>
+                </Stack>
+
+                {selectedEntity.crossReferences.length > 0 && (
+                  <Stack gap="sm">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      CROSS-REFERENCES
+                    </LqText>
+                    <Flex wrap="wrap" gap="xs">
+                      {selectedEntity.crossReferences.map((ref, i) => (
+                        <Badge key={i}>{ref}</Badge>
+                      ))}
+                    </Flex>
+                  </Stack>
+                )}
+
+                <Button variant="primary" onClick={() => setSelectedEntity(null)}>
+                  Close Intelligence Detail
+                </Button>
+              </Stack>
+            </Surface>
+          </Box>
+        ))}
     </Box>
   );
 };

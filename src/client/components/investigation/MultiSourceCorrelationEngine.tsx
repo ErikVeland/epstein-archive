@@ -35,6 +35,8 @@ import {
   Surface,
   cn,
 } from '../../design-system/lib';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { MobileStackHeader } from '../layout/MobileStackHeader';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './MultiSourceCorrelationEngine.module.css';
 
@@ -81,8 +83,9 @@ interface MultiSourceCorrelationEngineProps {
 }
 
 export const MultiSourceCorrelationEngine = ({
-  mobileMode,
+  mobileMode: _mobileMode,
 }: MultiSourceCorrelationEngineProps = {}) => {
+  const isMobile = useIsMobile();
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [correlations, setCorrelations] = useState<CorrelationResult[]>([]);
   const [_correlationRules, setCorrelationRules] = useState<CorrelationRule[]>([]);
@@ -190,8 +193,8 @@ export const MultiSourceCorrelationEngine = ({
   return (
     <Box className={styles.autoGen307} style={css({ backgroundColor: 'var(--lq-surface-1)' })}>
       <Stack gap="xl" className={styles.autoGen308}>
-        {/* Header HUD */}
-        {!mobileMode && (
+        {/* Header HUD - HIDDEN ON MOBILE */}
+        {!isMobile && (
           <Surface variant="glass" p="xl" className={styles.autoGen309}>
             <Flex justify="between" align="start">
               <Stack gap="none">
@@ -296,7 +299,7 @@ export const MultiSourceCorrelationEngine = ({
         )}
 
         {/* Global Metrics HUD */}
-        <Grid cols={4} gap="lg">
+        <Grid cols={isMobile ? 1 : 4} gap="lg">
           {[
             {
               label: 'Intelligence Sources',
@@ -356,7 +359,7 @@ export const MultiSourceCorrelationEngine = ({
           ))}
         </Grid>
 
-        <Flex gap="xl" align="start">
+        <Flex gap="xl" align="start" direction={isMobile ? 'column' : 'row'}>
           {/* Main Correlation Stream */}
           <Stack gap="md" style={css({ flex: 1 })}>
             <Flex align="center" gap="md">
@@ -448,83 +451,94 @@ export const MultiSourceCorrelationEngine = ({
             </Stack>
           </Stack>
 
-          {/* Intelligence Side Panel */}
-          <Stack gap="xl" width={380}>
-            {/* Source Inventory */}
-            <Surface variant="glass" p="lg" className={styles.autoGen323}>
-              <Stack gap="lg">
-                <Flex align="center" gap="md">
-                  <Activity size={16} className={styles.autoGen324} />
-                  <LqText
-                    variant="xs"
-                    weight="bold"
-                    color="muted"
-                    style={css({ textTransform: 'uppercase' })}
-                  >
-                    Signal Inventory
-                  </LqText>
-                </Flex>
-                <Stack gap="sm">
-                  {dataSources.map((s) => (
-                    <Surface
-                      key={s.id}
-                      variant="glass-highlight"
-                      p="md"
-                      className={styles.autoGen325}
-                    >
-                      <Stack gap="sm">
-                        <Flex justify="between" align="center">
-                          <Flex align="center" gap="sm">
-                            {getSourceIcon(s.type, 14)}
-                            <LqText variant="xs" weight="bold">
-                              {s.name}
-                            </LqText>
-                          </Flex>
-                          <Badge
-                            variant={getReliabilityVariant(s.reliability)}
-                            label={s.reliability.toUpperCase()}
-                            size="sm"
-                          />
-                        </Flex>
-                        <LqText variant="xs" color="muted" className="line-clamp-2">
-                          {s.description}
-                        </LqText>
-                        <Stack gap="xxxs">
-                          <Flex justify="between">
-                            <LqText variant="xxxs" color="muted">
-                              COVERAGE
-                            </LqText>
-                            <LqText variant="xxxs" weight="bold">
-                              {s.coverage}%
-                            </LqText>
-                          </Flex>
-                          <Box className={styles.autoGen326}>
-                            <Box
-                              className={styles.autoGen327}
-                              style={css({ width: `${s.coverage}%` })}
-                            />
-                          </Box>
-                        </Stack>
-                      </Stack>
-                    </Surface>
-                  ))}
-                </Stack>
-              </Stack>
-            </Surface>
-
-            {/* Intersection Details */}
-            {selectedCorrelation && (
-              <Surface variant="glass" p="lg" className={styles.autoGen328}>
+          {/* Intelligence Side Panel - HUD Only for Mobile (Details are Stacked) */}
+          <Stack gap="xl" width={isMobile ? '100%' : 380}>
+            {/* Source Inventory - HIDDEN ON MOBILE TO PRESERVE DENSITY */}
+            {!isMobile && (
+              <Surface variant="glass" p="lg" className={styles.autoGen323}>
                 <Stack gap="lg">
-                  <Flex justify="between" align="center">
+                  <Flex align="center" gap="md">
+                    <Activity size={16} className={styles.autoGen324} />
                     <LqText
                       variant="xs"
                       weight="bold"
                       color="muted"
                       style={css({ textTransform: 'uppercase' })}
                     >
-                      Intersection Analysis
+                      Signal Inventory
                     </LqText>
+                  </Flex>
+                  <Stack gap="sm">
+                    {dataSources.map((s) => (
+                      <Surface
+                        key={s.id}
+                        variant="glass-highlight"
+                        p="md"
+                        className={styles.autoGen325}
+                      >
+                        <Stack gap="sm">
+                          <Flex justify="between" align="center">
+                            <Flex align="center" gap="sm">
+                              {getSourceIcon(s.type, 14)}
+                              <LqText variant="xs" weight="bold">
+                                {s.name}
+                              </LqText>
+                            </Flex>
+                            <Badge
+                              variant={getReliabilityVariant(s.reliability)}
+                              label={s.reliability.toUpperCase()}
+                              size="sm"
+                            />
+                          </Flex>
+                          <LqText variant="xs" color="muted" className="line-clamp-2">
+                            {s.description}
+                          </LqText>
+                          <Stack gap="xxxs">
+                            <Flex justify="between">
+                              <LqText variant="xxxs" color="muted">
+                                COVERAGE
+                              </LqText>
+                              <LqText variant="xxxs" weight="bold">
+                                {s.coverage}%
+                              </LqText>
+                            </Flex>
+                            <Box className={styles.autoGen326}>
+                              <Box
+                                className={styles.autoGen327}
+                                style={css({ width: `${s.coverage}%` })}
+                              />
+                            </Box>
+                          </Stack>
+                        </Stack>
+                      </Surface>
+                    ))}
+                  </Stack>
+                </Stack>
+              </Surface>
+            )}
+
+            {/* Intersection Details - FULL SCREEN STACK ON MOBILE */}
+            {selectedCorrelation && (
+              <div className={cn(styles.autoGen328, isMobile && styles.fullScreenMobile)}>
+                {isMobile && (
+                  <MobileStackHeader
+                    title="Intersection Analysis"
+                    subtitle={`${selectedCorrelation.sources.length} Signal Vectors`}
+                    onBack={() => setSelectedCorrelation(null)}
+                  />
+                )}
+                <Stack gap="lg" className={isMobile ? styles.fullScreenContent : ''}>
+                  <Flex justify="between" align="center">
+                    {!isMobile && (
+                      <LqText
+                        variant="xs"
+                        weight="bold"
+                        color="muted"
+                        style={css({ textTransform: 'uppercase' })}
+                      >
+                        Intersection Analysis
+                      </LqText>
+                    )}
                     <AddToInvestigationButton
                       item={{
                         id: selectedCorrelation.id,
@@ -588,7 +602,7 @@ export const MultiSourceCorrelationEngine = ({
                     )}
                   </Stack>
                 </Stack>
-              </Surface>
+              </div>
             )}
           </Stack>
         </Flex>

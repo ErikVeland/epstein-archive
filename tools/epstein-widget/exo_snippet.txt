@@ -1,0 +1,10 @@
+      {exoHost && (
+        <div className="exo-row">
+          <span className="exo-pill">EXO</span>
+          <span className="exo-model">{exoModel || 'auto'}</span>
+          <a className="exo-link" href={exoHost} target="_blank" rel="noreferrer">
+            dashboard
+          </a>
+        </div>
+      )}
+

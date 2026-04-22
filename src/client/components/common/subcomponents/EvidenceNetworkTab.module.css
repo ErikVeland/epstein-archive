@@ -3,6 +3,8 @@
   inset: 0;
   overflow: hidden;
   background-color: var(--glass-bg-strong);
+  display: flex;
+  flex-direction: column;
 }
 
 .loadingState,
@@ -34,4 +36,111 @@
 .emptyIcon {
   margin-bottom: var(--space-4);
   opacity: 0.2;
+}
+
+/* ─── Mobile relationship list ──────────────────────────────── */
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.listCount {
+  font-size: var(--type-small);
+  color: var(--text-muted);
+  font-weight: var(--weight-medium);
+}
+
+.viewGraphBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.backToListBtn {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 1;
+  padding: var(--space-1) var(--space-3);
+  background: color-mix(in srgb, var(--app-bg) 80%, transparent);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+  width: 100%;
+}
+
+.listRow:active {
+  background: var(--glass-bg);
+}
+
+.listRowContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.listName {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listRole {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listRelType {
+  font-size: var(--type-xs);
+  color: var(--accent);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+  white-space: nowrap;
 }

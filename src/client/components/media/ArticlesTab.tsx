@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Newspaper, ChevronDown, ChevronUp, Clock, Filter, Calendar } from 'lucide-react';
 import { Article } from './ArticleCard';
 import {
@@ -39,6 +40,7 @@ const asNumber = (value: unknown, fallback = 0): number =>
       : fallback;
 
 export const ArticlesTab: React.FC = () => {
+  const navigate = useNavigate();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -331,7 +333,7 @@ export const ArticlesTab: React.FC = () => {
                       key={article.id}
                       variant="glass"
                       className={styles.articleCard}
-                      onClick={() => window.open(article.url, '_blank')}
+                      onClick={() => navigate(`/media/article/${article.id}`)}
                     >
                       <Box className={styles.hero}>
                         {article.imageUrl ? (

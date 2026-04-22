@@ -908,3 +908,96 @@
 .p2 {
   padding: var(--space-2);
 }
+
+.fullScreenMobile {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  animation: faw-slideInUp 0.3s var(--easing-liquid);
+}
+
+.fullScreenContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes faw-slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1023px) {
+  .autoGen91 {
+    display: none;
+  }
+
+  .autoGen92 {
+    display: none;
+  }
+
+  .mobileWorkbench {
+    height: calc(100vh - 64px - 64px); /* Subtract header and toolbelt */
+    margin-bottom: 64px;
+    width: 100% !important;
+  }
+}
+
+.mobileToolbelt {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--lq-glass-surface);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--lq-glass-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 var(--space-4);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 1000;
+}
+
+.mobileToolItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: var(--space-2);
+  min-width: 60px;
+}
+
+.mobileToolItemActive {
+  color: var(--lq-accent);
+  transform: translateY(-4px);
+}
+
+.mobileToolItemActive svg {
+  filter: drop-shadow(0 0 8px var(--lq-accent-shadow));
+}
+
+.mobileToolLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.mobileToolItem:active {
+  transform: scale(0.9);
+}

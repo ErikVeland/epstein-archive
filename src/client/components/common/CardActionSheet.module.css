@@ -1,0 +1,45 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4) var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease;
+}
+
+.row:active {
+  background: var(--glass-bg);
+}
+
+.rowIcon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.rowLabel {
+  flex: 1;
+}
+
+.destructive {
+  color: var(--red-400, #f87171);
+}
+
+.destructive .rowIcon {
+  color: inherit;
+}

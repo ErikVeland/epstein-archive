@@ -33,10 +33,16 @@
     color var(--duration-fast) var(--easing-swift),
     transform var(--duration-fast) var(--easing-swift);
   border-radius: var(--radius-md);
+  text-decoration: none;
 }
 
 .navItem:active {
   transform: scale(0.95);
+}
+
+.navItem:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, white);
+  outline-offset: -2px;
 }
 
 .navItem.active {

@@ -347,6 +347,50 @@
   grid-column: span 1;
 }
 
+/* ─── Mobile viewer/info tabs ──────────────────────────────── */
+
+.mobileTabStrip {
+  display: flex;
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+}
+
+@media (min-width: 768px) {
+  .mobileTabStrip {
+    display: none;
+  }
+}
+
+.mobileTab {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.mobileTabActive {
+  color: var(--text-primary);
+  border-bottom-color: var(--accent);
+}
+
+.hiddenOnMobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hiddenOnMobile {
+    display: block;
+  }
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);

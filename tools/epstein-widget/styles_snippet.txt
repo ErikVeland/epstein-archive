@@ -1,0 +1,108 @@
+
+  .ingest-pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.60);
+    background: rgba(255,255,255,0.05);
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+  }
+
+  .ingest-pill--on {
+    color: rgba(48, 209, 88, 0.90);
+    border-color: rgba(48, 209, 88, 0.22);
+    background: rgba(48, 209, 88, 0.08);
+  }
+
+  .ingest-pill--off {
+    color: rgba(255,255,255,0.32);
+  }
+
+  .controls {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 8px 0 12px;
+  }
+
+  .ctl {
+    appearance: none;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.82);
+    border-radius: 12px;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 8px rgba(0,0,0,0.18);
+  }
+
+  .ctl:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .ctl--green {
+    border-color: rgba(48, 209, 88, 0.22);
+    background: rgba(48, 209, 88, 0.10);
+    color: rgba(48, 209, 88, 0.90);
+  }
+
+  .ctl--red {
+    border-color: rgba(255, 69, 58, 0.24);
+    background: rgba(255, 69, 58, 0.10);
+    color: rgba(255, 69, 58, 0.90);
+  }
+
+  .fill--media {
+    background: linear-gradient(90deg, #ff9f0a 0%, #ffd60a 100%);
+    box-shadow: 0 0 10px rgba(255, 159, 10, 0.45), 0 0 3px rgba(255, 214, 10, 0.40);
+  }
+
+  .exo-row {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: -6px 0 14px;
+  }
+
+  .exo-pill {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(10,132,255,0.22);
+    background: rgba(10,132,255,0.10);
+    color: rgba(10,132,255,0.88);
+  }
+
+  .exo-model {
+    flex: 1;
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .exo-link {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.70);
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.06);
+    padding: 5px 8px;
+    border-radius: 10px;
+  }
+

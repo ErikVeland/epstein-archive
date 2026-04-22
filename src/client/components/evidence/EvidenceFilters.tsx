@@ -1,5 +1,5 @@
-import React from 'react';
-import { Info, Filter, Flag, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { Info, Filter, Flag, FileText, SlidersHorizontal } from 'lucide-react';
 import {
   Surface,
   Button,
@@ -13,6 +13,7 @@ import {
   Stack,
 } from '../../design-system/lib';
 import ProgressBar from '../common/ProgressBar';
+import { MobileEvidenceFilterSheet } from './MobileEvidenceFilterSheet';
 import styles from './EvidenceFilters.module.css';
 
 type SortBy = 'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name';
@@ -72,6 +73,22 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
   filterOptions,
   resultCount,
 }) => {
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // Count active non-default advanced filters for the badge
+  const activeAdvancedCount =
+    (minRedFlagRating !== 0 ? 1 : 0) +
+    (maxRedFlagRating !== 5 ? 1 : 0) +
+    (sortBy !== 'relevance' ? 1 : 0) +
+    (showRedFlagOnly ? 1 : 0);
+
+  const handleReset = () => {
+    onMinRedFlagRatingChange(0);
+    onMaxRedFlagRatingChange(5);
+    onSortByChange('relevance');
+    onShowRedFlagOnlyChange(false);
+  };
+
   return (
     <Box className={styles.wrapper}>
       <Flex direction="column" align="stretch" gap="md" className={styles.topBar}>
@@ -149,9 +166,36 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
                 </LqText>
               </Button>
             ))}
+            <Button
+              variant={activeAdvancedCount > 0 ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setSheetOpen(true)}
+              className={cn(styles.riskTab, styles.filtersTrigger)}
+              aria-label="Open advanced filters"
+            >
+              <SlidersHorizontal size={14} />
+              {activeAdvancedCount > 0 && (
+                <Box className={styles.filtersBadge}>{activeAdvancedCount}</Box>
+              )}
+            </Button>
           </Flex>
         </Flex>
       </Flex>
+
+      <MobileEvidenceFilterSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        minRedFlagRating={minRedFlagRating}
+        onMinRedFlagRatingChange={onMinRedFlagRatingChange}
+        maxRedFlagRating={maxRedFlagRating}
+        onMaxRedFlagRatingChange={onMaxRedFlagRatingChange}
+        sortBy={sortBy}
+        onSortByChange={onSortByChange}
+        showRedFlagOnly={showRedFlagOnly}
+        onShowRedFlagOnlyChange={onShowRedFlagOnlyChange}
+        filterOptions={filterOptions}
+        onReset={handleReset}
+      />
 
       {loading && (
         <Surface variant="glass" className={styles.loadingPanel} p="md">

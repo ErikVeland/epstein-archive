@@ -190,8 +190,27 @@
   gap: var(--space-4);
 }
 
+@media (max-width: 1023px) {
+  .messageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-4);
+  }
+
+  .messageAvatar {
+    display: none;
+  }
+}
+
 .messageBody {
   padding: 0 var(--space-5) var(--space-6) 68px;
+}
+
+@media (max-width: 1023px) {
+  .messageBody {
+    padding: 0 var(--space-4) var(--space-4) var(--space-4);
+  }
 }
 
 .mimeContent {
@@ -201,6 +220,12 @@
   color: var(--text-secondary);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+@media (max-width: 1023px) {
+  .mimeContent {
+    font-size: var(--font-size-xs);
+  }
 }
 
 /* Typography refinements */

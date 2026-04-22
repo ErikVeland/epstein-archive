@@ -25,6 +25,14 @@
   z-index: var(--z-raised);
 }
 
+@media (max-width: 767px) {
+  .tabBar {
+    position: sticky;
+    top: 0;
+    padding: var(--space-2) var(--space-2) 0;
+  }
+}
+
 .tabButton {
   display: inline-flex;
   align-items: center;
@@ -65,7 +73,7 @@
 .contentArea {
   position: relative;
   flex: 1 1 auto;
-  min-height: 500px;
+  min-height: min(500px, calc(100dvh - 12rem));
   overflow: hidden;
   background: var(--glass-bg);
 }
@@ -73,7 +81,7 @@
 .tabPanel {
   display: flex;
   height: 100%;
-  min-height: 500px;
+  min-height: min(500px, calc(100dvh - 12rem));
   min-width: 0;
   overflow: hidden;
 }
@@ -123,6 +131,17 @@
 @media (min-width: 640px) {
   .tabBar {
     margin-inline: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .contentArea,
+  .tabPanel {
+    min-height: auto;
+  }
+
+  .tabButton {
+    padding: var(--space-3);
   }
 }
 

@@ -74,6 +74,18 @@ const POOL_SIZES = {
   ingress: parseInt(process.env.INGEST_POOL_MAX ?? '8'),
 } as const;
 
+const API_POOL_OPTIONS =
+  process.env.PG_API_POOL_OPTIONS ??
+  '-c statement_timeout=8000 -c lock_timeout=500 -c idle_in_transaction_session_timeout=3000';
+
+const MAINTENANCE_POOL_OPTIONS =
+  process.env.PG_MAINTENANCE_POOL_OPTIONS ??
+  '-c statement_timeout=300000 -c lock_timeout=500 -c idle_in_transaction_session_timeout=3000 -c work_mem=256MB';
+
+const INGRESS_POOL_OPTIONS =
+  process.env.PG_INGRESS_POOL_OPTIONS ??
+  '-c statement_timeout=0 -c lock_timeout=5000 -c idle_in_transaction_session_timeout=0';
+
 /**
  * Initializes all database pools.
  * This replaces the legacy getDb() auto-initialization.
@@ -94,10 +106,10 @@ export function initPools(): void {
     idleTimeoutMillis: 10_000,
     connectionTimeoutMillis: 10_000,
     application_name: 'epstein-api',
+    options: API_POOL_OPTIONS,
     maxUses: 7500,
   });
   apiPool = wrapPool(apiPool, 'apiPool');
-  apiPool.on('connect', (client) => applyApiSessionSettings(client));
   apiPool.on('error', (err) => {
     logger.error({ err: err.message }, '[PG API POOL] Unexpected error');
   });
@@ -109,9 +121,9 @@ export function initPools(): void {
     idleTimeoutMillis: 60_000,
     connectionTimeoutMillis: 15_000,
     application_name: 'epstein-maintenance',
+    options: MAINTENANCE_POOL_OPTIONS,
   });
   maintenancePool = wrapPool(maintenancePool, 'maintenancePool');
-  maintenancePool.on('connect', (client) => applyMaintenanceSessionSettings(client));
   maintenancePool.on('error', (err) => {
     logger.error({ err: err.message }, '[PG MAINTENANCE POOL] Unexpected error');
   });
@@ -123,21 +135,9 @@ export function initPools(): void {
     idleTimeoutMillis: 60_000,
     connectionTimeoutMillis: 15_000,
     application_name: 'epstein-ingest',
+    options: INGRESS_POOL_OPTIONS,
   });
   ingressPool = wrapPool(ingressPool, 'ingressPool');
-  ingressPool.on('connect', (client) => {
-    // Apply each setting individually — multi-statement joins are silently dropped by pg
-    const settings = [
-      'SET statement_timeout = 0',
-      "SET lock_timeout = '5000ms'",
-      'SET idle_in_transaction_session_timeout = 0',
-    ];
-    settings
-      .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
-      .catch((err: { message: string }) => {
-        logger.error({ err: err.message }, '[PG INGEST POOL] Failed to apply session settings');
-      });
-  });
 }
 
 export function getApiPool(): pg.Pool {
@@ -187,40 +187,6 @@ export function assertProductionPg(): void {
       '[FATAL] DATABASE_URL must be a postgres:// or postgresql:// URI in production. Refusing to start.',
     );
   }
-}
-
-// ─── Session settings ────────────────────────────────────────────────────────
-
-function applyApiSessionSettings(client: pg.PoolClient): void {
-  // Apply each setting individually — multi-statement joins are silently dropped by pg
-  const settings = [
-    "SET statement_timeout = '8000ms'",
-    "SET lock_timeout = '500ms'",
-    "SET idle_in_transaction_session_timeout = '3000ms'",
-  ];
-  settings
-    .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
-    .catch((err: { message: string }) => {
-      logger.error({ err: err.message }, '[PG API POOL] Failed to apply session settings');
-      // Destroy the connection so it cannot be used without timeout protection.
-      // pg-pool will create a fresh connection with settings applied on next acquire.
-      (client as unknown as { end: () => void }).end();
-    });
-}
-
-function applyMaintenanceSessionSettings(client: pg.PoolClient): void {
-  // Apply each setting individually — multi-statement joins are silently dropped by pg
-  const settings = [
-    "SET statement_timeout = '300000ms'",
-    "SET lock_timeout = '500ms'",
-    "SET idle_in_transaction_session_timeout = '3000ms'",
-    "SET work_mem = '256MB'",
-  ];
-  settings
-    .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
-    .catch((err) => {
-      logger.error({ err: err.message }, '[PG MAINTENANCE POOL] Failed to apply session settings');
-    });
 }
 
 // ─── Metrics / observability ──────────────────────────────────────────────────

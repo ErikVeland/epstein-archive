@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { optimizedDataService } from '../services/OptimizedDataService';
@@ -17,17 +17,49 @@ interface EvidenceSearchProps {
   onPersonClick?: (person: Person, searchTerm: string) => void;
 }
 
+type EvidenceSortBy = 'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name';
+const VALID_SORTS = new Set<string>([
+  'relevance',
+  'mentions',
+  'redflag_asc',
+  'redflag_desc',
+  'name',
+]);
+
 export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick }) => {
   const location = useLocation();
-  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('ALL');
-  const [selectedEvidenceType, setSelectedEvidenceType] = useState<string>('ALL');
-  const [showRedFlagOnly, setShowRedFlagOnly] = useState(false);
-  const [minRedFlagRating, setMinRedFlagRating] = useState<number>(0);
-  const [maxRedFlagRating, setMaxRedFlagRating] = useState<number>(5);
-  const [sortBy, setSortBy] = useState<
-    'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name'
-  >('relevance');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
+
+  // All filter state is URL-serialized so back navigation restores it
+  const selectedRiskLevel = searchParams.get('risk') ?? 'ALL';
+  const selectedEvidenceType = searchParams.get('type') ?? 'ALL';
+  const showRedFlagOnly = searchParams.get('flagged') === 'true';
+  const minRedFlagRating = Number(searchParams.get('minRating') ?? '0');
+  const maxRedFlagRating = Number(searchParams.get('maxRating') ?? '5');
+  const rawSort = searchParams.get('sort') ?? 'relevance';
+  const sortBy: EvidenceSortBy = VALID_SORTS.has(rawSort)
+    ? (rawSort as EvidenceSortBy)
+    : 'relevance';
+
+  const setParam = (key: string, value: string, defaultValue: string) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value === defaultValue) next.delete(key);
+        else next.set(key, value);
+        return next;
+      },
+      { replace: true },
+    );
+  };
+
+  const setSelectedRiskLevel = (v: string) => setParam('risk', v, 'ALL');
+  const setSelectedEvidenceType = (v: string) => setParam('type', v, 'ALL');
+  const setShowRedFlagOnly = (v: boolean) => setParam('flagged', String(v), 'false');
+  const setMinRedFlagRating = (v: number) => setParam('minRating', String(v), '0');
+  const setMaxRedFlagRating = (v: number) => setParam('maxRating', String(v), '5');
+  const setSortBy = (v: EvidenceSortBy) => setParam('sort', v, 'relevance');
 
   useUndo();
   const navigation = useNavigation();

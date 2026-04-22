@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import { Button, Input, NativeSelect } from '../../design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import { MobileToolScreen } from '../investigation/mobile/MobileToolScreen';
+import { useIsTouch } from '../../hooks/useIsTouch';
 
 import '../FlightTracker.css';
 import styles from './FlightTracker.module.css';
@@ -11,7 +13,6 @@ import { FlightTimelineView } from './FlightTimelineView';
 import { FlightMapView } from './FlightMapView';
 import { FlightStatsView } from './FlightStatsView';
 import { FlightNetworkView } from './FlightNetworkView';
-import { FlightDetailPanel } from './FlightDetailPanel';
 
 // Re-export shared types so sub-components can import from the orchestrator if desired
 export type { Flight, FlightStats, AirportCoords, CoOccurrence, ViewMode } from './types';
@@ -27,11 +28,17 @@ const formatDate = (dateStr: string): string => {
   });
 };
 
+const VIEW_LABELS: Record<Exclude<ViewMode, 'timeline'>, string> = {
+  map: 'Route Map',
+  stats: 'Statistics',
+  network: 'Passenger Network',
+};
+
 export const FlightTracker: React.FC = () => {
+  const isTouch = useIsTouch();
   const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const [selectedPassenger, setSelectedPassenger] = useState<string>('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
 
   const {
     data: flightsPayload,
@@ -253,29 +260,36 @@ export const FlightTracker: React.FC = () => {
             </div>
           }
         >
-          {viewMode === 'timeline' && (
-            <FlightTimelineView
-              flights={flights}
-              onSelectFlight={setSelectedFlight}
-              formatDate={formatDate}
-            />
+          {/* On desktop: only the active view renders */}
+          {!isTouch && viewMode === 'timeline' && (
+            <FlightTimelineView flights={flights} formatDate={formatDate} />
           )}
-          {viewMode === 'map' && (
+          {!isTouch && viewMode === 'map' && (
             <FlightMapView flights={flights} airports={airports} stats={stats} />
           )}
-          {viewMode === 'stats' && <FlightStatsView stats={stats} />}
-          {viewMode === 'network' && (
+          {!isTouch && viewMode === 'stats' && <FlightStatsView stats={stats} />}
+          {!isTouch && viewMode === 'network' && (
             <FlightNetworkView coOccurrences={coOccurrences} networkLoading={networkLoading} />
+          )}
+
+          {/* On touch: timeline is always the base; secondary views open as MobileToolScreen */}
+          {isTouch && <FlightTimelineView flights={flights} formatDate={formatDate} />}
+          {isTouch && viewMode !== 'timeline' && (
+            <MobileToolScreen
+              toolName={VIEW_LABELS[viewMode as Exclude<ViewMode, 'timeline'>]}
+              onBack={() => setViewMode('timeline')}
+            >
+              {viewMode === 'map' && (
+                <FlightMapView flights={flights} airports={airports} stats={stats} />
+              )}
+              {viewMode === 'stats' && <FlightStatsView stats={stats} />}
+              {viewMode === 'network' && (
+                <FlightNetworkView coOccurrences={coOccurrences} networkLoading={networkLoading} />
+              )}
+            </MobileToolScreen>
           )}
         </ScopedErrorBoundary>
       </div>
-
-      <FlightDetailPanel
-        flight={selectedFlight}
-        airports={airports}
-        onClose={() => setSelectedFlight(null)}
-        formatDate={formatDate}
-      />
     </div>
   );
 };

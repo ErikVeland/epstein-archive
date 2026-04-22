@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { cn } from '../../design-system/lib';
 import Icon, { type IconName } from '../common/Icon';
 import styles from './MobileBottomNav.module.css';
@@ -24,37 +24,37 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function MobileBottomNav({ className }: MobileBottomNavProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const isActive = (path: string) => {
-    if (!path) return false;
-    return location.pathname.startsWith(path);
-  };
-
   const handleNav = (item: NavItem) => {
     if (item.id === 'more') {
       const event = new CustomEvent('toggleMobileMenu');
       window.dispatchEvent(event);
-      return;
     }
-    navigate(item.path);
   };
 
   return (
     <nav className={cn(styles.nav, className)} role="navigation" aria-label="Main navigation">
-      {NAV_ITEMS.map((item) => (
-        <button
-          key={item.id}
-          className={cn(styles.navItem, isActive(item.path) && styles.active)}
-          onClick={() => handleNav(item)}
-          aria-current={isActive(item.path) ? 'page' : undefined}
-          type="button"
-        >
-          <Icon name={item.icon} size="sm" className={styles.icon} />
-          <span className={styles.label}>{item.label}</span>
-        </button>
-      ))}
+      {NAV_ITEMS.map((item) =>
+        item.path ? (
+          <NavLink
+            key={item.id}
+            to={item.path}
+            className={({ isActive }) => cn(styles.navItem, isActive && styles.active)}
+          >
+            <Icon name={item.icon} size="sm" className={styles.icon} />
+            <span className={styles.label}>{item.label}</span>
+          </NavLink>
+        ) : (
+          <button
+            key={item.id}
+            className={styles.navItem}
+            onClick={() => handleNav(item)}
+            type="button"
+          >
+            <Icon name={item.icon} size="sm" className={styles.icon} />
+            <span className={styles.label}>{item.label}</span>
+          </button>
+        ),
+      )}
     </nav>
   );
 }

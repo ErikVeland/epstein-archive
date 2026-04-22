@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EmailClient.module.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
+import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import {
   ArrowLeft,
@@ -220,7 +222,13 @@ export const EmailClient: React.FC = () => {
   );
 
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
-  const [mobilePane, setMobilePane] = useState<'mailboxes' | 'threads' | 'messages'>('threads');
+
+  const VALID_PANES = new Set(['mailboxes', 'threads', 'messages']);
+  type MobilePane = 'mailboxes' | 'threads' | 'messages';
+  const rawPane = searchParams.get('pane') ?? 'mailboxes';
+  const mobilePane: MobilePane = VALID_PANES.has(rawPane) ? (rawPane as MobilePane) : 'mailboxes';
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const desktopLayoutRef = useRef<HTMLDivElement | null>(null);
   const [mailboxWidth, setMailboxWidth] = useState(() => {
@@ -323,9 +331,14 @@ export const EmailClient: React.FC = () => {
   const handleOpenThread = useCallback(
     (threadId: string) => {
       baseHandleOpenThread(threadId);
-      setMobilePane('messages');
+      // Push a history entry so device-back returns to the thread list.
+      const next = new URLSearchParams(searchParams);
+      next.set('threadId', threadId);
+      next.delete('messageId');
+      next.set('pane', 'messages');
+      setSearchParams(next, { replace: false });
     },
-    [baseHandleOpenThread, setMobilePane],
+    [baseHandleOpenThread, searchParams, setSearchParams],
   );
 
   // j/k Navigation
@@ -360,6 +373,9 @@ export const EmailClient: React.FC = () => {
 
   const canLoadMore = threadsHasMore && !!threadsNextCursor;
   const threadRowHeight = density === 'compact' ? 72 : 94;
+
+  const { initialScrollOffset: threadScrollOffset, onScroll: onThreadScroll } =
+    useListScrollRestoration(`/emails:${selectedMailboxId}`);
 
   const clampWidths = useCallback((nextMailbox: number, containerWidth: number) => {
     const threadMin = 280;
@@ -441,7 +457,7 @@ export const EmailClient: React.FC = () => {
           </div>
           <div className={styles.mobileTabs}>
             <Button
-              onClick={() => setMobilePane('mailboxes')}
+              onClick={() => updateUrlState({ pane: 'mailboxes' })}
               type="button"
               variant="ghost"
               size="sm"
@@ -452,7 +468,7 @@ export const EmailClient: React.FC = () => {
               Mailboxes
             </Button>
             <Button
-              onClick={() => setMobilePane('threads')}
+              onClick={() => updateUrlState({ pane: 'threads' })}
               type="button"
               variant="ghost"
               size="sm"
@@ -463,7 +479,7 @@ export const EmailClient: React.FC = () => {
               Threads
             </Button>
             <Button
-              onClick={() => selectedThreadId && setMobilePane('messages')}
+              onClick={() => selectedThreadId && updateUrlState({ pane: 'messages' })}
               type="button"
               variant="ghost"
               size="sm"
@@ -611,7 +627,7 @@ export const EmailClient: React.FC = () => {
                         selectedMailboxId,
                         onSelect: (mailboxId: string) => {
                           setSelectedMailboxId(mailboxId);
-                          setMobilePane('threads');
+                          updateUrlState({ pane: 'threads' });
                         },
                       }}
                     >
@@ -640,7 +656,7 @@ export const EmailClient: React.FC = () => {
           <div className={styles.paneHeader}>
             <div className={styles.threadHeaderLeft}>
               <Button
-                onClick={() => setMobilePane('mailboxes')}
+                onClick={() => updateUrlState({ pane: 'mailboxes' })}
                 type="button"
                 variant="ghost"
                 size="sm"
@@ -834,6 +850,8 @@ export const EmailClient: React.FC = () => {
                       width={width}
                       itemCount={threads.length}
                       itemSize={threadRowHeight}
+                      initialScrollOffset={threadScrollOffset}
+                      onScroll={onThreadScroll}
                       itemData={{
                         rows: threads,
                         selectedThreadId,
@@ -869,7 +887,6 @@ export const EmailClient: React.FC = () => {
             )}
           </div>
         </section>
-
         <section
           className={`${styles.contentPane} ${styles.contentPaneShell} ${
             mobilePane === 'messages' ? styles.threadPaneVisible : styles.threadPaneHidden
@@ -883,276 +900,356 @@ export const EmailClient: React.FC = () => {
             ) : threadError ? (
               <div className={styles.stateError}>{threadError}</div>
             ) : selectedThread ? (
-              <ViewerShell
-                header={
-                  <div className={styles.viewerHeaderMeta}>
-                    <div className={styles.subjectLine}>{selectedThread.subject}</div>
-                    <div className={styles.viewerHeaderSub}>
-                      {selectedThread.messages.length.toLocaleString()} messages · mailbox{' '}
-                      {selectedMailbox?.displayName || 'All'}
+              isMobile ? (
+                <div className={styles.fullScreenMobile}>
+                  <MobileStackHeader
+                    title={selectedThread.subject}
+                    subtitle={`${selectedThread.messages.length} messages · ${selectedMailbox?.displayName || 'Archive'}`}
+                    onBack={() => navigate(-1)}
+                  />
+                  <div className={styles.fullScreenContent}>
+                    <div className={styles.messageThread}>
+                      {selectedThread.messages.map((message) => {
+                        const expanded = Boolean(expandedMessages[message.messageId]);
+                        const body = bodyState[message.messageId];
+                        return (
+                          <article
+                            key={message.messageId}
+                            className={`${styles.messageCard} ${expanded ? styles.expanded : ''}`}
+                          >
+                            <Button
+                              onClick={() => handleToggleMessage(message.messageId, !expanded)}
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className={styles.messageToggle}
+                            >
+                              <div className={styles.messageHeader}>
+                                <div className={styles.messageMetaMain}>
+                                  <div className={styles.messageFromRow}>
+                                    <div className={styles.messageFrom}>{message.from}</div>
+                                    <div className={styles.messageTime}>
+                                      {formatTime(message.date)}
+                                    </div>
+                                  </div>
+                                </div>
+                                <ChevronRight
+                                  className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
+                                />
+                              </div>
+                            </Button>
+                            {expanded && (
+                              <div className={styles.messageBody}>
+                                <div className={styles.messageActionRow}>
+                                  <Button
+                                    onClick={() => void copyText(`message_id=${message.messageId}`)}
+                                    variant="secondary"
+                                    size="sm"
+                                  >
+                                    Citation
+                                  </Button>
+                                  <Button
+                                    onClick={() => handleToggleQuoted(message.messageId)}
+                                    variant="secondary"
+                                    size="sm"
+                                  >
+                                    History
+                                  </Button>
+                                  <Button
+                                    onClick={() => navigate(`/documents/${message.messageId}`)}
+                                    variant="primary"
+                                    size="sm"
+                                  >
+                                    Evidence
+                                  </Button>
+                                </div>
+                                <div className={styles.mimeContent}>
+                                  {body?.loading
+                                    ? 'Loading...'
+                                    : body?.data?.cleanedText || 'No body content.'}
+                                </div>
+                              </div>
+                            )}
+                          </article>
+                        );
+                      })}
                     </div>
                   </div>
-                }
-                actions={
-                  <div data-testid="email-thread-actions" className={styles.viewerActions}>
-                    <Button
-                      onClick={() => {
-                        if (window.innerWidth < 768) {
-                          setMobilePane('threads');
-                        } else {
-                          setSelectedThreadId(null);
-                          updateUrlState({ threadId: null, messageId: null });
-                        }
-                      }}
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      iconOnly
-                      className={styles.backToThreadsButton}
-                    >
-                      <ArrowLeft className={styles.backIcon} />
-                    </Button>
-                    <AddToInvestigationButton
-                      item={{
-                        id: selectedThread.threadId,
-                        type: 'evidence',
-                        title: selectedThread.subject,
-                        description: `Email thread with ${selectedThread.messages.length} messages`,
-                        sourceId: selectedThread.threadId,
-                        metadata: {
-                          sourceType: 'email_thread',
-                          threadId: selectedThread.threadId,
-                          messageCount: selectedThread.messages.length,
-                        },
-                      }}
-                      variant="quick"
-                      className={styles.backToThreadsButton}
-                    />
-                  </div>
-                }
-                className={styles.viewerShellRoot}
-                headerClassName={styles.viewerShellHeader}
-                bodyClassName={styles.viewerShellBody}
-              >
-                <div className={styles.messageThread}>
-                  {selectedThread.messages.map((message) => {
-                    const expanded = Boolean(expandedMessages[message.messageId]);
-                    const body = bodyState[message.messageId];
-                    const citation = `message_id=${message.messageId}; date=${message.date}; mailbox=${selectedMailbox?.displayName || 'All'}; ingest_run_id=${message.ingestRunId ?? 'unknown'}`;
-
-                    return (
-                      <article
-                        key={message.messageId}
-                        className={`${styles.messageCard} ${expanded ? styles.expanded : ''}`}
-                        data-message-id={message.messageId}
+                </div>
+              ) : (
+                <ViewerShell
+                  header={
+                    <div className={styles.viewerHeaderMeta}>
+                      <div className={styles.subjectLine}>{selectedThread.subject}</div>
+                      <div className={styles.viewerHeaderSub}>
+                        {selectedThread.messages.length.toLocaleString()} messages · mailbox{' '}
+                        {selectedMailbox?.displayName || 'All'}
+                      </div>
+                    </div>
+                  }
+                  actions={
+                    <div data-testid="email-thread-actions" className={styles.viewerActions}>
+                      <Button
+                        onClick={() => {
+                          if (window.innerWidth < 768) {
+                            updateUrlState({ pane: 'threads' });
+                          } else {
+                            setSelectedThreadId(null);
+                            updateUrlState({ threadId: null, messageId: null });
+                          }
+                        }}
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        iconOnly
+                        className={styles.backToThreadsButton}
                       >
-                        <Button
-                          onClick={() => handleToggleMessage(message.messageId, !expanded)}
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className={styles.messageToggle}
+                        <ArrowLeft className={styles.backIcon} />
+                      </Button>
+                      <AddToInvestigationButton
+                        item={{
+                          id: selectedThread.threadId,
+                          type: 'evidence',
+                          title: selectedThread.subject,
+                          description: `Email thread with ${selectedThread.messages.length} messages`,
+                          sourceId: selectedThread.threadId,
+                          metadata: {
+                            sourceType: 'email_thread',
+                            threadId: selectedThread.threadId,
+                            messageCount: selectedThread.messages.length,
+                          },
+                        }}
+                        variant="quick"
+                        className={styles.backToThreadsButton}
+                      />
+                    </div>
+                  }
+                  className={styles.viewerShellRoot}
+                  headerClassName={styles.viewerShellHeader}
+                  bodyClassName={styles.viewerShellBody}
+                >
+                  <div className={styles.messageThread}>
+                    {selectedThread.messages.map((message) => {
+                      const expanded = Boolean(expandedMessages[message.messageId]);
+                      const body = bodyState[message.messageId];
+                      const citation = `message_id=${message.messageId}; date=${message.date}; mailbox=${selectedMailbox?.displayName || 'All'}; ingest_run_id=${message.ingestRunId ?? 'unknown'}`;
+
+                      return (
+                        <article
+                          key={message.messageId}
+                          className={`${styles.messageCard} ${expanded ? styles.expanded : ''}`}
+                          data-message-id={message.messageId}
                         >
-                          <div className={styles.messageHeader}>
-                            <div className={styles.messageAvatar}>
-                              <User className={styles.messageAvatarIcon} />
-                            </div>
-                            <div className={styles.messageMetaMain}>
-                              <div className={styles.messageFromRow}>
-                                <div className={styles.messageFrom}>
-                                  {message.from || 'Unknown Sender'}
+                          <Button
+                            onClick={() => handleToggleMessage(message.messageId, !expanded)}
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className={styles.messageToggle}
+                          >
+                            <div className={styles.messageHeader}>
+                              <div className={styles.messageAvatar}>
+                                <User className={styles.messageAvatarIcon} />
+                              </div>
+                              <div className={styles.messageMetaMain}>
+                                <div className={styles.messageFromRow}>
+                                  <div className={styles.messageFrom}>
+                                    {message.from || 'Unknown Sender'}
+                                  </div>
+                                  <div className={styles.messageTime}>
+                                    {formatTime(message.date)}
+                                  </div>
                                 </div>
-                                <div className={styles.messageTime}>{formatTime(message.date)}</div>
-                              </div>
-                              <div className={styles.messageTo}>
-                                To: {message.to.join(' · ') || 'Unknown recipient'}
-                              </div>
-                            </div>
-                            <ChevronRight
-                              className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
-                            />
-                          </div>
-                        </Button>
-
-                        {expanded && (
-                          <div className={`${styles.messageBody} ${styles.messageBodyExpanded}`}>
-                            <div className={styles.messageTagRow}>
-                              <div
-                                className={`${styles.messageTagPill} ${ladderTone(message.ladder)}`}
-                              >
-                                LADDER: {message.ladder || 'N/A'}
-                              </div>
-                              <div
-                                className={`${styles.messageTagPill} ${styles.messagePillMuted}`}
-                              >
-                                CONFIDENCE:{' '}
-                                {typeof message.confidence === 'number'
-                                  ? (message.confidence * 100).toFixed(0)
-                                  : '0'}
-                                %
-                              </div>
-                              <div
-                                className={`${styles.messageTagPill} ${styles.messagePillSecondary}`}
-                              >
-                                ID: {message.ingestRunId || 'RAW_INGEST'}
-                              </div>
-                              {message.wasAgentic && (
-                                <div className={styles.agenticBadge}>
-                                  <Sparkles className={styles.agenticIcon} />
-                                  Agentic Highlighting
+                                <div className={styles.messageTo}>
+                                  To: {message.to.join(' · ') || 'Unknown recipient'}
                                 </div>
-                              )}
-                            </div>
-
-                            <div className={styles.messageActionRow}>
-                              <Button
-                                onClick={() => void copyText(citation)}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className={styles.messageActionButton}
-                              >
-                                Copy Citation
-                              </Button>
-                              <Button
-                                onClick={() => handleToggleRaw(message.messageId)}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className={styles.messageActionButton}
-                              >
-                                {body?.showRaw ? 'Show Cleaned' : 'View MIME'}
-                              </Button>
-                              <Button
-                                onClick={() => handleToggleQuoted(message.messageId)}
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className={styles.messageActionButton}
-                              >
-                                {body?.showQuoted ? 'Hide History' : 'Show History'}
-                              </Button>
-                              <AddToInvestigationButton
-                                item={{
-                                  id: message.messageId,
-                                  type: 'evidence',
-                                  title: message.subject || selectedThread.subject,
-                                  description: `Email message from ${message.from}`,
-                                  sourceId: message.messageId,
-                                  metadata: {
-                                    sourceType: 'email_message',
-                                    threadId: selectedThread.threadId,
-                                    messageId: message.messageId,
-                                    ingestRunId: message.ingestRunId,
-                                  },
-                                }}
-                                variant="quick"
-                                className={styles.messageActionButton}
+                              </div>
+                              <ChevronRight
+                                className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
                               />
                             </div>
+                          </Button>
 
-                            <div data-testid="email-message-body" className={styles.mimeContent}>
-                              {body?.loading ? (
-                                <div className={styles.bodyLoading}>
-                                  <Loader2 className={styles.bodyLoaderIcon} />
-                                  <span className={styles.bodyLoadingLabel}>
-                                    Decompressing MIME Stream
-                                  </span>
+                          {expanded && (
+                            <div className={`${styles.messageBody} ${styles.messageBodyExpanded}`}>
+                              <div className={styles.messageTagRow}>
+                                <div
+                                  className={`${styles.messageTagPill} ${ladderTone(message.ladder)}`}
+                                >
+                                  LADDER: {message.ladder || 'N/A'}
                                 </div>
-                              ) : body?.error ? (
-                                <div className={styles.bodyError}>{body.error}</div>
-                              ) : body?.showRaw ? (
-                                <pre className={styles.rawPre}>
-                                  {body.raw || 'No raw content available.'}
-                                </pre>
-                              ) : (
-                                <div className={styles.cleanBody}>
-                                  {body?.data?.cleanedText || 'No readable body available.'}
+                                <div
+                                  className={`${styles.messageTagPill} ${styles.messagePillMuted}`}
+                                >
+                                  CONFIDENCE:{' '}
+                                  {typeof message.confidence === 'number'
+                                    ? (message.confidence * 100).toFixed(0)
+                                    : '0'}
+                                  %
+                                </div>
+                                <div
+                                  className={`${styles.messageTagPill} ${styles.messagePillSecondary}`}
+                                >
+                                  ID: {message.ingestRunId || 'RAW_INGEST'}
+                                </div>
+                                {message.wasAgentic && (
+                                  <div className={styles.agenticBadge}>
+                                    <Sparkles className={styles.agenticIcon} />
+                                    Agentic Highlighting
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className={styles.messageActionRow}>
+                                <Button
+                                  onClick={() => void copyText(citation)}
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className={styles.messageActionButton}
+                                >
+                                  Copy Citation
+                                </Button>
+                                <Button
+                                  onClick={() => handleToggleRaw(message.messageId)}
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className={styles.messageActionButton}
+                                >
+                                  {body?.showRaw ? 'Show Cleaned' : 'View MIME'}
+                                </Button>
+                                <Button
+                                  onClick={() => handleToggleQuoted(message.messageId)}
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className={styles.messageActionButton}
+                                >
+                                  {body?.showQuoted ? 'Hide History' : 'Show History'}
+                                </Button>
+                                <AddToInvestigationButton
+                                  item={{
+                                    id: message.messageId,
+                                    type: 'evidence',
+                                    title: message.subject || selectedThread.subject,
+                                    description: `Email message from ${message.from}`,
+                                    sourceId: message.messageId,
+                                    metadata: {
+                                      sourceType: 'email_message',
+                                      threadId: selectedThread.threadId,
+                                      messageId: message.messageId,
+                                      ingestRunId: message.ingestRunId,
+                                    },
+                                  }}
+                                  variant="quick"
+                                  className={styles.messageActionButton}
+                                />
+                              </div>
+
+                              <div data-testid="email-message-body" className={styles.mimeContent}>
+                                {body?.loading ? (
+                                  <div className={styles.bodyLoading}>
+                                    <Loader2 className={styles.bodyLoaderIcon} />
+                                    <span className={styles.bodyLoadingLabel}>
+                                      Decompressing MIME Stream
+                                    </span>
+                                  </div>
+                                ) : body?.error ? (
+                                  <div className={styles.bodyError}>{body.error}</div>
+                                ) : body?.showRaw ? (
+                                  <pre className={styles.rawPre}>
+                                    {body.raw || 'No raw content available.'}
+                                  </pre>
+                                ) : (
+                                  <div className={styles.cleanBody}>
+                                    {body?.data?.cleanedText || 'No readable body available.'}
+                                  </div>
+                                )}
+                              </div>
+
+                              {(message.linkedEntities || []).length > 0 && (
+                                <div className={styles.entityPills}>
+                                  {(message.linkedEntities || []).map((entity) => (
+                                    <Button
+                                      key={`${message.messageId}-${entity.entityId}`}
+                                      onClick={() => setSelectedEntityId(String(entity.entityId))}
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className={styles.entityChip}
+                                      title={`Open entity ${entity.name}`}
+                                    >
+                                      <User className={styles.entityChipIcon} />
+                                      {entity.name}
+                                    </Button>
+                                  ))}
+                                </div>
+                              )}
+
+                              {(message.attachmentsMeta || []).length > 0 && (
+                                <div className={styles.attachmentSection}>
+                                  <div className={styles.attachmentTitle}>
+                                    <Paperclip className={styles.entityChipIcon} />
+                                    Forensic Attachments ({(message.attachmentsMeta || []).length})
+                                  </div>
+                                  <div className={styles.attachmentGrid}>
+                                    {(message.attachmentsMeta || []).map((attachment, index) => {
+                                      const linkedDocumentId = attachment.linkedDocumentId;
+                                      const canOpen = Boolean(linkedDocumentId);
+                                      return (
+                                        <div
+                                          key={`${message.messageId}-attachment-${index}`}
+                                          className={styles.attachmentCard}
+                                        >
+                                          <div className={styles.attachmentInfo}>
+                                            <div className={styles.attachmentName}>
+                                              {attachment.filename || `Attachment ${index + 1}`}
+                                            </div>
+                                            <div className={styles.attachmentMeta}>
+                                              {attachment.mimeType || 'UNKNOWN_MIME'} ·{' '}
+                                              {attachment.size
+                                                ? `${(attachment.size / 1024).toFixed(1)}KB`
+                                                : 'SIZE_UNKNOWN'}
+                                            </div>
+                                          </div>
+                                          {canOpen ? (
+                                            <Button
+                                              onClick={() =>
+                                                navigate(
+                                                  `/documents/${encodeURIComponent(
+                                                    String(linkedDocumentId),
+                                                  )}`,
+                                                )
+                                              }
+                                              type="button"
+                                              variant="ghost"
+                                              size="sm"
+                                              className={styles.attachmentOpenButton}
+                                            >
+                                              Open
+                                            </Button>
+                                          ) : (
+                                            <span className={styles.attachmentMissingWrap}>
+                                              <span className={styles.attachmentMissing}>
+                                                Not Ingested
+                                              </span>
+                                            </span>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               )}
                             </div>
-
-                            {(message.linkedEntities || []).length > 0 && (
-                              <div className={styles.entityPills}>
-                                {(message.linkedEntities || []).map((entity) => (
-                                  <Button
-                                    key={`${message.messageId}-${entity.entityId}`}
-                                    onClick={() => setSelectedEntityId(String(entity.entityId))}
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className={styles.entityChip}
-                                    title={`Open entity ${entity.name}`}
-                                  >
-                                    <User className={styles.entityChipIcon} />
-                                    {entity.name}
-                                  </Button>
-                                ))}
-                              </div>
-                            )}
-
-                            {(message.attachmentsMeta || []).length > 0 && (
-                              <div className={styles.attachmentSection}>
-                                <div className={styles.attachmentTitle}>
-                                  <Paperclip className={styles.entityChipIcon} />
-                                  Forensic Attachments ({(message.attachmentsMeta || []).length})
-                                </div>
-                                <div className={styles.attachmentGrid}>
-                                  {(message.attachmentsMeta || []).map((attachment, index) => {
-                                    const linkedDocumentId = attachment.linkedDocumentId;
-                                    const canOpen = Boolean(linkedDocumentId);
-                                    return (
-                                      <div
-                                        key={`${message.messageId}-attachment-${index}`}
-                                        className={styles.attachmentCard}
-                                      >
-                                        <div className={styles.attachmentInfo}>
-                                          <div className={styles.attachmentName}>
-                                            {attachment.filename || `Attachment ${index + 1}`}
-                                          </div>
-                                          <div className={styles.attachmentMeta}>
-                                            {attachment.mimeType || 'UNKNOWN_MIME'} ·{' '}
-                                            {attachment.size
-                                              ? `${(attachment.size / 1024).toFixed(1)}KB`
-                                              : 'SIZE_UNKNOWN'}
-                                          </div>
-                                        </div>
-                                        {canOpen ? (
-                                          <Button
-                                            onClick={() =>
-                                              navigate(
-                                                `/documents/${encodeURIComponent(
-                                                  String(linkedDocumentId),
-                                                )}`,
-                                              )
-                                            }
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className={styles.attachmentOpenButton}
-                                          >
-                                            Open
-                                          </Button>
-                                        ) : (
-                                          <span className={styles.attachmentMissingWrap}>
-                                            <span className={styles.attachmentMissing}>
-                                              Not Ingested
-                                            </span>
-                                          </span>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </article>
-                    );
-                  })}
-                </div>
-              </ViewerShell>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                </ViewerShell>
+              )
             ) : (
               <div className={styles.stateNotFound}>Thread not found.</div>
             )

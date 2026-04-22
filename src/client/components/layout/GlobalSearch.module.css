@@ -616,6 +616,10 @@
   transition: filter 0.2s;
 }
 
+.mobileModalPrimaryButton {
+  width: 100%;
+}
+
 .modalButtonIcon {
   width: 1rem;
   height: 1rem;
@@ -632,4 +636,45 @@
 
 .spin {
   animation: spin 1s linear infinite;
+}
+
+.fullScreenMobile {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.3s var(--easing-liquid);
+}
+
+.fullScreenContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  -webkit-overflow-scrolling: touch;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1023px) {
+  .modalFooter {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .modalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .resultItem {
+    padding: var(--space-3);
+  }
 }

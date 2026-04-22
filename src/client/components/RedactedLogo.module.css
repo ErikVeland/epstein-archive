@@ -52,3 +52,19 @@
 .staticText {
   color: var(--text-strong);
 }
+
+@media (max-width: 767px) {
+  .root {
+    width: 144px;
+    min-width: 144px;
+    max-width: 144px;
+  }
+
+  .title {
+    font-size: 0.95rem;
+  }
+
+  .letter {
+    width: 8.4px;
+  }
+}

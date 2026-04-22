@@ -2,6 +2,7 @@ import { entitiesQueries } from '@epstein/db';
 import { Person, SearchFilters, SortOption } from '../../types.js';
 import type { RiskLevel, SubjectCardListItemDto } from '@shared/dto/entities';
 import { getApiPool } from './connection.js';
+import { queryCache } from './cache.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 
 export interface EntityRepositoryResult {
@@ -16,6 +17,21 @@ function runQuery<TParams, TRow>(
   pool: ReturnType<typeof getApiPool>,
 ): Promise<TRow[]> {
   return (query as { run(p: TParams, c: typeof pool): Promise<TRow[]> }).run(params, pool);
+}
+
+async function getMaxConnectivityCached(
+  pool: ReturnType<typeof getApiPool>,
+): Promise<Array<{ maxConn?: number }>> {
+  return queryCache.getOrSetAsync(
+    'entities:maxConnectivity',
+    () =>
+      runQuery<undefined, { maxConn?: number }>(
+        entitiesQueries.getMaxConnectivity,
+        undefined,
+        pool,
+      ),
+    600,
+  );
 }
 
 export interface SubjectCardRepositoryResult {
@@ -128,34 +144,17 @@ async function loadAggregateStatsForSubjects(
       SELECT
         em.entity_id,
         COUNT(DISTINCT em.document_id) AS documents,
-        COUNT(
-          DISTINCT CASE
-            WHEN NULLIF(BTRIM(COALESCE(d.evidence_type, '')), '') IS NOT NULL THEN LOWER(BTRIM(d.evidence_type))
-            WHEN d.file_type ILIKE 'image/%'
-              OR d.file_type ILIKE 'video/%'
-              OR d.file_type ILIKE 'audio/%' THEN 'media'
-            WHEN LOWER(COALESCE(d.file_name, '')) LIKE '%.eml'
-              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.msg'
-              OR LOWER(COALESCE(d.file_path, '')) LIKE '%/email%'
-              OR LOWER(COALESCE(d.file_path, '')) LIKE '%/emails%' THEN 'email'
-            WHEN LOWER(COALESCE(d.file_path, '')) LIKE '%black%book%' THEN 'black_book'
-            WHEN LOWER(COALESCE(d.file_path, '')) LIKE '%flight%' THEN 'flight'
-            WHEN LOWER(COALESCE(d.file_name, '')) LIKE '%.pdf'
-              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.txt'
-              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.doc'
-              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.docx'
-              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.xls'
-              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.xlsx' THEN 'document'
-            ELSE NULL
-          END
-        ) AS distinct_sources,
+        COUNT(DISTINCT CASE
+          WHEN d.evidence_type IS NOT NULL AND d.evidence_type != '' THEN d.evidence_type
+          WHEN d.file_type ~* '^(image|video|audio)/' THEN 'media'
+          WHEN d.file_name ~* '\\.(eml|msg)$' OR d.file_path ~* '/emails?/' THEN 'email'
+          WHEN d.file_path ~* 'black.*book' THEN 'black_book'
+          WHEN d.file_path ~* 'flight' THEN 'flight'
+          WHEN d.file_name ~* '\\.(pdf|txt|docx?|xlsx?)$' THEN 'document'
+          ELSE 'other'
+        END) AS distinct_sources,
         COUNT(DISTINCT em.document_id) FILTER (
-          WHERE d.evidence_type = 'media'
-            AND (
-              d.file_type ILIKE 'image/%'
-              OR d.file_type ILIKE 'video/%'
-              OR d.file_type ILIKE 'audio/%'
-            )
+          WHERE d.evidence_type = 'media' OR d.file_type ~* '^(image|video|audio)/'
         ) AS verified_media
       FROM entity_mentions em
       JOIN documents d ON d.id = em.document_id
@@ -446,13 +445,8 @@ export const entitiesRepository = {
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
-    const riskRankExpr = `CASE UPPER(COALESCE(e.risk_level, 'LOW')) WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;
-    const inferredRankExpr = `CASE
-      WHEN LOWER(COALESCE(e.full_name, '')) ~* '^(to|from|cc|bcc|subject|re|fwd|fw|of)\\b[:\\s-]*'
-        OR LOWER(COALESCE(e.full_name, '')) ~* '\\m(to|from|cc|bcc|subject|re|fwd|fw)\\M\\s*$'
-        OR LOWER(COALESCE(e.full_name, '')) ~* '\\m.+''s\\M\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\\M'
-        OR LOWER(COALESCE(e.full_name, '')) ~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\\b\\s+'
-      THEN 1 ELSE 0 END`;
+    const riskRankExpr = `e.calculated_rank_score`;
+    const inferredRankExpr = `(CASE WHEN e.calculated_rank_score < 0 THEN 1 ELSE 0 END)`;
     const ALLOWED_SORT_KEYS = new Set([
       'red_flag',
       'rfi',
@@ -476,12 +470,8 @@ export const entitiesRepository = {
 
     if (sortKey === 'red_flag' || sortKey === 'rfi' || sortKey === 'default') {
       // Canonical ordering for subject cards:
-      // Red Flag Index -> Risk Level -> Mentions
-      orderByTerms.push(
-        `COALESCE(e.red_flag_rating, 0) ${sortOrder}`,
-        `${riskRankExpr} ${sortOrder}`,
-        `${mentionCountExpr} ${sortOrder}`,
-      );
+      // Calculated Rank Score -> Mentions
+      orderByTerms.push(`${riskRankExpr} ${sortOrder}`, `${mentionCountExpr} ${sortOrder}`);
     } else if (sortKey === 'risk') {
       orderByTerms.push(
         `${riskRankExpr} ${sortOrder}`,
@@ -546,11 +536,7 @@ export const entitiesRepository = {
           `,
           values: params,
         }),
-        runQuery<undefined, { maxConn?: number }>(
-          entitiesQueries.getMaxConnectivity,
-          undefined,
-          pool,
-        ),
+        getMaxConnectivityCached(pool),
         buildVipDisplayLookup(),
       ]);
 

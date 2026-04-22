@@ -4,6 +4,8 @@ import * as d3Quadtree from 'd3-quadtree';
 
 import { EntityType } from '../../services/GraphService';
 import { Button, runtimeTokens, semanticChartTokens } from '../../design-system/lib';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EntityRelationshipMapper.module.css';
 
 export interface Entity {
@@ -51,6 +53,7 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
   const [simulationRunning, setSimulationRunning] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const isMobile = useIsMobile();
 
   // Memoize nodes with positions
   const nodes = useMemo(() => {
@@ -354,7 +357,8 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
       .attr('dy', 25)
       .attr('text-anchor', 'middle')
       .attr('fill', 'var(--nav-about)')
-      .attr('font-size', '10px')
+      .attr('font-size', isMobile ? '12px' : '10px')
+      .style('font-weight', isMobile ? '600' : '400')
       .style('pointer-events', 'none');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- helper functions are stable, transform is handled in separate effect
   }, [nodes, links]); // Re-render when data changes (positions handled by tick)
@@ -450,35 +454,37 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Entity Relationship Map</h2>
-        <div className={styles.controls}>
-          <Button
-            unstyled
-            onClick={() => handleZoom(1)}
-            className={styles.zoomButton}
-            aria-label="Zoom in"
-          >
-            +
-          </Button>
-          <Button
-            unstyled
-            onClick={() => handleZoom(-1)}
-            className={styles.zoomButton}
-            aria-label="Zoom out"
-          >
-            -
-          </Button>
-          <Button
-            unstyled
-            onClick={exportAsPNG}
-            disabled={exporting}
-            className={styles.exportButton}
-          >
-            {exporting ? 'Exporting...' : 'Export PNG'}
-          </Button>
+      {!isMobile && (
+        <div className={styles.header}>
+          <h2 className={styles.title}>Entity Relationship Map</h2>
+          <div className={styles.controls}>
+            <Button
+              unstyled
+              onClick={() => handleZoom(1)}
+              className={styles.zoomButton}
+              aria-label="Zoom in"
+            >
+              +
+            </Button>
+            <Button
+              unstyled
+              onClick={() => handleZoom(-1)}
+              className={styles.zoomButton}
+              aria-label="Zoom out"
+            >
+              -
+            </Button>
+            <Button
+              unstyled
+              onClick={exportAsPNG}
+              disabled={exporting}
+              className={styles.exportButton}
+            >
+              {exporting ? 'Exporting...' : 'Export PNG'}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div
         ref={containerRef}
@@ -504,24 +510,87 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
       >
         <svg ref={svgRef} className={styles.svgCanvas} viewBox="0 0 800 600" />
 
+        {isMobile && (
+          <div className={styles.mobileActions}>
+            <Button onClick={() => handleZoom(1)} className={styles.fab} title="Zoom in">
+              +
+            </Button>
+            <Button onClick={() => handleZoom(-1)} className={styles.fab} title="Zoom out">
+              -
+            </Button>
+            <Button
+              onClick={exportAsPNG}
+              disabled={exporting}
+              className={styles.fab}
+              title="Export"
+            >
+              {exporting ? '...' : 'PNG'}
+            </Button>
+          </div>
+        )}
+
         {simulationRunning && <div className={styles.simulatingBadge}>Simulating...</div>}
       </div>
 
-      {selectedEntity && (
-        <div className={styles.selectedCard}>
-          <h3 className={styles.selectedTitle}>{selectedEntity.label}</h3>
-          <p className={styles.selectedType}>Type: {selectedEntity.type}</p>
-          {selectedEntity.properties && (
-            <div className={styles.selectedProperties}>
-              {Object.entries(selectedEntity.properties).map(([key, value]) => (
-                <p key={key} className={styles.selectedPropertyItem}>
-                  <span className={styles.selectedPropertyKey}>{key}:</span> {String(value)}
-                </p>
-              ))}
+      {selectedEntity &&
+        (isMobile ? (
+          <div className={styles.fullScreenMobile}>
+            <MobileStackHeader
+              title={selectedEntity.label}
+              subtitle={`Entity Type: ${selectedEntity.type}`}
+              onBack={() => setSelectedEntity(null)}
+            />
+            <div className={styles.fullScreenContent}>
+              <div className={styles.mobileDetailSection}>
+                <h3 className={styles.mobileDetailHeading}>Entity Context</h3>
+                <div className={styles.mobileDetailGrid}>
+                  <div className={styles.mobileDetailItem}>
+                    <label>Confidence</label>
+                    <span>{(selectedEntity.confidence * 100).toFixed(0)}%</span>
+                  </div>
+                  <div className={styles.mobileDetailItem}>
+                    <label>Identity</label>
+                    <span>{selectedEntity.label}</span>
+                  </div>
+                </div>
+
+                <h3 className={styles.mobileDetailHeading}>Metatdata Properties</h3>
+                <div className={styles.mobilePropertyStack}>
+                  {selectedEntity.properties &&
+                    Object.entries(selectedEntity.properties).map(([key, value]) => (
+                      <div key={key} className={styles.mobilePropertyRow}>
+                        <span className={styles.mobilePropertyKey}>{key}</span>
+                        <span className={styles.mobilePropertyValue}>{String(value)}</span>
+                      </div>
+                    ))}
+                </div>
+
+                <h3 className={styles.mobileDetailHeading}>Evidence Sources</h3>
+                <div className={styles.mobileSourceList}>
+                  {(selectedEntity.sources || []).map((source, i) => (
+                    <div key={i} className={styles.mobileSourcePill}>
+                      {source}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        ) : (
+          <div className={styles.selectedCard}>
+            <h3 className={styles.selectedTitle}>{selectedEntity.label}</h3>
+            <p className={styles.selectedType}>Type: {selectedEntity.type}</p>
+            {selectedEntity.properties && (
+              <div className={styles.selectedProperties}>
+                {Object.entries(selectedEntity.properties).map(([key, value]) => (
+                  <p key={key} className={styles.selectedPropertyItem}>
+                    <span className={styles.selectedPropertyKey}>{key}:</span> {String(value)}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
     </div>
   );
 };

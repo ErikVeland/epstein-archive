@@ -37,6 +37,17 @@
   flex-shrink: 0;
 }
 
+@media (max-width: 767px) {
+  .titleRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .countLabel {
+    white-space: normal;
+  }
+}
+
 /* Controls grid */
 .controlsGrid {
   display: grid;
