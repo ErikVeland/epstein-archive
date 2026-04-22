@@ -96,7 +96,7 @@ export default defineConfig({
         },
         {
           command: `NODE_ENV=development PORT=${apiPort} pnpm exec tsx src/server.ts`,
-          url: `${localApiBaseUrl}/api/subjects?page=1&limit=1`,
+          url: `${localApiBaseUrl}/api/health`,
           reuseExistingServer: true,
           timeout: 120 * 1000,
         },

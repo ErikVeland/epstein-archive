@@ -21,8 +21,12 @@ pnpm install
 
 ```bash
 # .env.local
+NODE_ENV=development
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/epstein_archive
 ```
+
+If you are only working on frontend shell behavior or wiring, you can omit `DATABASE_URL`.
+The API will start in degraded development mode so the local UI and health endpoints still boot.
 
 ### 3. Migrate + Start
 
@@ -30,6 +34,12 @@ DATABASE_URL=postgres://postgres:postgres@localhost:5432/epstein_archive
 pnpm db:migrate:pg
 pnpm dev
 # App will run at http://localhost:5173
+```
+
+For a quick local stack smoke test that boots both services together:
+
+```bash
+pnpm exec playwright test tests/local-stack-smoke.spec.ts --project=chromium --workers=1
 ```
 
 ---

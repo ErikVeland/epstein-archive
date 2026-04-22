@@ -72,6 +72,7 @@ import { purgeCacheByPattern } from './server/middleware/cache.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
 import { queryCounter } from './server/queryCounter.js';
+import { shouldBootInDegradedMode } from './server/utils/startupMode.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,6 +95,14 @@ export class App {
   }
 
   private async initializeDatabase() {
+    if (shouldBootInDegradedMode()) {
+      process.env.DEGRADED_MODE = '1';
+      logger.warn(
+        'DATABASE_URL is not set. Starting in degraded development mode so the UI shell can run locally.',
+      );
+      return;
+    }
+
     initPools();
     assertProductionPg();
 

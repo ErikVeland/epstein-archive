@@ -24,6 +24,15 @@ export function withSafeStatsContract(input: unknown) {
     entitiesWithDocuments: Number(source.entitiesWithDocuments || 0),
     documentsWithMetadata: Number(source.documentsWithMetadata || 0),
     documentsFixed: Number(source.documentsFixed || 0),
+    activeInvestigations: Number(source.activeInvestigations || 0),
+    topRoles: Array.isArray(source.topRoles) ? source.topRoles : [],
+    topEntities: Array.isArray(source.topEntities) ? source.topEntities : [],
     likelihoodDistribution: safeLikelihoodDistribution,
+    redFlagDistribution: Array.isArray(source.redFlagDistribution)
+      ? source.redFlagDistribution
+      : [],
+    collectionCounts: Array.isArray(source.collectionCounts) ? source.collectionCounts : [],
+    collectionStats: Array.isArray(source.collectionStats) ? source.collectionStats : [],
+    pipeline_status: source.pipeline_status || null,
   };
 }

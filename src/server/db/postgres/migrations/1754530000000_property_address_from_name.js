@@ -22,12 +22,10 @@ export const shorthands = undefined;
 
 export async function up(pgm) {
   // 1. Add provenance column
-  pgm.addColumn('palm_beach_properties', {
-    address_source: {
-      type: 'text',
-      default: null,
-    },
-  });
+  pgm.sql(`
+    ALTER TABLE palm_beach_properties
+    ADD COLUMN IF NOT EXISTS address_source text;
+  `);
 
   // 2. Mark existing real addresses
   pgm.sql(`

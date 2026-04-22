@@ -30,8 +30,11 @@ git clone <repo-url>
 cd epstein-archive
 pnpm install
 
-# Setup Database
-# Ensure PostgreSQL is running and DATABASE_URL is set in .env
+# Local development can boot without Postgres and will run in a degraded mode
+# so the frontend shell and API process still start for local UI work.
+NODE_ENV=development pnpm dev
+
+# For full local backend data access, ensure PostgreSQL is running and DATABASE_URL is set
 pnpm db:migrate:pg
 
 # Start development server
@@ -43,6 +46,9 @@ pnpm dev
 ```bash
 # Unit Tests (Vitest)
 pnpm test:unit
+
+# Local frontend + backend smoke
+pnpm exec playwright test tests/local-stack-smoke.spec.ts --project=chromium --workers=1
 
 # End-to-End Tests (Playwright)
 pnpm test:e2e

@@ -37,9 +37,20 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Keep PDF tooling isolated, but consolidate the rest of vendor code.
-            // Splitting chart/icon packages has caused brittle production chunk graphs.
             if (id.includes('react-pdf') || id.includes('pdfjs-dist')) return 'vendor-pdf';
+            if (id.includes('recharts')) return 'vendor-charts';
+            if (id.includes('leaflet') || id.includes('react-leaflet')) return 'vendor-maps';
+            if (id.includes('framer-motion') || id.includes('motion-dom')) return 'vendor-motion';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            if (
+              id.includes('/react-dom/') ||
+              id.includes('/react/') ||
+              id.includes('react-router') ||
+              id.includes('@tanstack/react-query') ||
+              id.includes('@tanstack/query-core')
+            ) {
+              return 'vendor-react';
+            }
             return 'vendor';
           }
 

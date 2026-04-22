@@ -50,4 +50,3 @@ export async function down(pgm) {
   pgm.sql(`DROP INDEX CONCURRENTLY IF EXISTS idx_documents_default_list_nonmedia;`);
   pgm.sql(`DROP INDEX CONCURRENTLY IF EXISTS idx_documents_redflag_coalesced_date;`);
 }
-

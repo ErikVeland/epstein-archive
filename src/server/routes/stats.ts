@@ -16,6 +16,7 @@ import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { withSafeStatsContract } from '../utils/stats.js';
 
 const router = Router();
 const execFileAsync = promisify(execFile);
@@ -23,66 +24,6 @@ const READINESS_TIMEOUT_MS = Math.max(
   100,
   Number.parseInt(process.env.READINESS_TIMEOUT_MS ?? '250', 10) || 250,
 );
-
-interface StatsInput {
-  likelihoodDistribution?: unknown[];
-  totalEntities?: unknown;
-  totalDocuments?: unknown;
-  totalRelationships?: unknown;
-  totalMentions?: unknown;
-  averageRedFlagRating?: unknown;
-  totalUniqueRoles?: unknown;
-  entitiesWithDocuments?: unknown;
-  documentsWithMetadata?: unknown;
-  documentsFixed?: unknown;
-  activeInvestigations?: unknown;
-  topRoles?: unknown;
-  topEntities?: unknown;
-  redFlagDistribution?: unknown;
-  collectionCounts?: unknown;
-  collectionStats?: unknown;
-  pipeline_status?: unknown;
-}
-
-function withSafeStatsContract(input: StatsInput | null | undefined) {
-  const source = input || ({} as StatsInput);
-  const existing = Array.isArray(source.likelihoodDistribution)
-    ? source.likelihoodDistribution
-    : [];
-  const byLevel = new Map<string, { count?: number }>(
-    existing.map((entry: unknown) => {
-      const e = entry as Record<string, unknown> | null | undefined;
-      return [String(e?.level || ''), { count: Number(e?.count || 0) }];
-    }),
-  );
-
-  const safeLikelihoodDistribution = ['HIGH', 'MEDIUM', 'LOW'].map((level) => ({
-    level,
-    count: Number(byLevel.get(level)?.count || 0),
-  }));
-
-  return {
-    totalEntities: Number(source.totalEntities || 0),
-    totalDocuments: Number(source.totalDocuments || 0),
-    totalRelationships: Number(source.totalRelationships || 0),
-    totalMentions: Number(source.totalMentions || 0),
-    averageRedFlagRating: Number(source.averageRedFlagRating || 0),
-    totalUniqueRoles: Number(source.totalUniqueRoles || 0),
-    entitiesWithDocuments: Number(source.entitiesWithDocuments || 0),
-    documentsWithMetadata: Number(source.documentsWithMetadata || 0),
-    documentsFixed: Number(source.documentsFixed || 0),
-    activeInvestigations: Number(source.activeInvestigations || 0),
-    topRoles: Array.isArray(source.topRoles) ? source.topRoles : [],
-    topEntities: Array.isArray(source.topEntities) ? source.topEntities : [],
-    likelihoodDistribution: safeLikelihoodDistribution,
-    redFlagDistribution: Array.isArray(source.redFlagDistribution)
-      ? source.redFlagDistribution
-      : [],
-    collectionCounts: Array.isArray(source.collectionCounts) ? source.collectionCounts : [],
-    collectionStats: Array.isArray(source.collectionStats) ? source.collectionStats : [],
-    pipeline_status: source.pipeline_status || null,
-  };
-}
 
 // ── /meta/db ─── Canary endpoint: database dialect, version, timeouts, pool stats
 router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
