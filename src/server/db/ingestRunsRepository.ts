@@ -45,13 +45,13 @@ export class IngestRunsRepository {
     return (
       res.rows as Array<{
         id: number;
-        run_uuid: string;
-        started_at: string;
-        finished_at: string | null;
+        uuid: string;
+        startedAt: string;
+        finishedAt: string | null;
         status: string;
-        git_commit: string | null;
-        pipeline_version: string;
-        config_json: Record<string, unknown> | null;
+        gitCommit: string | null;
+        pipelineVersion: string;
+        config: Record<string, unknown> | null;
       }>
     ).map((row) => ({
       id: String(row.id),
