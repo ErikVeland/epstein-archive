@@ -19,7 +19,8 @@ export type Tab =
   | 'guide'
   | 'review'
   | 'admin'
-  | 'landing';
+  | 'landing'
+  | 'financial';
 
 export const tabLabels: Record<Tab, string> = {
   people: 'People',
@@ -41,6 +42,7 @@ export const tabLabels: Record<Tab, string> = {
   review: 'Review',
   admin: 'Admin',
   landing: 'The Epstein Files',
+  financial: 'Financial',
 };
 
 export const useAppNavigation = () => {
@@ -67,6 +69,7 @@ export const useAppNavigation = () => {
   const matchLogin = useMatch({ path: '/login', end: false });
   const matchAdmin = useMatch({ path: '/admin', end: false });
   const matchReview = useMatch({ path: '/review', end: false });
+  const matchFinancial = useMatch({ path: '/financial', end: false });
   const matchEvidence = useMatch({ path: '/evidence/:id', end: false });
   const matchFaq = useMatch({ path: '/faq', end: false });
   const matchGuide = useMatch({ path: '/guide', end: false });
@@ -99,6 +102,7 @@ export const useAppNavigation = () => {
     if (matchLogin) return 'login';
     if (matchAdmin) return 'admin';
     if (matchReview) return 'review';
+    if (matchFinancial) return 'financial';
     if (matchEvidence) return 'evidence';
     if (matchFaq) return 'faq';
     if (matchGuide) return 'guide';

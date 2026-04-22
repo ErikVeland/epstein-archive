@@ -23,8 +23,15 @@ import * as fs from 'fs';
 import { tmpdir } from 'os';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-// Fix for pdf-parse v2 import issues
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+
+// Shim DOMMatrix for Node environments missing it (e.g. Node 20.9.0)
+// Must happen before requiring pdf-parse
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  globalThis.DOMMatrix = class DOMMatrix {
+    constructor() {}
+  } as any;
+}
+
 const pdfParseModule = require('pdf-parse');
 const PDFParse = pdfParseModule.PDFParse || pdfParseModule.default?.PDFParse || pdfParseModule;
 import * as crypto from 'crypto';

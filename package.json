@@ -37,6 +37,7 @@
     "check:boundaries": "node scripts/check_client_server_boundary.mjs",
     "check:seed-conflict-policy": "node --import tsx/esm scripts/check_seed_conflict_policy.ts",
     "check:test-hygiene": "node --import tsx/esm scripts/check_test_hygiene.ts",
+    "check:hygiene": "bash scripts/check_hygiene.sh",
     "check:design-tokens": "node --import tsx/esm scripts/check_design_token_usage.ts",
     "check:design-tokens:strict": "STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "check:design-tokens:baseline": "STRICT_DESIGN_TOKENS=1 WRITE_STRICT_BASELINE=1 node --import tsx/esm scripts/check_design_token_usage.ts",
@@ -54,6 +55,7 @@
     "test:unit": "vitest run",
     "deploy:prod": "./deploy.sh",
     "audit:pg": "bash scripts/run_audit_suite.sh",
+    "hygiene:clean": "bash scripts/cleanup_llm_artifacts.sh",
     "ci:pg:nuclear": "bash scripts/ci_pg_nuclear_gates.sh",
     "db:check": "node -e 'const { Client } = require(\"pg\"); const client = new Client({ connectionString: process.env.DATABASE_URL }); client.connect().then(() => { console.log(\"✅ DB OK\"); client.end(); process.exit(0); }).catch((e) => { console.error(\"❌ DB Fail:\", e.message); process.exit(1); });'",
     "schema:hash:check": "tsx scripts/pg_schema_hash.ts check",
@@ -192,6 +194,9 @@
     "*.{ts,tsx}": [
       "prettier --write",
       "eslint --fix"
+    ],
+    "*.{js,mjs,cjs}": [
+      "prettier --write"
     ],
     "*.{css,scss}": [
       "prettier --write"

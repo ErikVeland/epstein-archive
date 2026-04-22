@@ -386,6 +386,7 @@ interface PipelineStats {
   ingestStats?: { filesProcessed: number; errors: number };
   intelStats?: { entitiesExtracted: number; relationsFound: number };
   enrichStats?: { documentsEnriched: number; summariesGenerated: number };
+  graphStats?: { subPhasesRun: number };
 }
 
 /**
@@ -448,6 +449,36 @@ async function runIntelPhase(): Promise<{ entitiesExtracted: number; relationsFo
     entitiesExtracted: exitCode === 0 ? 1 : 0,
     relationsFound: 0,
   };
+}
+
+/**
+ * Phase 4: GRAPH EXTRACTION — relations, timeline events, financial transactions, claim triples
+ */
+async function runGraphPhase(): Promise<{ subPhasesRun: number }> {
+  console.log('\n' + '='.repeat(70));
+  console.log('🕸️  PHASE 4: GRAPH EXTRACTION (Relations, Timeline, Financial, Triples)');
+  console.log('='.repeat(70));
+
+  const subPhases = [
+    { script: 'scripts/extract_directed_relations.ts', label: '4a: Directed Relations' },
+    { script: 'scripts/extract_timeline_events.ts', label: '4b: Timeline Events' },
+    { script: 'scripts/extract_financial_transactions.ts', label: '4c: Financial Transactions' },
+    { script: 'scripts/extract_claim_triples.ts', label: '4d: Claim Triples' },
+  ];
+
+  let ran = 0;
+  for (const { script, label } of subPhases) {
+    if (shuttingDown) break;
+    console.log(`\n   ▶ ${label}`);
+    updateHeartbeat({ phase: `Graph: ${label}` });
+    const code = await runScript(script);
+    if (code !== 0) {
+      console.warn(`   ⚠️  ${label} exited with code ${code} — continuing`);
+    }
+    ran++;
+  }
+
+  return { subPhasesRun: ran };
 }
 
 /**
@@ -691,6 +722,12 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
     updateHeartbeat({ phase: 'Enrichment' });
     stats.enrichStats = await runEnrichPhase('all');
   }
+
+  // Phase 4: Graph extraction runs after enrichment in all non-intel modes
+  if (mode !== 'intel' && !shuttingDown) {
+    await runGraphPhase();
+  }
+
   updateHeartbeat({ phase: 'Idle' });
 
   console.log('\n' + '='.repeat(70));

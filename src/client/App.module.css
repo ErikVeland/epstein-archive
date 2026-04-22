@@ -1043,6 +1043,11 @@
   --nav-theme-bg: var(--nav-analytics-bg-hover);
 }
 
+.navThemeFinancial {
+  --nav-theme-border: var(--nav-financial-border);
+  --nav-theme-bg: var(--nav-financial-bg-hover);
+}
+
 .navThemeAbout {
   --nav-theme-border: var(--nav-about-border);
   --nav-theme-bg: var(--nav-about-bg-hover);

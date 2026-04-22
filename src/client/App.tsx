@@ -179,6 +179,11 @@ const ReviewDashboard = lazyWithRetry(
   'ReviewDashboard',
 );
 
+const FinancialPage = lazyWithRetry(
+  () => import('./pages/FinancialPage').then((module) => ({ default: module.FinancialPage })),
+  'FinancialPage',
+);
+
 import releaseNotesRaw from '../../release_notes.md?raw';
 import styles from './App.module.css';
 import type { DocRecord } from './components/documents/DocumentModal';
@@ -1135,6 +1140,7 @@ function App() {
     emails: styles.navThemeEmails,
     blackbook: styles.navThemeBlackbook,
     analytics: styles.navThemeAnalytics,
+    financial: styles.navThemeFinancial,
     about: styles.navThemeAbout,
   };
   const getNavSegmentClass = (
@@ -1666,6 +1672,19 @@ function App() {
                         <div className={navItemClass}>
                           <Button
                             unstyled
+                            onClick={() => navigate('/financial')}
+                            onMouseEnter={() =>
+                              preloader.prefetchJson('/api/financial/transactions?limit=100')
+                            }
+                            className={getNavSegmentClass('financial', activeTab === 'financial')}
+                          >
+                            <Icon name="DollarSign" size="sm" />
+                            <span className={navLabelClass}>Financial</span>
+                          </Button>
+                        </div>
+                        <div className={navItemClass}>
+                          <Button
+                            unstyled
                             onClick={() => navigate('/analytics')}
                             className={getNavSegmentClass('analytics', activeTab === 'analytics')}
                           >
@@ -1909,6 +1928,7 @@ function App() {
                             }
                           />
                           <Route path="/timeline/*" element={<TimelinePage />} />
+                          <Route path="/financial/*" element={<FinancialPage />} />
                           <Route path="/flights/:id" element={<FlightDetailPage />} />
                           <Route path="/flights/*" element={<FlightsPage />} />
                           <Route path="/properties/*" element={<PropertyPage />} />

@@ -223,6 +223,10 @@
   --nav-analytics-bg: color-mix(in srgb, #134e4a 20%, transparent);
   --nav-analytics-bg-hover: color-mix(in srgb, #2dd4bf 26%, transparent);
   --nav-analytics-border: color-mix(in srgb, #2dd4bf 18%, transparent);
+  --nav-financial: #22c55e;
+  --nav-financial-bg: color-mix(in srgb, #14532d 20%, transparent);
+  --nav-financial-bg-hover: color-mix(in srgb, #22c55e 26%, transparent);
+  --nav-financial-border: color-mix(in srgb, #22c55e 18%, transparent);
 
   /* Semantic Risk Scale */
   --risk-critical: #c0392b;

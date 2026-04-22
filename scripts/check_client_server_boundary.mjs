@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const repoRoot = join(__dirname, '..');
 
-const rawFiles = execSync('rg --files src/client', { cwd: repoRoot, encoding: 'utf8' })
+const rawFiles = execSync('find src/client -type f', { cwd: repoRoot, encoding: 'utf8' })
   .split('\n')
   .map((line) => line.trim())
   .filter(Boolean)

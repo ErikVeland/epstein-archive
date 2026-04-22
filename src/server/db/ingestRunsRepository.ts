@@ -17,17 +17,6 @@ export interface IngestRun {
   notes: string | null;
 }
 
-interface IngestRunListRow {
-  id: string | number;
-  startedAt: string;
-  finishedAt: string | null;
-  status: IngestRun['status'];
-  gitCommit: string | null;
-  pipelineVersion: string | null;
-  agenticEnabled: boolean | null;
-  notes: string | null;
-}
-
 export class IngestRunsRepository {
   /**
    * Get all ingest runs
@@ -39,35 +28,47 @@ export class IngestRunsRepository {
       `
       SELECT 
         id,
-        created_at as "startedAt",
+        run_uuid as "uuid",
+        started_at as "startedAt",
         finished_at as "finishedAt",
         status,
         git_commit as "gitCommit",
         pipeline_version as "pipelineVersion",
-        agentic_enabled as "agenticEnabled",
-        notes
-      FROM ingest_runs 
-      ORDER BY created_at DESC 
+        config_json as "config"
+      FROM pipeline_runs 
+      ORDER BY started_at DESC 
       LIMIT $1
     `,
       [limit],
     );
 
-    return (res.rows as IngestRunListRow[]).map((row) => ({
+    return (
+      res.rows as Array<{
+        id: number;
+        run_uuid: string;
+        started_at: string;
+        finished_at: string | null;
+        status: string;
+        git_commit: string | null;
+        pipeline_version: string;
+        config_json: Record<string, unknown> | null;
+      }>
+    ).map((row) => ({
       id: String(row.id),
       startedAt: row.startedAt,
       finishedAt: row.finishedAt,
-      status: row.status,
+      status:
+        row.status === 'succeeded' ? 'success' : row.status === 'running' ? 'running' : 'failed',
       gitCommit: row.gitCommit,
       pipelineVersion: row.pipelineVersion,
-      agenticEnabled: Boolean(row.agenticEnabled),
-      extractorVersions: null,
+      agenticEnabled: row.config?.agentic_enabled ?? false,
+      extractorVersions: row.config?.step_versions ?? null,
       ocrVersions: null,
       agenticParams: null,
       schemaVersion: null,
       agenticModelId: null,
       agenticPromptVersion: null,
-      notes: row.notes,
+      notes: row.config?.notes || null,
     }));
   }
 
@@ -79,8 +80,8 @@ export class IngestRunsRepository {
 
     const res = await pool.query(
       `
-      SELECT * FROM ingest_runs 
-      WHERE status = 'success' 
+      SELECT * FROM pipeline_runs 
+      WHERE status = 'succeeded' 
       ORDER BY finished_at DESC 
       LIMIT 1
     `,
@@ -90,20 +91,20 @@ export class IngestRunsRepository {
     if (!row) return null;
 
     return {
-      id: row.id,
-      startedAt: row.created_at,
+      id: String(row.id),
+      startedAt: row.started_at,
       finishedAt: row.finished_at,
-      status: row.status,
+      status: 'success',
       gitCommit: row.git_commit,
       schemaVersion: null,
       pipelineVersion: row.pipeline_version,
-      extractorVersions: null,
+      extractorVersions: row.config_json?.step_versions ?? null,
       ocrVersions: null,
-      agenticEnabled: Boolean(row.agentic_enabled),
+      agenticEnabled: row.config_json?.agentic_enabled ?? false,
       agenticModelId: null,
       agenticPromptVersion: null,
       agenticParams: null,
-      notes: row.notes,
+      notes: row.config_json?.notes || null,
     };
   }
 }

@@ -53,6 +53,9 @@ scripts/migrations/*.sql
 *.part*
 tmp/
 temp/
+scratch/
+mempalace.yaml
+entities.json
 
 # Compressed archives
 *.gz
@@ -94,6 +97,7 @@ Thumbs.db
 .chuck/
 .claude/settings.local.json
 .playwright-mcp/
+.pnpm-store/
 
 # Claude Code local plugins (not project code)
 skiils/
@@ -101,6 +105,10 @@ skiils/
 # Superpowers AI planning docs (session artifacts, not project code)
 docs/superpowers/
 .superpowers/
+
+# LLM/agent handover + explain artifacts (local-only; never commit)
+docs/llm_handover/
+docs/explain/
 
 # Test results
 test-results/
@@ -136,4 +144,6 @@ server.log
 api-server.log
 .vercel
 .env*.local
+.env.production
+.env.local
 .worktrees/

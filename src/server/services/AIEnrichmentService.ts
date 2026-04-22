@@ -31,6 +31,8 @@ export class AIEnrichmentService {
   // Exo (distributed cluster) configuration
   private static EXO_HOST = process.env.EXO_HOST || 'http://127.0.0.1:52415';
   private static discoveredExoModel: string | null = process.env.EXO_MODEL || null;
+  private static discoveredExoGraphModel: string | null =
+    process.env.GRAPH_EXTRACTION_MODEL || null;
   private static EXO_DISCOVERY_TIMEOUT_MS = Math.max(
     1000,
     parseInt(process.env.EXO_DISCOVERY_TIMEOUT_MS || '8000', 10) || 8000,
@@ -69,47 +71,122 @@ export class AIEnrichmentService {
 
       const data = (await response.json()) as ExoModelsResponse;
       if (data.data && data.data.length > 0) {
-        // Log available models for debugging
         const availableModels = data.data.map((m) => m.id).join(', ');
         logger.info(`📋 Available Exo models: ${availableModels}`);
 
-        // 1. Try to find the specific active instance ID from the screenshot first
-        const activeInstance = data.data.find((m) => m.id === '306A62B7');
+        const id = (m: ExoModel) => m.id.toLowerCase();
 
-        // 2. Try to find a Qwen/Gwen model (Speed focus)
-        const gwen = data.data.find(
-          (m) =>
-            (m.id.toLowerCase().includes('qwen') || m.id.toLowerCase().includes('gwen')) &&
-            (m.id.includes('0.6B') || m.id.toLowerCase().includes('instruct')),
+        // Prefer a fast, small text model for Phase 1–3 enrichment (repair/classify/summarize)
+        // Priority: Qwen3.5-2B > Qwen3-0.6B > any Llama-3.2 instruct > any instruct > first
+        const qwen2b = data.data.find(
+          (m) => id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b'),
         );
+        const qwen06b = data.data.find(
+          (m) => id(m).includes('qwen3-0.6b') || id(m).includes('qwen3_0.6b'),
+        );
+        const llama32 = data.data.find(
+          (m) => id(m).includes('llama-3.2') && id(m).includes('instruct'),
+        );
+        const anyInstruct = data.data.find((m) => id(m).includes('instruct'));
 
-        // 3. Fallback to any Instruct model
-        const anyInstruct = data.data.find((m) => m.id.toLowerCase().includes('instruct'));
-
-        // 4. Fallback to first available
-        const selected = activeInstance || gwen || anyInstruct || data.data[0];
-
+        const selected = qwen2b || qwen06b || llama32 || anyInstruct || data.data[0];
         this.discoveredExoModel = selected.id;
-        logger.info(`🤖 Auto-discovered Exo model: ${this.discoveredExoModel}`);
+        logger.info(`🤖 Auto-discovered Exo model (Phase 1–3): ${this.discoveredExoModel}`);
         return this.discoveredExoModel!;
       }
     } catch (err: unknown) {
       logger.warn({ err }, '⚠️ Failed to discover Exo model');
     }
 
-    const fallback = '306A62B7'; // Confirmed active instance ID
+    // Fall back to Qwen3.5-2B — 2.5GB, fits in any cluster, auto-downloaded by EXO on first use
+    const fallback = 'mlx-community/Qwen3.5-2B-MLX-8bit';
     logger.warn(`⚠️ Using fallback Exo model: ${fallback}`);
     return fallback;
+  }
+
+  /**
+   * Discovers the heavier model on the Exo cluster for graph extraction tasks.
+   * Preference order: GRAPH_EXTRACTION_MODEL env var → any 14B model → fallback to standard model.
+   */
+  private static async autoDiscoverExoGraphModel(): Promise<string> {
+    // 1. Explicit env override takes highest priority
+    if (process.env.GRAPH_EXTRACTION_MODEL) {
+      logger.info(
+        `🤖 Using GRAPH_EXTRACTION_MODEL from environment: ${process.env.GRAPH_EXTRACTION_MODEL}`,
+      );
+      return process.env.GRAPH_EXTRACTION_MODEL;
+    }
+
+    // 2. Return cached discovery result
+    if (this.discoveredExoGraphModel) return this.discoveredExoGraphModel;
+
+    try {
+      const response = await fetch(`${this.EXO_HOST}/v1/models`, {
+        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+      });
+      if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
+
+      interface ExoModel {
+        id: string;
+      }
+      interface ExoModelsResponse {
+        data?: ExoModel[];
+      }
+
+      const data = (await response.json()) as ExoModelsResponse;
+      if (data.data && data.data.length > 0) {
+        const availableModels = data.data.map((m) => m.id).join(', ');
+        logger.info(`📋 Available Exo models (graph selection): ${availableModels}`);
+
+        const id = (m: ExoModel) => m.id.toLowerCase();
+
+        // For structured JSON extraction, prefer the largest model that fits in VRAM.
+        // On a 24GB cluster the sweet spot is Qwen3.5-9B (5.5GB) > Qwen3-VL-4B (3.1GB) > Qwen3.5-2B.
+        // EXO will auto-download the chosen model on first request if not already cached.
+        const qwen9b = data.data.find(
+          (m) => id(m).includes('qwen3.5-9b') || id(m).includes('qwen3.5_9b'),
+        );
+        const qwenVL4b = data.data.find(
+          (m) => id(m).includes('qwen3-vl-4b') || id(m).includes('qwen3_vl_4b'),
+        );
+        const qwen2b = data.data.find(
+          (m) => id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b'),
+        );
+
+        const graphModel = qwen9b || qwenVL4b || qwen2b;
+        if (graphModel) {
+          this.discoveredExoGraphModel = graphModel.id;
+          logger.info(
+            `🤖 Auto-discovered Exo graph extraction model: ${this.discoveredExoGraphModel}`,
+          );
+          return this.discoveredExoGraphModel;
+        }
+      }
+    } catch (err: unknown) {
+      logger.warn({ err }, '⚠️ Failed to discover Exo graph model — falling back to standard');
+    }
+
+    // Fall back to the standard lightweight model
+    const standard = await this.autoDiscoverExoModel();
+    logger.info(
+      `🤖 No 14B+ Exo model found — using standard model for graph extraction: ${standard}`,
+    );
+    this.discoveredExoGraphModel = standard;
+    return standard;
   }
 
   /**
    * Get the model name for the current provider
    */
   private static async getModelId(
-    task: 'repair' | 'classify' | 'resolve' | 'summarize' = 'repair',
+    task: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph' = 'repair',
   ): Promise<string> {
     const provider = process.env.AI_PROVIDER || 'local_ollama';
     if (provider === 'exo_cluster') {
+      // Graph extraction tasks get the heavier model (14B+) when available
+      if (task === 'graph') {
+        return await this.autoDiscoverExoGraphModel();
+      }
       return await this.autoDiscoverExoModel();
     }
     // Ollama model selection by task
@@ -119,6 +196,9 @@ export class AIEnrichmentService {
       case 'resolve':
       case 'summarize':
         return process.env.OLLAMA_RESOLVE_MODEL || 'mistral:7b';
+      case 'graph':
+        // Graph extraction needs a model that reliably produces structured JSON
+        return process.env.OLLAMA_GRAPH_MODEL || process.env.OLLAMA_RESOLVE_MODEL || 'mistral:7b';
       default:
         return this.OLLAMA_MODEL;
     }
@@ -129,15 +209,20 @@ export class AIEnrichmentService {
    */
   private static async callLLM(
     prompt: string,
-    options: { maxTokens?: number; temperature?: number; retryCount?: number } = {},
+    options: {
+      maxTokens?: number;
+      temperature?: number;
+      retryCount?: number;
+      task?: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph';
+    } = {},
   ): Promise<string> {
     const provider = process.env.AI_PROVIDER || 'local_ollama';
-    const { maxTokens = 100, temperature = 0.1, retryCount = 2 } = options;
+    const { maxTokens = 100, temperature = 0.1, retryCount = 2, task } = options;
 
     let attempt = 0;
     while (attempt <= retryCount) {
       try {
-        const modelId = await this.getModelId();
+        const modelId = await this.getModelId(task);
         if (provider === 'exo_cluster') {
           // OpenAI-compatible API (Exo)
           const url = `${this.EXO_HOST}/v1/chat/completions`;
@@ -650,7 +735,11 @@ ${entityNames.join(', ')}
 
 ### OUTPUT`;
 
-      const result = await this.callLLM(prompt, { maxTokens: 200, temperature: 0.1 });
+      const result = await this.callLLM(prompt, {
+        maxTokens: 200,
+        temperature: 0.1,
+        task: 'graph',
+      });
       if (!result || result === 'NONE') return [];
 
       // Parse: "[Entity A] -[RELATIONSHIP]-> [Entity B]: 0.85"
@@ -716,6 +805,181 @@ Content: "${content.slice(0, 2000)}"
     } catch (_e) {
       logger.warn({ err: _e }, '⚠️ AI Summarization failed - returning null');
       return null;
+    }
+  }
+
+  /**
+   * EXTRACT: Timeline Events from a document
+   */
+  static async extractTimelineEvents(
+    content: string,
+    fileName: string,
+  ): Promise<
+    {
+      title: string;
+      date: string;
+      description: string;
+      type: string;
+      significance: string;
+      entities: string;
+    }[]
+  > {
+    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    if (!isAiEnabled || !content || content.length < 100) return [];
+
+    try {
+      const prompt = `### INSTRUCTION
+Extract dated events from this document. Only include events with a specific or approximate date.
+
+### DOCUMENT
+File: ${fileName}
+Content: "${content.slice(0, 2500)}"
+
+### OUTPUT FORMAT
+Return a compact JSON array (no markdown, no explanation). Each object:
+{"title":"short event title","date":"YYYY-MM-DD","description":"1-2 sentence description","type":"LEGAL|FINANCIAL|POLITICAL|TRAVEL|MEETING|COMMUNICATION|OTHER","significance":"HIGH|MEDIUM|LOW","entities":"comma-separated person/org names"}
+Return [] if no clearly dated events found.
+
+### OUTPUT`;
+
+      const result = await this.callLLM(prompt, {
+        maxTokens: 600,
+        temperature: 0.1,
+        task: 'graph',
+      });
+      if (!result || result.trim() === '[]') return [];
+      const match = result.match(/\[[\s\S]*\]/);
+      if (!match) return [];
+      const parsed = JSON.parse(match[0]);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(
+        (e: unknown) =>
+          e &&
+          typeof e === 'object' &&
+          typeof (e as Record<string, unknown>).title === 'string' &&
+          typeof (e as Record<string, unknown>).date === 'string',
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * EXTRACT: Financial Transactions from a document
+   */
+  static async extractFinancialTransactions(
+    content: string,
+    entityNames: string[],
+  ): Promise<
+    {
+      from_entity: string;
+      to_entity: string;
+      amount: number;
+      currency: string;
+      date: string;
+      transaction_type: string;
+      method: string;
+      risk_level: string;
+      description: string;
+    }[]
+  > {
+    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    if (!isAiEnabled || !content || content.length < 100) return [];
+
+    try {
+      const entityHint =
+        entityNames.length > 0 ? `Known entities: ${entityNames.slice(0, 20).join(', ')}` : '';
+      const prompt = `### INSTRUCTION
+Extract financial transactions mentioned in this document.
+${entityHint}
+
+### DOCUMENT
+"${content.slice(0, 2500)}"
+
+### OUTPUT FORMAT
+Return a compact JSON array (no markdown). Each object:
+{"from_entity":"name","to_entity":"name","amount":0.00,"currency":"USD","date":"YYYY-MM-DD","transaction_type":"PAYMENT|TRANSFER|GIFT|LOAN|INVESTMENT|SALARY|EXPENSE|OTHER","method":"CASH|WIRE|CHECK|CRYPTO|UNKNOWN","risk_level":"HIGH|MEDIUM|LOW","description":"brief description"}
+Return [] if no financial transactions found.
+
+### OUTPUT`;
+
+      const result = await this.callLLM(prompt, {
+        maxTokens: 600,
+        temperature: 0.1,
+        task: 'graph',
+      });
+      if (!result || result.trim() === '[]') return [];
+      const match = result.match(/\[[\s\S]*\]/);
+      if (!match) return [];
+      const parsed = JSON.parse(match[0]);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(
+        (e: unknown) =>
+          e &&
+          typeof e === 'object' &&
+          typeof (e as Record<string, unknown>).from_entity === 'string' &&
+          typeof (e as Record<string, unknown>).to_entity === 'string',
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * EXTRACT: Claim Triples (subject-predicate-object) from a document
+   */
+  static async extractClaimTriples(
+    content: string,
+    entityNames: string[],
+  ): Promise<
+    {
+      subject: string;
+      predicate: string;
+      object: string;
+      confidence: number;
+      modality: string;
+    }[]
+  > {
+    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    if (!isAiEnabled || !content || content.length < 100) return [];
+
+    try {
+      const entityHint =
+        entityNames.length > 0 ? `Known entities: ${entityNames.slice(0, 20).join(', ')}` : '';
+      const prompt = `### INSTRUCTION
+Extract factual claims as subject-predicate-object triples from this document.
+${entityHint}
+
+### DOCUMENT
+"${content.slice(0, 2000)}"
+
+### OUTPUT FORMAT
+Return a compact JSON array (no markdown). Each object:
+{"subject":"entity or person name","predicate":"verb phrase (e.g. 'owns property at', 'met with', 'paid')","object":"entity name or descriptive text","confidence":0.8,"modality":"ASSERTED|ALLEGED|DENIED|UNKNOWN"}
+Only include triples with confidence >= 0.6. Return [] if none found.
+
+### OUTPUT`;
+
+      const result = await this.callLLM(prompt, {
+        maxTokens: 600,
+        temperature: 0.1,
+        task: 'graph',
+      });
+      if (!result || result.trim() === '[]') return [];
+      const match = result.match(/\[[\s\S]*\]/);
+      if (!match) return [];
+      const parsed = JSON.parse(match[0]);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(
+        (e: unknown) =>
+          e &&
+          typeof e === 'object' &&
+          typeof (e as Record<string, unknown>).subject === 'string' &&
+          typeof (e as Record<string, unknown>).predicate === 'string' &&
+          typeof (e as Record<string, unknown>).object === 'string',
+      );
+    } catch {
+      return [];
     }
   }
 
