@@ -1,5 +1,22 @@
 # Release Notes
 
+## 19.4.0 - 2026-04-22 - System Hardening & Release Readiness
+
+### Infrastructure & Stability
+
+- **Architecture Hardening**: Upgraded CI and verification scripts (`verify_ops`, `check_client_server_boundary`) to be environment-agnostic and resilient to missing system binaries.
+- **Ingestion Resilience**: Resolved `DOMMatrix` and `pdf-parse` runtime blockers for Node v20 compatibility, ensuring stable asset extraction across all environments.
+- **Unified Pipeline Tracking**: Fully migrated the Ingest Runs infrastructure and UI to the modern `pipeline_runs` unified tracking system.
+- **Relational Integrity**: Successfully completed a 59-step strict relational migration, enforcing referential integrity and performance-optimized junction tables across the core forensic data layer.
+
+### Project Hygiene
+
+- **Repository Sanitization**: Performed a full sweep of stale logs, temporary artifacts, and historical handovers to achieve a production-grade repository state.
+- **Hardened Git Configuration**: Improved `.gitignore` rules to permanently exclude local environment and scratch artifacts.
+- **Documentation Migration**: Centralized investigative reports into the formal documentation hierarchy.
+
+---
+
 ## 19.3.2 - 2026-04-19
 
 ### Media Browser
