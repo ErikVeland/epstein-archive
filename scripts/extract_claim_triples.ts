@@ -96,7 +96,7 @@ async function main() {
             INSERT INTO claim_triples
               (subject_entity_id, predicate, object_entity_id, object_text,
                document_id, confidence, modality)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6, $7)
           `,
             [
               subjectId,
@@ -115,8 +115,8 @@ async function main() {
         await pool.query(
           `
           UPDATE documents
-          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_triples_at', $1)
-          WHERE id = $2
+          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_triples_at', $1::text)
+          WHERE id = $2::bigint
         `,
           [new Date().toISOString(), doc.id],
         );
@@ -130,8 +130,8 @@ async function main() {
         await pool.query(
           `
           UPDATE documents
-          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_triples_at', $1)
-          WHERE id = $2
+          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_triples_at', $1::text)
+          WHERE id = $2::bigint
         `,
           [new Date().toISOString(), doc.id],
         );

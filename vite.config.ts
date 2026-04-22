@@ -10,18 +10,19 @@ const apiProxyTarget = apiBaseUrl.replace(/\/api\/?$/, '');
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(packageJson.version),
+    __BUILD_DATE__: JSON.stringify(
+      new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    ),
+  },
   resolve: {
     alias: {
       '@client': path.resolve(__dirname, 'src/client'),
       '@server': path.resolve(__dirname, 'src/server'),
       '@shared': path.resolve(__dirname, 'src/shared'),
     },
-  },
-  define: {
-    __APP_VERSION__: JSON.stringify(packageJson.version),
-    __BUILD_DATE__: JSON.stringify(
-      new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    ),
+    dedupe: ['react', 'react-dom'],
   },
   plugins: [
     react(),
@@ -46,6 +47,7 @@ export default defineConfig({
               id.includes('/react-dom/') ||
               id.includes('/react/') ||
               id.includes('react-router') ||
+              id.includes('react-helmet-async') ||
               id.includes('@tanstack/react-query') ||
               id.includes('@tanstack/query-core')
             ) {
@@ -56,7 +58,7 @@ export default defineConfig({
 
           // Feature-based grouping for our own source code.
           // Use lowercased id to match consistently on case-sensitive Linux filesystems.
-          const normalizedId = id.toLowerCase();
+          const normalizedId = String(id).toLowerCase();
           if (normalizedId.includes('src/client/components/investigation')) {
             return 'feature-investigation';
           }

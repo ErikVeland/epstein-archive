@@ -108,7 +108,7 @@ async function main() {
         await pool.query(
           `
           UPDATE documents
-          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_timeline_at', $1)
+          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_timeline_at', $1::text)
           WHERE id = $2
         `,
           [new Date().toISOString(), doc.id],
@@ -123,7 +123,7 @@ async function main() {
         await pool.query(
           `
           UPDATE documents
-          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_timeline_at', $1)
+          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_timeline_at', $1::text)
           WHERE id = $2
         `,
           [new Date().toISOString(), doc.id],

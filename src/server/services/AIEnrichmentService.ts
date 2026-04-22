@@ -33,6 +33,8 @@ export class AIEnrichmentService {
   private static discoveredExoModel: string | null = process.env.EXO_MODEL || null;
   private static discoveredExoGraphModel: string | null =
     process.env.GRAPH_EXTRACTION_MODEL || null;
+  // Models confirmed as not running (404 from EXO) — skipped during re-discovery
+  private static exoUnavailableModels: Set<string> = new Set();
   private static EXO_DISCOVERY_TIMEOUT_MS = Math.max(
     1000,
     parseInt(process.env.EXO_DISCOVERY_TIMEOUT_MS || '8000', 10) || 8000,
@@ -75,21 +77,24 @@ export class AIEnrichmentService {
         logger.info(`📋 Available Exo models: ${availableModels}`);
 
         const id = (m: ExoModel) => m.id.toLowerCase();
+        const available = (m: ExoModel) => !this.exoUnavailableModels.has(m.id);
 
         // Prefer a fast, small text model for Phase 1–3 enrichment (repair/classify/summarize)
         // Priority: Qwen3.5-2B > Qwen3-0.6B > any Llama-3.2 instruct > any instruct > first
         const qwen2b = data.data.find(
-          (m) => id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b'),
+          (m) => available(m) && (id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b')),
         );
         const qwen06b = data.data.find(
-          (m) => id(m).includes('qwen3-0.6b') || id(m).includes('qwen3_0.6b'),
+          (m) => available(m) && (id(m).includes('qwen3-0.6b') || id(m).includes('qwen3_0.6b')),
         );
         const llama32 = data.data.find(
-          (m) => id(m).includes('llama-3.2') && id(m).includes('instruct'),
+          (m) => available(m) && id(m).includes('llama-3.2') && id(m).includes('instruct'),
         );
-        const anyInstruct = data.data.find((m) => id(m).includes('instruct'));
+        const anyInstruct = data.data.find((m) => available(m) && id(m).includes('instruct'));
+        const anyAvailable = data.data.find((m) => available(m));
 
-        const selected = qwen2b || qwen06b || llama32 || anyInstruct || data.data[0];
+        const selected =
+          qwen2b || qwen06b || llama32 || anyInstruct || anyAvailable || data.data[0];
         this.discoveredExoModel = selected.id;
         logger.info(`🤖 Auto-discovered Exo model (Phase 1–3): ${this.discoveredExoModel}`);
         return this.discoveredExoModel!;
@@ -139,18 +144,19 @@ export class AIEnrichmentService {
         logger.info(`📋 Available Exo models (graph selection): ${availableModels}`);
 
         const id = (m: ExoModel) => m.id.toLowerCase();
+        const available = (m: ExoModel) => !this.exoUnavailableModels.has(m.id);
 
         // For structured JSON extraction, prefer the largest model that fits in VRAM.
         // On a 24GB cluster the sweet spot is Qwen3.5-9B (5.5GB) > Qwen3-VL-4B (3.1GB) > Qwen3.5-2B.
-        // EXO will auto-download the chosen model on first request if not already cached.
+        // Models that returned 404 are skipped — they're in the hub catalog but not currently running.
         const qwen9b = data.data.find(
-          (m) => id(m).includes('qwen3.5-9b') || id(m).includes('qwen3.5_9b'),
+          (m) => available(m) && (id(m).includes('qwen3.5-9b') || id(m).includes('qwen3.5_9b')),
         );
         const qwenVL4b = data.data.find(
-          (m) => id(m).includes('qwen3-vl-4b') || id(m).includes('qwen3_vl_4b'),
+          (m) => available(m) && (id(m).includes('qwen3-vl-4b') || id(m).includes('qwen3_vl_4b')),
         );
         const qwen2b = data.data.find(
-          (m) => id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b'),
+          (m) => available(m) && (id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b')),
         );
 
         const graphModel = qwen9b || qwenVL4b || qwen2b;
@@ -166,11 +172,10 @@ export class AIEnrichmentService {
       logger.warn({ err }, '⚠️ Failed to discover Exo graph model — falling back to standard');
     }
 
-    // Fall back to the standard lightweight model
+    // No preferred graph model found in hub — fall back to whatever standard discovery picks.
+    // Standard discovery also queries /v1/models, so if that also fails we get the hardcoded fallback.
     const standard = await this.autoDiscoverExoModel();
-    logger.info(
-      `🤖 No 14B+ Exo model found — using standard model for graph extraction: ${standard}`,
-    );
+    logger.info(`🤖 Using standard model for graph extraction: ${standard}`);
     this.discoveredExoGraphModel = standard;
     return standard;
   }
@@ -220,6 +225,9 @@ export class AIEnrichmentService {
     const { maxTokens = 100, temperature = 0.1, retryCount = 2, task } = options;
 
     let attempt = 0;
+    // Track how many different models we've tried to avoid an infinite model-switch loop
+    let modelSwitches = 0;
+    const MAX_MODEL_SWITCHES = 4;
     while (attempt <= retryCount) {
       try {
         const modelId = await this.getModelId(task);
@@ -228,7 +236,6 @@ export class AIEnrichmentService {
           const url = `${this.EXO_HOST}/v1/chat/completions`;
           logger.info(`[AIEnrichment] Calling Exo LLM: ${modelId} at ${url}`);
 
-          // Use a custom agent with keepAlive to potentially reduce connection overhead,
           const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -255,6 +262,29 @@ export class AIEnrichmentService {
                 `⚠️ Exo model ${modelId} does not support image input - using text-only mode`,
               );
               return '';
+            }
+            // Model is in the hub catalog but not currently loaded/running.
+            // Mark it unavailable and continue the loop WITHOUT consuming a retry attempt —
+            // retries are for transient network errors, not for missing models.
+            if (response.status === 404 && errorText.includes('No instance found')) {
+              this.exoUnavailableModels.add(modelId);
+              // Invalidate caches so we re-discover a DIFFERENT available model
+              if (task === 'graph') {
+                this.discoveredExoGraphModel = null;
+              } else {
+                this.discoveredExoModel = null;
+              }
+              modelSwitches++;
+              if (modelSwitches >= MAX_MODEL_SWITCHES) {
+                logger.error(
+                  `❌ No Exo model found after ${modelSwitches} switches. Ensure a model is running in EXO.`,
+                );
+                return '';
+              }
+              logger.warn(
+                `⚠️ Exo model ${modelId} not running (404). Switching model (${modelSwitches}/${MAX_MODEL_SWITCHES})...`,
+              );
+              continue; // Re-discover next attempt
             }
             throw new Error(`Exo cluster returned ${response.status}: ${errorText.slice(0, 200)}`);
           }
