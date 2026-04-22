@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Search } from 'lucide-react';
-import { cn } from '../../lib';
+import { cn } from '../../../utils/cn';
 import './TextInput.css';
 
 type Density = 'compact' | 'default' | 'comfortable';

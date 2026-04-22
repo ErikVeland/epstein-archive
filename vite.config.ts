@@ -36,48 +36,12 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        // manualChunks removed to fix initialization order issues
+        /*
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react-pdf') || id.includes('pdfjs-dist')) return 'vendor-pdf';
-            if (id.includes('recharts')) return 'vendor-charts';
-            if (id.includes('leaflet') || id.includes('react-leaflet')) return 'vendor-maps';
-            if (id.includes('framer-motion') || id.includes('motion-dom')) return 'vendor-motion';
-            if (id.includes('lucide-react')) return 'vendor-icons';
-            if (
-              id.includes('/react-dom/') ||
-              id.includes('/react/') ||
-              id.includes('react-router') ||
-              id.includes('react-helmet-async') ||
-              id.includes('@tanstack/react-query') ||
-              id.includes('@tanstack/query-core')
-            ) {
-              return 'vendor-react';
-            }
-            return 'vendor';
-          }
-
-          // Feature-based grouping for our own source code.
-          // Use lowercased id to match consistently on case-sensitive Linux filesystems.
-          const normalizedId = String(id).toLowerCase();
-          if (normalizedId.includes('src/client/components/investigation')) {
-            return 'feature-investigation';
-          }
-          if (
-            normalizedId.includes('src/client/components/media') ||
-            normalizedId.includes('src/client/components/photo')
-          ) {
-            return 'feature-media';
-          }
-          if (normalizedId.includes('src/client/components/email')) {
-            return 'feature-email';
-          }
-          if (normalizedId.includes('src/client/components/document')) {
-            return 'feature-documents';
-          }
-          if (normalizedId.includes('src/client/components/networkvisualization')) {
-            return 'feature-network';
-          }
-        },
+          ...
+        }
+        */
       },
     },
     chunkSizeWarningLimit: 1000,

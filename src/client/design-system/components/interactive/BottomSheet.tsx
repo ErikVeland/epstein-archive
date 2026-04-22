@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../../utils/cn';
 import { useResponsive } from '../../../hooks/useResponsive';
 import { useScrollLock } from '../../../hooks/useScrollLock';
 import { useSwipeGesture } from '../../../hooks/useSwipeGesture';
-import { cn } from '../../lib';
 import styles from './BottomSheet.module.css';
 
 export interface BottomSheetProps {

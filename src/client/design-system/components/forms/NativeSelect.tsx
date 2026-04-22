@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ChevronDown } from 'lucide-react';
-import { cn } from '../../lib';
+import { cn } from '../../../utils/cn';
 import './Select.css';
 
 export interface NativeSelectProps extends Omit<

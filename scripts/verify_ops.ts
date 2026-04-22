@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { BackupService } from '../src/server/services/BackupService.js';
 import { IngestRunsRepository } from '../src/server/db/ingestRunsRepository.js';
 

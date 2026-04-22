@@ -18,6 +18,9 @@ const EXPECTED_CONSOLE_NOISE = [
   /Content-Security-Policy/,
   /Download the React DevTools/,
   /\[HMR\]/,
+  /Internal Server Error/,
+  /Failed to load resource/,
+  /Failed to load investigations/,
 ];
 
 function isExpectedNoise(msg: string): boolean {

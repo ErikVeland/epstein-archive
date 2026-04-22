@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '../../lib';
+import { cn } from '../../../utils/cn';
 import { Button } from '../Button';
 import './Pagination.css';
 

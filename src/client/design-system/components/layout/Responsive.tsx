@@ -1,6 +1,6 @@
 import React from 'react';
 import { useMediaQuery, useResponsive } from '../../../hooks/useResponsive';
-import { cn } from '../../lib';
+import { cn } from '../../../utils/cn';
 
 export interface ResponsiveProps {
   children: React.ReactNode;

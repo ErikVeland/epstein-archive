@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../../lib';
+import { cn } from '../../../utils/cn';
 import { buildSpacingStyles, type SpacingProps, type SizingProps } from '../../lib/resolveSpace';
 import './Stack.css';
 
