@@ -438,6 +438,11 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
 
     log_step "Building locally to verify integrity..."
     pnpm build:prod
+
+    # CRITICAL GATE: Catch bundle-level initialization errors (ReferenceError, TDZ)
+    # that only appear after minification.
+    log_step "Running production bundle integrity test (Playwright Smoke)..."
+    pnpm test:bundle-smoke:only
   fi
 
   log_step "Pushing code to origin..."

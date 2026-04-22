@@ -105,3 +105,36 @@ psql "$DATABASE_URL" -c "SELECT count(*) FROM documents;"
 
 - **Missing Images?** Ensure `data/thumbnails` is populated and permissions are correct.
 - **Node Errors?** Make sure you're using Node v20.19+ (`node -v`).
+
+---
+
+## 🧹 Repo Hygiene (LLM/agent + local artifacts)
+
+This repo is designed to avoid “cruft” (LLM handovers, explain traces, local dependency stores, etc.) from being accidentally committed.
+
+### What is always local-only (never commit)
+
+- `docs/llm_handover/` (LLM/agent task briefs)
+- `docs/explain/` (local explain artifacts)
+- `.claude/` (local agent/tool configuration)
+- `.pnpm-store/` (local pnpm store, if created in-repo)
+- `.playwright-mcp/` (local playwright MCP state)
+
+These paths are gitignored and also blocked by a pre-commit hygiene check.
+
+### Hygiene commands
+
+```bash
+# Remove local-only artifacts (safe to run repeatedly)
+pnpm run hygiene:clean
+
+# Verify you are not staging forbidden local-only artifacts
+pnpm run check:hygiene
+```
+
+### Recurring cleanup procedure (recommended)
+
+- Before opening a PR: run `pnpm run check:hygiene`
+- If you’ve been doing LLM-assisted work: run `pnpm run hygiene:clean`
+- If you see Rollup/Vite native module issues after switching machines/architectures:
+  - delete `node_modules/` and reinstall via `pnpm install`

@@ -1,3 +1,45 @@
+#!/bin/sh
 export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin"
-pnpm exec lint-staged
-pnpm run check:hygiene
+
+# Fast gates — format, lint, types, and targeted static checks.
+# Scoped to staged files where possible so this stays under ~10s.
+
+# ── 1. Format + lint auto-fix on staged files ────────────────────────────────
+pnpm exec lint-staged || exit 1
+
+# ── 2. TypeScript ─────────────────────────────────────────────────────────────
+pnpm type-check || { echo "❌ TypeScript errors — fix before committing."; exit 1; }
+
+# ── 3. Test hygiene (vitest/playwright conventions in test files) ─────────────
+pnpm run check:hygiene || { echo "❌ Test hygiene violations."; exit 1; }
+
+# ── 4. Client/server boundary (client importing @server code) ─────────────────
+# Fast grep-based check — catches the violation at commit time, not at build time.
+CLIENT_STAGED=$(git diff --cached --name-only | grep -E "^src/client/" || true)
+if [ -n "$CLIENT_STAGED" ]; then
+  node scripts/check_client_server_boundary.mjs || {
+    echo "❌ Client/server boundary violation — src/client/ must not import @server/*."
+    exit 1
+  }
+fi
+
+# ── 5. Design token compliance (enforced component files only) ────────────────
+# Only run when one of the token-enforced files is staged.
+ENFORCED_PATTERN="src/client/App\.tsx|src/client/components/common/(FormField|SourceBadge|Card|BaseCard|CloseButton|ProgressBar|Skeleton|Tabs|BatchToolbar|FormLayout)|src/client/components/ui/Glass|src/client/design-system"
+DESIGN_TOKEN_STAGED=$(git diff --cached --name-only | grep -E "$ENFORCED_PATTERN" || true)
+if [ -n "$DESIGN_TOKEN_STAGED" ]; then
+  node --import tsx/esm scripts/check_design_token_usage.ts || {
+    echo "❌ Design token violations in enforced component files."
+    exit 1
+  }
+fi
+
+# ── 6. Migration seed-conflict policy ────────────────────────────────────────
+# Catches ON CONFLICT (id) DO NOTHING in new migrations before they reach prod.
+MIGRATION_STAGED=$(git diff --cached --name-only | grep -E "migrations/.*\.(js|sql)$" || true)
+if [ -n "$MIGRATION_STAGED" ]; then
+  node --import tsx/esm scripts/check_seed_conflict_policy.ts || {
+    echo "❌ Migration seed-conflict policy violation."
+    exit 1
+  }
+fi

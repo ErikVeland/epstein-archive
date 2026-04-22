@@ -12,5 +12,6 @@ rm -rf "${ROOT_DIR}/docs/explain" || true
 # Optional: other common local artifacts that should not linger.
 rm -rf "${ROOT_DIR}/.playwright-mcp" || true
 rm -rf "${ROOT_DIR}/.pnpm-store" || true
+rm -rf "${ROOT_DIR}/.claude" || true
 
 echo "✅ Cleaned LLM/agent local artifacts."

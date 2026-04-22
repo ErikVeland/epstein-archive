@@ -27,4 +27,7 @@ pnpm test:unit
 echo "▶ Building production artifacts"
 pnpm build:prod
 
+echo "▶ Running production bundle smoke tests (catches TDZ / ReferenceError crashes)"
+pnpm test:bundle-smoke:only
+
 echo "✅ Quality gate passed"

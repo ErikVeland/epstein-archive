@@ -1,22 +1,76 @@
 #!/bin/sh
+export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin"
 
+echo ""
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║              PRE-PUSH QUALITY GATE                          ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
 
-echo "Running quality checks"
-echo "🔍 Running linter..."
-pnpm lint:fix || exit 1
+# ── 1. Lint (auto-fix, then fail if anything remains broken) ─────────────────
+echo ""
+echo "🔍 [1/4] Linting..."
+pnpm lint:fix || { echo "❌ Lint failed."; exit 1; }
 
-echo "🔍 Running type-checker..."
-pnpm type-check || exit 1
+# ── 2. TypeScript ─────────────────────────────────────────────────────────────
+echo ""
+echo "🔍 [2/4] Type checking..."
+pnpm type-check || { echo "❌ TypeScript errors detected."; exit 1; }
 
-# echo "🔍 Checking database integrity..."
-# pnpm db:check || exit 1
-
-# Check for uncommitted changes (dirty state) caused by formatter or otherwise
+# ── 3. Dirty-state check (lint/format may have modified files) ────────────────
 if [ -n "$(git status --porcelain)" ]; then
-    echo "❌ Error: Found uncommitted changes after quality checks."
-    echo "Please commit these changes before pushing:"
-    git status --short
-    exit 1
+  echo ""
+  echo "❌ Uncommitted changes after auto-fix. Stage them before pushing:"
+  git status --short
+  exit 1
 fi
 
-echo "✅ Pre-push check passed."
+# ── 4. Production bundle smoke test ───────────────────────────────────────────
+# Detects runtime errors that only appear after Vite chunks and minifies:
+#   - ReferenceError from bad chunk initialization order (TDZ)
+#   - Missing React deduplication
+#   - Any uncaught JS exception on page load
+#
+# Skip if no client-affecting files changed in this push (server-only changes
+# cannot produce a bad bundle, so there's no point spending 3+ minutes building).
+echo ""
+echo "🔍 [3/4] Checking for client-affecting changes..."
+
+# Compare commits being pushed against the upstream branch
+UPSTREAM="${1:-origin}"
+LOCAL_SHA="${2:-HEAD}"
+REMOTE_SHA=$(git rev-parse "$UPSTREAM/$(git rev-parse --abbrev-ref HEAD)" 2>/dev/null || echo "")
+
+if [ -n "$REMOTE_SHA" ]; then
+  CHANGED=$(git diff --name-only "$REMOTE_SHA"..."$LOCAL_SHA" 2>/dev/null)
+else
+  # First push on this branch — compare against main
+  CHANGED=$(git diff --name-only "origin/main"..."$LOCAL_SHA" 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null)
+fi
+
+CLIENT_AFFECTED=$(echo "$CHANGED" | grep -cE "^src/client/|^src/shared/|^vite\.config\.|^packages/|^package\.json" || true)
+
+if [ "$CLIENT_AFFECTED" -gt 0 ]; then
+  echo "   ⚡ Client files changed ($CLIENT_AFFECTED files). Running production bundle smoke test..."
+  echo ""
+  echo "🔍 [4/4] Building production bundle..."
+
+  pnpm build:prod || { echo "❌ Production build failed."; exit 1; }
+
+  echo ""
+  echo "🔍 [4/4] Running bundle smoke tests (catches TDZ, chunk init errors)..."
+  pnpm test:bundle-smoke:only || {
+    echo ""
+    echo "❌ PRODUCTION BUNDLE SMOKE TEST FAILED"
+    echo "   A runtime JS error was detected in the built bundle."
+    echo "   This would have broken production. Fix before pushing."
+    exit 1
+  }
+  echo "   ✅ Bundle smoke tests passed."
+else
+  echo "   ℹ️  No client files changed — skipping bundle smoke test."
+  echo "🔍 [4/4] Skipped."
+fi
+
+echo ""
+echo "✅ All pre-push gates passed."
+echo ""

@@ -17,7 +17,7 @@ const useProductionBaseUrl = process.env.PW_USE_PROD_BASE_URL === '1';
 
 export default defineConfig({
   testDir: './tests',
-  testIgnore: ['query-count.test.ts', 'epstein-archive.spec.ts', 'unit/**'],
+  testIgnore: ['query-count.test.ts', 'epstein-archive.spec.ts', 'unit/**', 'bundle-smoke.spec.ts'],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

@@ -95,7 +95,7 @@ Thumbs.db
 .vscode/
 .idea/
 .chuck/
-.claude/settings.local.json
+.claude/
 .playwright-mcp/
 .pnpm-store/
 

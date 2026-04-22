@@ -10,7 +10,7 @@ forbidden_patterns=(
   '^docs/superpowers/'
   '^\.playwright-mcp/'
   '^\.pnpm-store/'
-  '^\.claude/settings\.local\.json$'
+  '^\.claude/'
 )
 
 staged="$(git diff --cached --name-only)"
