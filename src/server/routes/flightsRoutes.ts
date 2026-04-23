@@ -1,9 +1,18 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import { flightsRepository } from '../db/flightsRepository.js';
+import { validate, flightsQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
 
 const router = Router();
 
-router.get('/', async (req, res, next) => {
+const coOccurrenceQuerySchema = z.object({
+  query: z.object({
+    minFlights: z.coerce.number().int().min(1).default(2),
+    limit: z.coerce.number().int().min(1).max(200).default(100),
+  }),
+});
+
+router.get('/', validate(flightsQuerySchema), async (req, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
     const page = Math.max(1, Number(q.page || 1));
@@ -55,7 +64,7 @@ router.get('/passengers', async (_req, res, next) => {
   }
 });
 
-router.get('/co-occurrences', async (req, res, next) => {
+router.get('/co-occurrences', validate(coOccurrenceQuerySchema), async (req, res, next) => {
   try {
     const query = req.query as Record<string, string | string[] | undefined>;
     const minFlights = Math.max(1, Number(query.minFlights || 2));
@@ -74,10 +83,9 @@ router.get('/co-occurrences', async (req, res, next) => {
   }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', validate(numericIdParamSchema), async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid flight id' });
     const flight = await flightsRepository.getFlightById(id);
     if (!flight) return res.status(404).json({ error: 'Flight not found' });
     res.json(flight);

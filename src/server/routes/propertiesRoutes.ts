@@ -1,23 +1,24 @@
 import { Router } from 'express';
 import { propertiesRepository } from '../db/propertiesRepository.js';
+import { validate, propertiesQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
 
 const router = Router();
 
-router.get('/', async (req, res, next) => {
+router.get('/', validate(propertiesQuerySchema), async (req, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
     const page = Math.max(1, Number(q.page || 1));
     const limit = Math.min(500, Math.max(1, Number(q.limit || 50)));
 
-    const rawSortBy = String(q.sortBy || '').trim();
+    const sortByRaw = String(q.sortBy || '').trim();
     const sortByParam: 'value' | 'owner' | 'year' | undefined =
-      rawSortBy === 'value' || rawSortBy === 'owner' || rawSortBy === 'year'
-        ? rawSortBy
+      sortByRaw === 'value' || sortByRaw === 'owner' || sortByRaw === 'year'
+        ? sortByRaw
         : undefined;
 
-    const rawSortOrder = String(q.sortOrder || '').trim();
+    const sortOrderRaw = String(q.sortOrder || '').trim();
     const sortOrderParam: 'asc' | 'desc' | undefined =
-      rawSortOrder === 'asc' || rawSortOrder === 'desc' ? rawSortOrder : undefined;
+      sortOrderRaw === 'asc' || sortOrderRaw === 'desc' ? sortOrderRaw : undefined;
 
     const payload = await propertiesRepository.getProperties({
       page,
@@ -77,10 +78,9 @@ router.get('/known-associates', async (_req, res, next) => {
   }
 });
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', validate(numericIdParamSchema), async (req, res, next) => {
   try {
     const id = Number(req.params.id);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid property id' });
     const property = await propertiesRepository.getPropertyById(id);
     if (!property) return res.status(404).json({ error: 'Property not found' });
     res.json(property);

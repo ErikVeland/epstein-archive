@@ -21,13 +21,23 @@ export function initSentry(): void {
     dsn,
     environment: process.env.NODE_ENV || 'development',
     release: process.env.npm_package_version,
-    // Capture 10 % of transactions for performance monitoring.
     tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE || 0.1),
-    // Never send PII.
     sendDefaultPii: false,
+    beforeSend(event) {
+      // Scrub sensitive fields from request bodies before they leave the process.
+      const PII_FIELDS = ['password', 'token', 'secret', 'ssn', 'credit_card', 'authorization'];
+      if (event.request?.data && typeof event.request.data === 'object') {
+        const data = event.request.data as Record<string, unknown>;
+        for (const field of PII_FIELDS) {
+          if (field in data) data[field] = '[Filtered]';
+        }
+      }
+      return event;
+    },
   });
 
-  logger.info('Sentry initialised');
+  Sentry.setTag('service', 'epstein-api');
+  logger.info('Sentry initialised (service=epstein-api)');
 }
 
 /**

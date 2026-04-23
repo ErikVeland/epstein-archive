@@ -49,6 +49,9 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test
 
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
       - name: Run Unified Quality Gate
         run: ./scripts/quality_gate.sh
         env:

@@ -337,13 +337,9 @@ button {
   }
 }
 
-/* Global Form Control Baseline - Systematic fix for native elements */
+/* Global Form Control Baseline - Reduced specificity to allow class-based overrides */
 select,
-input[type='text'],
-input[type='search'],
-input[type='email'],
-input[type='password'],
-input[type='number'],
+input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
 textarea {
   min-height: var(--control-height-compact);
   padding: var(--space-2) var(--space-3);
@@ -356,6 +352,15 @@ textarea {
   transition:
     border-color var(--duration-fast) var(--easing-swift),
     box-shadow var(--duration-fast) var(--easing-swift);
+}
+
+/* Systematic fix for any input preceded by a Lucide icon or element with 'icon' in class */
+[class*='search'] svg + input,
+[class*='Search'] svg + input,
+svg[class*='icon'] + input,
+svg[class*='Icon'] + input,
+.ds-inputSearchIcon + input {
+  padding-left: 2.75rem !important;
 }
 
 textarea {

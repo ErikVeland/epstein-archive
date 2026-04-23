@@ -75,8 +75,8 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
-.textInput {
-  padding: var(--space-3) var(--space-4) var(--space-3) 2.5rem;
+.textInput.textInput {
+  padding: var(--space-3) var(--space-4) var(--space-3) 2.75rem;
 }
 
 .selectInput,

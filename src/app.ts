@@ -904,6 +904,14 @@ export class App {
     router.use('/investigations', investigationEvidenceRoutes);
     router.use('/investigations/:id/leads', investigationLeadsRouter);
 
+    // API 404 — must be last on the router, before the SPA fallback.
+    // Prevents unknown /api/* paths from returning HTML to API clients.
+    router.use((req, res) => {
+      res.status(404).json({
+        error: { code: 'NOT_FOUND', message: `API route not found: ${req.method} ${req.path}` },
+      });
+    });
+
     this.app.use('/api', router);
 
     // SPA Fallback
@@ -920,7 +928,12 @@ export class App {
       res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      res.sendFile(DIST_INDEX_PATH);
+      res.sendFile(DIST_INDEX_PATH, (err) => {
+        if (err) {
+          // Build artifact missing — happens if the app is started before `pnpm build:prod`.
+          res.status(503).send('Application not built. Run pnpm build:prod first.');
+        }
+      });
     });
   }
 

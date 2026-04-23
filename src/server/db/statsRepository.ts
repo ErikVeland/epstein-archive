@@ -151,8 +151,8 @@ const getCollectionStatsHelper = async () => {
       })
       .sort((a: { sortOrder: number }, b: { sortOrder: number }) => a.sortOrder - b.sortOrder);
   } catch (e) {
-    logger.error({ err: e }, 'Failed to fetch collection stats');
-    return [];
+    logger.error({ err: e }, 'Failed to fetch collection stats — returning degraded empty array');
+    return { data: [], degraded: true };
   }
 };
 
@@ -470,7 +470,7 @@ export const statsRepository = {
       const rows = await statsQueries.getTimelineEvents.run({ limit: BigInt(100) }, getApiPool());
       return rows;
     } catch (e) {
-      logger.warn({ detail: e }, 'Failed to fetch timeline events');
+      logger.error({ err: e }, 'Failed to fetch timeline events for stats');
       return [];
     }
   },

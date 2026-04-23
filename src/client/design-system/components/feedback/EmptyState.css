@@ -5,6 +5,13 @@
   text-align: center;
 }
 
+@media (min-width: 768px) {
+  .ds-emptyState {
+    justify-items: start;
+    text-align: left;
+  }
+}
+
 .ds-emptyStateIcon {
   display: flex;
   align-items: center;

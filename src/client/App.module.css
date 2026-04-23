@@ -103,7 +103,19 @@
 @media (min-width: 768px) {
   .searchWrapper {
     flex: none;
-    width: 384px; /* w-96 */
+    width: 384px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .searchWrapper {
+    width: 480px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .searchWrapper {
+    width: 560px;
   }
 }
 
@@ -760,8 +772,8 @@
 
 .navItem {
   display: flex;
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: max-content;
   height: 100%;
 }
 
@@ -796,7 +808,7 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(148, 163, 184, 0.015)),
     color-mix(in srgb, var(--glass-bg-strong) 94%, transparent);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 10px 24px rgba(2, 6, 23, 0.26);
   transition: color 200ms ease;
 }
@@ -814,7 +826,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
   min-width: 0;
   height: 100%;
   line-height: 1;

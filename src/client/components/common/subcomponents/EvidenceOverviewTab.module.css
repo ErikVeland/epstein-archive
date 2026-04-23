@@ -169,6 +169,14 @@
   text-align: center;
 }
 
+@media (min-width: 768px) {
+  .metricItem {
+    align-items: flex-start;
+    text-align: left;
+    justify-content: flex-start;
+  }
+}
+
 .metricValue {
   font-family: var(--font-display);
   font-size: 1.5rem; /* text-2xl */

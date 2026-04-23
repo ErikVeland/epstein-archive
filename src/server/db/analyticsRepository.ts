@@ -55,6 +55,12 @@ export interface CommunicationCorrelationRow {
   to: Array<string | number> | null;
 }
 
+/** Wrapper returned by optional sub-queries that can fail gracefully. */
+export interface DegradedResult<T> {
+  data: T[];
+  degraded: true;
+}
+
 /**
  * Compute the top-connected people by relationship count.
  *
@@ -195,8 +201,11 @@ export const analyticsRepository = {
       return result.rows;
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
-      logger.warn({ err }, '[Analytics] getTopConnectedPeople failed');
-      return [];
+      logger.error(
+        { err },
+        '[Analytics] getTopConnectedPeople failed — re-throwing so callers surface a 500',
+      );
+      throw err;
     } finally {
       client.release();
     }
@@ -241,7 +250,9 @@ export const analyticsRepository = {
     return result.rows;
   },
 
-  getHighRiskFinancialTransactions: async (): Promise<FinancialTransactionRow[]> => {
+  getHighRiskFinancialTransactions: async (): Promise<
+    FinancialTransactionRow[] | DegradedResult<FinancialTransactionRow>
+  > => {
     try {
       const result = await getApiPool().query<FinancialTransactionRow>(`
         SELECT from_entity, to_entity, risk_level
@@ -251,14 +262,17 @@ export const analyticsRepository = {
       `);
       return result.rows;
     } catch (err) {
-      logger.warn({ err }, '[Analytics] getHighRiskFinancialTransactions failed');
-      return [];
+      logger.error(
+        { err },
+        '[Analytics] getHighRiskFinancialTransactions failed — returning degraded empty result',
+      );
+      return { data: [], degraded: true };
     }
   },
 
   getFlightCommunications: async (
     entityId: string | number,
-  ): Promise<CommunicationCorrelationRow[]> => {
+  ): Promise<CommunicationCorrelationRow[] | DegradedResult<CommunicationCorrelationRow>> => {
     try {
       const result = await getApiPool().query<CommunicationCorrelationRow>(
         `
@@ -272,8 +286,11 @@ export const analyticsRepository = {
       );
       return result.rows;
     } catch (err) {
-      logger.warn({ err }, '[Analytics] getFlightCommunications failed');
-      return [];
+      logger.error(
+        { err },
+        '[Analytics] getFlightCommunications failed — returning degraded empty result',
+      );
+      return { data: [], degraded: true };
     }
   },
 };

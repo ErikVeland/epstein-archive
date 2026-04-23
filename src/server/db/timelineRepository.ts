@@ -113,7 +113,12 @@ function parseTimelineEntities(rawEntities: unknown): ParsedTimelineEntities {
     };
   }
 
-  const parsed = typeof rawEntities === 'string' ? JSON.parse(rawEntities) : rawEntities;
+  let parsed: unknown;
+  try {
+    parsed = typeof rawEntities === 'string' ? JSON.parse(rawEntities) : rawEntities;
+  } catch {
+    return { entityIdsToFetch: [], entityNamesToFetch: [] };
+  }
   if (!Array.isArray(parsed) || parsed.length === 0) {
     return {
       entityIdsToFetch: [],

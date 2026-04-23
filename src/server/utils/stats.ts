@@ -1,5 +1,11 @@
 export function withSafeStatsContract(input: unknown) {
   const source = (input as Record<string, unknown>) || {};
+  // Collect degraded signals from sub-queries that failed but returned fallback data.
+  // Clients can check _meta.degraded to show a "partial data" warning in the UI.
+  const degradedSources: string[] = [];
+  if ((source.collectionStats as Record<string, unknown> | null)?.degraded) {
+    degradedSources.push('collectionStats');
+  }
   const existing = Array.isArray(source.likelihoodDistribution)
     ? source.likelihoodDistribution
     : [];
@@ -32,7 +38,15 @@ export function withSafeStatsContract(input: unknown) {
       ? source.redFlagDistribution
       : [],
     collectionCounts: Array.isArray(source.collectionCounts) ? source.collectionCounts : [],
-    collectionStats: Array.isArray(source.collectionStats) ? source.collectionStats : [],
+    collectionStats: Array.isArray(source.collectionStats)
+      ? source.collectionStats
+      : Array.isArray((source.collectionStats as Record<string, unknown> | null)?.data)
+        ? (source.collectionStats as Record<string, unknown[]>).data
+        : [],
     pipeline_status: source.pipeline_status || null,
+    _meta: {
+      degraded: degradedSources.length > 0,
+      degradedSources: degradedSources.length > 0 ? degradedSources : undefined,
+    },
   };
 }

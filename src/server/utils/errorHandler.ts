@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import * as Sentry from '@sentry/node';
 import { getApiPool } from '../db/connection.js';
 import { logger } from '../services/Logger.js';
 
@@ -133,6 +134,9 @@ export const globalErrorHandler = (
       );
     } else {
       logger.error({ err, path: req.path, code: err.code }, `Programming error: ${err.message}`);
+      // Non-operational = programming bug. Capture explicitly so Sentry
+      // surfaces it even if sentryErrorHandler already forwarded it.
+      Sentry.captureException(err, { extra: { path: req.path, code: err.code } });
     }
 
     const body = buildErrorBody(req, err.statusCode, err);

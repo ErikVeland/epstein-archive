@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { blackBookRepository } from '../db/blackBookRepository.js';
 import { authenticateRequest } from '../auth/middleware.js';
+import { validate, blackBookQuerySchema, blackBookReviewSchema } from '../middleware/validate.js';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ function parseJsonArray(value: unknown): string[] {
   }
 }
 
-router.get('/', async (req, res, next) => {
+router.get('/', validate(blackBookQuerySchema), async (req, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
     const letter = String(q.letter || 'ALL').trim();
@@ -97,21 +98,20 @@ router.get('/review', async (_req, res, next) => {
   }
 });
 
-router.post('/review/:id', authenticateRequest, async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid entry id' });
-    const body = req.body as Record<string, unknown>;
-    const correctedName = String(body?.correctedName || '').trim();
-    const action = String(body?.action || '').trim() as 'approve' | 'skip' | 'delete';
-    if (!['approve', 'skip', 'delete'].includes(action)) {
-      return res.status(400).json({ error: 'Invalid action' });
+router.post(
+  '/review/:id',
+  authenticateRequest,
+  validate(blackBookReviewSchema),
+  async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const body = req.body as { correctedName: string; action: 'approve' | 'skip' | 'delete' };
+      await blackBookRepository.updateBlackBookReview(id, body.correctedName.trim(), body.action);
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
     }
-    await blackBookRepository.updateBlackBookReview(id, correctedName, action);
-    res.json({ success: true });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 export default router;

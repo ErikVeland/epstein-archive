@@ -221,8 +221,11 @@ export const blackBookRepository = {
         reviewed: Number(res?.reviewed || 0),
       };
     } catch (error) {
-      logger.error({ err: error }, 'Error fetching review stats');
-      return { total: 0, remaining: 0, reviewed: 0 };
+      logger.error(
+        { err: error },
+        '[BlackBook] getBlackBookReviewStats failed — re-throwing so callers surface a 500',
+      );
+      throw error;
     }
   },
 

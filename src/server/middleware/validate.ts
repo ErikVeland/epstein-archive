@@ -105,6 +105,115 @@ export const numericIdParamSchema = z.object({
   }),
 });
 
+// ── Shared reusable schemas ───────────────────────────────────────────────────
+
+export const paginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(500).default(50),
+});
+
+export const dateRangeSchema = z.object({
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
+    .optional(),
+});
+
+export const flightsQuerySchema = z.object({
+  query: paginationSchema.extend({
+    startDate: dateRangeSchema.shape.startDate,
+    endDate: dateRangeSchema.shape.endDate,
+    passenger: z.string().max(100).optional(),
+    airport: z.string().max(10).optional(),
+    tailNumber: z.string().max(20).optional(),
+  }),
+});
+
+export const timelineQuerySchema = z.object({
+  query: paginationSchema.partial().extend({
+    startDate: dateRangeSchema.shape.startDate,
+    endDate: dateRangeSchema.shape.endDate,
+    type: z.string().max(50).optional(),
+    significance: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional(),
+    entityId: z.coerce.number().int().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(500).optional(),
+  }),
+});
+
+export const blackBookQuerySchema = z.object({
+  query: z.object({
+    letter: z
+      .string()
+      .regex(/^[A-Z]$|^ALL$/)
+      .optional(),
+    search: z.string().max(100).optional(),
+    category: z.enum(['original', 'contact', 'credential']).optional(),
+    hasPhone: z
+      .string()
+      .optional()
+      .transform((v) => v === 'true'),
+    hasEmail: z
+      .string()
+      .optional()
+      .transform((v) => v === 'true'),
+    hasAddress: z
+      .string()
+      .optional()
+      .transform((v) => v === 'true'),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(10000).default(1000),
+  }),
+});
+
+export const blackBookReviewSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().min(1),
+  }),
+  body: z.object({
+    correctedName: z.string().max(200).optional().default(''),
+    action: z.enum(['approve', 'skip', 'delete']),
+  }),
+});
+
+export const propertiesQuerySchema = z.object({
+  query: paginationSchema.extend({
+    search: z.string().max(100).optional(),
+    type: z.string().max(50).optional(),
+    minValue: z.coerce.number().min(0).optional(),
+    maxValue: z.coerce.number().min(0).optional(),
+    associatesOnly: z
+      .string()
+      .optional()
+      .transform((v) => v === 'true'),
+    sortBy: z.enum(['value', 'owner', 'year']).optional(),
+    sortOrder: z.enum(['asc', 'desc']).optional(),
+  }),
+});
+
+export const graphGlobalQuerySchema = z.object({
+  query: z.object({
+    limit: z.coerce.number().int().min(10).max(2000).default(150),
+    minRisk: z.coerce.number().int().min(0).default(0),
+    mode: z.string().max(20).optional(),
+    startDate: dateRangeSchema.shape.startDate,
+    endDate: dateRangeSchema.shape.endDate,
+    sourceId: z.string().max(50).optional(),
+    targetId: z.string().max(50).optional(),
+  }),
+});
+
+export const mapEntitiesQuerySchema = z.object({
+  query: z.object({
+    minRisk: z.coerce.number().int().min(0).default(0),
+  }),
+});
+
+// ── Entity schemas ────────────────────────────────────────────────────────────
+
 export const updateEntitySchema = z.object({
   params: z.object({
     id: z.coerce.number().int().min(1),

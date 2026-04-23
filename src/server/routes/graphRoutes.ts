@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { graphRateLimiter } from '../middleware/rateLimit.js';
 import { logger } from '../services/Logger.js';
+import { validate, graphGlobalQuerySchema } from '../middleware/validate.js';
 import {
   findShortestPath,
   getEdgeEvidenceDocuments,
@@ -164,181 +165,185 @@ router.get('/', (req, res) => {
  * - minRisk: number (default 0)
  * - includeEvidence: boolean (default false)
  */
-router.get('/global', graphRateLimiter, async (req, res, next) => {
-  try {
-    const rawLimit = req.query.limit ? parseInt(req.query.limit as string) : 150;
-    if (rawLimit > 2000) {
-      return res.status(400).json({ error: 'Max nodes limit exceeded (<= 2000 allowed)' });
-    }
-    const limit = Math.max(10, rawLimit);
+router.get(
+  '/global',
+  graphRateLimiter,
+  validate(graphGlobalQuerySchema),
+  async (req, res, next) => {
+    try {
+      const q = req.query as Record<string, string | undefined>;
+      const limit = Math.max(10, Number(q.limit || 150));
+      const minRisk = Number(q.minRisk || 0);
+      const mode = q.mode;
+      const startDate = q.startDate;
+      const endDate = q.endDate;
 
-    // Phase 6.5 Query Discipline: Hard Caps
-    const minRisk = parseInt(req.query.minRisk as string) || 0;
-    const mode = req.query.mode as string; // 'cluster' or 'default'
-    const startDate = req.query.startDate as string;
-    const endDate = req.query.endDate as string;
+      if (mode === 'cluster') {
+        // Super Cluster Mode: Aggregated by Structural Community (LPA)
+        const clusters = await getGraphCommunities();
 
-    if (mode === 'cluster') {
-      // Super Cluster Mode: Aggregated by Structural Community (LPA)
-      const clusters = await getGraphCommunities();
+        // Enhance labels (optional)
 
-      // Enhance labels (optional)
-
-      return res.json({
-        nodes: (clusters as unknown as GraphClusterRaw[]).map((c) => ({
-          id: c.id,
-          label: `${String(c.label || '')} (${String(c.size || '')})`,
-          type: 'cluster',
-          risk: c.risk,
-          memberCount: c.size,
-          community: parseInt(String(c.id || '').split('-')[1]),
-        })),
-        edges: [], // No edges in cluster view for clarity
-      });
-    }
-
-    if (mode === 'path') {
-      if (!req.query.sourceId || !req.query.targetId) {
-        return res.status(400).json({ error: 'sourceId and targetId are required for path mode' });
+        return res.json({
+          nodes: (clusters as unknown as GraphClusterRaw[]).map((c) => ({
+            id: c.id,
+            label: `${String(c.label || '')} (${String(c.size || '')})`,
+            type: 'cluster',
+            risk: c.risk,
+            memberCount: c.size,
+            community: parseInt(String(c.id || '').split('-')[1]),
+          })),
+          edges: [], // No edges in cluster view for clarity
+        });
       }
-      const sourceId = String(req.query.sourceId);
-      const targetId = String(req.query.targetId);
-      const pathNodeArray = await findShortestPath(sourceId, targetId, startDate, endDate);
-      if (!pathNodeArray || pathNodeArray.length === 0) {
+
+      if (mode === 'path') {
+        if (!req.query.sourceId || !req.query.targetId) {
+          return res
+            .status(400)
+            .json({ error: 'sourceId and targetId are required for path mode' });
+        }
+        const sourceId = String(req.query.sourceId);
+        const targetId = String(req.query.targetId);
+        const pathNodeArray = await findShortestPath(sourceId, targetId, startDate, endDate);
+        if (!pathNodeArray || pathNodeArray.length === 0) {
+          return res.json({ nodes: [], edges: [] });
+        }
+        const nodes = await getGraphPathNodes(pathNodeArray);
+        const edges = await getGraphPathEdges(pathNodeArray, startDate, endDate);
+
+        return res.json({
+          nodes: (nodes as unknown as GraphNodeRaw[]).map((n) => ({
+            id: String(n.id),
+            label: n.label,
+            type: n.type,
+            risk: n.risk,
+            val: (n as unknown as Record<string, unknown>).val,
+            community: (n as unknown as Record<string, unknown>).community,
+          })),
+          edges: (edges as unknown as GraphEdgeRaw[]).map((e) => ({
+            source: String(e.source),
+            target: String(e.target),
+            type: e.type,
+            weight: e.weight,
+            confidence: e.confidence,
+            classification: e.classification,
+          })),
+        });
+      }
+
+      // 1. Fetch Top Entities (Nodes) - Aggregated by Canonical ID
+      // Deterministic Sort: Risk DESC, Degree DESC, ID ASC
+      const rawNodes = await getGlobalGraphNodes({ minRisk, limit, startDate, endDate });
+      const remapToCanonicalId = new Map<string, string>();
+      const groupedByLabel = new Map<string, MergedGraphNode>();
+
+      for (const n of rawNodes as unknown as GraphNodeRaw[]) {
+        const id = String(n.id);
+        const normalizedLabel = normalizeGraphLabel(String(n.label || ''));
+        if (!normalizedLabel || isLikelyJunkGraphLabel(normalizedLabel)) continue;
+
+        const dedupeKey = normalizedLabel.toLowerCase();
+        const current = groupedByLabel.get(dedupeKey);
+        const candidateScore =
+          Number(n.connectionCount || 0) * 1000 +
+          Number(n.risk || 0) * 100 +
+          Number(n.mentions || 0);
+
+        if (!current) {
+          groupedByLabel.set(dedupeKey, {
+            ...n,
+            id,
+            label: normalizedLabel,
+            __mergedIds: [id],
+            __score: candidateScore,
+          });
+          remapToCanonicalId.set(id, id);
+        } else {
+          current.__mergedIds.push(id);
+          remapToCanonicalId.set(id, String(current.id));
+          if (candidateScore > Number(current.__score || 0)) {
+            const oldPrimary = String(current.id);
+            current.id = id;
+            current.label = normalizedLabel;
+            current.type = n.type;
+            current.risk = n.risk;
+            current.connectionCount = n.connectionCount;
+            current.mentions = n.mentions;
+            current.entity_type = n.entity_type;
+            current.community_id = n.community_id;
+            current.__score = candidateScore;
+            for (const mergedId of current.__mergedIds as string[]) {
+              remapToCanonicalId.set(String(mergedId), id);
+            }
+            remapToCanonicalId.set(oldPrimary, id);
+          }
+        }
+      }
+
+      const nodesArr = Array.from(groupedByLabel.values());
+      const canonicalIds = (rawNodes as unknown as GraphNodeRaw[]).map((n) => String(n.id));
+
+      // Quick exit if no nodes
+      if (canonicalIds.length === 0) {
         return res.json({ nodes: [], edges: [] });
       }
-      const nodes = await getGraphPathNodes(pathNodeArray);
-      const edges = await getGraphPathEdges(pathNodeArray, startDate, endDate);
 
-      return res.json({
-        nodes: (nodes as unknown as GraphNodeRaw[]).map((n) => ({
+      // 2. Fetch Relationships between these nodes — injection-safe ANY($N::bigint[]) binding
+      const rawEdges = await getGlobalGraphEdges({ canonicalIds, startDate, endDate });
+      const edgeMap = new Map<string, NormalizedEdge>();
+      for (const e of rawEdges as unknown as GraphEdgeRaw[]) {
+        const sourceRemapped = remapToCanonicalId.get(String(e.source)) || String(e.source);
+        const targetRemapped = remapToCanonicalId.get(String(e.target)) || String(e.target);
+        if (sourceRemapped === targetRemapped) continue;
+
+        const edgeKey = `${sourceRemapped}|${targetRemapped}|${e.type}`;
+        const existing = edgeMap.get(edgeKey);
+        const weight = Number(e.weight || 0.1);
+        const confidence = Number(e.confidence || 1.0);
+
+        if (!existing) {
+          edgeMap.set(edgeKey, {
+            source: sourceRemapped,
+            target: targetRemapped,
+            type: e.type,
+            weight,
+            confidence,
+            classification: e.classification,
+          });
+        } else {
+          existing.weight = Math.max(existing.weight, weight);
+          existing.confidence = Math.max(existing.confidence, confidence);
+        }
+      }
+      const edgesArr = Array.from(edgeMap.values());
+
+      // Return formatting aligned with GraphService
+      res.json({
+        nodes: nodesArr.map((n) => ({
           id: String(n.id),
           label: n.label,
-          type: n.type,
-          risk: n.risk,
-          val: (n as unknown as Record<string, unknown>).val,
-          community: (n as unknown as Record<string, unknown>).community,
+          type: n.type || 'unknown',
+          risk: Number(n.risk || 0),
+          connectionCount: Number(n.connectionCount || 0),
+          community: Number(n.community_id || 0),
         })),
-        edges: (edges as unknown as GraphEdgeRaw[]).map((e) => ({
+        edges: edgesArr.map((e) => ({
+          id: `${e.source}-${e.target}-${String(e.type)}`,
           source: String(e.source),
           target: String(e.target),
           type: e.type,
-          weight: e.weight,
-          confidence: e.confidence,
+          weight: e.weight || 0.1,
+          confidence: e.confidence || 1.0,
           classification: e.classification,
         })),
       });
+    } catch (error) {
+      logger.error({ err: error }, '❌ Error fetching global graph');
+      next(error);
     }
-
-    // 1. Fetch Top Entities (Nodes) - Aggregated by Canonical ID
-    // Deterministic Sort: Risk DESC, Degree DESC, ID ASC
-    const rawNodes = await getGlobalGraphNodes({ minRisk, limit, startDate, endDate });
-    const remapToCanonicalId = new Map<string, string>();
-    const groupedByLabel = new Map<string, MergedGraphNode>();
-
-    for (const n of rawNodes as unknown as GraphNodeRaw[]) {
-      const id = String(n.id);
-      const normalizedLabel = normalizeGraphLabel(String(n.label || ''));
-      if (!normalizedLabel || isLikelyJunkGraphLabel(normalizedLabel)) continue;
-
-      const dedupeKey = normalizedLabel.toLowerCase();
-      const current = groupedByLabel.get(dedupeKey);
-      const candidateScore =
-        Number(n.connectionCount || 0) * 1000 + Number(n.risk || 0) * 100 + Number(n.mentions || 0);
-
-      if (!current) {
-        groupedByLabel.set(dedupeKey, {
-          ...n,
-          id,
-          label: normalizedLabel,
-          __mergedIds: [id],
-          __score: candidateScore,
-        });
-        remapToCanonicalId.set(id, id);
-      } else {
-        current.__mergedIds.push(id);
-        remapToCanonicalId.set(id, String(current.id));
-        if (candidateScore > Number(current.__score || 0)) {
-          const oldPrimary = String(current.id);
-          current.id = id;
-          current.label = normalizedLabel;
-          current.type = n.type;
-          current.risk = n.risk;
-          current.connectionCount = n.connectionCount;
-          current.mentions = n.mentions;
-          current.entity_type = n.entity_type;
-          current.community_id = n.community_id;
-          current.__score = candidateScore;
-          for (const mergedId of current.__mergedIds as string[]) {
-            remapToCanonicalId.set(String(mergedId), id);
-          }
-          remapToCanonicalId.set(oldPrimary, id);
-        }
-      }
-    }
-
-    const nodesArr = Array.from(groupedByLabel.values());
-    const canonicalIds = (rawNodes as unknown as GraphNodeRaw[]).map((n) => String(n.id));
-
-    // Quick exit if no nodes
-    if (canonicalIds.length === 0) {
-      return res.json({ nodes: [], edges: [] });
-    }
-
-    // 2. Fetch Relationships between these nodes — injection-safe ANY($N::bigint[]) binding
-    const rawEdges = await getGlobalGraphEdges({ canonicalIds, startDate, endDate });
-    const edgeMap = new Map<string, NormalizedEdge>();
-    for (const e of rawEdges as unknown as GraphEdgeRaw[]) {
-      const sourceRemapped = remapToCanonicalId.get(String(e.source)) || String(e.source);
-      const targetRemapped = remapToCanonicalId.get(String(e.target)) || String(e.target);
-      if (sourceRemapped === targetRemapped) continue;
-
-      const edgeKey = `${sourceRemapped}|${targetRemapped}|${e.type}`;
-      const existing = edgeMap.get(edgeKey);
-      const weight = Number(e.weight || 0.1);
-      const confidence = Number(e.confidence || 1.0);
-
-      if (!existing) {
-        edgeMap.set(edgeKey, {
-          source: sourceRemapped,
-          target: targetRemapped,
-          type: e.type,
-          weight,
-          confidence,
-          classification: e.classification,
-        });
-      } else {
-        existing.weight = Math.max(existing.weight, weight);
-        existing.confidence = Math.max(existing.confidence, confidence);
-      }
-    }
-    const edgesArr = Array.from(edgeMap.values());
-
-    // Return formatting aligned with GraphService
-    res.json({
-      nodes: nodesArr.map((n) => ({
-        id: String(n.id),
-        label: n.label,
-        type: n.type || 'unknown',
-        risk: Number(n.risk || 0),
-        connectionCount: Number(n.connectionCount || 0),
-        community: Number(n.community_id || 0),
-      })),
-      edges: edgesArr.map((e) => ({
-        id: `${e.source}-${e.target}-${String(e.type)}`,
-        source: String(e.source),
-        target: String(e.target),
-        type: e.type,
-        weight: e.weight || 0.1,
-        confidence: e.confidence || 1.0,
-        classification: e.classification,
-      })),
-    });
-  } catch (error) {
-    logger.error({ err: error }, '❌ Error fetching global graph');
-    next(error);
-  }
-});
+  },
+);
 
 /**
  * Get Evidence for an Edge

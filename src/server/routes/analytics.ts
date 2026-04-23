@@ -243,7 +243,9 @@ router.get('/correlations', authenticateRequest, async (_req, res, next) => {
       });
 
       // 4. Financial Correlations
-      const highRiskTxs = await analyticsRepository.getHighRiskFinancialTransactions();
+      const highRiskResult = await analyticsRepository.getHighRiskFinancialTransactions();
+      const highRiskTxs = Array.isArray(highRiskResult) ? highRiskResult : highRiskResult.data;
+      if (!Array.isArray(highRiskResult) && highRiskResult.degraded) res.locals._degraded = true;
       if (highRiskTxs.length > 0) {
         const counterparties = Array.from(
           new Set(
@@ -269,7 +271,9 @@ router.get('/correlations', authenticateRequest, async (_req, res, next) => {
       }
 
       // 5. Communications Correlations
-      const commEvents = await analyticsRepository.getFlightCommunications(topEntityId);
+      const commResult = await analyticsRepository.getFlightCommunications(topEntityId);
+      const commEvents = Array.isArray(commResult) ? commResult : commResult.data;
+      if (!Array.isArray(commResult) && commResult.degraded) res.locals._degraded = true;
       if (commEvents.length > 0) {
         const peers = Array.from(
           new Set(
