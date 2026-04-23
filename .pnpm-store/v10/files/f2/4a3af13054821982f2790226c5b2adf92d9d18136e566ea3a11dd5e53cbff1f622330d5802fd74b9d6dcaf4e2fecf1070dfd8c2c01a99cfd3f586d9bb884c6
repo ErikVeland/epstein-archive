@@ -1,3 +1,0 @@
-# Pull Request Template
-
-<br>

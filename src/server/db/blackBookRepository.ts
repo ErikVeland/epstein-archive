@@ -21,6 +21,8 @@ const OCR_CORRECTIONS: [string, string][] = [
   ['Thoistrup', 'Tholstrup'],
 ];
 
+let hasLoggedBlackBookArrayParseFailure = false;
+
 /**
  * Apply OCR corrections to entry text
  */
@@ -42,7 +44,20 @@ function parseArrayValue(value: unknown): string[] {
   try {
     const parsed = JSON.parse(value);
     return Array.isArray(parsed) ? parsed.map((v) => String(v)) : [];
-  } catch {
+  } catch (err) {
+    // These parse errors previously returned [] silently which can look like "valid empty data".
+    // Log once per process to avoid noisy logs if a dataset has many malformed rows.
+    if (!hasLoggedBlackBookArrayParseFailure) {
+      hasLoggedBlackBookArrayParseFailure = true;
+      logger.warn(
+        {
+          err,
+          sample: value.slice(0, 200),
+          length: value.length,
+        },
+        '[BlackBook] Failed to parse JSON array field; returning []',
+      );
+    }
     return [];
   }
 }

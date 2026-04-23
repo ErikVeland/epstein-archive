@@ -674,6 +674,8 @@ Infer the type of the [REDACTED] entity based on the surrounding context.
 
       return [];
     } catch (_e) {
+      // Keep enrichment best-effort, but don't fail silently (debug to avoid noise).
+      logger.debug({ err: _e }, '[AIEnrichment] inferEntityType failed; returning []');
       return [];
     }
   }
@@ -795,6 +797,8 @@ ${entityNames.join(', ')}
 
       return relationships;
     } catch (_e) {
+      // Keep enrichment best-effort, but don't fail silently (debug to avoid noise).
+      logger.debug({ err: _e }, '[AIEnrichment] extractRelationships failed; returning []');
       return [];
     }
   }

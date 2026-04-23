@@ -1,3 +1,0 @@
--- Up Migration
-
--- Down Migration

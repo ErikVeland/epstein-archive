@@ -20,6 +20,8 @@ type ParsedTimelineEntities = {
   entityNamesToFetch: string[];
 };
 
+let hasLoggedTimelineTopDocsParseFailure = false;
+
 const TIMELINE_TITLE_GROUPS: Array<{ key: string; test: (title: string) => boolean }> = [
   {
     key: 'epstein_death_2019',
@@ -218,7 +220,20 @@ async function fetchTimelineSupportForEntityIds(
     try {
       const parsed = JSON.parse(row.top_documents);
       if (Array.isArray(parsed)) topDocs = parsed;
-    } catch {
+    } catch (err) {
+      // Previously this silently fell back to [] which can mask upstream query/serialization issues.
+      // Log once per process to prevent log spam if a DB field is consistently malformed.
+      if (!hasLoggedTimelineTopDocsParseFailure) {
+        hasLoggedTimelineTopDocsParseFailure = true;
+        logger.warn(
+          {
+            err,
+            entityIdsCount: entityIds.length,
+            sample: row.top_documents.slice(0, 200),
+          },
+          '[Timeline] Failed to parse top_documents JSON; falling back to []',
+        );
+      }
       topDocs = [];
     }
   }

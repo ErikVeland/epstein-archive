@@ -1,5 +1,14 @@
 # Release Notes
 
+## 19.4.1 - 2026-04-22 - Stability: Observability Hardening
+
+### Server Observability
+
+- Added explicit logging for previously silent failure paths (JWT verification failures; JSON parse fallbacks in Black Book, Timeline support, and Evidence metadata).
+- Added debug-level logs for AI enrichment best-effort fallbacks (keeps behavior unchanged while restoring visibility when enabled).
+
+---
+
 ## 19.4.0 - 2026-04-22 - System Hardening & Release Readiness
 
 ### Infrastructure & Stability

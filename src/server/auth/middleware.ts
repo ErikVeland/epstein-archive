@@ -11,6 +11,7 @@ export interface AuthRequest extends Request {
 }
 
 import jwt from 'jsonwebtoken';
+import { logger } from '../services/Logger.js';
 
 interface JwtPayload {
   id: string | number;
@@ -49,7 +50,22 @@ const verifyToken = (req: Request): AuthRequest['user'] | null => {
       role: String(decoded.role ?? 'viewer'),
       email: decoded.email ?? null,
     };
-  } catch (_error) {
+  } catch (error) {
+    // Avoid logging bearer tokens; only log the failure mode + request context.
+    const requestId = (req as Request & { requestId?: string }).requestId;
+    const isProduction = process.env.NODE_ENV === 'production';
+    const logPayload = {
+      err: error,
+      requestId,
+      method: req.method,
+      path: req.path,
+      ip: req.ip,
+    };
+    if (isProduction) {
+      logger.warn(logPayload, '[Auth] JWT verification failed');
+    } else {
+      logger.debug(logPayload, '[Auth] JWT verification failed');
+    }
     return null;
   }
 };

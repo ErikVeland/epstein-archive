@@ -1,5 +1,6 @@
 import { evidenceQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 // Helper to call pgtyped query objects whose method signatures aren't fully
 // reflected in the generated types (e.g. optional/extended queries).
@@ -252,7 +253,17 @@ export const evidenceRepository = {
           typeof media.metadataJson === 'string'
             ? (JSON.parse(media.metadataJson) as Record<string, unknown>)
             : (media.metadataJson as Record<string, unknown>) || {};
-      } catch {
+      } catch (err) {
+        // Previously this fell back silently to {} which can mask metadata corruption.
+        logger.warn(
+          {
+            err,
+            mediaItemId,
+            metadataLength:
+              typeof media.metadataJson === 'string' ? media.metadataJson.length : null,
+          },
+          '[Evidence] Failed to parse media metadataJson; falling back to {}',
+        );
         metadata = {};
       }
       const transcriptText =
