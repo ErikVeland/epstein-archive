@@ -32,6 +32,7 @@ const searchEvidenceSchema = z.object({
     q: z.string().optional(),
     query: z.string().optional(),
     limit: z.coerce.number().int().min(1).default(50),
+    mode: z.enum(['lexical', 'semantic', 'hybrid', 'web', 'prefix']).default('lexical'),
   }),
 });
 
@@ -227,7 +228,7 @@ router.post(
 router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: Response) => {
   try {
     type SearchQuery = z.infer<typeof searchEvidenceSchema>['query'];
-    const { q, query, limit } = req.query as unknown as SearchQuery;
+    const { q, query, limit, mode } = req.query as unknown as SearchQuery;
     const searchTerm = typeof q === 'string' && q.trim().length > 0 ? q : query;
 
     if (!searchTerm) {
@@ -236,7 +237,7 @@ router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: 
       return res.json(result);
     }
 
-    const result = await searchRepository.search(searchTerm, limit);
+    const result = await searchRepository.search(searchTerm, limit, { mode });
     res.json(result);
   } catch (error) {
     logger.error({ err: error }, 'Evidence search error');

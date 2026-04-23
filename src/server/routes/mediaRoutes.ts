@@ -128,7 +128,7 @@ router.get(
   },
 );
 
-router.get('/albums', cacheResponse(300), async (_req, res, next) => {
+router.get('/albums', cacheResponse(300), validate(z.object({})), async (_req, res, next) => {
   try {
     const albums = await mediaService.getAllAlbums();
     res.json(albums);
@@ -137,7 +137,7 @@ router.get('/albums', cacheResponse(300), async (_req, res, next) => {
   }
 });
 
-router.get('/stats', cacheResponse(120), async (_req, res, next) => {
+router.get('/stats', cacheResponse(120), validate(z.object({})), async (_req, res, next) => {
   try {
     const stats = await mediaService.getMediaStats();
     res.json(stats);
@@ -146,7 +146,7 @@ router.get('/stats', cacheResponse(120), async (_req, res, next) => {
   }
 });
 
-router.get('/tags', cacheResponse(120), async (_req, res, next) => {
+router.get('/tags', cacheResponse(120), validate(z.object({})), async (_req, res, next) => {
   try {
     const tags = await mediaService.getAllTags();
     res.json(tags);
@@ -396,14 +396,26 @@ router.post(
     }
   },
 );
-router.delete('/images/:id/tags/:tagId', authenticateRequest, async (req, res, next) => {
-  try {
-    await mediaService.removeTagFromImage(Number(req.params.id), Number(req.params.tagId));
-    res.json({ ok: true });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  '/images/:id/tags/:tagId',
+  authenticateRequest,
+  validate(
+    z.object({
+      params: z.object({
+        id: z.coerce.number().int().positive(),
+        tagId: z.coerce.number().int().positive(),
+      }),
+    }),
+  ),
+  async (req, res, next) => {
+    try {
+      await mediaService.removeTagFromImage(Number(req.params.id), Number(req.params.tagId));
+      res.json({ ok: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 router.post(
   '/images/:id/people',
   authenticateRequest,
@@ -421,14 +433,26 @@ router.post(
     }
   },
 );
-router.delete('/images/:id/people/:personId', authenticateRequest, async (req, res, next) => {
-  try {
-    await mediaService.removePersonFromItem(Number(req.params.id), Number(req.params.personId));
-    res.json({ ok: true });
-  } catch (error) {
-    next(error);
-  }
-});
+router.delete(
+  '/images/:id/people/:personId',
+  authenticateRequest,
+  validate(
+    z.object({
+      params: z.object({
+        id: z.coerce.number().int().positive(),
+        personId: z.coerce.number().int().positive(),
+      }),
+    }),
+  ),
+  async (req, res, next) => {
+    try {
+      await mediaService.removePersonFromItem(Number(req.params.id), Number(req.params.personId));
+      res.json({ ok: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 const runImageBatch = async <T>(
   imageIds: number[],
@@ -605,7 +629,7 @@ const makeAvListHandler =
 
 // ─── Audio routes ─────────────────────────────────────────────────────────────
 
-router.get('/audio/albums', cacheResponse(120), async (_req, res, next) => {
+router.get('/audio/albums', cacheResponse(120), validate(z.object({})), async (_req, res, next) => {
   try {
     const albums = await mediaRepository.getAlbumsByMediaType('audio');
     res.json(albums);
@@ -643,7 +667,7 @@ router.get('/audio/:id/stream', validate(mediaIdParamSchema), async (req, res, n
 
 // ─── Video routes ─────────────────────────────────────────────────────────────
 
-router.get('/video/albums', cacheResponse(120), async (_req, res, next) => {
+router.get('/video/albums', cacheResponse(120), validate(z.object({})), async (_req, res, next) => {
   try {
     const albums = await mediaRepository.getAlbumsByMediaType('video');
     res.json(albums);

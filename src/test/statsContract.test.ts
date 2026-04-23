@@ -26,6 +26,7 @@ describe('withSafeStatsContract', () => {
       collectionCounts: [],
       collectionStats: [],
       pipeline_status: null,
+      _meta: { degraded: false, degradedSources: undefined },
     });
   });
 

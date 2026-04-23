@@ -10,6 +10,14 @@ import {
   investigationEvidenceByTypeResponseSchema,
   investigationEvidenceListResponseSchema,
   subjectsListResponseSchema,
+  flightsListResponseSchema,
+  flightCoOccurrencesResponseSchema,
+  timelineEventsResponseSchema,
+  blackBookListResponseSchema,
+  propertiesListResponseSchema,
+  propertyStatsResponseSchema,
+  statsResponseSchema,
+  healthResponseSchema,
 } from '../src/shared/schemas';
 
 const apiPort = Number(process.env.PW_API_PORT || 3312);
@@ -201,5 +209,76 @@ test.describe('API DTO Contracts', () => {
     const parsed = assertSchema(graphGlobalResponseSchema, body, 'GET /api/graph/global');
     expect(Array.isArray(parsed.nodes)).toBe(true);
     expect(Array.isArray(parsed.edges)).toBe(true);
+  });
+
+  test('flights list endpoint matches shared DTO schema', async ({ request }) => {
+    const response = await request.get(`${API_BASE_URL}/api/flights?page=1&limit=10`);
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    const parsed = assertSchema(flightsListResponseSchema, body, 'GET /api/flights');
+    expect(Array.isArray(parsed.flights)).toBe(true);
+    expect(typeof parsed.total).toBe('number');
+  });
+
+  test('flights co-occurrences endpoint matches shared DTO schema', async ({ request }) => {
+    const response = await request.get(
+      `${API_BASE_URL}/api/flights/co-occurrences?minFlights=2&limit=10`,
+    );
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    assertSchema(flightCoOccurrencesResponseSchema, body, 'GET /api/flights/co-occurrences');
+  });
+
+  test('timeline events endpoint matches shared DTO schema', async ({ request }) => {
+    test.setTimeout(30_000);
+    const response = await request.get(`${API_BASE_URL}/api/timeline`);
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    const events = assertSchema(timelineEventsResponseSchema, body, 'GET /api/timeline');
+    expect(Array.isArray(events)).toBe(true);
+    if (events.length > 0) {
+      expect(typeof events[0].id).toBe('string');
+      expect(typeof events[0].title).toBe('string');
+    }
+  });
+
+  test('black book list endpoint matches shared DTO schema', async ({ request }) => {
+    const response = await request.get(`${API_BASE_URL}/api/black-book?letter=A&limit=20`);
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    const parsed = assertSchema(blackBookListResponseSchema, body, 'GET /api/black-book');
+    expect(Array.isArray(parsed.data)).toBe(true);
+    expect(typeof parsed.total).toBe('number');
+  });
+
+  test('properties list and stats endpoints match shared DTO schemas', async ({ request }) => {
+    const listResponse = await request.get(`${API_BASE_URL}/api/properties?page=1&limit=10`);
+    expect(listResponse.ok()).toBeTruthy();
+    const listBody = await listResponse.json();
+    const parsed = assertSchema(propertiesListResponseSchema, listBody, 'GET /api/properties');
+    expect(Array.isArray(parsed.properties)).toBe(true);
+
+    const statsResponse = await request.get(`${API_BASE_URL}/api/properties/stats`);
+    expect(statsResponse.ok()).toBeTruthy();
+    const statsBody = await statsResponse.json();
+    assertSchema(propertyStatsResponseSchema, statsBody, 'GET /api/properties/stats');
+  });
+
+  test('stats endpoint matches shared DTO schema', async ({ request }) => {
+    const response = await request.get(`${API_BASE_URL}/api/stats`);
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    const parsed = assertSchema(statsResponseSchema, body, 'GET /api/stats');
+    expect(parsed.totalEntities).toBeGreaterThanOrEqual(0);
+    expect(Array.isArray(parsed.likelihoodDistribution)).toBe(true);
+    expect(typeof parsed._meta.degraded).toBe('boolean');
+  });
+
+  test('health endpoint matches shared DTO schema', async ({ request }) => {
+    const response = await request.get(`${API_BASE_URL}/api/stats/health`);
+    // Health may return 200 or 503 (degraded) — both are valid responses
+    expect([200, 503]).toContain(response.status());
+    const body = await response.json();
+    assertSchema(healthResponseSchema, body, 'GET /api/stats/health');
   });
 });

@@ -34,6 +34,8 @@ import {
   Loader2,
   XCircle,
   Clock,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 
 // Specialized Analytical Views
@@ -538,6 +540,128 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     );
   };
 
+  const unresolvedAnnotations = annotations.filter((annotation) =>
+    ['question', 'contradiction', 'tag'].includes(annotation.type),
+  ).length;
+
+  const evidenceWithProvenance = evidenceItems.filter(
+    (item) => item.hash || item.chainOfCustody?.length || item.source || item.originalFilePath,
+  ).length;
+
+  const readinessChecks = [
+    {
+      label: 'Evidence selected',
+      detail:
+        evidenceItems.length > 0
+          ? `${evidenceItems.length} item${evidenceItems.length === 1 ? '' : 's'} in scope`
+          : 'Add documents or entities to the case folder',
+      ready: evidenceItems.length > 0,
+    },
+    {
+      label: 'Provenance present',
+      detail:
+        evidenceItems.length === 0
+          ? 'Waiting for evidence'
+          : `${evidenceWithProvenance}/${evidenceItems.length} items have source metadata`,
+      ready: evidenceItems.length > 0 && evidenceWithProvenance === evidenceItems.length,
+    },
+    {
+      label: 'Timeline reviewed',
+      detail:
+        timelineEvents.length > 0
+          ? `${timelineEvents.length} event${timelineEvents.length === 1 ? '' : 's'} ready`
+          : 'Timeline can be added or intentionally skipped',
+      ready: timelineEvents.length > 0,
+    },
+    {
+      label: 'Annotations resolved',
+      detail:
+        unresolvedAnnotations > 0
+          ? `${unresolvedAnnotations} annotation${unresolvedAnnotations === 1 ? '' : 's'} need review`
+          : 'No unresolved annotations loaded',
+      ready: unresolvedAnnotations === 0,
+    },
+  ];
+
+  const exportReady = readinessChecks[0].ready && readinessChecks[3].ready;
+  const readinessScore = readinessChecks.filter((check) => check.ready).length;
+
+  const readinessMetrics = [
+    { label: 'Evidence', value: evidenceItems.length },
+    { label: 'Events', value: timelineEvents.length },
+    { label: 'Hypotheses', value: hypotheses.length },
+    { label: 'Flags', value: unresolvedAnnotations },
+  ];
+
+  const renderCaseReadinessPanel = (compact = false) => (
+    <Surface variant="glass-highlight" p={compact ? 'md' : 'lg'} className={styles.readinessPanel}>
+      <Stack gap={compact ? 'sm' : 'md'}>
+        <Flex justify="between" align="center" gap="md">
+          <Stack gap="none">
+            <LqText variant="xs" color="muted" weight="bold" className={styles.kickerText}>
+              Case Readiness
+            </LqText>
+            <LqText variant={compact ? 'small' : 'body'} weight="bold">
+              {readinessScore}/{readinessChecks.length} checks complete
+            </LqText>
+          </Stack>
+          <Badge
+            variant={exportReady ? 'success' : 'warning'}
+            label={exportReady ? 'EXPORT READY' : 'NEEDS REVIEW'}
+          />
+        </Flex>
+
+        {!compact && (
+          <Grid cols={{ sm: 2, lg: 4 }} gap="sm">
+            {readinessMetrics.map((metric) => (
+              <Surface key={metric.label} variant="glass" p="sm" className={styles.readinessMetric}>
+                <LqText variant="xxxs" color="muted" weight="bold">
+                  {metric.label.toUpperCase()}
+                </LqText>
+                <LqText variant="small" weight="bold">
+                  {metric.value}
+                </LqText>
+              </Surface>
+            ))}
+          </Grid>
+        )}
+
+        <Stack gap="xs">
+          {readinessChecks.map((check) => (
+            <Flex key={check.label} gap="sm" align="start" className={styles.readinessCheck}>
+              {check.ready ? (
+                <CheckCircle2 size={16} className={styles.iconSuccess} />
+              ) : (
+                <AlertTriangle size={16} className={styles.iconWarning} />
+              )}
+              <Stack gap="none">
+                <LqText variant="xs" weight="bold">
+                  {check.label}
+                </LqText>
+                <LqText variant="xxxs" color="muted">
+                  {check.detail}
+                </LqText>
+              </Stack>
+            </Flex>
+          ))}
+        </Stack>
+
+        <Flex gap="sm" wrap="wrap">
+          <Button variant="secondary" size="sm" onClick={() => navigateToTab('casefolder')}>
+            Add Evidence
+          </Button>
+          <Button
+            variant={exportReady ? 'primary' : 'glass'}
+            size="sm"
+            onClick={() => navigateToTab('export')}
+          >
+            Open Export Tools
+          </Button>
+        </Flex>
+      </Stack>
+    </Surface>
+  );
+
   // --- JSX Rendering ---
 
   if (isLoading) {
@@ -720,11 +844,30 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
               {investigations.length === 0 ? (
                 <Surface variant="glass" p="xxl">
-                  <Flex direction="column" align="center" gap="md">
+                  <Flex
+                    direction="column"
+                    align="center"
+                    gap="lg"
+                    style={css({ textAlign: 'center' })}
+                  >
                     <Activity size={48} className={styles.iconMuted} />
-                    <LqText variant="small" color="muted">
-                      No investigative records identified.
-                    </LqText>
+                    <Stack gap="xs" align="center">
+                      <LqText variant="h3" weight="bold">
+                        Start with a focused question
+                      </LqText>
+                      <LqText variant="small" color="muted" className={styles.emptyStateText}>
+                        Create an investigation, add the first source document or subject, then use
+                        the readiness panel to move toward export.
+                      </LqText>
+                    </Stack>
+                    <Flex gap="sm" wrap="wrap" justify="center">
+                      <Button variant="primary" onClick={() => setShowNewInvestigationModal(true)}>
+                        <Plus size={16} /> New Investigation
+                      </Button>
+                      <Button variant="secondary" onClick={() => navigate('/documents')}>
+                        <Search size={16} /> Browse Documents
+                      </Button>
+                    </Flex>
                   </Flex>
                 </Surface>
               ) : (
@@ -833,6 +976,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     {shareCopied ? 'Access Token Copied' : 'Share Investigation'}
                   </Button>
                 </Stack>
+
+                {renderCaseReadinessPanel(true)}
 
                 <Stack gap="xs" className={styles.nav}>
                   {[
@@ -948,6 +1093,30 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       lastRefresh: new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC',
                     }}
                   />
+                  {renderCaseReadinessPanel()}
+                  {evidenceItems.length === 0 && (
+                    <Surface variant="glass" p="xl" className={styles.nextActionPanel}>
+                      <Flex gap="lg" align="center" justify="between" wrap="wrap">
+                        <Stack gap="xs">
+                          <LqText variant="body" weight="bold">
+                            Build the first packet item
+                          </LqText>
+                          <LqText variant="xs" color="muted">
+                            This case has no evidence yet. Start from the case folder or document
+                            browser so export/report tools have material to package.
+                          </LqText>
+                        </Stack>
+                        <Flex gap="sm" wrap="wrap">
+                          <Button variant="primary" onClick={() => navigateToTab('casefolder')}>
+                            Open Case Folder
+                          </Button>
+                          <Button variant="secondary" onClick={() => navigate('/documents')}>
+                            Search Archive
+                          </Button>
+                        </Flex>
+                      </Flex>
+                    </Surface>
+                  )}
                 </Stack>
               )}
               {activeTab === 'activity' && (
@@ -1061,8 +1230,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       <EvidencePacketExporter
                         investigationId={selectedInvestigation.id}
                         investigationTitle={selectedInvestigation.title}
+                        evidence={evidenceItems}
+                        timelineEvents={timelineEvents}
+                        hypotheses={hypotheses}
+                        annotations={annotations}
                         onExport={(f, _) =>
-                          addToast({ text: `Export initiated: ${f.toUpperCase()}`, type: 'info' })
+                          addToast({ text: `Export complete: ${f.toUpperCase()}`, type: 'success' })
                         }
                       />
                     </Stack>

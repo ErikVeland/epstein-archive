@@ -46,6 +46,14 @@ const API_BASE_URL =
   (typeof process !== 'undefined' && process.env?.VITE_API_URL) ||
   '/api';
 
+export type SearchMode = 'lexical' | 'semantic' | 'hybrid';
+
+export interface DownloadResponse {
+  blob: Blob;
+  filename: string | null;
+  headers: Headers;
+}
+
 class ContractError extends Error {
   isContractError: boolean;
 
@@ -414,6 +422,53 @@ class ApiClient {
       method: 'DELETE',
       useCache: false,
     });
+  }
+
+  async download(endpoint: string): Promise<DownloadResponse> {
+    const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    const headers = new Headers();
+    if (this.accessToken) headers.set('Authorization', `Bearer ${this.accessToken}`);
+
+    let response = await fetch(url, {
+      method: 'GET',
+      headers,
+      credentials: 'include',
+    });
+
+    if (response.status === 401) {
+      const newToken = await this.refreshToken();
+      if (!newToken) throw new Error('Unauthorized: Session expired');
+      headers.set('Authorization', `Bearer ${newToken}`);
+      response = await fetch(url, {
+        method: 'GET',
+        headers,
+        credentials: 'include',
+      });
+    }
+
+    if (!response.ok) {
+      const contentType = response.headers.get('content-type') ?? '';
+      const errorData = contentType.includes('application/json')
+        ? await response.json().catch(() => null)
+        : await response.text().catch(() => null);
+      const msg =
+        stringifyApiErrorMessage((errorData as Record<string, unknown>)?.error) ||
+        stringifyApiErrorMessage((errorData as Record<string, unknown>)?.message) ||
+        stringifyApiErrorMessage(errorData) ||
+        `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(msg);
+    }
+
+    const disposition = response.headers.get('content-disposition') ?? '';
+    const filenameMatch =
+      /filename\*=UTF-8''([^;]+)/i.exec(disposition) || /filename="?([^";]+)"?/i.exec(disposition);
+    const filename = filenameMatch ? decodeURIComponent(filenameMatch[1]) : null;
+
+    return {
+      blob: await response.blob(),
+      filename,
+      headers: response.headers,
+    };
   }
 
   async getSubjects(
@@ -1260,6 +1315,7 @@ class ApiClient {
       collectionId?: string;
       includeMedia?: boolean;
       excludedFileTypes?: string[];
+      mode?: SearchMode;
     } = {},
     page: number = 1,
     limit: number = 50,
@@ -1269,6 +1325,7 @@ class ApiClient {
     params.append('limit', limit.toString());
     if ((filters as Record<string, unknown>).search)
       params.append('search', (filters as Record<string, unknown>).search as string);
+    if (filters.mode) params.append('mode', filters.mode);
     if ((filters as Record<string, unknown>).sortBy)
       params.append('sortBy', (filters as Record<string, unknown>).sortBy as string);
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
@@ -1356,6 +1413,21 @@ class ApiClient {
       `/media/images/extract/${encodeURIComponent(String(documentId))}`,
       {},
     );
+  }
+  async getDocumentClaims<T = unknown>(documentId: string): Promise<T[]> {
+    return this.get<T[]>(`/documents/${encodeURIComponent(documentId)}/claims`);
+  }
+
+  async getEntityClaims<T = unknown>(entityId: string): Promise<T[]> {
+    return this.get<T[]>(`/entities/${encodeURIComponent(entityId)}/claims`);
+  }
+
+  async verifyClaim(
+    id: string,
+    status: number,
+    rejectionReason?: string,
+  ): Promise<{ success: boolean }> {
+    return this.post(`/claims/${encodeURIComponent(id)}/verify`, { status, rejectionReason });
   }
 }
 

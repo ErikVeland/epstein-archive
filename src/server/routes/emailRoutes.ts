@@ -611,7 +611,7 @@ router.get('/search', validate(emailSearchSchema), async (req, res, next) => {
 });
 
 // GET /api/emails/categories (legacy support)
-router.get('/categories', async (_req, res, next) => {
+router.get('/categories', validate(z.object({})), async (_req, res, next) => {
   try {
     const counts = await getEmailCategoriesCounts();
     res.json(counts);
@@ -639,7 +639,7 @@ router.get('/:id/entities', validate(emailIdParamSchema), async (req, res, next)
 });
 
 // GET /api/emails/known-senders (legacy support)
-router.get('/known-senders', async (_req, res) => {
+router.get('/known-senders', validate(z.object({})), async (_req, res) => {
   res.json(getKnownEntitySenders());
 });
 

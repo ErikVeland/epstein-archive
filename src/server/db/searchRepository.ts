@@ -2,6 +2,8 @@ import { searchQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
+import { getSemanticCapability, SemanticCapability } from '../semantic/capability.js';
+import { searchDocumentsSemantic, searchEntitiesSemantic } from '../semantic/search.js';
 
 const normalizeAliasValue = (value: string): string =>
   value
@@ -109,24 +111,6 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
   );
 }
 
-interface ISearchEntitiesResult {
-  aliases: string | null;
-  fullName: string;
-  id: string;
-  primaryRole: string | null;
-  rank: number | null;
-  redFlagRating: number | null;
-}
-
-interface ISearchEntitiesPrefixResult {
-  aliases: string | null;
-  fullName: string;
-  id: string;
-  primaryRole: string | null;
-  rank: number | null;
-  redFlagRating: number | null;
-}
-
 interface ISearchDocumentsResult {
   evidenceType: string | null;
   fileName: string | null;
@@ -178,6 +162,18 @@ interface ISearchMediaResult {
   title: string | null;
 }
 
+interface EntitySearchRow {
+  aliases: string | null;
+  fullName: string | null;
+  id: string | number;
+  primaryRole: string | null;
+  rank?: number | null;
+  redFlagRating: number | string | null;
+  similarityScore?: number | string | null;
+}
+
+type DocumentSearchRow = ISearchDocumentsResult | ISearchDocumentsPrefixResult;
+
 interface UnifiedSearchResult {
   entities: Record<string, unknown>[];
   documents: Record<string, unknown>[];
@@ -185,13 +181,18 @@ interface UnifiedSearchResult {
   articles: Record<string, unknown>[];
   media: Record<string, unknown>[];
   didYouMean: Record<string, unknown>[];
+  semanticCapability?: SemanticCapability;
 }
 
 export const searchRepository = {
   search: async (
     query: string,
     limit: number = 50,
-    filters: { evidenceType?: string; redFlagBand?: string; mode?: 'web' | 'prefix' } = {},
+    filters: {
+      evidenceType?: string;
+      redFlagBand?: string;
+      mode?: 'web' | 'prefix' | 'lexical' | 'semantic' | 'hybrid';
+    } = {},
   ): Promise<UnifiedSearchResult> => {
     const searchTerm = query.trim();
     if (!searchTerm) {
@@ -206,7 +207,24 @@ export const searchRepository = {
     }
 
     const safeLimit = Math.min(200, Math.max(1, limit));
-    const isPrefix = filters.mode === 'prefix';
+    const searchMode = filters.mode || 'lexical';
+    const isPrefix = searchMode === 'prefix';
+    const isSemanticOnly = searchMode === 'semantic';
+    const isHybrid = searchMode === 'hybrid';
+
+    const capability =
+      isSemanticOnly || isHybrid ? await getSemanticCapability() : { available: false };
+    const canDoSemantic = capability.available;
+
+    // Fallback logic for semantic
+    let effectiveMode: 'lexical' | 'semantic' | 'hybrid' = 'lexical';
+    if (isSemanticOnly) {
+      effectiveMode = canDoSemantic ? 'semantic' : 'lexical';
+    } else if (isHybrid) {
+      effectiveMode = canDoSemantic ? 'hybrid' : 'lexical';
+    } else {
+      effectiveMode = 'lexical';
+    }
 
     const tsArg = isPrefix ? buildPrefixQuery(searchTerm) : searchTerm;
     if (isPrefix && !tsArg) {
@@ -221,19 +239,111 @@ export const searchRepository = {
     }
 
     // ── Entities ─────────────────────────────────────────────────────────────
-    const entityRows = isPrefix
-      ? await searchQueries.searchEntitiesPrefix.run(
-          { searchTerm: tsArg, limit: safeLimit },
-          getApiPool(),
-        )
-      : await searchQueries.searchEntities.run(
-          { searchTerm: tsArg, limit: safeLimit },
-          getApiPool(),
-        );
-    const mergedEntityRows: (ISearchEntitiesResult | ISearchEntitiesPrefixResult)[] = [
-      ...(entityRows as (ISearchEntitiesResult | ISearchEntitiesPrefixResult)[]),
-    ];
-    if (!isPrefix && mergedEntityRows.length < safeLimit) {
+    let mergedEntityRows: EntitySearchRow[] = [];
+    const entityMatchReasons = new Map<string, string>();
+
+    if (effectiveMode === 'semantic') {
+      try {
+        const semanticResults = await searchEntitiesSemantic(searchTerm, safeLimit);
+        const semanticIds = semanticResults.map((r) => Number(r.id));
+        if (semanticIds.length > 0) {
+          const dbRows = await getApiPool().query<{
+            id: number | string;
+            fullName: string | null;
+            primaryRole: string | null;
+            aliases: string | null;
+            redFlagRating: number | string | null;
+          }>(
+            `
+              SELECT
+                id,
+                full_name AS "fullName",
+                primary_role AS "primaryRole",
+                aliases,
+                red_flag_rating AS "redFlagRating"
+              FROM entities
+              WHERE id = ANY($1::bigint[])
+            `,
+            [semanticIds],
+          );
+          // Preserve semantic order
+          mergedEntityRows = semanticIds
+            .map((id) => dbRows.rows.find((r) => Number(r.id) === id))
+            .filter((row): row is EntitySearchRow => Boolean(row));
+          semanticResults.forEach((r) => entityMatchReasons.set(String(r.id), 'semantic'));
+        }
+      } catch (error) {
+        logger.error({ err: error }, '[searchRepository] semantic entity search failed');
+      }
+    } else {
+      // Lexical or Hybrid
+      const entityRows = isPrefix
+        ? await searchQueries.searchEntitiesPrefix.run(
+            { searchTerm: tsArg, limit: safeLimit },
+            getApiPool(),
+          )
+        : await searchQueries.searchEntities.run(
+            { searchTerm: tsArg, limit: safeLimit },
+            getApiPool(),
+          );
+      mergedEntityRows = [...entityRows];
+      mergedEntityRows.forEach((r) => entityMatchReasons.set(String(r.id), 'text'));
+
+      if (effectiveMode === 'hybrid') {
+        try {
+          const semanticResults = await searchEntitiesSemantic(
+            searchTerm,
+            Math.floor(safeLimit / 2),
+          );
+          const seenIds = new Set(mergedEntityRows.map((r) => String(r.id)));
+          const semanticIdsToFetch = semanticResults
+            .filter((r) => !seenIds.has(String(r.id)))
+            .map((r) => Number(r.id));
+
+          if (semanticIdsToFetch.length > 0) {
+            const dbRows = await getApiPool().query<{
+              id: number | string;
+              fullName: string | null;
+              primaryRole: string | null;
+              aliases: string | null;
+              redFlagRating: number | string | null;
+            }>(
+              `
+                SELECT
+                  id,
+                  full_name AS "fullName",
+                  primary_role AS "primaryRole",
+                  aliases,
+                  red_flag_rating AS "redFlagRating"
+                FROM entities
+                WHERE id = ANY($1::bigint[])
+              `,
+              [semanticIdsToFetch],
+            );
+            for (const r of semanticResults) {
+              const sid = String(r.id);
+              if (seenIds.has(sid)) {
+                entityMatchReasons.set(sid, 'hybrid');
+              } else {
+                const row = dbRows.rows.find((dbR) => Number(dbR.id) === Number(r.id));
+                if (row) {
+                  mergedEntityRows.push(row);
+                  entityMatchReasons.set(sid, 'semantic');
+                  seenIds.add(sid);
+                }
+              }
+            }
+          } else {
+            // All semantic results already in lexical set
+            semanticResults.forEach((r) => entityMatchReasons.set(String(r.id), 'hybrid'));
+          }
+        } catch (error) {
+          logger.warn({ err: error }, '[searchRepository] hybrid semantic entity search failed');
+        }
+      }
+    }
+
+    if (!isPrefix && mergedEntityRows.length < safeLimit && effectiveMode !== 'semantic') {
       try {
         const fallbackRows = await loadEntityFallbackRows(
           searchTerm,
@@ -243,7 +353,8 @@ export const searchRepository = {
         for (const row of fallbackRows.rows) {
           const entityId = String(row.id);
           if (seenIds.has(entityId)) continue;
-          mergedEntityRows.push(row as unknown as ISearchEntitiesResult);
+          mergedEntityRows.push(row);
+          entityMatchReasons.set(entityId, 'entity-alias');
           seenIds.add(entityId);
           if (mergedEntityRows.length >= safeLimit) break;
         }
@@ -265,33 +376,142 @@ export const searchRepository = {
       maxRedFlag = 1;
     }
 
-    const docRows = isPrefix
-      ? await searchQueries.searchDocumentsPrefix.run(
-          {
-            searchTerm: tsArg,
-            limit: safeLimit,
-            evidenceType:
-              filters.evidenceType && filters.evidenceType !== 'ALL'
-                ? filters.evidenceType.toLowerCase()
-                : null,
-            minRedFlag,
-            maxRedFlag,
-          },
-          getApiPool(),
-        )
-      : await searchQueries.searchDocuments.run(
-          {
-            searchTerm: tsArg,
-            limit: safeLimit,
-            evidenceType:
-              filters.evidenceType && filters.evidenceType !== 'ALL'
-                ? filters.evidenceType.toLowerCase()
-                : null,
-            minRedFlag,
-            maxRedFlag,
-          },
-          getApiPool(),
-        );
+    // ── Documents ─────────────────────────────────────────────────────────────
+    let docRows: DocumentSearchRow[] = [];
+    const docMatchReasons = new Map<string, string>();
+
+    if (effectiveMode === 'semantic') {
+      try {
+        const semanticResults = await searchDocumentsSemantic(searchTerm, safeLimit);
+        const semanticIds = semanticResults.map((r) => Number(r.id));
+        if (semanticIds.length > 0) {
+          const dbRows = await getApiPool().query<{
+            id: number | string;
+            fileName: string | null;
+            filePath: string | null;
+            evidenceType: string | null;
+            redFlagRating: number | string | null;
+          }>(
+            `
+              SELECT
+                id,
+                file_name AS "fileName",
+                file_path AS "filePath",
+                evidence_type AS "evidenceType",
+                red_flag_rating AS "redFlagRating"
+              FROM documents
+              WHERE id = ANY($1::bigint[])
+            `,
+            [semanticIds],
+          );
+          // Preserve semantic order
+          const docById = new Map<number, (typeof dbRows.rows)[number]>(
+            dbRows.rows.map((row) => [Number(row.id), row]),
+          );
+          docRows = semanticIds
+            .map((id) => {
+              const row = docById.get(id);
+              if (!row) return null;
+              return {
+                id: String(row.id),
+                fileName: row.fileName,
+                filePath: row.filePath,
+                evidenceType: row.evidenceType,
+                redFlagRating:
+                  row.redFlagRating === null || row.redFlagRating === undefined
+                    ? null
+                    : Number(row.redFlagRating),
+                rank: null,
+                snippet: null,
+              } as DocumentSearchRow;
+            })
+            .filter((row): row is DocumentSearchRow => row != null);
+          semanticResults.forEach((r) => docMatchReasons.set(String(r.id), 'semantic'));
+        }
+      } catch (error) {
+        logger.error({ err: error }, '[searchRepository] semantic document search failed');
+      }
+    } else {
+      // Lexical or Hybrid
+      const lexicalRows = isPrefix
+        ? await searchQueries.searchDocumentsPrefix.run(
+            {
+              searchTerm: tsArg,
+              limit: safeLimit,
+              evidenceType:
+                filters.evidenceType && filters.evidenceType !== 'ALL'
+                  ? filters.evidenceType.toLowerCase()
+                  : null,
+              minRedFlag,
+              maxRedFlag,
+            },
+            getApiPool(),
+          )
+        : await searchQueries.searchDocuments.run(
+            {
+              searchTerm: tsArg,
+              limit: safeLimit,
+              evidenceType:
+                filters.evidenceType && filters.evidenceType !== 'ALL'
+                  ? filters.evidenceType.toLowerCase()
+                  : null,
+              minRedFlag,
+              maxRedFlag,
+            },
+            getApiPool(),
+          );
+      docRows = [...lexicalRows];
+      docRows.forEach((r) => docMatchReasons.set(String(r.id), 'text'));
+
+      if (effectiveMode === 'hybrid') {
+        try {
+          const semanticResults = await searchDocumentsSemantic(
+            searchTerm,
+            Math.floor(safeLimit / 2),
+          );
+          const seenIds = new Set(docRows.map((r) => String(r.id)));
+          const semanticIdsToFetch = semanticResults
+            .filter((r) => !seenIds.has(String(r.id)))
+            .map((r) => Number(r.id));
+
+          if (semanticIdsToFetch.length > 0) {
+            const dbRows = await getApiPool().query<DocumentSearchRow>(
+              `
+                SELECT
+                  id::text AS id,
+                  file_name AS "fileName",
+                  file_path AS "filePath",
+                  evidence_type AS "evidenceType",
+                  red_flag_rating AS "redFlagRating",
+                  0.0 AS rank,
+                  '' AS snippet
+                FROM documents
+                WHERE id = ANY($1::bigint[])
+              `,
+              [semanticIdsToFetch],
+            );
+            for (const r of semanticResults) {
+              const sid = String(r.id);
+              if (seenIds.has(sid)) {
+                docMatchReasons.set(sid, 'hybrid');
+              } else {
+                const row = dbRows.rows.find((dbR) => Number(dbR.id) === Number(r.id));
+                if (row) {
+                  docRows.push(row);
+                  docMatchReasons.set(sid, 'semantic');
+                  seenIds.add(sid);
+                }
+              }
+            }
+          } else {
+            // All semantic results already in lexical set
+            semanticResults.forEach((r) => docMatchReasons.set(String(r.id), 'hybrid'));
+          }
+        } catch (error) {
+          logger.warn({ err: error }, '[searchRepository] hybrid semantic document search failed');
+        }
+      }
+    }
 
     // ── Investigations ───────────────────────────────────────────────────────
     const investigationRows = await searchQueries.searchInvestigations.run(
@@ -413,12 +633,14 @@ export const searchRepository = {
           titleVariants: [],
           evidenceTypes: [],
           files: stats?.files ?? 0,
+          matchReason: entityMatchReasons.get(String(row.id)) || 'text',
         };
       }),
       documents: docRows.map((row: ISearchDocumentsResult | ISearchDocumentsPrefixResult) => {
         const meta = documentMetaById.get(Number(row.id));
+        const rid = String(row.id);
         return {
-          id: String(row.id),
+          id: rid,
           fileName: row.fileName,
           title: row.fileName,
           filePath: row.filePath,
@@ -430,6 +652,7 @@ export const searchRepository = {
           redFlagRating: row.redFlagRating,
           createdAt: meta?.dateCreated ?? null,
           snippet: row.snippet,
+          matchReason: docMatchReasons.get(rid) || 'text',
         };
       }),
       investigations: investigationRows.map((row: ISearchInvestigationsResult) => ({
@@ -461,6 +684,7 @@ export const searchRepository = {
         rank: row.rank,
       })),
       didYouMean: [],
+      semanticCapability: capability,
     };
   },
 

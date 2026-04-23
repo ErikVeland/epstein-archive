@@ -23,6 +23,13 @@ export interface DocumentsListResponseDto {
   page: number;
   pageSize: number;
   totalPages: number;
+  searchMeta?: {
+    requestedMode: 'lexical' | 'semantic' | 'hybrid';
+    effectiveMode: 'lexical' | 'semantic' | 'hybrid';
+    semanticAvailable: boolean;
+    semanticReason?: string;
+    message?: string;
+  };
 }
 
 export interface DocumentDetailDto {

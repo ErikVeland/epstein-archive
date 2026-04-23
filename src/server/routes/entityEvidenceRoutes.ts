@@ -51,7 +51,7 @@ const getEntityGraph = async (req: Request, res: Response) => {
     const graph = await relationshipsRepository.getGraphSlice(dbEntityId, depth);
     res.json(graph);
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity graph');
+    logger.error({ err: error }, 'Error building entity graph');
     res.status(500).json({ error: 'Failed to fetch entity graph' });
   }
 };
@@ -87,7 +87,7 @@ router.get('/:entityId/documents', async (req: Request, res: Response) => {
       limit,
     });
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity documents');
+    logger.error({ err: error }, 'Error fetching entity photo path');
     res.status(500).json({ error: 'Failed to fetch entity documents' });
   }
 });
@@ -99,8 +99,8 @@ router.get('/:entityId/investigations', async (req: Request, res: Response) => {
     const { investigationsRepository } = await import('../db/investigationsRepository.js');
     const result = await investigationsRepository.getInvestigationsByEntityId(Number(entityId));
     res.json(result);
-  } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity investigations');
+  } catch (_error) {
+    logger.error({ err: _error }, 'Error fetching entity investigations');
     res.status(500).json({ error: 'Failed to fetch entity investigations' });
   }
 });
@@ -130,8 +130,8 @@ router.get('/:entityId/media', async (req: Request, res: Response) => {
     }
 
     res.json(result);
-  } catch (error) {
-    logger.error({ err: error, entityId }, 'Error fetching entity media');
+  } catch (_error) {
+    logger.error({ err: _error, entityId }, 'Error fetching entity media');
     res.status(500).json({ error: 'Failed to fetch entity media' });
   }
 });
@@ -175,9 +175,22 @@ router.get('/:entityId/photo', async (req: Request, res: Response) => {
     }
 
     res.status(404).json({ error: 'Photo file not found on disk' });
-  } catch (error) {
-    logger.error({ err: error, entityId: req.params.entityId }, 'Error fetching entity photo');
+  } catch (err) {
+    logger.error({ err, entityId: req.params.entityId }, 'Error fetching entity photo');
     res.status(500).json({ error: 'Failed to fetch entity photo' });
+  }
+});
+
+// GET /api/entities/:entityId/claims
+router.get('/:entityId/claims', async (req: Request, res: Response) => {
+  try {
+    const { entityId } = req.params as { entityId: string };
+    const { claimTriplesRepository } = await import('../db/claimTriplesRepository.js');
+    const claims = await claimTriplesRepository.getByEntityId(entityId);
+    res.json(claims);
+  } catch (_error) {
+    logger.error({ err: _error, entityId: req.params.entityId }, 'Error fetching entity claims');
+    res.status(500).json({ error: 'Failed to fetch entity claims' });
   }
 });
 

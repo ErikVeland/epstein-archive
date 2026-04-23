@@ -23,6 +23,7 @@ import {
   GraphRelationship,
 } from './subcomponents/EvidenceNetworkTab';
 import { EvidenceInvestigationsTab } from './subcomponents/EvidenceInvestigationsTab';
+import { ClaimsTab } from './subcomponents/ClaimsTab';
 
 // Utilities
 import {
@@ -115,15 +116,16 @@ export interface SignificantPassage {
 const EVIDENCE_TABS: TabItem[] = [
   { key: 'overview', label: 'Overview' },
   { key: 'evidence', label: 'Evidence' },
+  { key: 'claims', label: 'AI Claims' },
   { key: 'investigations', label: 'Investigations' },
   { key: 'media', label: 'Media' },
   { key: 'network', label: 'Network' },
 ];
 
-type EvidenceModalTab = 'overview' | 'evidence' | 'media' | 'network' | 'investigations';
+type EvidenceModalTab = 'overview' | 'evidence' | 'claims' | 'media' | 'network' | 'investigations';
 
 const isEvidenceModalTab = (value: string): value is EvidenceModalTab =>
-  ['overview', 'evidence', 'media', 'network', 'investigations'].includes(value);
+  ['overview', 'evidence', 'claims', 'media', 'network', 'investigations'].includes(value);
 
 interface EvidenceModalProps {
   entityId: string;
@@ -772,6 +774,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               />
             )}
 
+            {activeTab === 'claims' && (
+              <ClaimsTab
+                entityId={entityId}
+                onOpenDocument={(docId) => navigateFromModal(`/documents?id=${docId}`)}
+              />
+            )}
+
             {activeTab === 'media' && (
               <EvidenceMediaTab
                 entity={entity ?? null}
@@ -892,6 +901,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 entityId={entityId}
                 entityName={entity?.fullName || ''}
                 openDocument={openDocumentFromEvidence}
+              />
+            )}
+
+            {activeTab === 'claims' && (
+              <ClaimsTab
+                entityId={entityId}
+                onOpenDocument={(docId) => navigateFromModal(`/documents?id=${docId}`)}
               />
             )}
 

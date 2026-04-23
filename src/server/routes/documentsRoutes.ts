@@ -6,6 +6,7 @@ import { dataQualityRepository } from '../db/dataQualityRepository.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { mapDocumentsListResponseDto } from '../mappers/documentsDtoMapper.js';
+import { searchRepository } from '../db/searchRepository.js';
 import fs from 'fs';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
@@ -53,6 +54,7 @@ const documentsListQuerySchema = z.object({
       )
       .default(false),
     excludedFileTypes: z.string().optional(),
+    mode: z.enum(['lexical', 'semantic', 'hybrid']).default('lexical'),
   }),
 });
 
@@ -111,6 +113,44 @@ router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
     const limit = Number(query.limit || 50);
     const sortOrder =
       query.sortOrder === 'asc' || query.sortOrder === 'desc' ? query.sortOrder : undefined;
+    const searchMode =
+      query.mode === 'semantic' || query.mode === 'hybrid' || query.mode === 'lexical'
+        ? query.mode
+        : 'lexical';
+
+    if (
+      typeof query.search === 'string' &&
+      query.search.trim().length > 0 &&
+      searchMode !== 'lexical'
+    ) {
+      const semanticResult = await searchRepository.search(query.search, limit, {
+        mode: searchMode,
+        evidenceType: query.evidenceType as string | undefined,
+      });
+      const semanticAvailable = semanticResult.semanticCapability?.available === true;
+      const effectiveMode = semanticAvailable ? searchMode : 'lexical';
+      const response = mapDocumentsListResponseDto({
+        documents: semanticResult.documents,
+        total: semanticResult.documents.length,
+        page,
+        pageSize: limit,
+        totalPages: 1,
+        searchMeta: {
+          requestedMode: searchMode,
+          effectiveMode,
+          semanticAvailable,
+          semanticReason: semanticResult.semanticCapability?.reason,
+          message:
+            searchMode === 'semantic' && !semanticAvailable
+              ? 'Conceptual search is unavailable in this environment, so keyword results are shown instead.'
+              : searchMode === 'hybrid' && !semanticAvailable
+                ? 'Hybrid search is using keyword results because semantic indexes are unavailable.'
+                : undefined,
+        },
+      });
+      return res.json(response);
+    }
+
     const result = await documentsRepository.getDocuments(page, limit, {
       search: query.search as string | undefined,
       fileType: query.fileType as string | undefined,
@@ -130,7 +170,7 @@ router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
         ? (query.excludedFileTypes as string).split(',').filter(Boolean)
         : undefined,
     });
-    res.json(mapDocumentsListResponseDto(result));
+    return res.json(mapDocumentsListResponseDto(result));
   } catch (error) {
     next(error);
   }
@@ -635,6 +675,18 @@ router.get('/:id', validate(documentIdSchema), async (req, res, next) => {
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
     res.json(doc);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/documents/:id/claims
+router.get('/:id/claims', validate(documentIdSchema), async (req, res, next) => {
+  try {
+    const documentId = req.params.id;
+    const { claimTriplesRepository } = await import('../db/claimTriplesRepository.js');
+    const claims = await claimTriplesRepository.getByDocumentId(documentId);
+    res.json(claims);
   } catch (error) {
     next(error);
   }

@@ -1,27 +1,21 @@
 import { Router } from 'express';
 import { authenticateRequest } from '../auth/middleware.js';
 import { financialRepository } from '../db/financialRepository.js';
+import { validate, financialTransactionsQuerySchema } from '../middleware/validate.js';
 import { z } from 'zod';
-import { validate } from '../middleware/validate.js';
 
 const router = Router();
-
-// Schemas
-const transactionsSchema = z.object({
-  query: z.object({
-    limit: z.coerce.number().int().min(1).max(500).default(100),
-  }),
-});
 
 // Get all transactions (with limit)
 router.get(
   '/transactions',
   authenticateRequest,
-  validate(transactionsSchema),
+  validate(financialTransactionsQuerySchema),
   async (req, res, next) => {
     try {
-      type TransQuery = z.infer<typeof transactionsSchema>['query'];
-      const { limit } = req.query as unknown as TransQuery;
+      const { limit } = req.query as unknown as z.infer<
+        typeof financialTransactionsQuerySchema
+      >['query'];
       const transactions = await financialRepository.getTransactions(limit);
       res.json(transactions);
     } catch (error) {
@@ -31,7 +25,7 @@ router.get(
 );
 
 // Get financial stats
-router.get('/stats', authenticateRequest, async (_req, res, next) => {
+router.get('/stats', authenticateRequest, validate(z.object({})), async (_req, res, next) => {
   try {
     const summary = await financialRepository.getFinancialSummary();
     res.json(summary);

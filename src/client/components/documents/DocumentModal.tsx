@@ -28,6 +28,7 @@ import { DocumentMetadataRail } from './subcomponents/DocumentMetadataRail';
 import { DocumentPDFTab } from './subcomponents/DocumentPDFTab';
 import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
 import { DocumentAssetsTab } from './subcomponents/DocumentAssetsTab';
+import { ClaimsTab } from '../common/subcomponents/ClaimsTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '../../utils/evidenceUtils';
 
@@ -71,7 +72,7 @@ interface Props {
   initialDoc?: DocRecord;
 }
 
-type ViewerTab = 'analysis' | 'pdf' | 'provenance' | 'assets';
+type ViewerTab = 'analysis' | 'pdf' | 'provenance' | 'assets' | 'claims';
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
 const BASE_VIEWER_TABS: Array<{
@@ -82,6 +83,7 @@ const BASE_VIEWER_TABS: Array<{
 }> = [
   { key: 'pdf', label: 'Original Document' },
   { key: 'analysis', label: 'Summary & Analysis' },
+  { key: 'claims', label: 'AI Claims' },
   { key: 'assets', label: 'Recovered Assets' },
   { key: 'provenance', label: 'Provenance' },
 ];
@@ -461,6 +463,8 @@ export const DocumentModal: React.FC<Props> = ({
         return <ProvenancePanel document={doc as never} />; // Workaround for slight interface mismatch without using any
       case 'assets':
         return <DocumentAssetsTab documentId={id} />;
+      case 'claims':
+        return <ClaimsTab documentId={id} onOpenEntity={(entId) => setEntityModalId(entId)} />;
       default:
         return null;
     }

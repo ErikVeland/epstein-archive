@@ -1,6 +1,8 @@
 import React from 'react';
 import { X, LayoutGrid, List as ListIcon, Filter, ChevronDown, ChevronRight } from 'lucide-react';
 import { Box, Button, Flex, LqText, SearchField, Select } from '../../design-system/lib';
+import type { SearchMode } from '../../services/apiClient';
+import type { DocumentsListResponseDto } from '@shared/dto/documents';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import styles from './DocumentBrowserHeader.module.css';
 
@@ -26,6 +28,9 @@ interface DocumentBrowserHeaderProps {
   isFetching: boolean;
   filteredCount: number;
   totalDocuments: number;
+  searchMode: SearchMode;
+  setSearchMode: (mode: SearchMode) => void;
+  searchMeta?: DocumentsListResponseDto['searchMeta'];
 }
 
 export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
@@ -50,7 +55,16 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
   isFetching,
   filteredCount,
   totalDocuments,
+  searchMode,
+  setSearchMode,
+  searchMeta,
 }) => {
+  const searchModes: Array<{ id: SearchMode; label: string; hint: string }> = [
+    { id: 'lexical', label: 'Keyword', hint: 'Exact text, title, and entity matches' },
+    { id: 'semantic', label: 'Conceptual', hint: 'Semantic matches when the backend is enabled' },
+    { id: 'hybrid', label: 'Hybrid', hint: 'Keyword-first with semantic expansion' },
+  ];
+
   return (
     <Box
       className={`${styles.header} ${isHeaderCondensed ? styles.headerCondensed : styles.headerDefault}`}
@@ -99,6 +113,47 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             </Button>
           )}
         </Box>
+
+        <Flex
+          align="center"
+          gap="xs"
+          className={styles.modeChips}
+          role="group"
+          aria-label="Search mode"
+        >
+          {searchModes.map((mode) => (
+            <Button
+              key={mode.id}
+              type="button"
+              variant={searchMode === mode.id ? 'accent-solid' : 'secondary'}
+              size="sm"
+              className={styles.modeChip}
+              onClick={() => setSearchMode(mode.id)}
+              title={mode.hint}
+              aria-pressed={searchMode === mode.id}
+            >
+              {mode.label}
+            </Button>
+          ))}
+        </Flex>
+
+        {searchMeta && searchMode !== 'lexical' && (
+          <Box
+            className={`${styles.modeStatus} ${
+              searchMeta.semanticAvailable ? styles.modeStatusReady : styles.modeStatusFallback
+            }`}
+          >
+            <LqText variant="xxxs" weight="bold" className={styles.modeStatusTitle}>
+              {searchMeta.semanticAvailable ? 'Semantic index active' : 'Keyword fallback active'}
+            </LqText>
+            <LqText variant="xxxs" color="muted">
+              {searchMeta.message ||
+                (searchMeta.semanticAvailable
+                  ? `${searchMode === 'hybrid' ? 'Hybrid' : 'Conceptual'} results include semantic matches.`
+                  : searchMeta.semanticReason || 'Semantic indexes are not available here.')}
+            </LqText>
+          </Box>
+        )}
 
         <Flex align="center" gap="sm" className={styles.toolbar}>
           <Select

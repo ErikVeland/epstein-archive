@@ -39,6 +39,15 @@ export const documentsListResponseSchema = z.object({
   page: z.number(),
   pageSize: z.number(),
   totalPages: z.number(),
+  searchMeta: z
+    .object({
+      requestedMode: z.enum(['lexical', 'semantic', 'hybrid']),
+      effectiveMode: z.enum(['lexical', 'semantic', 'hybrid']),
+      semanticAvailable: z.boolean(),
+      semanticReason: z.string().optional(),
+      message: z.string().optional(),
+    })
+    .optional(),
 });
 
 // Schema for GET /api/documents/:id and GET /api/evidence/:id — single document/evidence detail

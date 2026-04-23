@@ -14,6 +14,7 @@ import { DocumentList } from './DocumentList';
 import { DocumentHoverPreview } from './DocumentHoverPreview';
 import { useDocumentBrowserData } from '../../hooks/useDocumentBrowserData';
 import { useNavigate } from 'react-router-dom';
+import type { SearchMode } from '../../services/apiClient';
 import styles from './DocumentBrowser.module.css';
 
 interface DocumentBrowserProps {
@@ -36,6 +37,15 @@ const DEFAULT_EXCLUDED_TYPES = [
   'application/x-sql' + 'ite3',
   'application/zip',
 ];
+
+const SEARCH_MODES: SearchMode[] = ['lexical', 'semantic', 'hybrid'];
+
+const toSearchMode = (value: string | null): SearchMode => {
+  // Back-compat: older deep links used user-facing labels instead of API modes.
+  if (value === 'keyword') return 'lexical';
+  if (value === 'conceptual') return 'semantic';
+  return value && SEARCH_MODES.includes(value as SearchMode) ? (value as SearchMode) : 'lexical';
+};
 
 export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   searchTerm: externalSearchTerm,
@@ -77,6 +87,11 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     return saved === 'comfortable' ? 'comfortable' : 'compact';
   });
   const [searchInput, setSearchInput] = useState(effectiveSearchTerm || '');
+  const [searchMode, setSearchModeState] = useState<SearchMode>(() => {
+    if (typeof window === 'undefined') return 'lexical';
+    const params = new URLSearchParams(window.location.search);
+    return toSearchMode(params.get('mode') || params.get('searchMode'));
+  });
   const [isHeaderCondensed, setIsHeaderCondensed] = useState(false);
   const [jumpToPage, setJumpToPage] = useState('');
 
@@ -114,11 +129,32 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
       } else {
         params.delete('search');
       }
+      if (searchMode === 'lexical') {
+        params.delete('mode');
+        params.delete('searchMode');
+      } else {
+        params.set('mode', searchMode);
+        params.delete('searchMode');
+      }
       const query = params.toString();
       navigate(`/documents/${encodeURIComponent(document.id)}${query ? `?${query}` : ''}`);
     },
-    [effectiveSearchTerm, navigate],
+    [effectiveSearchTerm, navigate, searchMode],
   );
+
+  const setSearchMode = useCallback((mode: SearchMode) => {
+    setSearchModeState(mode);
+    const params = new URLSearchParams(window.location.search);
+    if (mode === 'lexical') {
+      params.delete('mode');
+      params.delete('searchMode');
+    } else {
+      params.set('mode', mode);
+      params.delete('searchMode');
+    }
+    const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+    window.history.replaceState(null, '', nextUrl);
+  }, []);
 
   const handleHoverStart = useCallback((doc: Document, rect: DOMRect) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -157,17 +193,25 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const { documents, filteredDocuments, currentPage, setCurrentPage, totalDocuments, isFetching } =
-    useDocumentBrowserData({
-      effectiveSearchTerm,
-      globalTimeRange: globalFilters.timeRange,
-      sortBy,
-      sortOrder,
-      filters,
-      itemsPerPage,
-      hideLowCredibility,
-      selectedDocumentId,
-    });
+  const {
+    documents,
+    filteredDocuments,
+    currentPage,
+    setCurrentPage,
+    totalDocuments,
+    isFetching,
+    searchMeta,
+  } = useDocumentBrowserData({
+    effectiveSearchTerm,
+    globalTimeRange: globalFilters.timeRange,
+    sortBy,
+    sortOrder,
+    filters,
+    itemsPerPage,
+    hideLowCredibility,
+    selectedDocumentId,
+    searchMode,
+  });
 
   const fileTypeOptions = useMemo(() => {
     if (!collection) return [];
@@ -251,6 +295,9 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           isFetching={isFetching}
           filteredCount={filteredDocuments.length}
           totalDocuments={totalDocuments}
+          searchMode={searchMode}
+          setSearchMode={setSearchMode}
+          searchMeta={searchMeta}
         />
 
         <AnimatePresence>

@@ -10,14 +10,19 @@ export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentLi
   evidenceType: String(doc.evidenceType || 'document'),
   metadata:
     typeof doc.metadata === 'object' && doc.metadata !== null
-      ? (doc.metadata as Record<string, unknown>)
-      : {},
+      ? {
+          ...(doc.metadata as Record<string, unknown>),
+          ...(doc.matchReason ? { matchReason: String(doc.matchReason) } : {}),
+        }
+      : doc.matchReason
+        ? { matchReason: String(doc.matchReason) }
+        : {},
   redFlagRating: Number(doc.redFlagRating || 0),
   wordCount: Number(doc.wordCount || 0),
   entitiesCount: Number(doc.entitiesCount || 0),
   keyEntities: Array.isArray(doc.keyEntities) ? doc.keyEntities.map((v: unknown) => String(v)) : [],
   sourceType: String(doc.sourceType || ''),
-  previewText: String(doc.previewText || ''),
+  previewText: String(doc.previewText || doc.snippet || ''),
   previewKind: String(doc.previewKind || 'fallback'),
   whyFlagged: String(doc.whyFlagged || ''),
 });
@@ -34,11 +39,15 @@ export const mapDocumentsListResponseDto = (
   const total = Number(result?.total || 0);
   const page = Number(result?.page || 1);
 
-  return {
+  const response: DocumentsListResponseDto = {
     data: items.map(mapDocumentListItemDto),
     total,
     page,
     pageSize,
     totalPages: Number(result?.totalPages || Math.ceil(total / Math.max(1, pageSize))),
   };
+  if (result?.searchMeta && typeof result.searchMeta === 'object') {
+    response.searchMeta = result.searchMeta as DocumentsListResponseDto['searchMeta'];
+  }
+  return response;
 };

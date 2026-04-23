@@ -1,6 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, User, Database, Calendar, Eye } from 'lucide-react';
+import { Sparkles, User, Database, Calendar, Eye, SearchCheck } from 'lucide-react';
 import { Button } from '../../design-system/components/Button';
 import { Surface } from '../../design-system/components/surfaces/Surface';
 import { Box } from '../../design-system/components/layout/Box';
@@ -37,6 +37,23 @@ const riskDotClass: Record<number, string> = {
   5: styles.riskLevel5,
 };
 
+const MATCH_REASON_COPY: Record<string, string> = {
+  text: 'Text match',
+  lexical: 'Text match',
+  semantic: 'Conceptual match',
+  hybrid: 'Keyword + concept match',
+  'entity-alias': 'Entity alias match',
+  high_risk_entity: 'High-risk entity context',
+  'high-risk-entity': 'High-risk entity context',
+};
+
+const getMatchReasonLabel = (value: unknown): string | null => {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  return MATCH_REASON_COPY[normalized] || normalized.replace(/[-_]/g, ' ');
+};
+
 export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(function DocumentCard(
   { document, searchTerm, active, onClick, onHoverStart, onHoverEnd },
   forwardedRef,
@@ -60,6 +77,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
   const entitiesCount = document.entitiesCount || document.entities?.length || 0;
   const iconElement = getRenderTypeIcon(document, { className: styles.iconGlyph });
   const isMobile = useIsMobile();
+  const matchReasonLabel = getMatchReasonLabel(document.metadata?.matchReason);
 
   const handleMouseEnter = () => {
     if (onHoverStart && cardRef.current) {
@@ -125,6 +143,15 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
         <LqText variant="body" weight="black" className={styles.title}>
           {searchTerm ? highlightSearchTerm(displayTitle, searchTerm) : displayTitle}
         </LqText>
+
+        {matchReasonLabel && searchTerm && (
+          <Flex align="center" gap="xs" className={styles.matchReason}>
+            <SearchCheck className={styles.matchReasonIcon} />
+            <LqText variant="xxxs" weight="bold" className={styles.matchReasonText}>
+              Match: {matchReasonLabel}
+            </LqText>
+          </Flex>
+        )}
 
         {(() => {
           const type = (document.evidenceType || document.fileType || '').toLowerCase();

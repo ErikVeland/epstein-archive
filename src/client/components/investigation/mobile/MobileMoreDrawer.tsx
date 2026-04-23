@@ -31,7 +31,7 @@ const TOOLS: ToolEntry[] = [
   {
     id: 'export',
     title: 'Export & Report',
-    subtitle: 'Generate forensic report',
+    subtitle: 'Reports, JSON packet, ZIP bundle',
     Icon: Download,
   },
 ];

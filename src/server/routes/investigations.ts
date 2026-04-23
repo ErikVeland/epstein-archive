@@ -13,9 +13,24 @@ import archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
 import { InvestigationIngestorService } from '../services/InvestigationIngestorService.js';
+import { buildManifest, buildEvidenceCsv, BUNDLE_README } from '../utils/exportManifest.js';
+import { buildExportFileInventory } from '../utils/investigationExportInventory.js';
 
 const router = Router();
 const DATA_ROOT = path.resolve(process.cwd(), 'data');
+
+// Read app version once at startup from package.json
+const APP_VERSION: string = (() => {
+  try {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8'),
+    ) as { version?: string };
+    return pkg.version ?? 'unknown';
+  } catch {
+    return 'unknown';
+  }
+})();
+
 const HARD_CAP_INVESTIGATIONS_LIMIT = Math.max(
   1,
   Number(process.env.HARD_CAP_INVESTIGATIONS_LIMIT || 100),
@@ -951,55 +966,94 @@ router.get(
       const evidence = await investigationsRepository.getEvidence(numericId, {
         limit: ZIP_FILE_LIMIT,
       });
+
+      const evidenceList = Array.isArray(evidence)
+        ? evidence
+        : (evidence as { data?: unknown[] }).data || [];
+
+      // --- Build file inventory (included + skipped) before opening the archive ---
+      type EvidenceRow = Record<string, unknown>;
+      const { includedFiles, skippedFiles, filesToAdd } = await buildExportFileInventory({
+        evidenceList: evidenceList as EvidenceRow[],
+        dataRoot: DATA_ROOT,
+        fileCountCap: ZIP_FILE_LIMIT,
+        sizeLimitBytes: ZIP_SIZE_LIMIT_BYTES,
+      });
+
+      // --- Fetch timeline events and all evidence annotations ---
+      let timelineEvents: unknown[] = [];
+      try {
+        timelineEvents = await investigationsRepository.getTimelineEvents(numericId);
+      } catch {
+        timelineEvents = [];
+      }
+
+      let allAnnotations: unknown[] = [];
+      try {
+        allAnnotations = await investigationsRepository.getAllEvidenceAnnotations(numericId);
+      } catch {
+        allAnnotations = [];
+      }
+
+      // --- Build manifest (includes checksum over sorted inventory) ---
+      const evidenceIds = Array.from(
+        new Set(
+          (evidenceList as EvidenceRow[])
+            .map((e) => Number(e.id ?? e.investigation_evidence_id ?? 0))
+            .filter((n) => n > 0),
+        ),
+      ).sort((a, b) => a - b);
+
+      const manifest = buildManifest({
+        investigationId: numericId,
+        title: investigation.title,
+        status: investigation.status,
+        appVersion: APP_VERSION,
+        exportLimits: {
+          fileCountCap: ZIP_FILE_LIMIT,
+          sizeLimitBytes: ZIP_SIZE_LIMIT_BYTES,
+        },
+        evidenceIds,
+        includedFiles,
+        skippedFiles,
+      });
+
+      // --- Build evidence CSV ---
+      const evidenceCsv = buildEvidenceCsv(evidenceList as EvidenceRow[]);
+
+      // --- Stream archive ---
       const archive = archiver('zip', { zlib: { level: 6 } });
 
-      // Wire up error handler before piping so we can still send a 500 if headers not yet sent
       let headersSent = false;
       archive.on('error', (err) => {
         if (!headersSent) {
           next(err);
         } else {
-          // Headers already sent — destroy the socket to signal a broken download
+          // Headers already sent — destroy socket to signal broken download
           res.destroy(err);
         }
       });
+
+      res.setHeader('x-export-file-limit', String(ZIP_FILE_LIMIT));
+      res.setHeader('x-export-size-limit', String(ZIP_SIZE_LIMIT_BYTES));
+      res.setHeader('x-export-skipped-files', String(skippedFiles.length));
 
       res.attachment(`investigation-bundle-${numericId}.zip`);
       headersSent = true;
       archive.pipe(res);
 
-      // Add investigation metadata
+      archive.append(BUNDLE_README, { name: 'README.md' });
       archive.append(JSON.stringify(investigation, null, 2), { name: 'investigation.json' });
-
-      // Add evidence metadata and files
-      const evidenceList = Array.isArray(evidence)
-        ? evidence
-        : (evidence as { data?: unknown[] }).data || [];
+      archive.append(JSON.stringify(manifest, null, 2), { name: 'manifest.json' });
       archive.append(JSON.stringify(evidenceList, null, 2), { name: 'evidence.json' });
+      archive.append(evidenceCsv, { name: 'evidence.csv' });
+      archive.append(JSON.stringify(timelineEvents, null, 2), { name: 'timeline.json' });
+      if (allAnnotations.length > 0) {
+        archive.append(JSON.stringify(allAnnotations, null, 2), { name: 'annotations.json' });
+      }
 
-      let totalBytes = 0;
-      for (const item of evidenceList) {
-        if (item.file_path) {
-          // Strip null bytes before resolving to prevent null-byte injection
-          const cleanedPath = String(item.file_path).replace(/\0/g, '');
-          const absolutePath = path.resolve(cleanedPath);
-          const isInDataRoot =
-            absolutePath.startsWith(DATA_ROOT + path.sep) ||
-            absolutePath.startsWith(DATA_ROOT + '/');
-          if (!isInDataRoot) continue;
-
-          let stat: import('fs').Stats;
-          try {
-            stat = await fs.promises.stat(absolutePath);
-          } catch {
-            continue; // file missing or unreadable — skip without blocking event loop
-          }
-
-          if (totalBytes + stat.size > ZIP_SIZE_LIMIT_BYTES) break;
-          totalBytes += stat.size;
-          const fileName = path.basename(absolutePath);
-          archive.file(absolutePath, { name: `files/${fileName}` });
-        }
+      for (const { absolutePath, zipPath } of filesToAdd) {
+        archive.file(absolutePath, { name: zipPath });
       }
 
       await archive.finalize();

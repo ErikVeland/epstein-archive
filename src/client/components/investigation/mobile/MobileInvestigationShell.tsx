@@ -21,6 +21,7 @@ import { InvestigationActivityFeed } from '../InvestigationActivityFeed';
 import { CommunicationAnalysis } from '../CommunicationAnalysis';
 import { HypothesisTestingFramework } from '../HypothesisTestingFramework';
 import { InvestigationExportTools } from '../InvestigationExportTools';
+import { EvidencePacketExporter } from '../EvidencePacketExporter';
 import styles from './MobileInvestigationShell.module.css';
 
 import { Button } from '../../../design-system/lib';
@@ -149,13 +150,23 @@ export function MobileInvestigationShell({
           />
         )}
         {moreDest === 'export' && (
-          <InvestigationExportTools
-            investigation={selectedInvestigation}
-            evidence={evidenceItems}
-            timelineEvents={timelineEvents}
-            hypotheses={hypotheses}
-            annotations={[] as Annotation[]}
-          />
+          <div className={styles.mobileExportStack}>
+            <InvestigationExportTools
+              investigation={selectedInvestigation}
+              evidence={evidenceItems}
+              timelineEvents={timelineEvents}
+              hypotheses={hypotheses}
+              annotations={[] as Annotation[]}
+            />
+            <EvidencePacketExporter
+              investigationId={invId}
+              investigationTitle={selectedInvestigation.title}
+              evidence={evidenceItems}
+              timelineEvents={timelineEvents}
+              hypotheses={hypotheses}
+              annotations={[] as Annotation[]}
+            />
+          </div>
         )}
       </MobileToolScreen>
     );

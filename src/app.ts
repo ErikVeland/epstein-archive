@@ -57,6 +57,7 @@ import propertiesRoutes from './server/routes/propertiesRoutes.js';
 import blackBookRoutes from './server/routes/blackBookRoutes.js';
 import faceRoutes from './server/routes/faceRoutes.js';
 import activeLearningRoutes from './server/routes/activeLearning.js';
+import claimsRoutes from './server/routes/claimsRoutes.js';
 import sitemapRouter from './server/routes/sitemap.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
@@ -901,6 +902,7 @@ export class App {
     router.use('/black-book', blackBookRoutes);
     router.use('/faces', faceRoutes);
     router.use('/review', activeLearningRoutes);
+    router.use('/claims', claimsRoutes);
     router.use('/investigations', investigationEvidenceRoutes);
     router.use('/investigations/:id/leads', investigationLeadsRouter);
 

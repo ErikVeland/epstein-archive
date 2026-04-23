@@ -1,5 +1,40 @@
 # Release Notes
 
+## 19.5.0 - 2026-04-23 - Intelligence Workbench & Evidence Export Hardening
+
+### Evidence Export
+
+- Promoted evidence packet export into a first-class forensic bundle: `manifest.json` with deterministic evidence inventory, SHA-256 checksum, export limits, and per-file skip reasons.
+- Added `evidence.csv` for reviewer-friendly spreadsheet inspection.
+- Added `timeline.json` with investigation timeline events.
+- Added `annotations.json` when evidence annotations are present.
+- Added `README.md` inside the ZIP documenting bundle structure and integrity verification steps.
+- Hardened ZIP export safety: null-byte stripping, data-root path confinement, symlink escape protection, size/file caps, and explicit skip-reason tracking (`path_traversal`, `file_not_found`, `size_limit`, `symlink_escape`, `not_a_file`, `duplicate_path`, `file_limit`).
+- Added shared Zod schema (`exportManifestSchema`) for the export manifest contract.
+- Made the investigation export panel a real download experience with JSON packet generation, authenticated ZIP downloads, progress, success, failure, filename, export-limit, and skipped-file feedback.
+
+### Semantic Discovery
+
+- Added Keyword, Conceptual, and Hybrid search controls to the Document Browser.
+- Wired Conceptual and Hybrid document searches through the semantic search repository when pgvector embeddings are available.
+- Added visible semantic status messaging so users know when conceptual search is active versus safely falling back to keyword search.
+- Added per-result match badges in the Document Browser so analysts can distinguish text, conceptual, hybrid, and entity-context matches.
+- Preserved legacy search links while standardizing backend mode values to `lexical`, `semantic`, and `hybrid`.
+
+### Investigation Workbench
+
+- Added a case readiness panel to investigations with evidence, timeline, hypothesis, annotation, provenance, and export-readiness signals.
+- Improved empty investigation and empty evidence states with clear next actions into case folders, document search, and export tools.
+- Exposed the evidence packet exporter in the mobile investigation export/report flow.
+
+### Quality
+
+- Added 19 unit tests covering manifest checksum determinism, CSV quoting, manifest ordering, and path traversal regression.
+- Added Playwright API tests for the export endpoint: 401 guard, 404 guard, ZIP structure, manifest shape, and export determinism.
+- Restored clean local `type-check`, `lint`, and production build gates for the v19.5 workstream.
+
+---
+
 ## 19.4.2 - 2026-04-23 - UI Reconciliation & CI/CD Restoration
 
 ### UI & UX

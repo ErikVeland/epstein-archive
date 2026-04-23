@@ -26,9 +26,13 @@ export const cacheMiddleware = (ttl?: number) => {
     // Store original res.json to intercept response
     const originalJson = res.json.bind(res);
     res.json = function (body: unknown) {
-      // Cache the response
-      apiCache.set(cacheKey, body, ttl || 300);
-      res.set('X-Cache', 'MISS');
+      // Only cache successful responses
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        apiCache.set(cacheKey, body, ttl || 300);
+        res.set('X-Cache', 'MISS');
+      } else {
+        res.set('X-Cache', 'BYPASS');
+      }
       return originalJson(body);
     };
 

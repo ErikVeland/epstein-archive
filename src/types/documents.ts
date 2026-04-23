@@ -107,6 +107,7 @@ export interface DocumentMetadata {
   source_original_url?: string;
   credibility_score?: number;
   sensitivity_flags?: string[];
+  matchReason?: string;
 
   // Email metadata
   emailHeaders?: {

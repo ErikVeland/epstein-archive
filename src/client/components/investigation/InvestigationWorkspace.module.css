@@ -602,6 +602,33 @@
   gap: 0.75rem;
 }
 
+.readinessPanel {
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--glass-border));
+}
+
+.readinessMetric {
+  min-width: 0;
+}
+
+.readinessCheck {
+  padding: 0.35rem 0;
+}
+
+.nextActionPanel {
+  border: 1px dashed color-mix(in srgb, var(--accent) 36%, var(--glass-border));
+}
+
+.kickerText {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.iconSuccess {
+  color: var(--lq-success, #34d399);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
 .tabLoading {
   display: flex;
   align-items: center;

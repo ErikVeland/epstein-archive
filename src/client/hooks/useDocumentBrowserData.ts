@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BrowseFilters, Document } from '../types/documents';
-import { apiClient } from '../services/apiClient';
+import { apiClient, type SearchMode } from '../services/apiClient';
 
 const str = (v: unknown, fallback = ''): string =>
   typeof v === 'string' ? v : v != null ? String(v) : fallback;
@@ -86,6 +86,7 @@ interface UseDocumentBrowserDataOptions {
   itemsPerPage: number;
   hideLowCredibility: boolean;
   selectedDocumentId?: string;
+  searchMode: SearchMode;
 }
 
 const EMPTY_DOCUMENTS: Document[] = [];
@@ -99,6 +100,7 @@ export function useDocumentBrowserData({
   itemsPerPage,
   hideLowCredibility,
   selectedDocumentId,
+  searchMode,
 }: UseDocumentBrowserDataOptions) {
   const [currentPage, setCurrentPage] = useState(1);
   const requestKeyRef = useRef<string | null>(null);
@@ -107,6 +109,7 @@ export function useDocumentBrowserData({
     () =>
       JSON.stringify({
         search: effectiveSearchTerm?.trim() || '',
+        mode: searchMode,
         sortBy,
         sortOrder,
         categories: filters.categories || [],
@@ -122,6 +125,7 @@ export function useDocumentBrowserData({
       }),
     [
       effectiveSearchTerm,
+      searchMode,
       sortBy,
       sortOrder,
       filters.categories,
@@ -157,6 +161,7 @@ export function useDocumentBrowserData({
         {
           search:
             effectiveSearchTerm && effectiveSearchTerm.trim() ? effectiveSearchTerm : undefined,
+          mode: searchMode,
           sortBy: sortBy || undefined,
           sortOrder,
           evidenceType:
@@ -181,6 +186,7 @@ export function useDocumentBrowserData({
         documents: newDocs,
         total: result.total ?? 0,
         hasMore: newDocs.length === itemsPerPage,
+        searchMeta: result.searchMeta,
       };
     },
     enabled: !selectedDocumentId,
@@ -191,6 +197,7 @@ export function useDocumentBrowserData({
   const documents = queryResult?.documents ?? EMPTY_DOCUMENTS;
   const totalDocuments = queryResult?.total ?? 0;
   const hasMore = queryResult?.hasMore ?? true;
+  const searchMeta = queryResult?.searchMeta;
 
   const filteredDocuments = useMemo(() => {
     if (!hideLowCredibility) return documents;
@@ -208,5 +215,6 @@ export function useDocumentBrowserData({
     totalDocuments,
     hasMore,
     isFetching,
+    searchMeta,
   };
 }

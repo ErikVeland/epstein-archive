@@ -57,7 +57,7 @@
 
 @media (min-width: 1280px) {
   .controlsGrid {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     align-items: center;
   }
 }
@@ -131,8 +131,40 @@
   flex-wrap: wrap;
 }
 
+.modeChips {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.modeChip {
+  min-width: 6.5rem;
+}
+
+.modeStatus {
+  max-width: 24rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg-strong);
+}
+
+.modeStatusReady {
+  border-color: color-mix(in srgb, var(--lq-success, #34d399) 40%, var(--glass-border));
+}
+
+.modeStatusFallback {
+  border-color: color-mix(in srgb, var(--lq-warning, #f59e0b) 45%, var(--glass-border));
+}
+
+.modeStatusTitle {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 @media (max-width: 767px) {
-  .toolbar {
+  .toolbar,
+  .modeChips {
     flex-wrap: nowrap;
     overflow-x: auto;
     padding-bottom: var(--space-2);
@@ -140,7 +172,8 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  .toolbar > * {
+  .toolbar > *,
+  .modeChips > * {
     flex-shrink: 0;
   }
 }
@@ -148,6 +181,10 @@
 @media (min-width: 1280px) {
   .toolbar {
     justify-content: flex-end;
+  }
+
+  .modeChips {
+    justify-content: center;
   }
 }
 

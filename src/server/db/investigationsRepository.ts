@@ -500,6 +500,45 @@ export const investigationsRepository = {
     }));
   },
 
+  /** Fetch all evidence annotations for an investigation in a single query. */
+  getAllEvidenceAnnotations: async (investigationId: number) => {
+    const result = await getApiPool().query<InvestigationEvidenceAnnotationRow>(
+      `
+        SELECT
+          id,
+          investigation_id,
+          evidence_id,
+          annotation_type,
+          content,
+          color,
+          start_offset,
+          end_offset,
+          created_by,
+          metadata_json,
+          created_at::text,
+          updated_at::text
+        FROM investigation_evidence_annotations
+        WHERE investigation_id = $1
+        ORDER BY evidence_id ASC, created_at ASC
+      `,
+      [investigationId],
+    );
+
+    return result.rows.map((row) => ({
+      id: String(row.id),
+      evidenceId: Number(row.evidence_id),
+      type: row.annotation_type,
+      content: row.content,
+      color: row.color || undefined,
+      startOffset: row.start_offset ?? undefined,
+      endOffset: row.end_offset ?? undefined,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      createdBy: row.created_by || undefined,
+      metadata: row.metadata_json || {},
+    }));
+  },
+
   addEvidenceAnnotation: async (
     investigationId: number,
     evidenceId: number,

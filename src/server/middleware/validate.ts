@@ -140,7 +140,27 @@ export const timelineQuerySchema = z.object({
     type: z.string().max(50).optional(),
     significance: z.enum(['HIGH', 'MEDIUM', 'LOW']).optional(),
     entityId: z.coerce.number().int().min(1).optional(),
-    limit: z.coerce.number().int().min(1).max(500).optional(),
+    limit: z.coerce.number().int().min(1).max(1000).optional(),
+  }),
+});
+
+export const financialTransactionsQuerySchema = z.object({
+  query: z.object({
+    limit: z.coerce.number().int().min(1).max(500).default(100),
+  }),
+});
+
+export const emailMailboxesQuerySchema = z.object({
+  query: z.object({
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+    offset: z.coerce.number().int().min(0).default(0),
+  }),
+});
+
+export const mediaQuerySchema = z.object({
+  query: paginationSchema.extend({
+    type: z.enum(['audio', 'video', 'image', 'document']).optional(),
+    search: z.string().max(100).optional(),
   }),
 });
 

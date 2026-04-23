@@ -132,6 +132,31 @@
   color: var(--accent);
 }
 
+.matchReason {
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: var(--space-3);
+  padding: 0.25rem var(--space-2);
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.matchReasonIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+}
+
+.matchReasonText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Preview text */
 .preview {
   display: -webkit-box;

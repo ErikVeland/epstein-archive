@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { blackBookRepository } from '../db/blackBookRepository.js';
 import { authenticateRequest } from '../auth/middleware.js';
+import { z } from 'zod';
 import { validate, blackBookQuerySchema, blackBookReviewSchema } from '../middleware/validate.js';
 
 const router = Router();
@@ -86,7 +87,7 @@ router.get('/', validate(blackBookQuerySchema), async (req, res, next) => {
   }
 });
 
-router.get('/review', async (_req, res, next) => {
+router.get('/review', validate(z.object({})), async (_req, res, next) => {
   try {
     const [entries, stats] = await Promise.all([
       blackBookRepository.getBlackBookReviewEntries(),

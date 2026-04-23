@@ -37,7 +37,7 @@ router.get('/', validate(flightsQuerySchema), async (req, res, next) => {
   }
 });
 
-router.get('/stats', async (_req, res, next) => {
+router.get('/stats', validate(z.object({})), async (_req, res, next) => {
   try {
     const stats = await flightsRepository.getFlightStats();
     res.json(stats);
@@ -46,7 +46,7 @@ router.get('/stats', async (_req, res, next) => {
   }
 });
 
-router.get('/airports', async (_req, res, next) => {
+router.get('/airports', validate(z.object({})), async (_req, res, next) => {
   try {
     const airports = await flightsRepository.getAirportCoords();
     res.json(airports);
@@ -55,7 +55,7 @@ router.get('/airports', async (_req, res, next) => {
   }
 });
 
-router.get('/passengers', async (_req, res, next) => {
+router.get('/passengers', validate(z.object({})), async (_req, res, next) => {
   try {
     const passengers = await flightsRepository.getUniquePassengers();
     res.json(passengers);

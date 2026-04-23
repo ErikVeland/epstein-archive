@@ -109,6 +109,7 @@ docs/superpowers/
 # LLM/agent handover + explain artifacts (local-only; never commit)
 docs/llm_handover/
 docs/explain/
+.handover/
 
 # Test results
 test-results/
