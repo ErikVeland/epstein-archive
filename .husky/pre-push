@@ -35,15 +35,23 @@ fi
 echo ""
 echo "🔍 [3/4] Checking for client-affecting changes..."
 
-# Compare commits being pushed against the upstream branch
+# Read push details from stdin: <local ref> <local sha1> <remote ref> <remote sha1>
+read local_ref local_sha remote_ref remote_sha
+
 UPSTREAM="${1:-origin}"
-LOCAL_SHA="${2:-HEAD}"
-REMOTE_SHA=$(git rev-parse "$UPSTREAM/$(git rev-parse --abbrev-ref HEAD)" 2>/dev/null || echo "")
+LOCAL_SHA="${local_sha:-HEAD}"
+REMOTE_SHA="${remote_sha:-}"
+
+# If remote SHA is all zeros, it's a new branch
+if [ "$REMOTE_SHA" = "0000000000000000000000000000000000000000" ]; then
+  REMOTE_SHA=""
+fi
 
 if [ -n "$REMOTE_SHA" ]; then
+  # Compare local changes against what's already on the remote
   CHANGED=$(git diff --name-only "$REMOTE_SHA"..."$LOCAL_SHA" 2>/dev/null)
 else
-  # First push on this branch — compare against main
+  # First push on this branch — compare against origin/main or previous commit
   CHANGED=$(git diff --name-only "origin/main"..."$LOCAL_SHA" 2>/dev/null || git diff --name-only HEAD~1 2>/dev/null)
 fi
 

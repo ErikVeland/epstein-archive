@@ -1,5 +1,20 @@
 # Release Notes
 
+## 19.4.2 - 2026-04-23 - UI Reconciliation & CI/CD Restoration
+
+### UI & UX
+
+- **Search Input Reconciliation**: Shipped a systematic fix for search input padding to prevent placeholder text from overlapping leading icons.
+- **Global CSS Sibling Rule**: Implemented a universal CSS "catch-all" rule in `index.css` that detects icon-preceded inputs and applies correct forensic padding automatically.
+- **Design System Specificity**: Increased CSS specificity for the DS `SearchField` component to ensure it overrides global baseline styles on complex pages.
+
+### CI/CD & Infrastructure
+
+- **Playwright Pipeline Fix**: Restored the production bundle smoke test suite in GitHub Actions by adding automated Playwright browser installation to the CI and deployment workflows.
+- **Quality Gate Alignment**: Successfully verified all production verification scripts and bundle smoke tests against the v19.4.2 build.
+
+---
+
 ## 19.4.1 - 2026-04-22 - Stability: Observability Hardening
 
 ### Server Observability
