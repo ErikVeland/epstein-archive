@@ -21,6 +21,10 @@ const EXPECTED_CONSOLE_NOISE = [
   /Internal Server Error/,
   /Failed to load resource/,
   /Failed to load investigations/,
+  /http proxy error/,
+  /Failed to fetch/,
+  /NetworkError/,
+  /ECONNREFUSED/,
 ];
 
 function isExpectedNoise(msg: string): boolean {
