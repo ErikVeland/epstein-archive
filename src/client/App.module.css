@@ -139,17 +139,16 @@
 
 .breadcrumbContainer {
   margin-bottom: var(--space-1);
-  padding: 0;
+  padding: var(--space-2) 0;
   display: flex;
   justify-content: flex-start;
   text-align: left;
   width: 100%;
-  color: var(--text-primary) !important;
 }
 
 @media (min-width: 768px) {
   .breadcrumbContainer {
-    padding: 0;
+    padding: var(--space-2) 0;
   }
 }
 
@@ -740,7 +739,7 @@
   display: none;
   font-size: var(--font-size-sm);
   font-weight: 500;
-  padding: var(--space-4) var(--space-4);
+  padding: var(--space-4) 0; /* Remove horizontal padding to align with content edges */
 }
 
 @media (min-width: 768px) {
@@ -792,9 +791,8 @@
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.01em;
-  line-height: 1;
+  line-height: 1.1; /* Slightly more height for better vertical centering */
   min-height: 1rem;
-  transform: translateY(-0.5px);
 }
 
 .navLabelHidden {

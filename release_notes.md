@@ -1,5 +1,14 @@
 # Release Notes
 
+## 19.5.3 - 2026-04-24 - Forensic Interface Polish
+
+### UI & UX Refinement
+
+- **Breadcrumb Alignment**: Fixed breadcrumb left-alignment to perfectly match the logo and content edges. Added equal top and bottom padding for balanced vertical spacing.
+- **Desktop Navigation Verticality**: Centered navigation labels and icons vertically within the desktop nav pill, resolving baseline offset issues.
+- **Mobile Menu Optimization**: Significantly reduced vertical whitespace in the mobile slide-out menu header, search field, and footer, maximizing screen real estate for investigative content.
+- **Nav Bar Alignment**: Aligned the desktop navigation bar's left and right edges with the main content boundaries and logo for a more structured, high-fidelity layout.
+
 ## 19.5.2 - 2026-04-24 - Desktop Search Polish
 
 ### UI & UX
