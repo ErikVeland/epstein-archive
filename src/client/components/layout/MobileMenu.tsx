@@ -98,8 +98,10 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           const startX = e.touches[0].clientX;
           const startY = e.touches[0].clientY;
           const handleTouchMove = (moveEvent: TouchEvent) => {
-            const deltaX = startX - moveEvent.touches[0].clientX;
-            const deltaY = startY - moveEvent.touches[0].clientY;
+            const currentX = moveEvent.touches[0].clientX;
+            const currentY = moveEvent.touches[0].clientY;
+            const deltaX = currentX - startX; // Positive if swiping right
+            const deltaY = currentY - startY;
             if (deltaX > 50 && Math.abs(deltaX) > Math.abs(deltaY)) onClose();
           };
           const cleanup = () => {

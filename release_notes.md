@@ -1,5 +1,21 @@
 # Release Notes
 
+## 19.5.1 - 2026-04-24 - Navigation Polish & Mobile Consolidation
+
+### Mobile UX & Layout
+
+- **Unified Search & Filters**: Consolidated separate mobile buttons and sheets into a single, high-fidelity "Search & Filters" interaction. The unified button now provides a live summary of active search terms and date windows.
+- **Header Alignment**: Horizontally aligned the logo and the menu button in a single row on mobile, reclaiming vertical space.
+- **Enhanced Mobile Menu**: The mobile drawer now slides in from the right, layers over the entire UI (including the header), and supports a natural swipe-to-close gesture.
+- **Bigger Brand Presence**: Increased the mobile logo font size for better legibility and visual weight.
+- **Breadcrumb Spacing**: Significantly reduced vertical margins for breadcrumb navigation to prioritize data and charts above the fold.
+
+### Desktop Navigation
+
+- **Proportional Expansion**: Refactored the desktop navigation menu to fill the entire horizontal track while maintaining button widths proportional to their internal content.
+
+---
+
 ## 19.5.0 - 2026-04-23 - Intelligence Workbench & Evidence Export Hardening
 
 ### Evidence Export

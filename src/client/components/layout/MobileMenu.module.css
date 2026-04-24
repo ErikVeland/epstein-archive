@@ -4,7 +4,7 @@
 .root {
   position: fixed;
   inset: 0;
-  z-index: var(--z-overlay);
+  z-index: var(--z-modal);
   transition: opacity 0.3s var(--easing-liquid, ease-out);
 }
 
@@ -27,22 +27,22 @@
 .backdrop {
   position: absolute;
   inset: 0;
-  top: 60px;
+  top: 0;
   transition: all 0.3s var(--easing-liquid, ease-out);
 }
 
 /* ── Slide panel ──────────────────────────────────────────── */
 .panel {
   position: absolute;
-  left: 0;
-  top: 60px;
+  right: 0;
+  top: 0;
   bottom: 0;
   width: 80%; /* w-4/5 */
   max-width: 24rem; /* max-w-sm */
   background: var(--bg-surface, var(--glass-bg-strong));
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border-right: 1px solid var(--glass-border);
+  border-left: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
   transform: translateX(0);
   transition: transform 0.3s ease-out;
@@ -52,7 +52,7 @@
 }
 
 .panelClosed {
-  transform: translateX(-100%);
+  transform: translateX(100%);
 }
 
 /* ── Panel header ─────────────────────────────────────────── */

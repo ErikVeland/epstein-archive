@@ -1245,13 +1245,14 @@ function App() {
               <header className={cn(styles.headerShell)}>
                 <div className={styles.contentShell}>
                   <div className={styles.header}>
-                    {/* LEFT: Logo and Stats */}
-                    <div className={styles.logoArea}>
-                      {/* Logo */}
-                      <Link to="/" className={styles.logoArea}>
-                        <RedactedLogo text="THE EPSTEIN FILES" />
-                      </Link>
-                    </div>
+                    {!isMobile && (
+                      <div className={styles.logoArea}>
+                        {/* Logo */}
+                        <Link to="/" className={styles.logoArea}>
+                          <RedactedLogo text="THE EPSTEIN FILES" />
+                        </Link>
+                      </div>
+                    )}
 
                     {/* RIGHT: Actions and Search */}
                     <div className={styles.actionsArea}>
@@ -1403,7 +1404,13 @@ function App() {
                       {isMobile && (
                         <div className={styles.mobileHeaderStack}>
                           <div className={styles.mobileHeaderTopRow}>
-                            <div className={styles.mobileHeaderBrandSpacer} />
+                            <Link
+                              to="/"
+                              className={styles.logoArea}
+                              onClick={() => setIsMobileMenuOpen(false)}
+                            >
+                              <RedactedLogo text="THE EPSTEIN FILES" />
+                            </Link>
                             <Button
                               unstyled
                               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -1426,39 +1433,23 @@ function App() {
                               onClick={() => setIsMobileSearchOpen(true)}
                               className={cn(
                                 styles.mobileControlButton,
-                                searchTerm.trim() && styles.mobileHeaderButtonActive,
+                                (searchTerm.trim() ||
+                                  filters.timeRange[0] ||
+                                  filters.timeRange[1]) &&
+                                  styles.mobileHeaderButtonActive,
                               )}
-                              aria-label="Open search"
+                              aria-label="Open search and filters"
                             >
                               <span className={styles.mobileControlLead}>
                                 <Icon name="Search" size="sm" />
-                                <span className={styles.mobileControlLabel}>Search Archive</span>
+                                <span className={styles.mobileControlLabel}>Search & Filters</span>
                               </span>
                               <span className={styles.mobileControlValue}>
-                                {searchTerm.trim() || 'People, evidence, documents'}
-                              </span>
-                            </Button>
-
-                            <Button
-                              unstyled
-                              onClick={() => setShowDateRangePicker(true)}
-                              className={cn(
-                                styles.mobileControlButton,
-                                (filters.timeRange[0] || filters.timeRange[1]) &&
-                                  styles.mobileHeaderButtonActive,
-                              )}
-                              aria-label="Open global date filter"
-                            >
-                              <span className={styles.mobileControlLead}>
-                                <Icon name="Calendar" size="sm" />
-                                <span className={styles.mobileControlLabel}>
-                                  Global Date Filter
-                                </span>
-                              </span>
-                              <span className={styles.mobileControlValue}>
-                                {filters.timeRange[0] || filters.timeRange[1]
-                                  ? `${filters.timeRange[0] ?? '…'} – ${filters.timeRange[1] ?? '…'}`
-                                  : 'All dates'}
+                                {searchTerm.trim()
+                                  ? `“${searchTerm}”`
+                                  : 'People, evidence, documents'}
+                                {(filters.timeRange[0] || filters.timeRange[1]) &&
+                                  ` • ${filters.timeRange[0] ?? '…'} – ${filters.timeRange[1] ?? '…'}`}
                               </span>
                             </Button>
                           </div>
@@ -1732,48 +1723,70 @@ function App() {
                 />
                 {isMobile && (
                   <BottomSheet
-                    isOpen={isMobileSearchOpen}
-                    onClose={() => setIsMobileSearchOpen(false)}
-                    title="Search Archive"
+                    isOpen={isMobileSearchOpen || showDateRangePicker}
+                    onClose={() => {
+                      setIsMobileSearchOpen(false);
+                      setShowDateRangePicker(false);
+                    }}
+                    title="Search & Filters"
                   >
-                    <Stack gap="md" className={styles.mobileSheetStack}>
-                      <SearchField
-                        type="text"
-                        placeholder="Search evidence…"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            openSearchResultsRoute();
-                          }
-                        }}
-                        rootClassName={styles.mobileSheetSearchRoot}
-                        className={styles.mobileSheetSearchInput}
-                        aria-label="Search the archive"
-                      />
-                      {searchTerm.trim().length >= 2 ? (
-                        renderSearchSuggestions(styles.mobileSheetDropdown)
-                      ) : (
-                        <Surface variant="panel" className={styles.mobileSearchEmptyState}>
-                          <LqText variant="small" color="secondary">
-                            Search people, evidence, and document excerpts from a single place.
-                          </LqText>
-                        </Surface>
-                      )}
-                    </Stack>
-                  </BottomSheet>
-                )}
-                {isMobile && (
-                  <BottomSheet
-                    isOpen={showDateRangePicker}
-                    onClose={() => setShowDateRangePicker(false)}
-                    title="Global Date Filter"
-                  >
-                    <Stack gap="md" className={styles.mobileSheetStack}>
-                      <LqText variant="small" color="secondary">
-                        Apply one time window across people, search, documents, and investigations.
-                      </LqText>
-                      {renderDateFilterFields(styles.mobileDateFields)}
+                    <Stack gap="lg" className={styles.mobileSheetStack}>
+                      <div className={styles.mobileSheetSearchRoot}>
+                        <LqText
+                          variant="xs"
+                          weight="bold"
+                          color="secondary"
+                          className={styles.mobileControlLabel}
+                          style={{ marginBottom: '0.5rem' }}
+                        >
+                          Archive Query
+                        </LqText>
+                        <SearchField
+                          type="text"
+                          placeholder="Search evidence…"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              openSearchResultsRoute();
+                              setIsMobileSearchOpen(false);
+                            }
+                          }}
+                          rootClassName={styles.mobileSheetSearchRoot}
+                          className={styles.mobileSheetSearchInput}
+                          aria-label="Search the archive"
+                        />
+                        {searchTerm.trim().length >= 2 ? (
+                          <div style={{ marginTop: '1rem' }}>
+                            {renderSearchSuggestions(styles.mobileSheetDropdown)}
+                          </div>
+                        ) : (
+                          <Surface
+                            variant="panel"
+                            className={styles.mobileSearchEmptyState}
+                            style={{ marginTop: '1rem' }}
+                          >
+                            <LqText variant="small" color="secondary">
+                              Search people, evidence, and document excerpts.
+                            </LqText>
+                          </Surface>
+                        )}
+                      </div>
+
+                      <div className={styles.divider} style={{ margin: '0.5rem 0' }} />
+
+                      <div className={styles.mobileDateSection}>
+                        <LqText
+                          variant="xs"
+                          weight="bold"
+                          color="secondary"
+                          className={styles.mobileControlLabel}
+                          style={{ marginBottom: '0.5rem' }}
+                        >
+                          Global Date Range
+                        </LqText>
+                        {renderDateFilterFields(styles.mobileDateFields)}
+                      </div>
                     </Stack>
                   </BottomSheet>
                 )}
