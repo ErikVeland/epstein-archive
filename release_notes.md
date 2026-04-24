@@ -1,5 +1,12 @@
 # Release Notes
 
+## 19.5.4 - 2026-04-24 - Perfect Pill & Alignment Refinement
+
+### UI & UX Polish
+
+- **Perfect Search Pill**: Forced the desktop search bar into a perfect pill shape by upgrading CSS specificity and enforcing maximum border-radius. This ensures absolute consistency with the integrated search button.
+- **Nav Text Centering**: Refined the vertical centering of navigation labels across all tabs. Applied a precision vertical nudge to ensure perfect baseline alignment with forensic icons.
+
 ## 19.5.3 - 2026-04-24 - Forensic Interface Polish
 
 ### UI & UX Refinement
