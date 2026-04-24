@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.5.2 - 2026-04-24 - Desktop Search Polish
+
+### UI & UX
+
+- **Desktop Search Pill**: Refined the main search bar to a perfect pill shape with improved border-radius.
+- **Search Button Integration**: Enlarged the yellow search button to fit neatly inside the pill with a precise 1px margin, providing a more integrated and premium feel.
+- **Clear Button Alignment**: Adjusted the "Clear" button positioning to maintain consistent spacing with the new larger search button.
+
 ## 19.5.1 - 2026-04-24 - Navigation Polish & Mobile Consolidation
 
 ### Mobile UX & Layout
