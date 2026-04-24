@@ -98,6 +98,12 @@
   position: relative;
   flex: 1;
   min-width: 0;
+  height: 44px;
+  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px; /* The true pill container */
+  display: flex;
+  align-items: center;
 }
 
 @media (min-width: 768px) {
@@ -246,12 +252,12 @@
 }
 
 .headerSearchFieldInput.headerSearchFieldInput.headerSearchFieldInput {
-  height: 44px;
-  min-height: 44px;
-  border-radius: 9999px !important; /* Force perfect pill shape */
-  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: none;
+  height: 100%;
+  min-height: 100%;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   padding-right: 5.5rem;
 }
 
@@ -793,7 +799,7 @@
   letter-spacing: 0.01em;
   line-height: 1;
   min-height: 1rem;
-  transform: translateY(0.5px); /* Visual nudge for perfect centering with icons */
+  transform: translateY(-2px); /* Corrected nudge to pull items up into vertical center */
 }
 
 .navLabelHidden {

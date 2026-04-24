@@ -1,5 +1,12 @@
 # Release Notes
 
+## 19.5.5 - 2026-04-24 - Search Box Integrity & Centering Fix
+
+### UI & UX Polish
+
+- **Search Box Container**: Re-engineered the search box by moving the pill-shaped background and border to the outer container. This guarantees that the search button and clear button are visually contained within the pill, resolving edge-alignment issues.
+- **Nav Item Vertical Centering**: Corrected the vertical alignment of navigation labels. Applied a negative vertical nudge to lift labels into the true optical center of the navigation bar, ensuring perfect symmetry with icons.
+
 ## 19.5.4 - 2026-04-24 - Perfect Pill & Alignment Refinement
 
 ### UI & UX Polish
