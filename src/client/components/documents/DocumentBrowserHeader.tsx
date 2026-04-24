@@ -144,13 +144,15 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             }`}
           >
             <LqText variant="xxxs" weight="bold" className={styles.modeStatusTitle}>
-              {searchMeta.semanticAvailable ? 'Semantic index active' : 'Keyword fallback active'}
+              {searchMeta.semanticAvailable
+                ? 'Semantic index active'
+                : 'Conceptual index restricted'}
             </LqText>
             <LqText variant="xxxs" color="muted">
               {searchMeta.message ||
                 (searchMeta.semanticAvailable
                   ? `${searchMode === 'hybrid' ? 'Hybrid' : 'Conceptual'} results include semantic matches.`
-                  : searchMeta.semanticReason || 'Semantic indexes are not available here.')}
+                  : 'Lexical fallback engaged (Keyword only).')}
             </LqText>
           </Box>
         )}

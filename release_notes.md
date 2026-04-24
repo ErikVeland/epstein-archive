@@ -31,6 +31,12 @@
 
 - Added 19 unit tests covering manifest checksum determinism, CSV quoting, manifest ordering, and path traversal regression.
 - Added Playwright API tests for the export endpoint: 401 guard, 404 guard, ZIP structure, manifest shape, and export determinism.
+- Improved `/api/subjects` responsiveness for common “top subjects” browsing by introducing a bounded fast path and safer query behavior.
+- Hardened Timeline UI date parsing with a safe fallback when data contains invalid dates.
+- Prevented Vite dev-server ENOSPC file-watcher crashes by ignoring large local dataset directories (pipeline checkpoints/runs, data).
+- Rolled out Zod-based request validation across all core routes (Financials, Flights, Timeline, Black Book, Media, Emails) to eliminate runtime type inconsistencies and harden the API surface.
+- Implemented production-ready smoke tests with real endpoint probes for health, readiness, and public statistics.
+- Added degraded-state fallback logic for the `/api/stats` endpoint to ensure system observability even during database initialization or query timeouts.
 - Restored clean local `type-check`, `lint`, and production build gates for the v19.5 workstream.
 
 ---

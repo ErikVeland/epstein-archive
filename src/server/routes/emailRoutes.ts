@@ -643,8 +643,12 @@ router.get('/known-senders', validate(z.object({})), async (_req, res) => {
   res.json(getKnownEntitySenders());
 });
 
+const legacyIdParamSchema = z.object({
+  params: z.object({ id: z.string().min(1) }),
+});
+
 // Legacy aliases to avoid contract breakage
-router.get('/thread/:id', async (req, res, next) => {
+router.get('/thread/:id', validate(legacyIdParamSchema), async (req, res, next) => {
   try {
     return res.redirect(307, `/api/emails/threads/${encodeURIComponent(req.params.id)}`);
   } catch (error) {
@@ -652,7 +656,7 @@ router.get('/thread/:id', async (req, res, next) => {
   }
 });
 
-router.get('/message/:id', async (req, res, next) => {
+router.get('/message/:id', validate(legacyIdParamSchema), async (req, res, next) => {
   try {
     return res.redirect(307, `/api/emails/messages/${encodeURIComponent(req.params.id)}/body`);
   } catch (error) {

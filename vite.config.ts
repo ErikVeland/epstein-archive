@@ -50,6 +50,15 @@ export default defineConfig({
   server: {
     port: 3002,
     open: true,
+    watch: {
+      // Prevent ENOSPC crashes on large local datasets / checkpoints.
+      ignored: [
+        '**/pipeline_checkpoints/**',
+        '**/pipeline_runs/**',
+        '**/data/**',
+        '**/.pnpm-store/**',
+      ],
+    },
     proxy: {
       '/api': {
         target: apiProxyTarget,

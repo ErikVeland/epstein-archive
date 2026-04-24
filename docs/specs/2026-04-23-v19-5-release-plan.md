@@ -324,7 +324,7 @@ Run full QA, update release notes/version, and deploy through the restored produ
 - [x] Search UI exposes keyword/conceptual/hybrid modes.
 - [x] Semantic search falls back cleanly when unavailable.
 - [x] Document search results show why an item matched.
-- [ ] Intelligence review dashboard has actionable queues.
+- [x] Intelligence review dashboard has actionable queues.
 - [x] Investigation readiness/checklist is visible before export.
 - [ ] Contract, route sync, unit, lint, type-check, and bundle smoke tests pass.
 - [ ] `package.json` version and `release_notes.md` are aligned.

@@ -126,7 +126,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
           return { ...prev, support };
         });
       } catch (error) {
-        console.error('Error loading timeline support:', error);
+        console.warn('Timeline support unavailable:', error);
       } finally {
         if (!cancelled) {
           setSupportLoading(false);
@@ -187,7 +187,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
         setEvents([]);
       }
     } catch (error) {
-      console.error('Error loading timeline data:', error);
+      console.warn('Timeline data unavailable:', error);
       setFetchError(true);
       setEvents([]);
     } finally {

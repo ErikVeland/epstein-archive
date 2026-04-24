@@ -238,7 +238,26 @@ router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: 
     }
 
     const result = await searchRepository.search(searchTerm, limit, { mode });
-    res.json(result);
+
+    // Shape the semanticCapability field into a spec-compliant _meta envelope.
+    // The rest of the result (entities, documents, …) is spread unchanged.
+    const { semanticCapability, ...resultWithoutCap } = result;
+    const cap = semanticCapability;
+    const requestedSemantic = mode === 'semantic' || mode === 'hybrid';
+    const degraded = requestedSemantic && !(cap?.available ?? false);
+    const degradedReason: string | null = degraded
+      ? (cap?.reason ?? 'pgvector_unavailable') || 'pgvector_unavailable'
+      : null;
+
+    res.json({
+      ...resultWithoutCap,
+      _meta: {
+        mode: mode ?? 'lexical',
+        semanticAvailable: cap?.available ?? false,
+        degraded,
+        degradedReason,
+      },
+    });
   } catch (error) {
     logger.error({ err: error }, 'Evidence search error');
     res.status(500).json({ error: 'Search failed' });

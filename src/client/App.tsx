@@ -170,6 +170,13 @@ const AdminDashboard = lazyWithRetry(
   () => import('./pages/AdminDashboard').then((module) => ({ default: module.AdminDashboard })),
   'AdminDashboard',
 );
+const IntelligenceDashboard = lazyWithRetry(
+  () =>
+    import('./pages/IntelligenceDashboard').then((module) => ({
+      default: module.IntelligenceDashboard,
+    })),
+  'IntelligenceDashboard',
+);
 const EvidenceDetail = lazyWithRetry(
   () => import('./pages/EvidenceDetail').then((module) => ({ default: module.EvidenceDetail })),
   'EvidenceDetail',
@@ -1966,6 +1973,7 @@ function App() {
                           />
                           <Route path="/login" element={<LoginPage />} />
                           <Route path="/admin/*" element={<AdminDashboard />} />
+                          <Route path="/intelligence" element={<IntelligenceDashboard />} />
                           <Route path="/evidence/:id" element={<EvidenceDetail />} />
                           <Route
                             path="/review/*"

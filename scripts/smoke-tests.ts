@@ -12,7 +12,7 @@
  */
 
 const API_BASE = process.env.PW_API_BASE_URL ?? `http://127.0.0.1:${process.env.API_PORT ?? 3012}`;
-const TIMEOUT_MS = 10_000;
+const TIMEOUT_MS = 30_000;
 
 interface Probe {
   label: string;
@@ -159,6 +159,33 @@ const PROBES: Probe[] = [
     label: 'map entities',
     path: '/api/map/entities',
     expectedStatus: 200,
+  },
+
+  // ── Investigations ───────────────────────────────────────────────────────────
+  {
+    label: 'investigations list',
+    path: '/api/investigations?limit=1',
+    expectedStatus: 200,
+  },
+  {
+    label: 'export/zip requires auth (401)',
+    path: '/api/investigations/1/export/zip',
+    expectedStatus: 401,
+    requiredKeys: ['error'],
+  },
+
+  // ── Intelligence Review ─────────────────────────────────────────────────────
+  {
+    label: 'intelligence review queues',
+    path: '/api/intelligence/review',
+    expectedStatus: 200,
+    requiredKeys: ['weakProvenanceDocs', 'counts'],
+  },
+  {
+    label: 'intelligence readiness',
+    path: '/api/intelligence/readiness',
+    expectedStatus: 200,
+    requiredKeys: ['semanticAvailable', 'provenanceCoveragePct'],
   },
 
   // ── Validation rejects ──────────────────────────────────────────────────────

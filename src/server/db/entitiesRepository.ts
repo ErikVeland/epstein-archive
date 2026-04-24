@@ -236,48 +236,67 @@ async function getSubjectCardsFallback(
     blackBookCount?: number;
     topPhotoId?: number | string;
   }
-  const [rows, countRows, maxConnResult, vipDisplayLookup] = await Promise.all([
-    runQuery<
-      {
-        searchTerm: string | null;
-        riskLevels: string[] | null;
-        minRedFlag: number | null;
-        maxRedFlag: number | null;
-        role: string | null;
-        sortBy: string | null;
-        limit: number;
-        offset: number;
-      },
-      SubjectCardRow
-    >(
-      entitiesQueries.getSubjectCards,
-      {
-        searchTerm,
-        riskLevels,
-        minRedFlag,
-        maxRedFlag,
-        role,
-        sortBy: pgSort,
-        limit,
-        offset,
-      },
-      pool,
-    ),
-    pool.query<{ total: string }>({
-      text: `
-        SELECT COUNT(*) as total
-        FROM entities e
-        WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
-          AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
-          AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
-          AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
-          AND ($5::text IS NULL OR e.primary_role = $5)
-      `,
-      values: [searchTerm, riskLevels, minRedFlag, maxRedFlag, role],
-    }),
-    runQuery<undefined, { maxConn?: number }>(entitiesQueries.getMaxConnectivity, undefined, pool),
-    buildVipDisplayLookup(),
-  ]);
+  let rows: SubjectCardRow[] = [];
+  let countRows: { rows: { total: string }[] } | null = null;
+  let maxConnResult: { maxConn?: number }[] | null = null;
+  let vipDisplayLookup: Map<string, string> = new Map();
+
+  try {
+    const results = await Promise.all([
+      runQuery<
+        {
+          searchTerm: string | null;
+          riskLevels: string[] | null;
+          minRedFlag: number | null;
+          maxRedFlag: number | null;
+          role: string | null;
+          sortBy: string | null;
+          limit: number;
+          offset: number;
+        },
+        SubjectCardRow
+      >(
+        entitiesQueries.getSubjectCards,
+        {
+          searchTerm,
+          riskLevels,
+          minRedFlag,
+          maxRedFlag,
+          role,
+          sortBy: pgSort,
+          limit,
+          offset,
+        },
+        pool,
+      ),
+      pool.query<{ total: string }>({
+        text: `
+          SELECT COUNT(*) as total
+          FROM entities e
+          WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
+            AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
+            AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
+            AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
+            AND ($5::text IS NULL OR e.primary_role = $5)
+        `,
+        values: [searchTerm, riskLevels, minRedFlag, maxRedFlag, role],
+      }),
+      runQuery<undefined, { maxConn?: number }>(
+        entitiesQueries.getMaxConnectivity,
+        undefined,
+        pool,
+      ),
+      buildVipDisplayLookup(),
+    ]);
+
+    rows = results[0] as SubjectCardRow[];
+    countRows = { rows: (results[1] as { rows: { total: string }[] }).rows };
+    maxConnResult = results[2] as { maxConn?: number }[];
+    vipDisplayLookup = results[3] as Map<string, string>;
+  } catch (err) {
+    console.error('[CRITICAL] failure in getSubjectCardsFallback:', err);
+    return { subjects: [], total: 0 };
+  }
 
   const maxConnectivityCount = Math.max(1, Number(maxConnResult?.[0]?.maxConn || 1));
   const subjects: SubjectCardListItemDto[] = rows.map((row) => {
