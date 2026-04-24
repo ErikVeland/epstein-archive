@@ -98,12 +98,6 @@
   position: relative;
   flex: 1;
   min-width: 0;
-  height: 44px;
-  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 9999px; /* The true pill container */
-  display: flex;
-  align-items: center;
 }
 
 @media (min-width: 768px) {
@@ -252,12 +246,12 @@
 }
 
 .headerSearchFieldInput.headerSearchFieldInput.headerSearchFieldInput {
-  height: 100%;
-  min-height: 100%;
-  border-radius: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  height: 44px;
+  min-height: 44px;
+  border-radius: 9999px !important; /* Force perfect pill shape */
+  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: none;
   padding-right: 5.5rem;
 }
 
@@ -288,15 +282,15 @@
 
 .searchButton {
   position: absolute;
-  right: 2px;
+  right: 4px; /* Increased margin to stay clear of borders */
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
+  width: 36px; /* Slightly smaller to fit comfortably within 44px container */
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20px;
+  border-radius: 18px;
   background: linear-gradient(145deg, #d4a84b, #b8860b);
   border: none;
   color: white;
@@ -799,7 +793,7 @@
   letter-spacing: 0.01em;
   line-height: 1;
   min-height: 1rem;
-  transform: translateY(-2px); /* Corrected nudge to pull items up into vertical center */
+  transform: translateY(0.5px); /* Visual nudge for perfect centering with icons */
 }
 
 .navLabelHidden {
