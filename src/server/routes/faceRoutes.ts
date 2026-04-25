@@ -57,18 +57,9 @@ router.patch('/clusters/:id', authenticateRequest, requireRole('admin'), async (
   }
 });
 
+import { resolveMediaPath } from '../utils/pathResolver.js';
 import path from 'path';
 import fs from 'fs';
-
-// Helper to resolve paths safely
-const findFirstExistingPath = (paths: string[]): string | null => {
-  for (const p of paths) {
-    if (!p) continue;
-    const absPath = path.isAbsolute(p) ? p : path.resolve(process.cwd(), p);
-    if (fs.existsSync(absPath)) return absPath;
-  }
-  return null;
-};
 
 // GET /api/faces/assets?path=...
 // Serves face crops and thumbnails from the data directory
@@ -77,14 +68,10 @@ router.get('/assets', authenticateRequest, requireRole('admin'), async (req, res
     const assetPath = req.query.path as string;
     if (!assetPath) return res.status(400).json({ error: 'Path required' });
 
-    // Security: Only allow paths starting with data/ or /data/
-    const normalized = assetPath.replace(/^\/+/, '');
-    if (!normalized.startsWith('data/')) {
-      return res.status(403).json({ error: 'Access denied' });
+    const resolved = resolveMediaPath(assetPath);
+    if (!resolved || !fs.existsSync(resolved)) {
+      return res.status(404).json({ error: 'Asset not found' });
     }
-
-    const resolved = findFirstExistingPath([normalized]);
-    if (!resolved) return res.status(404).json({ error: 'Asset not found' });
 
     res.type(path.extname(resolved) || 'image/jpeg');
     return res.sendFile(resolved);

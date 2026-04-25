@@ -1,5 +1,12 @@
 # Release Notes
 
+## 19.6.4 - 2026-04-25 - Robust Asset Serving & System Hardening
+
+### Improvements
+
+- **Face Gallery Assets**: Standardized path resolution using canonical `resolveMediaPath` to ensure reliable serving of face crops and thumbnails across different database path formats.
+- **Security**: Hardened asset serving with centralized data root validation.
+
 ## 19.6.3 - 2026-04-25 - Emergency ESM Fix & System Stability
 
 ### Bug Fixes
