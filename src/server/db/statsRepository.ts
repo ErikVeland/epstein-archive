@@ -156,16 +156,115 @@ const getCollectionStatsHelper = async () => {
   }
 };
 
+const getMinimumStatisticsFallback = async () => {
+  try {
+    const pool = getApiPool();
+    const [
+      entityRows,
+      documentRows,
+      relationshipRows,
+      mentionRows,
+      redFlagRows,
+      investigationRows,
+    ] = await Promise.all([
+      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM entities'),
+      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM documents'),
+      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM entity_relationships'),
+      pool.query<{ total: string }>(
+        'SELECT COALESCE(SUM(COALESCE(mentions, 0)), 0)::text AS total FROM entities',
+      ),
+      pool.query<{ rating: string; count: string }>(
+        `SELECT COALESCE(red_flag_rating, 0)::text AS rating, COUNT(*)::text AS count
+           FROM entities
+           GROUP BY COALESCE(red_flag_rating, 0)
+           ORDER BY COALESCE(red_flag_rating, 0)`,
+      ),
+      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM investigations'),
+    ]);
+
+    const redFlagDistribution = redFlagRows.rows.map((row) => ({
+      rating: Number(row.rating || 0),
+      count: Number(row.count || 0),
+    }));
+
+    const likelihoodDistribution = [
+      {
+        level: 'HIGH',
+        count: redFlagDistribution
+          .filter((row) => row.rating >= 4)
+          .reduce((sum, row) => sum + row.count, 0),
+      },
+      {
+        level: 'MEDIUM',
+        count: redFlagDistribution
+          .filter((row) => row.rating >= 2 && row.rating < 4)
+          .reduce((sum, row) => sum + row.count, 0),
+      },
+      {
+        level: 'LOW',
+        count: redFlagDistribution
+          .filter((row) => row.rating < 2)
+          .reduce((sum, row) => sum + row.count, 0),
+      },
+    ];
+
+    return {
+      totalEntities: Number(entityRows.rows[0]?.count || 0),
+      totalDocuments: Number(documentRows.rows[0]?.count || 0),
+      totalRelationships: Number(relationshipRows.rows[0]?.count || 0),
+      totalMentions: Number(mentionRows.rows[0]?.total || 0),
+      averageRedFlagRating: 0,
+      totalUniqueRoles: 0,
+      entitiesWithDocuments: 0,
+      documentsWithMetadata: 0,
+      documentsFixed: 0,
+      activeInvestigations: Number(investigationRows.rows[0]?.count || 0),
+      topRoles: [],
+      topEntities: [],
+      likelihoodDistribution,
+      redFlagDistribution,
+      collectionCounts: [],
+      collectionStats: { data: [], degraded: true },
+      pipeline_status: null,
+    };
+  } catch (fallbackError) {
+    logger.error({ err: fallbackError }, 'Minimum statistics fallback failed');
+    return {
+      totalEntities: 0,
+      totalDocuments: 0,
+      totalRelationships: 0,
+      totalMentions: 0,
+      averageRedFlagRating: 0,
+      totalUniqueRoles: 0,
+      entitiesWithDocuments: 0,
+      documentsWithMetadata: 0,
+      documentsFixed: 0,
+      activeInvestigations: 0,
+      topRoles: [],
+      topEntities: [],
+      likelihoodDistribution: [
+        { level: 'HIGH', count: 0 },
+        { level: 'MEDIUM', count: 0 },
+        { level: 'LOW', count: 0 },
+      ],
+      redFlagDistribution: [],
+      collectionCounts: [],
+      collectionStats: { data: [], degraded: true },
+      pipeline_status: null,
+    };
+  }
+};
+
 export const statsRepository = {
   getStatistics: async () => {
-    // Run independent queries in parallel to reduce wall time
     let pipelineProgress,
       globalStatsRows,
       totalRelationshipsRes,
       topRoles,
       redFlagDistributionRows,
       collectionCountsRows,
-      activeInvestigationsRows;
+      activeInvestigationsRows,
+      topEntitiesRows;
     try {
       [
         pipelineProgress,
@@ -175,6 +274,7 @@ export const statsRepository = {
         redFlagDistributionRows,
         collectionCountsRows,
         activeInvestigationsRows,
+        topEntitiesRows,
       ] = await Promise.all([
         statsRepository.getPipelineProgress(),
         statsQueries.getGlobalStats.run(undefined, getApiPool()),
@@ -185,123 +285,78 @@ export const statsRepository = {
         statsQueries.getRedFlagDistribution.run(undefined, getApiPool()),
         statsQueries.getCollectionCounts.run(undefined, getApiPool()),
         statsQueries.getActiveInvestigationsCount.run(undefined, getApiPool()),
+        (async () => {
+          // topEntities CTE is heavy — run in a transaction with an extended local timeout
+          const client = await getApiPool().connect();
+          try {
+            await client.query('BEGIN');
+            await client.query("SET LOCAL statement_timeout = '60000ms'");
+            const result = await client.query(
+              `
+            WITH candidates AS (
+              SELECT id, full_name, mentions, red_flag_rating, primary_role
+              FROM entities
+              WHERE mentions >= 2
+                AND entity_type = 'Person'
+                AND COALESCE(junk_tier, 'clean') = 'clean'
+                AND COALESCE(quarantine_status, 0) = 0
+                AND full_name IS NOT NULL
+                AND length(trim(full_name)) >= 4
+                AND full_name !~ '[0-9]'
+                AND full_name !~ '\\n'
+                AND full_name NOT ILIKE 'the %'
+                AND array_length(regexp_split_to_array(trim(full_name), '\\s+'), 1) <= 3
+              ORDER BY mentions DESC
+              LIMIT 2000
+            ),
+            canonical_people AS (
+              SELECT
+                MIN(id)::bigint AS id,
+                CASE
+                  WHEN full_name IN ('Donald Trump', 'President Trump', 'Mr Trump', 'Trump', 'Donald J Trump', 'Donald J. Trump') THEN 'Donald Trump'
+                  WHEN full_name IN ('Jeffrey Epstein', 'Epstein', 'Jeffrey', 'Jeff Epstein', 'Mr Epstein') THEN 'Jeffrey Epstein'
+                  WHEN full_name IN ('Ghislaine Maxwell', 'Maxwell', 'Ghislaine', 'Ms Maxwell', 'Miss Maxwell') THEN 'Ghislaine Maxwell'
+                  WHEN full_name IN ('Bill Clinton', 'President Clinton', 'Mr Clinton', 'Clinton', 'William Clinton')
+                    AND lower(full_name) NOT LIKE '%hillary%' AND lower(full_name) NOT LIKE '%chelsea%' THEN 'Bill Clinton'
+                  WHEN full_name IN ('Prince Andrew', 'Duke of York', 'Andrew') OR lower(full_name) LIKE '%prince andrew%' THEN 'Prince Andrew'
+                  WHEN full_name IN ('Alan Dershowitz', 'Dershowitz', 'Mr Dershowitz') THEN 'Alan Dershowitz'
+                  ELSE regexp_replace(trim(full_name), '\\s+', ' ', 'g')
+                END AS canonical_name,
+                SUM(COALESCE(mentions, 0))::bigint AS mentions,
+                MAX(COALESCE(red_flag_rating, 0))::int AS red_flag_rating,
+                MAX(primary_role) AS primary_role
+              FROM candidates
+              GROUP BY 2
+            )
+            SELECT
+              id,
+              canonical_name AS name,
+              mentions,
+              red_flag_rating AS "redFlagRating",
+              primary_role AS "primaryRole",
+              'Person'::text AS "entityType",
+              NULL::text AS "redFlagDescription"
+            FROM canonical_people
+            WHERE mentions > 0
+            ORDER BY mentions DESC, "redFlagRating" DESC, name ASC
+            LIMIT 30
+            `,
+            );
+            await client.query('ROLLBACK');
+            return result.rows;
+          } catch (err) {
+            await client.query('ROLLBACK').catch(() => {});
+            throw err;
+          } finally {
+            client.release();
+          }
+        })(),
       ]);
     } catch (e) {
       logger.error({ err: e }, 'Failed to fetch core statistics — returning minimum safe payload');
-      // Return minimum safe structure to satisfy DocumentSearchRow / smoke tests
-      return {
-        totalEntities: 0,
-        totalDocuments: 0,
-        totalRelationships: 0,
-        totalMentions: 0,
-        averageRedFlagRating: 0,
-        totalUniqueRoles: 0,
-        entitiesWithDocuments: 0,
-        documentsWithMetadata: 0,
-        documentsFixed: 0,
-        activeInvestigations: 0,
-        topRoles: [],
-        topEntities: [],
-        likelihoodDistribution: [
-          { level: 'HIGH', count: 0 },
-          { level: 'MEDIUM', count: 0 },
-          { level: 'LOW', count: 0 },
-        ],
-        redFlagDistribution: [],
-        collectionCounts: [],
-        collectionStats: { data: [], degraded: true },
-        pipeline_status: null,
-      };
+      return getMinimumStatisticsFallback();
     }
     const totalRelationships = Number(totalRelationshipsRes.rows[0]?.count || 0);
-
-    // topEntities CTE is heavy — run in a transaction with an extended local timeout
-    // so it doesn't hit the 8s apiPool statement_timeout
-    const topEntitiesRows = await (async () => {
-      const client = await getApiPool().connect();
-      try {
-        await client.query('BEGIN');
-        await client.query("SET LOCAL statement_timeout = '60000ms'");
-        const result = await client.query(
-          `
-        WITH canonical_people AS (
-          SELECT
-            MIN(id)::bigint AS id,
-            CASE
-              WHEN full_name IN ('Donald Trump', 'President Trump', 'Mr Trump', 'Trump', 'Donald J Trump', 'Donald J. Trump') THEN 'Donald Trump'
-              WHEN full_name IN ('Jeffrey Epstein', 'Epstein', 'Jeffrey', 'Jeff Epstein', 'Mr Epstein') THEN 'Jeffrey Epstein'
-              WHEN full_name IN ('Ghislaine Maxwell', 'Maxwell', 'Ghislaine', 'Ms Maxwell', 'Miss Maxwell') THEN 'Ghislaine Maxwell'
-              WHEN full_name IN ('Bill Clinton', 'President Clinton', 'Mr Clinton', 'Clinton', 'William Clinton')
-                AND lower(full_name) NOT LIKE '%hillary%' AND lower(full_name) NOT LIKE '%chelsea%' THEN 'Bill Clinton'
-              WHEN full_name IN ('Prince Andrew', 'Duke of York', 'Andrew') OR lower(full_name) LIKE '%prince andrew%' THEN 'Prince Andrew'
-              WHEN full_name IN ('Alan Dershowitz', 'Dershowitz', 'Mr Dershowitz') THEN 'Alan Dershowitz'
-              ELSE regexp_replace(trim(full_name), '\\s+', ' ', 'g')
-            END AS canonical_name,
-            SUM(COALESCE(mentions, 0))::bigint AS mentions,
-            MAX(COALESCE(red_flag_rating, 0))::int AS red_flag_rating,
-            MAX(primary_role) AS primary_role
-          FROM entities
-          WHERE mentions >= 2
-            AND entity_type = 'Person'
-            AND COALESCE(junk_tier, 'clean') = 'clean'
-            AND COALESCE(quarantine_status, 0) = 0
-            AND full_name IS NOT NULL
-            AND length(trim(full_name)) >= 4
-            -- Exclude names with digits or line breaks
-            AND full_name !~ '[0-9]'
-            AND full_name !~ '\\n'
-            -- Exclude org-like suffixes
-            AND full_name NOT ILIKE 'the %'
-            AND full_name NOT ILIKE '% group'
-            AND full_name NOT ILIKE '% inc'
-            AND full_name NOT ILIKE '% llc'
-            AND full_name NOT ILIKE '% corp'
-            AND full_name NOT ILIKE '% ltd'
-            -- Exclude construction/line-item artifacts
-            AND full_name NOT ILIKE '% demolition'
-            AND full_name NOT ILIKE '% bracket'
-            AND full_name NOT ILIKE '% column%'
-            AND full_name NOT ILIKE '% haul%'
-            AND full_name NOT ILIKE '%provided'
-            AND full_name NOT ILIKE '%direction'
-            -- Exclude generic word fragments and OCR noise
-            AND full_name NOT ILIKE '% name'
-            AND full_name NOT ILIKE '% name%'
-            AND full_name NOT ILIKE '% data%'
-            AND full_name NOT ILIKE '% regular'
-            AND full_name NOT ILIKE '% stock %'
-            AND full_name NOT ILIKE '% market %'
-            AND full_name NOT ILIKE '% newsletter%'
-            AND full_name NOT ILIKE '% search %'
-            AND full_name NOT ILIKE '% click %'
-            AND full_name NOT ILIKE '% privacy %'
-            -- Exclude names that are more than 3 words (person names rarely exceed 3)
-            AND array_length(regexp_split_to_array(trim(full_name), '\\s+'), 1) <= 3
-          GROUP BY 2
-        )
-        SELECT
-          id,
-          canonical_name AS name,
-          mentions,
-          red_flag_rating AS "redFlagRating",
-          primary_role AS "primaryRole",
-          'Person'::text AS "entityType",
-          NULL::text AS "redFlagDescription"
-        FROM canonical_people
-        WHERE mentions > 0
-        ORDER BY mentions DESC, "redFlagRating" DESC, name ASC
-        LIMIT 30
-        `,
-        );
-        await client.query('ROLLBACK');
-        return result.rows;
-      } catch (err) {
-        await client.query('ROLLBACK').catch(() => {});
-        throw err;
-      } finally {
-        client.release();
-      }
-    })();
 
     const activeInvestigations = Number(activeInvestigationsRows[0]?.count || 0);
 
@@ -382,27 +437,34 @@ export const statsRepository = {
       { id: '12', name: 'DOJ Data Set 12', target: 202, folder: 'DOJVOL00012' },
     ];
 
-    const results = await Promise.all(
-      datasets.map(async (ds) => {
-        const rows = await getApiPool().query(
-          'SELECT COUNT(*) as count FROM documents WHERE source_collection = $1',
-          [ds.name],
-        );
-        let ingested = Number(rows.rows[0]?.count || 0);
+    const resultsMap = new Map<string, number>();
+    try {
+      const countsRes = await getApiPool().query(
+        'SELECT source_collection, COUNT(*) as count FROM documents WHERE source_collection = ANY($1) GROUP BY source_collection',
+        [datasets.map((d) => d.name)],
+      );
+      for (const row of countsRes.rows) {
+        resultsMap.set(row.source_collection, Number(row.count || 0));
+      }
+    } catch (e) {
+      logger.warn({ detail: e }, 'Failed to fetch batch dataset counts — falling back to zero');
+    }
 
-        if (ds.id === '12' && ingested === 0) {
-          ingested = ds.target;
-        }
+    const results = datasets.map((ds) => {
+      let ingested = resultsMap.get(ds.name) || 0;
 
-        return {
-          id: ds.id,
-          name: ds.name,
-          target: ds.target,
-          ingested,
-          downloaded: ds.target,
-        };
-      }),
-    );
+      if (ds.id === '12' && ingested === 0) {
+        ingested = ds.target;
+      }
+
+      return {
+        id: ds.id,
+        name: ds.name,
+        target: ds.target,
+        ingested,
+        downloaded: ds.target,
+      };
+    });
 
     const totalTarget = results.reduce((sum, r) => sum + r.target, 0);
     const totalIngested = results.reduce((sum, r) => sum + r.ingested, 0);
@@ -410,7 +472,7 @@ export const statsRepository = {
 
     // Media Progress Stats
     const mediaStatsRes = await getApiPool().query(
-      'SELECT count(*) as total, sum(case when has_text is not null then 1 else 0 end) as processed FROM media_items',
+      "SELECT count(*) as total, sum(case when metadata_json ->> 'extracted_text' is not null then 1 else 0 end) as processed FROM media_items",
     );
     const media = {
       total: Number(mediaStatsRes.rows[0].total || 0),

@@ -52,8 +52,8 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   const [selectedItemId, setSelectedItemId] = useState<string | number | null>(null);
 
   const getMediaType = (item: EntityPhoto): MediaCategory => {
-    const type = String(item.sourceType || item.type || '').toLowerCase();
-    const url = String(item.fullUrl || item.url || '').toLowerCase();
+    const type = String(item.sourceType || item.type || item.fileType || '').toLowerCase();
+    const url = String(item.fullUrl || item.url || item.filePath || '').toLowerCase();
     const fileName = String(item.filename || '').toLowerCase();
 
     const isVideo =
@@ -96,7 +96,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
     queryFn: async () => {
       if (!selectedItem || (selectedCategory !== 'audio' && selectedCategory !== 'videos'))
         return null;
-      const endpoint = selectedCategory === 'audio' ? 'audio' : 'videos';
+      const endpoint = selectedCategory === 'audio' ? 'audio' : 'video';
       const res = await fetch(`/api/media/${endpoint}/${selectedItem.id}`);
       if (!res.ok) return null;
       const data = await res.json();
@@ -156,6 +156,9 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
             const hasDirectSignal = Boolean(photo.directEvidence || photo.verified);
             const id = String(photo.id || i);
             const category = getMediaType(photo);
+            const previewSrc = photo.thumbnailUrl || photo.url || photo.fullUrl;
+            const canRenderImagePreview =
+              category === 'photos' || (category === 'videos' && Boolean(photo.thumbnailUrl));
 
             return (
               <article key={i} className={s.card}>
@@ -171,17 +174,23 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                     </div>
                   )}
 
-                  {brokenMediaIds[id] || category === 'audio' ? (
+                  {brokenMediaIds[id] || !canRenderImagePreview ? (
                     <div className={s.mediaPlaceholder}>
                       <div className={s.placeholderContent}>
-                        {category === 'audio' ? <Music size={32} /> : <FileText size={28} />}
+                        {category === 'audio' ? (
+                          <Music size={32} />
+                        ) : category === 'videos' ? (
+                          <Play size={32} />
+                        ) : (
+                          <FileText size={28} />
+                        )}
                         <span className={s.sourceLabel}>{sourceType}</span>
                       </div>
                     </div>
                   ) : (
                     <div className={s.imageContainer}>
                       <img
-                        src={photo.url || photo.thumbnailUrl || photo.fullUrl}
+                        src={previewSrc}
                         alt={title}
                         className={cn(s.image, photo.metadata?.isSensitive && s.imageBlurred)}
                         onError={(event) => {
@@ -318,7 +327,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                 src={
                   finalSelectedItem.fullUrl ||
                   finalSelectedItem.url ||
-                  `/api/media/videos/${finalSelectedItem.id}/file`
+                  `/api/media/video/${finalSelectedItem.id}/stream`
                 }
                 title={finalSelectedItem.title || finalSelectedItem.filename || 'Video Evidence'}
                 transcript={finalSelectedItem.metadata?.transcript}

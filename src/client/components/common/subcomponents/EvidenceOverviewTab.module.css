@@ -415,3 +415,110 @@
   font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
+
+.mediaSection {
+  margin-top: var(--space-2);
+}
+
+.mediaIcon {
+  color: var(--accent);
+}
+
+.mediaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .mediaGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.mediaCard {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-liquid);
+  display: flex;
+  flex-direction: column;
+}
+
+.mediaCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.mediaThumbWrapper {
+  position: relative;
+  aspect-ratio: 4/3;
+  background: color-mix(in srgb, var(--bg-dark) 40%, black);
+}
+
+.mediaThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.videoOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, black 30%, transparent);
+  color: white;
+}
+
+.mediaPlaceholder {
+  aspect-ratio: 4/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg-muted);
+  color: var(--text-dim);
+}
+
+.mediaMeta {
+  padding: var(--space-2) var(--space-3);
+  background: var(--glass-bg-highlight);
+}
+
+.mediaTitle {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moreMediaButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-liquid);
+  aspect-ratio: 4/3;
+}
+
+.moreMediaButton:hover {
+  background: var(--glass-bg-highlight);
+  border-color: var(--accent);
+  color: var(--accent);
+}

@@ -1,13 +1,14 @@
 /* @name getGlobalStats */
 SELECT
-  (SELECT COUNT(*) FROM entities) as "totalEntities",
+  COUNT(*) as "totalEntities",
+  SUM(COALESCE(mentions, 0)) as "totalMentions",
+  AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",
+  COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != '' THEN primary_role END) as "totalUniqueRoles",
+  COUNT(*) FILTER (WHERE mentions > 0) as "entitiesWithDocuments",
   (SELECT COUNT(*) FROM documents) as "totalDocuments",
-  (SELECT SUM(mentions) FROM entities) as "totalMentions",
-  (SELECT AVG(red_flag_rating) FROM entities) as "averageRedFlagRating",
-  (SELECT COUNT(DISTINCT primary_role) FROM entities WHERE primary_role IS NOT NULL AND primary_role != '') as "totalUniqueRoles",
-  (SELECT COUNT(*) FROM entities WHERE mentions > 0) as "entitiesWithDocuments",
   (SELECT COUNT(*) FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = 'object' AND metadata_json <> '{}'::jsonb)) as "documentsWithMetadata",
-  (SELECT COUNT(*) FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed";
+  (SELECT COUNT(*) FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"
+FROM entities;
 
 /* @name getRiskDistribution */
 SELECT

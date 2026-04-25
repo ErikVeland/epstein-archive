@@ -233,10 +233,10 @@ export const relationshipsRepository = {
              ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC
            ) AS rn
          FROM entities e
-         JOIN media_item_people mip ON mip.entity_id = e.id
-         JOIN media_items mi ON mi.id = mip.media_item_id::text
-         WHERE e.canonical_id = ANY($1::bigint[])
-           AND (mi.file_type LIKE 'image/%' OR mi.file_type IS NULL)
+          JOIN media_item_people mip ON mip.entity_id = e.id
+          JOIN media_items mi ON mi.id::bigint = mip.media_item_id
+          WHERE e.canonical_id = ANY($1::bigint[])
+            AND (mi.file_type LIKE 'image/%' OR mi.file_type IS NULL)
        )
        SELECT cid, photo_id
        FROM ranked

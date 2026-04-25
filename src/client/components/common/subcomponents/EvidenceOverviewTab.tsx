@@ -7,13 +7,16 @@ import {
   AlertTriangle,
   BookOpen,
   ExternalLink,
+  Image as ImageIcon,
+  Play as PlayIcon,
+  Video as VideoIcon,
 } from 'lucide-react';
 import { Skeleton } from '../Skeleton';
 import { SignalPanel } from '../../entities/cards/SignalPanel';
 import { DriverChips } from '../../entities/cards/DriverChips';
 import { EvidenceCard } from './EvidenceCard';
 import Icon from '../Icon';
-import { getRiskClass } from '../../../utils/evidenceUtils';
+import { getRiskClass, isVisualMediaItem } from '../../../utils/evidenceUtils';
 import { EntityPhoto } from '../EvidenceModal';
 import { SignalMetrics, DriverChip } from '../../../../utils/forensics';
 import s from './EvidenceOverviewTab.module.css';
@@ -169,6 +172,56 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* VERIFIED MEDIA PREVIEW */}
+      {mediaItems.length > 0 && (
+        <div className={s.mediaSection}>
+          <h3 className={s.tabTitle}>
+            <ImageIcon size={16} className={s.mediaIcon} /> Verified Media
+          </h3>
+          <div className={s.mediaGrid}>
+            {mediaItems
+              .filter((m) => isVisualMediaItem(m))
+              .slice(0, 4)
+              .map((item, idx) => {
+                const previewSrc = item.thumbnailUrl || item.url || item.fullUrl;
+                const type = item.fileType || item.sourceType || 'image';
+                const isVideo = type.toLowerCase().includes('video');
+
+                return (
+                  <div key={idx} className={s.mediaCard} onClick={() => navigateFromModal('media')}>
+                    {previewSrc ? (
+                      <div className={s.mediaThumbWrapper}>
+                        <img
+                          src={previewSrc}
+                          alt={item.title || 'Media'}
+                          className={s.mediaThumb}
+                        />
+                        {isVideo && (
+                          <div className={s.videoOverlay}>
+                            <PlayIcon size={16} fill="currentColor" />
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className={s.mediaPlaceholder}>
+                        {isVideo ? <VideoIcon size={24} /> : <ImageIcon size={24} />}
+                      </div>
+                    )}
+                    <div className={s.mediaMeta}>
+                      <span className={s.mediaTitle}>{item.title || 'Verified Media'}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            {mediaItems.length > 4 && (
+              <button className={s.moreMediaButton} onClick={() => navigateFromModal('media')}>
+                +{mediaItems.length - 4} More
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* HIGH SIGNIFICANCE EVIDENCE */}
       <div className={s.evidenceSection}>

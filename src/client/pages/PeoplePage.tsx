@@ -219,9 +219,9 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
             </Flex>
           </Surface>
 
-          <Surface variant="panel" className={styles.resultsShell}>
+          <div className={styles.resultsShell}>
             {loading ? (
-              <Grid cols={{ base: 1, md: 2, xl: 3 }} gap={6}>
+              <Grid cols={{ base: 1, md: 2, xl: 3 }} gap="none" className={styles.resultsGrid}>
                 {[...Array(6)].map((_, i) => (
                   <PersonCardSkeleton key={i} />
                 ))}
@@ -244,7 +244,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 )}
               </Stack>
             ) : (
-              <Grid cols={{ base: 1, md: 2, xl: 3 }} gap={6}>
+              <Grid cols={{ base: 1, md: 2, xl: 3 }} gap="none" className={styles.resultsGrid}>
                 {subjects.map((subject) => (
                   <SubjectCardV2
                     key={subject.id}
@@ -254,7 +254,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 ))}
               </Grid>
             )}
-          </Surface>
+          </div>
 
           {totalPagesLocal > 1 && (
             <Flex justify="center" align="center" gap="md" className={styles.pagination}>

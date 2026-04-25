@@ -54,6 +54,24 @@
   transition: transform 0.5s ease;
 }
 
+.mediaPlaceholder {
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--glass-bg-highlight) 58%, transparent),
+      transparent
+    ),
+    var(--glass-bg-strong);
+}
+
+.mediaPlaceholder svg {
+  width: 2rem;
+  height: 2rem;
+}
+
 .mediaTile:hover .mediaImage {
   transform: scale(1.1);
 }
@@ -172,6 +190,10 @@
   width: auto;
   max-height: 80vh;
   object-fit: contain;
+}
+
+.lightboxAudio {
+  width: min(36rem, 82vw);
 }
 
 .lightboxCaption {

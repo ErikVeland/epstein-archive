@@ -111,53 +111,71 @@ export const intelligenceRepository = {
    * Capped at QUEUE_LIMIT rows ordered by ascending mention count so the worst are first.
    */
   async getWeakProvenanceDocs(): Promise<WeakProvenanceDoc[]> {
-    const pool = getApiPool();
-    const result = await pool.query<{
-      document_id: number;
-      file_name: string;
-      doc_type: string | null;
-      entity_mention_count: string;
-      evidence_count: string;
-    }>(
-      `
-      SELECT
-        d.id AS document_id,
-        d.file_name,
-        d.doc_type,
-        COUNT(DISTINCT em.id) AS entity_mention_count,
-        COUNT(DISTINCT ie.id) AS evidence_count
-      FROM documents d
-      LEFT JOIN entity_mentions em ON em.document_id = d.id
-      LEFT JOIN investigation_evidence ie ON ie.document_id = d.id
-      GROUP BY d.id, d.file_name, d.doc_type
-      HAVING COUNT(DISTINCT em.id) < 2
-      ORDER BY COUNT(DISTINCT em.id) ASC, d.id ASC
-      LIMIT $1
-      `,
-      [QUEUE_LIMIT],
-    );
-    return result.rows.map((r) => ({
-      documentId: r.document_id,
-      fileName: r.file_name,
-      docType: r.doc_type,
-      entityMentionCount: Number(r.entity_mention_count),
-      evidenceCount: Number(r.evidence_count),
-    }));
+    return safeQuery('weakProvenanceDocs', async () => {
+      const pool = getApiPool();
+      // Optimization: Fetch documents with 0 or 1 mentions separately to avoid heavy GROUP BY on full join
+      const result = await pool.query<{
+        document_id: number;
+        file_name: string;
+        file_type: string | null;
+        entity_mention_count: string;
+        evidence_count: string;
+      }>(
+        `
+        WITH docs_with_one_mention AS (
+          SELECT document_id, COUNT(*) as cnt
+          FROM entity_mentions
+          GROUP BY document_id
+          HAVING COUNT(*) = 1
+        ),
+        weak_docs AS (
+          -- Documents with 0 mentions
+          (SELECT d.id, d.file_name, d.file_type, 0 as mention_count
+           FROM documents d
+           WHERE NOT EXISTS (SELECT 1 FROM entity_mentions em WHERE em.document_id = d.id)
+           LIMIT $1)
+          UNION ALL
+          -- Documents with 1 mention
+          (SELECT d.id, d.file_name, d.file_type, 1 as mention_count
+           FROM documents d
+           JOIN docs_with_one_mention dwm ON d.id = dwm.document_id
+           LIMIT $1)
+        )
+        SELECT
+          wd.id AS document_id,
+          wd.file_name,
+          wd.file_type,
+          wd.mention_count AS entity_mention_count,
+          COUNT(DISTINCT ie.id) AS evidence_count
+        FROM weak_docs wd
+        LEFT JOIN investigation_evidence ie ON ie.document_id = wd.id
+        GROUP BY wd.id, wd.file_name, wd.file_type, wd.mention_count
+        ORDER BY wd.mention_count ASC, wd.id ASC
+        LIMIT $1
+        `,
+        [QUEUE_LIMIT],
+      );
+      return result.rows.map((r) => ({
+        documentId: r.document_id,
+        fileName: r.file_name,
+        docType: r.file_type,
+        entityMentionCount: Number(r.entity_mention_count),
+        evidenceCount: Number(r.evidence_count),
+      }));
+    });
   },
 
   async countWeakProvenanceDocs(): Promise<number> {
-    const pool = getApiPool();
-    const result = await pool.query<{ cnt: string }>(`
-      SELECT COUNT(*) AS cnt
-      FROM (
-        SELECT d.id
-        FROM documents d
-        LEFT JOIN entity_mentions em ON em.document_id = d.id
-        GROUP BY d.id
-        HAVING COUNT(DISTINCT em.id) < 2
-      ) sub
-    `);
-    return Number(result.rows[0]?.cnt ?? 0);
+    return safeCount('countWeakProvenanceDocs', async () => {
+      const pool = getApiPool();
+      const result = await pool.query<{ cnt: string }>(`
+        SELECT 
+          (SELECT COUNT(*) FROM documents d WHERE NOT EXISTS (SELECT 1 FROM entity_mentions em WHERE em.document_id = d.id)) +
+          (SELECT COUNT(*) FROM (SELECT 1 FROM entity_mentions GROUP BY document_id HAVING COUNT(*) = 1) sub)
+        AS cnt
+      `);
+      return Number(result.rows[0]?.cnt ?? 0);
+    });
   },
 
   /**
@@ -227,7 +245,7 @@ export const intelligenceRepository = {
         `
         SELECT
           e.id AS entity_id,
-          e.name AS entity_name,
+          e.full_name AS entity_name,
           ea.alias_name,
           ea.similarity_score
         FROM entities e
@@ -266,55 +284,58 @@ export const intelligenceRepository = {
    * to review when evidence coverage is weak.
    */
   async getThinHighRiskEntities(): Promise<ThinHighRiskEntity[]> {
-    const pool = getApiPool();
-    const result = await pool.query<{
-      entity_id: number;
-      entity_name: string;
-      risk_level: string;
-      evidence_count: string;
-      document_count: string;
-    }>(
-      `
-      SELECT
-        e.id AS entity_id,
-        e.name AS entity_name,
-        e.risk_level,
-        COUNT(DISTINCT ie.id) AS evidence_count,
-        COUNT(DISTINCT em.document_id) AS document_count
-      FROM entities e
-      LEFT JOIN investigation_evidence ie ON ie.entity_id = e.id
-      LEFT JOIN entity_mentions em ON em.entity_id = e.id
-      WHERE e.risk_level = 'HIGH'
-      GROUP BY e.id, e.name, e.risk_level
-      HAVING COUNT(DISTINCT ie.id) < 3
-      ORDER BY COUNT(DISTINCT ie.id) ASC, e.id ASC
-      LIMIT $1
-      `,
-      [QUEUE_LIMIT],
-    );
-    return result.rows.map((r) => ({
-      entityId: r.entity_id,
-      entityName: r.entity_name,
-      riskLevel: r.risk_level,
-      evidenceCount: Number(r.evidence_count),
-      documentCount: Number(r.document_count),
-    }));
+    return safeQuery('thinHighRiskEntities', async () => {
+      const pool = getApiPool();
+      const result = await pool.query<{
+        entity_id: number;
+        entity_name: string;
+        risk_level: string;
+        evidence_count: string;
+        document_count: string;
+      }>(
+        `
+        SELECT
+          e.id AS entity_id,
+          e.full_name AS entity_name,
+          e.risk_level,
+          COUNT(DISTINCT em.id) AS evidence_count,
+          COUNT(DISTINCT em.document_id) AS document_count
+        FROM entities e
+        LEFT JOIN entity_mentions em ON em.entity_id = e.id
+        WHERE e.risk_level = 'HIGH'
+        GROUP BY e.id, e.full_name, e.risk_level
+        HAVING COUNT(DISTINCT em.document_id) < 3
+        ORDER BY COUNT(DISTINCT em.id) ASC, e.id ASC
+        LIMIT $1
+        `,
+        [QUEUE_LIMIT],
+      );
+      return result.rows.map((r) => ({
+        entityId: r.entity_id,
+        entityName: r.entity_name,
+        riskLevel: r.risk_level,
+        evidenceCount: Number(r.evidence_count),
+        documentCount: Number(r.document_count),
+      }));
+    });
   },
 
   async countThinHighRiskEntities(): Promise<number> {
-    const pool = getApiPool();
-    const result = await pool.query<{ cnt: string }>(`
-      SELECT COUNT(*) AS cnt
-      FROM (
-        SELECT e.id
-        FROM entities e
-        LEFT JOIN investigation_evidence ie ON ie.entity_id = e.id
-        WHERE e.risk_level = 'HIGH'
-        GROUP BY e.id
-        HAVING COUNT(DISTINCT ie.id) < 3
-      ) sub
-    `);
-    return Number(result.rows[0]?.cnt ?? 0);
+    return safeCount('countThinHighRiskEntities', async () => {
+      const pool = getApiPool();
+      const result = await pool.query<{ cnt: string }>(`
+        SELECT COUNT(*) AS cnt
+        FROM (
+          SELECT e.id
+          FROM entities e
+          LEFT JOIN entity_mentions em ON em.entity_id = e.id
+          WHERE e.risk_level = 'HIGH'
+          GROUP BY e.id
+          HAVING COUNT(DISTINCT em.document_id) < 3
+        ) sub
+      `);
+      return Number(result.rows[0]?.cnt ?? 0);
+    });
   },
 
   /**
@@ -326,7 +347,7 @@ export const intelligenceRepository = {
       const pool = getApiPool();
       const result = await pool.query<{
         claim_id: number;
-        predicate_text: string;
+        predicate: string;
         object_text: string;
         subject_entity_id: number | null;
         subject_entity_name: string | null;
@@ -335,14 +356,14 @@ export const intelligenceRepository = {
         `
         SELECT
           ct.id AS claim_id,
-          ct.predicate_text,
+          ct.predicate,
           ct.object_text,
           ct.subject_entity_id,
-          e.name AS subject_entity_name,
+          e.full_name AS subject_entity_name,
           ct.confidence
         FROM claim_triples ct
         LEFT JOIN entities e ON e.id = ct.subject_entity_id
-        WHERE ct.source_document_id IS NULL
+        WHERE ct.document_id IS NULL
            OR ct.subject_entity_id IS NULL
         ORDER BY ct.confidence ASC NULLS FIRST, ct.id ASC
         LIMIT $1
@@ -351,7 +372,7 @@ export const intelligenceRepository = {
       );
       return result.rows.map((r) => ({
         claimId: r.claim_id,
-        predicateText: r.predicate_text,
+        predicateText: r.predicate,
         objectText: r.object_text,
         subjectEntityId: r.subject_entity_id,
         subjectEntityName: r.subject_entity_name,
@@ -366,7 +387,7 @@ export const intelligenceRepository = {
       const result = await pool.query<{ cnt: string }>(`
         SELECT COUNT(*) AS cnt
         FROM claim_triples ct
-        WHERE ct.source_document_id IS NULL
+        WHERE ct.document_id IS NULL
            OR ct.subject_entity_id IS NULL
       `);
       return Number(result.rows[0]?.cnt ?? 0);
@@ -389,16 +410,16 @@ export const intelligenceRepository = {
       }>(
         `
         SELECT
-          fi.id AS item_id,
-          fi.item_type,
-          fi.description,
-          e.name AS entity_name,
-          fi.needs_review
-        FROM financial_items fi
-        LEFT JOIN entities e ON e.id = fi.entity_id
-        WHERE fi.needs_review = TRUE
-           OR fi.entity_id IS NULL
-        ORDER BY fi.needs_review DESC, fi.id ASC
+          ft.id AS item_id,
+          ft.transaction_type AS item_type,
+          ft.description,
+          e.full_name AS entity_name,
+          (ft.risk_level = 'HIGH') AS needs_review
+        FROM financial_transactions ft
+        LEFT JOIN entities e ON e.id = ft.from_entity
+        WHERE ft.risk_level = 'HIGH'
+           OR ft.from_entity IS NULL
+        ORDER BY ft.transaction_date DESC, ft.id ASC
         LIMIT $1
         `,
         [QUEUE_LIMIT],
@@ -418,8 +439,8 @@ export const intelligenceRepository = {
       const pool = getApiPool();
       const result = await pool.query<{ cnt: string }>(`
         SELECT COUNT(*) AS cnt
-        FROM financial_items fi
-        WHERE fi.needs_review = TRUE OR fi.entity_id IS NULL
+        FROM financial_transactions ft
+        WHERE ft.risk_level = 'HIGH' OR ft.from_entity IS NULL
       `);
       return Number(result.rows[0]?.cnt ?? 0);
     });
@@ -463,13 +484,13 @@ export const intelligenceRepository = {
     const [pendingMentionReviews, pendingClaimReviews] = await Promise.all([
       safeCount('pendingMentions', async () => {
         const r = await pool.query<{ cnt: string }>(
-          `SELECT COUNT(*) AS cnt FROM entity_mentions WHERE reviewed = FALSE OR reviewed IS NULL`,
+          `SELECT COUNT(*) AS cnt FROM entity_mentions WHERE COALESCE(verified, 0) = 0`,
         );
         return Number(r.rows[0]?.cnt ?? 0);
       }),
       safeCount('pendingClaims', async () => {
         const r = await pool.query<{ cnt: string }>(
-          `SELECT COUNT(*) AS cnt FROM claim_triples WHERE reviewed = FALSE OR reviewed IS NULL`,
+          `SELECT COUNT(*) AS cnt FROM claim_triples WHERE COALESCE(verified, 0) = 0`,
         );
         return Number(r.rows[0]?.cnt ?? 0);
       }),

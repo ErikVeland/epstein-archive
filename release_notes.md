@@ -1,5 +1,28 @@
 # Release Notes
 
+## 19.6.0 - 2026-04-25 - Forensic Interface Refinement & Data Integrity Hardening
+
+### UI & UX Polish
+
+- **Refactored Entity Card Grid**: Removed the extraneous container box. Corner rounding is now applied per-card using complex `nth-child` logic (1, 2, and 3-column aware) so the cards themselves form a cohesive rounded block.
+- **Nav Item Vertical Centering**: Corrected the vertical alignment of navigation labels with precision offsets to ensure perfect optical centering with icons.
+- **Compact Breadcrumbs**: Significantly reduced the vertical height of breadcrumbs and aligned them with the main content boundaries to prioritize investigative data.
+- **Evidence Overview Media Preview**: Added a "Verified Media" preview section to the Evidence Overview tab, providing immediate visual access to extracted assets.
+
+### Media System Hardening
+
+- **Endpoint Singularization**: Updated the client to use singular `/api/media/video/` and `/api/media/images/` to match the server's routing scheme, resolving 404s on asset retrieval.
+- **Thumbnail Reliability**: Corrected `normalizeEntityMediaItem` to ensure video thumbnails are fetched via the correct media-specific endpoints.
+- **Category Filtering Fix**: Resolved a bug in the Media tab where "Photos" and "Videos" categories failed to filter correctly due to singular/plural mismatches in file type checks.
+
+### Database & Server Integrity
+
+- **Financial Schema Alignment**: Fully migrated the `intelligenceRepository` from `financial_items` to the modern `financial_transactions` schema with explicit `from_entity` and `transaction_type` mapping.
+- **Entity Identity Normalization**: Unified database queries to use `full_name` as the canonical entity identity column across the `intelligenceRepository`.
+- **Evidence Mapping Hardening**: Fixed the mapping of "High Significance Evidence" in the Evidence Modal to ensure document IDs and filenames are always reliably populated.
+- **Claim Triples Refinement**: Updated the intelligence repository to support verified status checks and standardized predicate naming (`predicate` vs `predicate_text`).
+- **Stats & Graph Reliability**: Fixed data mapping for relationship strength and stats aggregation queries in the PostgreSQL query layer.
+
 ## 19.5.6 - 2026-04-24 - Search Button Margin Polish
 
 ### UI & UX Polish

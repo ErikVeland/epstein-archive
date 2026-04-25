@@ -282,7 +282,9 @@ router.get(
       }
 
       const nodesArr = Array.from(groupedByLabel.values());
-      const canonicalIds = (rawNodes as unknown as GraphNodeRaw[]).map((n) => String(n.id));
+      const canonicalIds = (rawNodes as unknown as GraphNodeRaw[])
+        .map((n) => String(n.id))
+        .filter((id) => id && id !== 'null' && /^\d+$/.test(id));
 
       // Quick exit if no nodes
       if (canonicalIds.length === 0) {
@@ -356,7 +358,7 @@ router.get('/edge-evidence', async (req, res, next) => {
     }
 
     const docs = await getEdgeEvidenceDocuments(String(sourceId), String(targetId));
-    const rel = getEdgeRelationship(String(sourceId), String(targetId));
+    const rel = await getEdgeRelationship(String(sourceId), String(targetId));
 
     const evidence = (docs as GraphEdgeEvidence[]).map((d) => ({
       id: `doc-${String(d.documentId || '')}`,

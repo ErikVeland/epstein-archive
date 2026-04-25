@@ -981,22 +981,35 @@ export const investigationsRepository = {
   },
 
   getInvestigationsByEntityId: async (entityId: number) => {
-    // This is often used for the "people" view to see linked investigations
-    // We search evidence table for source_path matching the entity
-    const sourcePath = `entity:${entityId}`;
-    const evidence = await (investigationsQueries.getEvidenceBySourcePath as RunQuery).run(
-      { sourcePath },
-      getApiPool(),
+    const pool = getApiPool();
+    // 1. Find investigations linked via leads and forensic signals
+    // 2. Find investigations linked via evidence that mentions the entity in documents
+    const result = await pool.query(
+      `
+      WITH linked_via_leads AS (
+        SELECT DISTINCT i.id
+        FROM investigations i
+        JOIN investigation_leads l ON i.id = l.investigation_id
+        JOIN forensic_signals fs ON l.forensic_signal_id = fs.id
+        WHERE $1::bigint = ANY(fs.entity_ids)
+      ),
+      linked_via_mentions AS (
+        SELECT DISTINCT i.id
+        FROM investigations i
+        JOIN investigation_evidence ie ON i.id = ie.investigation_id
+        JOIN evidence ev ON ie.evidence_id = ev.id
+        JOIN documents d ON d.file_path = ev.source_path
+        JOIN entity_mentions em ON d.id = em.document_id
+        WHERE em.entity_id = $1::bigint
+      )
+      SELECT * FROM investigations
+      WHERE id IN (SELECT id FROM linked_via_leads UNION SELECT id FROM linked_via_mentions)
+      ORDER BY updated_at DESC
+      `,
+      [BigInt(entityId)],
     );
-    if (evidence.length === 0) return [];
 
-    // Find all investigations linking to this evidence
-    const rows = await (investigationsQueries.getInvestigationsByEvidenceId as RunQuery).run(
-      { evidenceId: Number(evidence[0].id) },
-      getApiPool(),
-    );
-
-    return rows.map((inv) => mapInvestigation(inv));
+    return result.rows.map((inv) => mapInvestigation(inv));
   },
 
   // ─── Leads ──────────────────────────────────────────────────────────────────

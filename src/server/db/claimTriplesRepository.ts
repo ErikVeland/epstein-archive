@@ -34,7 +34,7 @@ export const claimTriplesRepository = {
           ct.object_entity_id as "objectEntityId",
           ct.predicate,
           ct.object_text as "objectText",
-          ct.claim_text as "claimText",
+          (COALESCE(ct.predicate, '') || ' ' || COALESCE(ct.object_text, '')) as "claimText",
           ct.confidence,
           ct.modality,
           ct.verified,
@@ -72,7 +72,7 @@ export const claimTriplesRepository = {
           ct.object_entity_id as "objectEntityId",
           ct.predicate,
           ct.object_text as "objectText",
-          ct.claim_text as "claimText",
+          (COALESCE(ct.predicate, '') || ' ' || COALESCE(ct.object_text, '')) as "claimText",
           ct.confidence,
           ct.modality,
           ct.verified,
@@ -87,10 +87,10 @@ export const claimTriplesRepository = {
         LEFT JOIN entities s ON ct.subject_entity_id = s.id
         LEFT JOIN entities o ON ct.object_entity_id = o.id
         LEFT JOIN documents d ON ct.document_id = d.id
-        WHERE ct.subject_entity_id = $1 OR ct.object_entity_id = $1
+        WHERE ct.subject_entity_id = $1::bigint OR ct.object_entity_id = $1::bigint
         ORDER BY ct.confidence DESC
         `,
-        [entityId],
+        [BigInt(entityId)],
       );
       return res.rows;
     } catch (error) {

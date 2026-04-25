@@ -25,6 +25,10 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
             {index === 0 && <Home className={s.homeIcon} />}
             {index === items.length - 1 ? (
               <span className={s.current}>{item.label}</span>
+            ) : item.href ? (
+              <a href={item.href} className={s.link}>
+                {item.label}
+              </a>
             ) : item.onClick ? (
               <Button unstyled onClick={item.onClick} className={s.link}>
                 {item.label}

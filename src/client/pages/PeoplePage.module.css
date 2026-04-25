@@ -116,9 +116,116 @@
   max-width: 100%;
   min-height: 37.5rem;
   height: 100%;
-  padding: var(--space-4);
   margin-top: var(--space-4);
   box-sizing: border-box;
+}
+
+.resultsGrid {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0;
+}
+
+.resultsGrid > * {
+  min-width: 0;
+}
+
+.resultsGrid :global([data-testid='subject-card']) {
+  border-radius: 0;
+  border: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 42%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-strong) 5%, transparent) !important;
+  margin: -0.5px;
+}
+
+/* 1-column layout (Mobile) */
+.resultsGrid > *:first-child :global([data-testid='subject-card']) {
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+}
+
+.resultsGrid > *:last-child :global([data-testid='subject-card']) {
+  border-bottom-right-radius: var(--radius-xl);
+  border-bottom-left-radius: var(--radius-xl);
+}
+
+/* 2-column layout (md) */
+@media (min-width: 768px) {
+  /* Reset previous rounding */
+  .resultsGrid > *:first-child :global([data-testid='subject-card']) {
+    border-top-right-radius: 0;
+  }
+
+  /* Top Right corner */
+  .resultsGrid > *:nth-child(2) :global([data-testid='subject-card']) {
+    border-top-right-radius: var(--radius-xl);
+  }
+
+  /* Bottom Left corner */
+  .resultsGrid > *:nth-last-child(2):nth-child(odd) :global([data-testid='subject-card']) {
+    border-bottom-left-radius: var(--radius-xl);
+  }
+
+  /* Bottom Right corner */
+  .resultsGrid > *:last-child :global([data-testid='subject-card']) {
+    border-bottom-right-radius: var(--radius-xl);
+  }
+
+  /* Single item in last row handling */
+  .resultsGrid > *:last-child:nth-child(odd) :global([data-testid='subject-card']) {
+    border-bottom-left-radius: var(--radius-xl);
+  }
+}
+
+/* 3-column layout (xl) */
+@media (min-width: 1280px) {
+  /* Reset previous rounding */
+  .resultsGrid > *:nth-child(2) :global([data-testid='subject-card']) {
+    border-top-right-radius: 0;
+  }
+
+  /* Top Right corner */
+  .resultsGrid > *:nth-child(3) :global([data-testid='subject-card']) {
+    border-top-right-radius: var(--radius-xl);
+  }
+
+  /* Bottom Left corner logic for 3 cols */
+  .resultsGrid > *:nth-last-child(3):nth-child(3n + 1) :global([data-testid='subject-card']),
+  .resultsGrid > *:nth-last-child(2):nth-child(3n + 1) :global([data-testid='subject-card']),
+  .resultsGrid > *:last-child:nth-child(3n + 1) :global([data-testid='subject-card']) {
+    border-bottom-left-radius: var(--radius-xl);
+  }
+
+  /* Bottom Right corner logic for 3 cols */
+  .resultsGrid > *:last-child :global([data-testid='subject-card']) {
+    border-bottom-right-radius: var(--radius-xl);
+  }
+
+  /* Reset mid-row bottom rounding if next item exists */
+  .resultsGrid > *:nth-last-child(n + 2):nth-child(3n + 1) :global([data-testid='subject-card']) {
+    border-bottom-left-radius: 0;
+  }
+
+  /* The last item is always bottom-right rounded if it's the 3rd column or the last overall */
+  .resultsGrid > *:last-child :global([data-testid='subject-card']) {
+    border-bottom-right-radius: var(--radius-xl);
+  }
+
+  /* If only 1 item in last row (3n+1), it needs both bottom corners */
+  .resultsGrid > *:last-child:nth-child(3n + 1) :global([data-testid='subject-card']) {
+    border-bottom-left-radius: var(--radius-xl);
+    border-bottom-right-radius: var(--radius-xl);
+  }
+
+  /* If 2 items in last row (3n+2), 1st is bottom-left, 2nd is bottom-right */
+  .resultsGrid > *:last-child:nth-child(3n + 2) :global([data-testid='subject-card']) {
+    border-bottom-right-radius: var(--radius-xl);
+    border-bottom-left-radius: 0; /* Handled by nth-last-child rule above */
+  }
 }
 
 .emptyState {
@@ -222,7 +329,6 @@
   }
 
   .resultsShell {
-    padding: var(--space-2);
     margin-top: var(--space-2);
     min-height: auto;
   }

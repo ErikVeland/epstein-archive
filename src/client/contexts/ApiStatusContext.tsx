@@ -14,7 +14,7 @@ const ApiStatusContext = createContext<ApiStatusState | null>(null);
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3012/api';
 const IS_DEV = Boolean(import.meta.env.DEV);
 
-async function pingApiHealth(timeoutMs = 2500): Promise<void> {
+async function pingApiHealth(timeoutMs = 8000): Promise<void> {
   const controller = new AbortController();
   const t = window.setTimeout(() => controller.abort(), timeoutMs);
   try {

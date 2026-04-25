@@ -139,16 +139,18 @@
 
 .breadcrumbContainer {
   margin-bottom: var(--space-1);
-  padding: var(--space-2) 0;
+  padding: 0;
   display: flex;
+  align-items: center;
   justify-content: flex-start;
   text-align: left;
   width: 100%;
+  min-height: 1.25rem;
 }
 
 @media (min-width: 768px) {
   .breadcrumbContainer {
-    padding: var(--space-2) 0;
+    margin-top: calc(-1 * var(--space-2));
   }
 }
 
@@ -787,13 +789,13 @@
 .navLabelInline {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   align-self: center;
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.01em;
-  line-height: 1;
+  line-height: 1.2;
   min-height: 1rem;
-  transform: translateY(0.5px); /* Visual nudge for perfect centering with icons */
 }
 
 .navLabelHidden {
@@ -830,6 +832,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: row;
   width: 100%;
   min-width: 0;
   height: 100%;

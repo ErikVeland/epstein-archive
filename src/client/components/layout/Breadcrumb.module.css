@@ -3,20 +3,26 @@
 .nav {
   display: flex;
   align-items: center;
-  font-size: 0.875rem;
-  margin-bottom: var(--space-2);
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .list {
   display: flex;
   align-items: center;
   gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .item {
   display: flex;
   align-items: center;
   min-width: 0;
+  height: 1.25rem;
 }
 
 .chevron {
@@ -49,6 +55,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color var(--duration-fast) var(--easing-liquid);
+  line-height: 1;
 }
 
 .link:hover {

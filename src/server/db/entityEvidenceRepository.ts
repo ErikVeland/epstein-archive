@@ -132,8 +132,14 @@ export const entityEvidenceRepository = {
 
     return {
       entity: {
-        ...entity,
         id: String(entity.id),
+        fullName: entity.full_name || '',
+        primaryRole: entity.primary_role || '',
+        entityCategory: entity.entity_category || '',
+        riskLevel: entity.risk_level || 'LOW',
+        redFlagRating: Number(entity.red_flag_rating || 0),
+        birthDate: (entity as any).birth_date || null,
+        deathDate: (entity as any).death_date || null,
       },
       evidence,
       stats: {

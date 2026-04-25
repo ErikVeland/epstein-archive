@@ -59,6 +59,7 @@ export interface EntityPhoto {
   filename?: string;
   sourceType?: string;
   type?: string;
+  fileType?: string;
   date?: string;
   createdAt?: string;
   timestamp?: string;
@@ -163,6 +164,7 @@ interface EntityEvidenceFallbackResponse {
     totalEvidence?: number;
     typeBreakdown?: Array<{
       evidence_type?: string;
+      evidenceType?: string;
       count?: number;
     }>;
   };
@@ -677,7 +679,8 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   ]);
 
   const overviewEvidenceTypesCount =
-    entityEvidence?.stats?.typeBreakdown?.filter((item) => item.evidence_type).length ||
+    entityEvidence?.stats?.typeBreakdown?.filter((item) => item.evidence_type || item.evidenceType)
+      .length ||
     entity?.evidenceTypes?.length ||
     0;
 
@@ -689,17 +692,17 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         .slice(0, 5)
         .map((item) => ({
           documentId: (item.documentId || item.document_id) as string | number | undefined,
-          source: (item.evidenceType || item.evidence_type || 'Document') as string,
+          filename: (item.title ||
+            item.sourcePath ||
+            item.source_path ||
+            'Untitled source') as string,
           passage: (item.contentPreview ||
             item.contextSnippet ||
             item.context_snippet ||
             item.description ||
             item.title ||
             '') as string,
-          filename: (item.title ||
-            item.sourcePath ||
-            item.source_path ||
-            'Untitled source') as string,
+          source: (item.evidenceType || item.evidence_type || 'Document') as string,
           keyword: (item.evidenceType || item.evidence_type) as string | undefined,
         }));
     }

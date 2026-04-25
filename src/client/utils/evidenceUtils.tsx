@@ -81,12 +81,21 @@ export const getRiskClass = (rating: number): string => {
  */
 export const isVisualMediaItem = (
   photo:
-    | { sourceType?: string; type?: string; url?: string; fullUrl?: string; imageUrl?: string }
+    | {
+        sourceType?: string;
+        type?: string;
+        fileType?: string;
+        url?: string;
+        fullUrl?: string;
+        imageUrl?: string;
+        filePath?: string;
+        filename?: string;
+      }
     | null
     | undefined,
 ): boolean => {
   if (!photo) return false;
-  const type = String(photo.sourceType || photo.type || '').toLowerCase();
+  const type = String(photo.sourceType || photo.type || photo.fileType || '').toLowerCase();
   if (
     type.includes('image') ||
     type.includes('photo') ||
@@ -96,7 +105,9 @@ export const isVisualMediaItem = (
   ) {
     return true;
   }
-  const url = String(photo.url || photo.fullUrl || photo.imageUrl || '').toLowerCase();
+  const url = String(
+    photo.url || photo.fullUrl || photo.imageUrl || photo.filePath || photo.filename || '',
+  ).toLowerCase();
   return (
     url.includes('.jpg') ||
     url.includes('.jpeg') ||
@@ -206,22 +217,35 @@ export const normalizeEntityMediaItem = (
   const rawId = item.id || `media-${index}`;
   const normalizedId = String(rawId);
   const fileType = String(item.fileType || item.file_type || item.sourceType || item.type || '');
+  const filePath = String(item.filePath || item.file_path || item.filename || '');
+  const lowerSignature = `${fileType} ${filePath}`.toLowerCase();
   const isImageLike =
-    fileType.toLowerCase().includes('image') ||
-    /\.(png|jpe?g|webp|gif)$/i.test(
-      String(item.filePath || item.file_path || item.thumbnailPath || item.thumbnail_path || ''),
-    );
+    lowerSignature.includes('image') || /\.(png|jpe?g|webp|gif|bmp|tiff?)($|\?)/i.test(filePath);
+  const isVideoLike =
+    lowerSignature.includes('video') || /\.(mp4|webm|mov|m4v|mkv|avi)($|\?)/i.test(filePath);
+  const isAudioLike =
+    lowerSignature.includes('audio') ||
+    lowerSignature.includes('recording') ||
+    /\.(mp3|wav|m4a|aac|ogg|flac)($|\?)/i.test(filePath);
   const thumbnailUrl = isImageLike
     ? `/api/media/images/${encodeURIComponent(normalizedId)}/thumbnail`
-    : undefined;
+    : isVideoLike
+      ? `/api/media/video/${encodeURIComponent(normalizedId)}/thumbnail`
+      : undefined;
   const fileUrl = isImageLike
     ? `/api/media/images/${encodeURIComponent(normalizedId)}/file`
-    : undefined;
+    : isVideoLike
+      ? `/api/media/video/${encodeURIComponent(normalizedId)}/stream`
+      : isAudioLike
+        ? `/api/media/audio/${encodeURIComponent(normalizedId)}/file`
+        : undefined;
 
   return {
     ...item,
     id: rawId,
     title: item.title || item.caption || item.filename,
+    filePath: item.filePath || item.file_path,
+    fileType: item.fileType || item.file_type,
     url: item.url || item.fullUrl || item.image_url || thumbnailUrl || fileUrl,
     fullUrl: item.fullUrl || item.url || item.image_url || fileUrl,
     thumbnailUrl:

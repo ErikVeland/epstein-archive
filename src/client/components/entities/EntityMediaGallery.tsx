@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ZoomIn, Play, Image as ImageIcon } from 'lucide-react';
+import { ZoomIn, Play, Image as ImageIcon, Music, FileText } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { Surface } from '../../design-system/components/surfaces/Surface';
@@ -12,6 +12,8 @@ import styles from './EntityMediaGallery.module.css';
 interface MediaItem {
   id: string;
   filePath: string;
+  fileType?: string;
+  thumbnailPath?: string;
   title?: string;
   type?: 'image' | 'video' | 'audio';
   redFlagRating?: number;
@@ -52,52 +54,91 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
     );
   }
 
+  const getMediaType = (item: MediaItem): 'image' | 'video' | 'audio' | 'other' => {
+    const signature =
+      `${item.type || ''} ${item.fileType || ''} ${item.filePath || ''}`.toLowerCase();
+    if (signature.includes('video') || /\.(mp4|webm|mov|m4v|mkv|avi)($|\?)/i.test(signature)) {
+      return 'video';
+    }
+    if (
+      signature.includes('audio') ||
+      signature.includes('recording') ||
+      /\.(mp3|wav|m4a|aac|ogg|flac)($|\?)/i.test(signature)
+    ) {
+      return 'audio';
+    }
+    if (signature.includes('image') || /\.(png|jpe?g|webp|gif|bmp|tiff?)($|\?)/i.test(signature)) {
+      return 'image';
+    }
+    return 'other';
+  };
+
   const getMediaUrl = (item: MediaItem) => {
-    return `/api/media/images/${item.id}/thumbnail`;
+    const type = getMediaType(item);
+    if (type === 'image')
+      return `/api/media/images/${encodeURIComponent(String(item.id))}/thumbnail`;
+    if (type === 'video' && item.thumbnailPath) {
+      return `/api/media/images/${encodeURIComponent(String(item.id))}/thumbnail`;
+    }
+    return null;
   };
 
   const getFullSizeUrl = (item: MediaItem) => {
-    return `/api/media/images/${item.id}`;
+    const type = getMediaType(item);
+    if (type === 'video') return `/api/media/videos/${encodeURIComponent(String(item.id))}/file`;
+    if (type === 'audio') return `/api/media/audio/${encodeURIComponent(String(item.id))}/file`;
+    return `/api/media/images/${encodeURIComponent(String(item.id))}/file`;
   };
 
   return (
     <Box className={styles.gallery}>
       <Grid cols={{ base: 2, sm: 3, md: 4 }} gap={12}>
-        {media.map((item) => (
-          <Surface
-            key={item.id}
-            variant="glass"
-            onClick={() => setSelectedMedia(item)}
-            className={styles.mediaTile}
-          >
-            <img
-              src={getMediaUrl(item)}
-              alt={item.title || entityName}
-              className={styles.mediaImage}
-              loading="lazy"
-            />
-            {/* Overlay */}
-            <Flex align="center" justify="center" className={styles.mediaOverlay}>
-              <ZoomIn className={styles.zoomIcon} />
-            </Flex>
+        {media.map((item) => {
+          const type = getMediaType(item);
+          const previewUrl = getMediaUrl(item);
+          return (
+            <Surface
+              key={item.id}
+              variant="glass"
+              onClick={() => setSelectedMedia(item)}
+              className={styles.mediaTile}
+            >
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt={item.title || entityName}
+                  className={styles.mediaImage}
+                  loading="lazy"
+                />
+              ) : (
+                <Flex align="center" justify="center" className={styles.mediaPlaceholder}>
+                  {type === 'video' ? <Play /> : type === 'audio' ? <Music /> : <FileText />}
+                </Flex>
+              )}
+              <Flex align="center" justify="center" className={styles.mediaOverlay}>
+                <ZoomIn className={styles.zoomIcon} />
+              </Flex>
 
-            {/* Type Indicator */}
-            {item.type === 'video' && (
-              <Box className={styles.videoBadge}>
-                <Play className={styles.videoIcon} />
-              </Box>
-            )}
+              {type !== 'image' && (
+                <Box className={styles.videoBadge}>
+                  {type === 'audio' ? (
+                    <Music className={styles.videoIcon} />
+                  ) : (
+                    <Play className={styles.videoIcon} />
+                  )}
+                </Box>
+              )}
 
-            {/* Caption gradient */}
-            {item.title && (
-              <Box className={styles.caption}>
-                <LqText variant="xs" weight="medium" className={styles.captionText}>
-                  {item.title}
-                </LqText>
-              </Box>
-            )}
-          </Surface>
-        ))}
+              {item.title && (
+                <Box className={styles.caption}>
+                  <LqText variant="xs" weight="medium" className={styles.captionText}>
+                    {item.title}
+                  </LqText>
+                </Box>
+              )}
+            </Surface>
+          );
+        })}
       </Grid>
 
       {/* Lightbox Modal */}
@@ -118,11 +159,25 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
               className={styles.lightboxMediaFrame}
               onClick={(e) => e.stopPropagation()}
             >
-              <img
-                src={getFullSizeUrl(selectedMedia)}
-                alt={selectedMedia.title || entityName}
-                className={styles.lightboxImage}
-              />
+              {getMediaType(selectedMedia) === 'video' ? (
+                <video
+                  src={getFullSizeUrl(selectedMedia)}
+                  className={styles.lightboxImage}
+                  controls
+                />
+              ) : getMediaType(selectedMedia) === 'audio' ? (
+                <audio
+                  src={getFullSizeUrl(selectedMedia)}
+                  className={styles.lightboxAudio}
+                  controls
+                />
+              ) : (
+                <img
+                  src={getFullSizeUrl(selectedMedia)}
+                  alt={selectedMedia.title || entityName}
+                  className={styles.lightboxImage}
+                />
+              )}
             </Surface>
 
             {/* Caption */}

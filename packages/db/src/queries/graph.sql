@@ -62,16 +62,21 @@ WHERE s.canonical_id = ANY(:pathNodes!::bigint[])
 GROUP BY s.canonical_id, t.canonical_id, er.relationship_type;
 
 /* @name getGlobalGraphNodes */
-WITH rel_counts AS (
+WITH candidate_entities AS (
+    SELECT id FROM entities WHERE entity_type = 'Person' AND red_flag_rating >= :minRisk!
+),
+rel_counts AS (
 SELECT entity_id, SUM(cnt) as degree FROM (
     SELECT source_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships 
-    WHERE (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) 
-    AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
+    WHERE source_entity_id IN (SELECT id FROM candidate_entities)
+      AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) 
+      AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
     GROUP BY source_entity_id
     UNION ALL
     SELECT target_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships 
-    WHERE (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) 
-    AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
+    WHERE target_entity_id IN (SELECT id FROM candidate_entities)
+      AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) 
+      AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
     GROUP BY target_entity_id
 ) t
 GROUP BY entity_id
