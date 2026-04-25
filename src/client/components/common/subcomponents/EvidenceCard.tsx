@@ -36,13 +36,20 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
     doc.title || doc.fileName || `Document ${doc.id}`,
   );
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onOpen(doc.id);
+  };
+
   return (
-    <Button
-      unstyled
+    <article
       data-testid={testId}
-      type="button"
+      role="button"
+      tabIndex={0}
       className={s.card}
       onClick={() => onOpen(doc.id)}
+      onKeyDown={handleKeyDown}
     >
       <div className={s.content}>
         <div className={s.header}>
@@ -85,6 +92,6 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
           </span>
         )}
       </div>
-    </Button>
+    </article>
   );
 };

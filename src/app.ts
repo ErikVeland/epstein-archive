@@ -59,6 +59,10 @@ import faceRoutes from './server/routes/faceRoutes.js';
 import activeLearningRoutes from './server/routes/activeLearning.js';
 import claimsRoutes from './server/routes/claimsRoutes.js';
 import { intelligenceRoutes } from './server/routes/intelligenceRoutes.js';
+import adminRoutes from './server/routes/adminRoutes.js';
+import memoryRoutes from './server/routes/memoryRoutes.js';
+import dataQualityRoutes from './server/routes/dataQualityRoutes.js';
+import vitalsRoutes from './server/routes/vitalsRoutes.js';
 import sitemapRouter from './server/routes/sitemap.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
@@ -907,6 +911,10 @@ export class App {
     router.use('/intelligence', intelligenceRoutes);
     router.use('/investigations', investigationEvidenceRoutes);
     router.use('/investigations/:id/leads', investigationLeadsRouter);
+    router.use('/admin', adminRoutes);
+    router.use('/memory', memoryRoutes);
+    router.use('/data-quality', dataQualityRoutes);
+    router.use('/vitals', vitalsRoutes);
 
     // API 404 — must be last on the router, before the SPA fallback.
     // Prevents unknown /api/* paths from returning HTML to API clients.

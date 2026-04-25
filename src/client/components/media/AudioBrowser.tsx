@@ -102,8 +102,9 @@ const AudioRow = React.memo(({ index, style, data }: ListChildComponentProps<Aud
       >
         {rowItems.map((item) => {
           const isSelected = selectedItems.has(item.id);
-          const thumb = item.metadata?.thumbnailPath;
-          const displayImage = thumb ? `/api/static?path=${encodeURIComponent(thumb)}` : null;
+          const displayImage = item.metadata?.thumbnailPath
+            ? `/api/media/audio/${item.id}/thumbnail`
+            : null;
 
           return (
             <Surface
@@ -461,7 +462,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
         {selectedItem && (
           <AudioPlayer
-            src={selectedItem.filePath}
+            src={`/api/media/audio/${selectedItem.id}/stream`}
             title={selectedItem.title}
             transcript={selectedItem.metadata?.transcript}
             chapters={selectedItem.metadata?.chapters}

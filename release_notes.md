@@ -1,5 +1,20 @@
 # Release Notes
 
+## 19.6.1 - 2026-04-25 - 404 Elimination & API System Completion
+
+### API & Data Integrity
+
+- **System-wide 404 Remediation**: Resolved all identified broken API links across the platform.
+- **Media Endpoint Standardization**: Unified singular/plural media routes and transitioned to the `/stream` endpoint for all Audio/Video assets for improved playback performance.
+- **API System Mounting**: Fully integrated the Memory, Data Quality, and Audit Log systems into the main application router.
+- **New Audio Thumbnail Endpoint**: Implemented a server-side handler for audio asset thumbnails to restore broken gallery previews.
+- **Hardcoded URL Removal**: Replaced absolute `epstein.academy` URLs with origin-relative paths to ensure portability across different deployment environments.
+
+### Administrative Tools
+
+- **Restored Audit Logs**: Fixed the missing `/api/admin/audit-logs` endpoint and mapped database records to the client-side forensic viewer.
+- **System Health Restoration**: Re-enabled the System Health and Ingestion History reporting by mounting the corresponding stats and vitals routes.
+
 ## 19.6.0 - 2026-04-25 - Forensic Interface Refinement & Data Integrity Hardening
 
 ### UI & UX Polish

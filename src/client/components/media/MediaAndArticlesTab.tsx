@@ -41,7 +41,7 @@ export const MediaAndArticlesTab: React.FC = () => {
 
   const activeSubTab = getActiveSubTab();
   const shareUrl = useMemo(
-    () => `https://epstein.academy${location.pathname}${location.search}`,
+    () => `${window.location.origin}${location.pathname}${location.search}`,
     [location.pathname, location.search],
   );
 
@@ -66,7 +66,7 @@ export const MediaAndArticlesTab: React.FC = () => {
           title: 'Epstein Media Archive',
           description:
             'Explore photos, audio, and video records linked to the Epstein files archive.',
-          image: 'https://epstein.academy/epstein-files.jpg',
+          image: `${window.location.origin}/epstein-files.jpg`,
           imageAlt: 'Epstein Files media archive',
         });
       }
@@ -75,7 +75,7 @@ export const MediaAndArticlesTab: React.FC = () => {
     const resolve = async () => {
       try {
         if (location.pathname === '/media/photos' && mediaId) {
-          const imageUrl = `https://epstein.academy/api/media/images/${mediaId}/file`;
+          const imageUrl = `${window.location.origin}/api/media/images/${mediaId}/file`;
           setShareMetadata({
             title: `Epstein Photo ${mediaId}`,
             description: 'Shared image from the Epstein Files media archive.',
@@ -89,8 +89,8 @@ export const MediaAndArticlesTab: React.FC = () => {
           setShareMetadata({
             title: `Epstein Audio ${mediaId}`,
             description: 'Shared audio record from the Epstein Files media archive.',
-            image: `https://epstein.academy/api/media/audio/${mediaId}/thumbnail`,
-            imageAlt: `Audio thumbnail ${mediaId}`,
+            image: `${window.location.origin}/epstein-files.jpg`, // Audio has no thumbnail endpoint
+            imageAlt: `Audio recording ${mediaId}`,
           });
           return;
         }
@@ -99,7 +99,7 @@ export const MediaAndArticlesTab: React.FC = () => {
           setShareMetadata({
             title: `Epstein Video ${mediaId}`,
             description: 'Shared video record from the Epstein Files media archive.',
-            image: `https://epstein.academy/api/media/video/${mediaId}/thumbnail`,
+            image: `${window.location.origin}/api/media/video/${mediaId}/thumbnail`,
             imageAlt: `Video thumbnail ${mediaId}`,
           });
           return;
@@ -115,7 +115,7 @@ export const MediaAndArticlesTab: React.FC = () => {
                 setShareMetadata({
                   title: `Epstein Video Album ${albumId}`,
                   description: 'Shared video album from the Epstein Files archive.',
-                  image: `https://epstein.academy/api/media/video/${firstVideoId}/thumbnail`,
+                  image: `${window.location.origin}/api/media/video/${firstVideoId}/thumbnail`,
                   imageAlt: `Video album ${albumId} preview`,
                 });
                 return;
@@ -131,7 +131,7 @@ export const MediaAndArticlesTab: React.FC = () => {
               setShareMetadata({
                 title: `Epstein Media Album ${albumId}`,
                 description: 'Shared media album from the Epstein Files archive.',
-                image: `https://epstein.academy/api/media/images/${firstImageId}/file`,
+                image: `${window.location.origin}/api/media/images/${firstImageId}/file`,
                 imageAlt: `Album ${albumId} preview`,
               });
               return;
@@ -166,7 +166,7 @@ export const MediaAndArticlesTab: React.FC = () => {
           shareMetadata?.description ||
           'Explore photos, audio, and video records linked to the Epstein files archive.'
         }
-        image={shareMetadata?.image || 'https://epstein.academy/epstein-files.jpg'}
+        image={shareMetadata?.image || `${window.location.origin}/epstein-files.jpg`}
         imageAlt={shareMetadata?.imageAlt || 'Epstein media archive'}
         type="article"
         url={shareUrl}

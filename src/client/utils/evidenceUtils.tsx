@@ -237,7 +237,7 @@ export const normalizeEntityMediaItem = (
     : isVideoLike
       ? `/api/media/video/${encodeURIComponent(normalizedId)}/stream`
       : isAudioLike
-        ? `/api/media/audio/${encodeURIComponent(normalizedId)}/file`
+        ? `/api/media/audio/${encodeURIComponent(normalizedId)}/stream`
         : undefined;
 
   return {

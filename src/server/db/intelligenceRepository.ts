@@ -114,13 +114,7 @@ export const intelligenceRepository = {
     return safeQuery('weakProvenanceDocs', async () => {
       const pool = getApiPool();
       // Optimization: Fetch documents with 0 or 1 mentions separately to avoid heavy GROUP BY on full join
-      const result = await pool.query<{
-        document_id: number;
-        file_name: string;
-        file_type: string | null;
-        entity_mention_count: string;
-        evidence_count: string;
-      }>(
+      const result = await pool.query(
         `
         WITH docs_with_one_mention AS (
           SELECT document_id, COUNT(*) as cnt
@@ -168,7 +162,7 @@ export const intelligenceRepository = {
   async countWeakProvenanceDocs(): Promise<number> {
     return safeCount('countWeakProvenanceDocs', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{ cnt: string }>(`
+      const result = await pool.query(`
         SELECT 
           (SELECT COUNT(*) FROM documents d WHERE NOT EXISTS (SELECT 1 FROM entity_mentions em WHERE em.document_id = d.id)) +
           (SELECT COUNT(*) FROM (SELECT 1 FROM entity_mentions GROUP BY document_id HAVING COUNT(*) = 1) sub)
@@ -185,12 +179,7 @@ export const intelligenceRepository = {
   async getLowOcrDocs(): Promise<LowOcrDoc[]> {
     return safeQuery('lowOcrDocs', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{
-        document_id: number;
-        file_name: string;
-        avg_ocr_confidence: string | null;
-        ocr_flag_count: string;
-      }>(
+      const result = await pool.query(
         `
         SELECT
           d.id AS document_id,
@@ -218,7 +207,7 @@ export const intelligenceRepository = {
   async countLowOcrDocs(): Promise<number> {
     return safeCount('countLowOcrDocs', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{ cnt: string }>(`
+      const result = await pool.query(`
         SELECT COUNT(DISTINCT d.id) AS cnt
         FROM documents d
         JOIN document_ocr_results ocr ON ocr.document_id = d.id
@@ -236,12 +225,7 @@ export const intelligenceRepository = {
   async getFuzzyEntityAliases(): Promise<FuzzyEntityAlias[]> {
     return safeQuery('fuzzyEntityAliases', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{
-        entity_id: number;
-        entity_name: string;
-        alias_name: string;
-        similarity_score: string | null;
-      }>(
+      const result = await pool.query(
         `
         SELECT
           e.id AS entity_id,
@@ -269,7 +253,7 @@ export const intelligenceRepository = {
   async countFuzzyEntityAliases(): Promise<number> {
     return safeCount('countFuzzyEntityAliases', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{ cnt: string }>(`
+      const result = await pool.query(`
         SELECT COUNT(*) AS cnt
         FROM entity_aliases ea
         WHERE ea.is_confirmed IS NOT TRUE
@@ -286,13 +270,7 @@ export const intelligenceRepository = {
   async getThinHighRiskEntities(): Promise<ThinHighRiskEntity[]> {
     return safeQuery('thinHighRiskEntities', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{
-        entity_id: number;
-        entity_name: string;
-        risk_level: string;
-        evidence_count: string;
-        document_count: string;
-      }>(
+      const result = await pool.query(
         `
         SELECT
           e.id AS entity_id,
@@ -323,7 +301,7 @@ export const intelligenceRepository = {
   async countThinHighRiskEntities(): Promise<number> {
     return safeCount('countThinHighRiskEntities', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{ cnt: string }>(`
+      const result = await pool.query(`
         SELECT COUNT(*) AS cnt
         FROM (
           SELECT e.id
@@ -345,14 +323,7 @@ export const intelligenceRepository = {
   async getUnlinkedClaims(): Promise<UnlinkedClaim[]> {
     return safeQuery('unlinkedClaims', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{
-        claim_id: number;
-        predicate: string;
-        object_text: string;
-        subject_entity_id: number | null;
-        subject_entity_name: string | null;
-        confidence: string | null;
-      }>(
+      const result = await pool.query(
         `
         SELECT
           ct.id AS claim_id,
@@ -384,7 +355,7 @@ export const intelligenceRepository = {
   async countUnlinkedClaims(): Promise<number> {
     return safeCount('countUnlinkedClaims', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{ cnt: string }>(`
+      const result = await pool.query(`
         SELECT COUNT(*) AS cnt
         FROM claim_triples ct
         WHERE ct.document_id IS NULL
@@ -401,13 +372,7 @@ export const intelligenceRepository = {
   async getReviewableFinancialItems(): Promise<ReviewableFinancialItem[]> {
     return safeQuery('reviewableFinancialItems', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{
-        item_id: number;
-        item_type: string;
-        description: string | null;
-        entity_name: string | null;
-        needs_review: boolean;
-      }>(
+      const result = await pool.query(
         `
         SELECT
           ft.id AS item_id,
@@ -437,7 +402,7 @@ export const intelligenceRepository = {
   async countReviewableFinancialItems(): Promise<number> {
     return safeCount('countReviewableFinancialItems', async () => {
       const pool = getApiPool();
-      const result = await pool.query<{ cnt: string }>(`
+      const result = await pool.query(`
         SELECT COUNT(*) AS cnt
         FROM financial_transactions ft
         WHERE ft.risk_level = 'HIGH' OR ft.from_entity IS NULL
@@ -455,7 +420,7 @@ export const intelligenceRepository = {
     // Check pgvector availability via the existing semantic capability detection path
     let semanticAvailable = false;
     try {
-      const extResult = await pool.query<{ extname: string }>(
+      const extResult = await pool.query(
         `SELECT extname FROM pg_extension WHERE extname = 'vector' LIMIT 1`,
       );
       semanticAvailable = extResult.rows.length > 0;
@@ -466,7 +431,7 @@ export const intelligenceRepository = {
     // Provenance coverage: fraction of documents with at least one entity mention
     let provenanceCoveragePct: number | null = null;
     try {
-      const covResult = await pool.query<{ total: string; covered: string }>(`
+      const covResult = await pool.query(`
         SELECT
           COUNT(DISTINCT d.id) AS total,
           COUNT(DISTINCT em.document_id) AS covered
@@ -483,13 +448,13 @@ export const intelligenceRepository = {
 
     const [pendingMentionReviews, pendingClaimReviews] = await Promise.all([
       safeCount('pendingMentions', async () => {
-        const r = await pool.query<{ cnt: string }>(
+        const r = await pool.query(
           `SELECT COUNT(*) AS cnt FROM entity_mentions WHERE COALESCE(verified, 0) = 0`,
         );
         return Number(r.rows[0]?.cnt ?? 0);
       }),
       safeCount('pendingClaims', async () => {
-        const r = await pool.query<{ cnt: string }>(
+        const r = await pool.query(
           `SELECT COUNT(*) AS cnt FROM claim_triples WHERE COALESCE(verified, 0) = 0`,
         );
         return Number(r.rows[0]?.cnt ?? 0);

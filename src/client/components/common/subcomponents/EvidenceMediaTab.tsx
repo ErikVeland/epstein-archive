@@ -313,7 +313,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                 src={
                   finalSelectedItem.fullUrl ||
                   finalSelectedItem.url ||
-                  `/api/media/audio/${finalSelectedItem.id}/file`
+                  `/api/media/audio/${finalSelectedItem.id}/stream`
                 }
                 title={finalSelectedItem.title || finalSelectedItem.filename || 'Audio Recording'}
                 transcript={finalSelectedItem.metadata?.transcript}

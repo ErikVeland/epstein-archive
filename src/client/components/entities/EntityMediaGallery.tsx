@@ -85,8 +85,8 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
 
   const getFullSizeUrl = (item: MediaItem) => {
     const type = getMediaType(item);
-    if (type === 'video') return `/api/media/videos/${encodeURIComponent(String(item.id))}/file`;
-    if (type === 'audio') return `/api/media/audio/${encodeURIComponent(String(item.id))}/file`;
+    if (type === 'video') return `/api/media/video/${encodeURIComponent(String(item.id))}/stream`;
+    if (type === 'audio') return `/api/media/audio/${encodeURIComponent(String(item.id))}/stream`;
     return `/api/media/images/${encodeURIComponent(String(item.id))}/file`;
   };
 

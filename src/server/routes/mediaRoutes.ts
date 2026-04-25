@@ -665,6 +665,23 @@ router.get('/audio/:id/stream', validate(mediaIdParamSchema), async (req, res, n
   }
 });
 
+router.get('/audio/:id/thumbnail', validate(mediaIdParamSchema), async (req, res, next) => {
+  try {
+    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+    if (!item) return res.status(404).json({ error: 'Audio item not found' });
+
+    const thumbnailPath = findFirstExistingPath([String(item.thumbnailPath || '')]);
+    if (!thumbnailPath) {
+      return res.status(404).json({ error: 'Audio thumbnail not available' });
+    }
+
+    res.type(path.extname(thumbnailPath) || 'image/jpeg');
+    return res.sendFile(thumbnailPath);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // ─── Video routes ─────────────────────────────────────────────────────────────
 
 router.get('/video/albums', cacheResponse(120), validate(z.object({})), async (_req, res, next) => {
