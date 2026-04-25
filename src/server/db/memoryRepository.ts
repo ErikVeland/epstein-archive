@@ -10,7 +10,7 @@ import {
   CreateMemoryQualityMetricsInput,
   MemorySearchFilters,
   MemorySearchResult,
-} from '../../types/memory';
+} from '../../types/memory.js';
 import pg from 'pg';
 
 export const memoryRepository = {

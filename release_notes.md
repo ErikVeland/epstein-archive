@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.6.3 - 2026-04-25 - Emergency ESM Fix & System Stability
+
+### Bug Fixes
+
+- **ESM Compatibility**: Fixed missing `.js` extensions in internal imports for Memory and Admin routes which caused production startup failures.
+- **Service Initialization**: Corrected RevisionManager initialization sequence in the main app lifecycle.
+- **Final UI Polish**: Verified entity card rounding and shadow logic for mobile-first grid consistency.
+
 ## 19.6.2 - 2026-04-25 - Final 404 Resolution & Face Gallery Assets
 
 ### 404 Remediation & Features

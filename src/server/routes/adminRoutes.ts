@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { getRevisionInfo } from '../revisionManager';
+import { getRevisionInfo } from '../revisionManager.js';
 import { authenticateRequest } from '../auth/middleware.js';
 
 import { dataQualityRepository } from '../db/dataQualityRepository.js';

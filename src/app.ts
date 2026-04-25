@@ -21,6 +21,7 @@ import {
 } from './server/db/connection.js';
 import { validateStartup } from './server/utils/startupValidation.js';
 import { runMigrations } from './server/db/migrator.js';
+import { initRevisionManager } from './server/revisionManager.js';
 import { getEntityAndDocumentCounts } from './server/db/routesDb.js';
 import { resolveMediaPath } from './server/utils/pathResolver.js';
 import type { SearchFilters, SortOption } from './types.js';
@@ -111,6 +112,7 @@ export class App {
 
     initPools();
     assertProductionPg();
+    initRevisionManager(getApiPool());
 
     // Validate environment (throws on failure)
     try {
