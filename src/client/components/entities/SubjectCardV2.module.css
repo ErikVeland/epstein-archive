@@ -97,6 +97,14 @@
   gap: 0.25rem;
 }
 
+.metricStack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
 .metricLabel {
   color: var(--text-muted);
   font-size: 0.5rem;

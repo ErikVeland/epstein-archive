@@ -374,60 +374,79 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
         let newDocs: EvidenceDocument[] = [];
         let total = 0;
+        const canUseEvidenceSummary =
+          page === 1 && docFilters.source === 'all' && docFilters.sort === 'relevance';
 
-        try {
-          const response = (await apiClient.get(endpoint)) as Record<string, unknown>;
-          if (response && typeof response === 'object') {
-            const rawDocs = Array.isArray(response.data)
-              ? response.data
-              : Array.isArray(response.evidence)
-                ? response.evidence
-                : Array.isArray(response.results)
-                  ? response.results
-                  : Array.isArray(response)
-                    ? response
-                    : [];
+        const getEvidenceSummaryDocs = async () => {
+          const fallback =
+            entityEvidence ??
+            ((await apiClient.get(
+              `/entities/${entityId}/evidence`,
+            )) as EntityEvidenceFallbackResponse);
+          const fallbackDocs = Array.isArray(fallback?.evidence)
+            ? fallback.evidence.map((item) => normalizeEvidenceDocument(item))
+            : [];
 
-            // Normalize documents for consistency
-            newDocs = (rawDocs as Record<string, unknown>[]).map(
-              (d) => normalizeEvidenceDocument(d) as unknown as EvidenceDocument,
+          const filteredFallbackDocs = fallbackDocs.filter((doc) => {
+            const search = docFilters.search.trim().toLowerCase();
+            if (!search) return true;
+            return [doc.title, doc.fileName, doc.contentPreview, doc.content, doc.evidenceType]
+              .filter(Boolean)
+              .some((value) => String(value).toLowerCase().includes(search));
+          });
+
+          return {
+            docs: filteredFallbackDocs,
+            total: filteredFallbackDocs.length || Number(fallback?.stats?.totalEvidence || 0),
+          };
+        };
+
+        if (canUseEvidenceSummary) {
+          const summary = await getEvidenceSummaryDocs();
+          newDocs = summary.docs;
+          total = summary.total;
+        } else {
+          try {
+            const response = (await apiClient.get(endpoint)) as Record<string, unknown>;
+            if (response && typeof response === 'object') {
+              const rawDocs = Array.isArray(response.data)
+                ? response.data
+                : Array.isArray(response.evidence)
+                  ? response.evidence
+                  : Array.isArray(response.results)
+                    ? response.results
+                    : Array.isArray(response)
+                      ? response
+                      : [];
+
+              // Normalize documents for consistency
+              newDocs = (rawDocs as Record<string, unknown>[]).map(
+                (d) => normalizeEvidenceDocument(d) as unknown as EvidenceDocument,
+              );
+
+              total = Number(
+                response.total ??
+                  response.count ??
+                  response.totalResults ??
+                  (Array.isArray(response) ? response.length : 0),
+              );
+            }
+            // Validate items have IDs
+            newDocs = newDocs.filter(
+              (d) =>
+                d &&
+                (d.id !== undefined || (d as Record<string, unknown>).document_id !== undefined),
             );
-
-            total = Number(
-              response.total ??
-                response.count ??
-                response.totalResults ??
-                (Array.isArray(response) ? response.length : 0),
-            );
+          } catch (primaryError) {
+            console.warn('Primary documents endpoint failed, trying fallback:', primaryError);
           }
-          // Validate items have IDs
-          newDocs = newDocs.filter(
-            (d) =>
-              d && (d.id !== undefined || (d as Record<string, unknown>).document_id !== undefined),
-          );
-        } catch (primaryError) {
-          console.warn('Primary documents endpoint failed, trying fallback:', primaryError);
         }
 
         if (page === 1 && newDocs.length === 0) {
           try {
-            const fallback = (await apiClient.get(
-              `/entities/${entityId}/evidence`,
-            )) as EntityEvidenceFallbackResponse;
-            const fallbackDocs = Array.isArray(fallback?.evidence)
-              ? fallback.evidence.map((item) => normalizeEvidenceDocument(item))
-              : [];
-
-            const filteredFallbackDocs = fallbackDocs.filter((doc) => {
-              const search = docFilters.search.trim().toLowerCase();
-              if (!search) return true;
-              return [doc.title, doc.fileName, doc.contentPreview, doc.content, doc.evidenceType]
-                .filter(Boolean)
-                .some((value) => String(value).toLowerCase().includes(search));
-            });
-
-            newDocs = filteredFallbackDocs;
-            total = filteredFallbackDocs.length || Number(fallback?.stats?.totalEvidence || 0);
+            const summary = await getEvidenceSummaryDocs();
+            newDocs = summary.docs;
+            total = summary.total;
           } catch (fallbackError) {
             console.warn('Fallback evidence endpoint also failed:', fallbackError);
           }
@@ -447,7 +466,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         setDocsInitialized(true);
       }
     },
-    [isNextPageLoading, docFilters, entityId],
+    [isNextPageLoading, docFilters, entityId, entityEvidence],
   );
 
   useEffect(() => {
@@ -716,9 +735,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const headerPhoto =
     headerMediaItems.find((item) => isVisualMediaItem(item)) || headerMediaItems[0];
 
-  const headerPhotoUrl =
-    resolveEntityPhotoUrl(headerPhoto, true) ||
-    (entityId ? `/api/entities/${encodeURIComponent(entityId)}/portrait` : null);
+  const headerPhotoUrl = resolveEntityPhotoUrl(headerPhoto, true);
 
   if (isMobile) {
     return (

@@ -419,4 +419,48 @@ router.get(
   },
 );
 
+/**
+ * GET /api/stats/backups
+ * Returns list of database backup snapshots.
+ */
+router.get('/backups', authenticateRequest, requireRole('admin'), async (_req, res, next) => {
+  try {
+    const backups = BackupService.listBackups();
+    res.json(backups);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/stats/backups/trigger
+ * Triggers a new zero-downtime database snapshot.
+ */
+router.post(
+  '/backups/trigger',
+  authenticateRequest,
+  requireRole('admin'),
+  async (_req, res, next) => {
+    try {
+      const result = await BackupService.createBackup();
+      res.json({ success: true, backup: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+/**
+ * GET /api/stats/ingest-runs
+ * Returns history of ingestion runs.
+ */
+router.get('/ingest-runs', authenticateRequest, requireRole('admin'), async (_req, res, next) => {
+  try {
+    const runs = await statsRepository.getIngestRuns(20);
+    res.json(runs);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

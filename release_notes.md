@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.6.2 - 2026-04-25 - Final 404 Resolution & Face Gallery Assets
+
+### 404 Remediation & Features
+
+- **Face Gallery Fix**: Implemented a secure asset serving route `/api/faces/assets` and updated the gallery to fix 404s on face crops and thumbnails.
+- **Admin Dashboard Stability**: Fully restored the Backups and Ingest Runs history by implementing the missing API endpoints and repository methods.
+- **Service Recovery**: Final stabilization of API mounting to ensure all dark routes are consistently available.
+
 ## 19.6.1 - 2026-04-25 - 404 Elimination & API System Completion
 
 ### API & Data Integrity

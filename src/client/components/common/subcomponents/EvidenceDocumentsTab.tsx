@@ -53,6 +53,16 @@ interface EvidenceDocumentsTabProps {
   openDocument: (id: string | number | undefined, options?: { newTab?: boolean }) => void;
 }
 
+const getEvidenceRowKey = (doc: EvidenceDocument, index: number) => {
+  const record = doc as EvidenceDocument & {
+    document_id?: string | number;
+    evidenceId?: string | number;
+    evidence_id?: string | number;
+  };
+  const stableId = record.evidenceId ?? record.evidence_id ?? record.id ?? record.document_id;
+  return `${stableId ?? 'evidence'}-${index}`;
+};
+
 export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
   docFilters,
   handleFilterChange,
@@ -120,8 +130,8 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
           <div className={s.listWrapper} data-testid="entity-evidence-list-container">
             {usePlainEvidenceList ? (
               <div className={s.plainList} data-testid="entity-evidence-plain-list">
-                {documents.map((doc) => (
-                  <div key={String(doc.id)} className={s.itemWrapper}>
+                {documents.map((doc, index) => (
+                  <div key={getEvidenceRowKey(doc, index)} className={s.itemWrapper}>
                     <EvidenceCard
                       document={doc}
                       onOpen={openDocument}
@@ -157,8 +167,8 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                     width < 200 ? (
                     <div className={s.plainList} data-testid="entity-evidence-fallback-list">
                       {documents.length > 0 ? (
-                        documents.slice(0, 20).map((doc) => (
-                          <div key={String(doc.id)} className={s.itemWrapper}>
+                        documents.slice(0, 20).map((doc, index) => (
+                          <div key={getEvidenceRowKey(doc, index)} className={s.itemWrapper}>
                             <EvidenceCard
                               document={doc}
                               onOpen={openDocument}

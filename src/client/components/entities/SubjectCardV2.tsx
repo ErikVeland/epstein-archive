@@ -13,7 +13,6 @@ import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../de
 import { riskToneFromRating } from '../../utils/riskSemantics';
 import { type EvidenceLadderLevel } from '../../utils/forensics';
 import { Flex } from '../../design-system/components/layout/Flex';
-import { Stack } from '../../design-system/components/layout/Stack';
 import { Grid } from '../../design-system/components/layout/Grid';
 import { Button } from '../../design-system/lib';
 import { useIsTouch } from '../../hooks/useIsTouch';
@@ -38,8 +37,11 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
     onContextMenu: lpContextMenu,
     ...longPressHandlers
   } = useLongPress(() => setMenuOpen(true));
-  const portraitUrl = `/api/entities/${subject.id}/portrait`;
   const hasPhotos = subject.topPhotoId != null;
+  const portraitUrl =
+    hasPhotos && subject.topPhotoId
+      ? `/api/media/images/${encodeURIComponent(subject.topPhotoId)}/thumbnail`
+      : null;
 
   // Safety fallbacks
   const stats = subject.stats || {
@@ -111,7 +113,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
       >
         <Flex align="center" gap="md" className={styles.headerRow}>
           <div className={styles.avatarShell}>
-            {hasPhotos ? (
+            {portraitUrl ? (
               <img
                 src={portraitUrl}
                 alt={subject.name}
@@ -280,14 +282,14 @@ const Metric = ({
   const content = descriptions[label] || '';
 
   const inner = (
-    <Stack align="center" gap="xs" title={isTouch ? content : undefined}>
+    <span className={styles.metricStack} title={isTouch ? content : undefined}>
       <span className={styles.metricLabel}>{label}</span>
       <span
         className={`${styles.metricValue} ${highlight ? styles.metricValueHighlight : ''} data-emphasis`}
       >
         {formatNumber(value)}
       </span>
-    </Stack>
+    </span>
   );
 
   if (isTouch) return inner;

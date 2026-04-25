@@ -194,7 +194,7 @@ export const FaceGallery: React.FC = () => {
 
   const getImageUrl = (p: string | null) => {
     if (!p) return null;
-    return p.startsWith('/') ? p : `/${p}`;
+    return `/api/faces/assets?path=${encodeURIComponent(p)}`;
   };
 
   if (loading && !clusters.length) {

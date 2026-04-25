@@ -571,4 +571,32 @@ export const statsRepository = {
       return [];
     }
   },
+
+  /**
+   * Get history of ingestion runs
+   */
+  getIngestRuns: async (limit: number = 20) => {
+    try {
+      const pool = getApiPool();
+      const { rows } = await pool.query(
+        `
+        SELECT 
+          id, 
+          status, 
+          started_at as "startedAt", 
+          git_commit as "gitCommit", 
+          agentic_model_id as "agenticModelId", 
+          agentic_enabled as "agenticEnabled"
+        FROM ingest_runs
+        ORDER BY started_at DESC
+        LIMIT $1
+      `,
+        [limit],
+      );
+      return rows;
+    } catch (e) {
+      logger.error({ err: e }, 'Failed to fetch ingest runs');
+      return [];
+    }
+  },
 };
