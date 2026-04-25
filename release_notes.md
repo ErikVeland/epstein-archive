@@ -1,5 +1,17 @@
 # Release Notes
 
+## 19.6.5 - 2026-04-25 - Search Integrity & UX Polish
+
+### Bug Fixes
+
+- **Search Navigation**: Resolved critical 404 errors when clicking on media, investigations, or articles in the global search results. These items now correctly route to their respective viewers instead of defaulting to a broken document page.
+- **Vertical Alignment**: Refined the vertical centering of navigation labels and breadcrumbs with precision optical adjustments for a more balanced aesthetic.
+
+### Improvements
+
+- **Evidence Display**: Enhanced entity cards to show a "Verified Media" count and a dedicated media chip when assets are present, addressing requests for better visibility of non-audio evidence.
+- **Breadcrumb Compactness**: Further optimized breadcrumb vertical space and alignment for improved information density.
+
 ## 19.6.4 - 2026-04-25 - Robust Asset Serving & System Hardening
 
 ### Improvements

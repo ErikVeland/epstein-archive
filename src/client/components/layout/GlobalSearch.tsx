@@ -779,15 +779,24 @@ const GlobalSearch: React.FC = () => {
                 <Button
                   type="button"
                   onClick={() => {
+                    const id = String(selectedResult.id);
                     setSelectedResult(null);
-                    navigate(`/documents/${encodeURIComponent(String(selectedResult.id))}`);
+                    if (selectedResult.category === 'media') {
+                      navigate(`/media?id=${encodeURIComponent(id)}`);
+                    } else if (selectedResult.category === 'investigation') {
+                      navigate(`/investigations/${encodeURIComponent(selectedResult.uuid || id)}`);
+                    } else if (selectedResult.category === 'article') {
+                      navigate(`/media?articleId=${encodeURIComponent(id)}`);
+                    } else {
+                      navigate(`/documents/${encodeURIComponent(id)}`);
+                    }
                   }}
                   variant="primary"
                   size="sm"
                   className={s.mobileModalPrimaryButton}
                 >
                   <Eye className={s.modalButtonIcon} />
-                  <span>View File</span>
+                  <span>View Details</span>
                 </Button>
               </div>
             </div>
@@ -889,15 +898,26 @@ const GlobalSearch: React.FC = () => {
                   <Button
                     type="button"
                     onClick={() => {
+                      const id = String(selectedResult.id);
                       setSelectedResult(null);
-                      navigate(`/documents/${encodeURIComponent(String(selectedResult.id))}`);
+                      if (selectedResult.category === 'media') {
+                        navigate(`/media?id=${encodeURIComponent(id)}`);
+                      } else if (selectedResult.category === 'investigation') {
+                        navigate(
+                          `/investigations/${encodeURIComponent(selectedResult.uuid || id)}`,
+                        );
+                      } else if (selectedResult.category === 'article') {
+                        navigate(`/media?articleId=${encodeURIComponent(id)}`);
+                      } else {
+                        navigate(`/documents/${encodeURIComponent(id)}`);
+                      }
                     }}
                     variant="primary"
                     size="sm"
                     className={s.modalPrimaryButton}
                   >
                     <Eye className={s.modalButtonIcon} />
-                    <span>View File</span>
+                    <span>View Details</span>
                   </Button>
                 </div>
               </div>

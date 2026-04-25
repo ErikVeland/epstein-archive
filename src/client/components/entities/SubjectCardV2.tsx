@@ -153,23 +153,29 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
           <SignalPanel metrics={forensics.signalStrength} />
           <div className={styles.driverBlock}>
             <DriverChips
-              chips={(forensics.driverLabels || []).map((label) => {
-                let type: 'critical' | 'verified' | 'context' | 'unverified' = 'context';
-                const l = label.toLowerCase();
-                if (l.includes('black book') || l.includes('flight')) type = 'critical';
-                else if (l.includes('photo') || l.includes('verified')) type = 'verified';
-                else if (l.includes('ai') || l.includes('derived')) type = 'unverified';
+              chips={[
+                ...(stats.verifiedMedia > 0
+                  ? [{ label: `${stats.verifiedMedia} Media Assets`, type: 'verified' as const }]
+                  : []),
+                ...(forensics.driverLabels || []).map((label) => {
+                  let type: 'critical' | 'verified' | 'context' | 'unverified' = 'context';
+                  const l = label.toLowerCase();
+                  if (l.includes('black book') || l.includes('flight')) type = 'critical';
+                  else if (l.includes('photo') || l.includes('verified')) type = 'verified';
+                  else if (l.includes('ai') || l.includes('derived')) type = 'unverified';
 
-                return { label, type };
-              })}
+                  return { label, type };
+                }),
+              ]}
             />
           </div>
         </div>
 
-        <Grid cols={3} gap="sm" className={styles.metricGrid}>
+        <Grid cols={4} gap="sm" className={styles.metricGrid}>
           <Metric label="Mentions" value={stats.mentions} />
           <Metric label="Docs" value={stats.documents} />
           <Metric label="Sources" value={stats.distinctSources} />
+          <Metric label="Media" value={stats.verifiedMedia} highlight={stats.verifiedMedia > 0} />
         </Grid>
 
         <Flex align="center" justify="between" className={styles.footerRow}>

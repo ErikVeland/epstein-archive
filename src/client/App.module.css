@@ -790,11 +790,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: center;
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.01em;
-  line-height: 1.2;
   min-height: 1rem;
 }
 
