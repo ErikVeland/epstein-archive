@@ -8,6 +8,7 @@ import { useScrollLock } from '../../hooks/useScrollLock';
 import { Button, cn } from '../../design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { EmptyCorpus } from '../common/EmptyCorpus';
+import { EntityMentionPill } from '../common/EntityMentionPill';
 import styles from './Timeline.module.css';
 
 interface EntityLink {
