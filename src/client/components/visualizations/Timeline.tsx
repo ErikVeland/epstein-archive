@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FileText, Calendar, Users, ArrowUp, ArrowDown } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import { useFilters } from '../../contexts/useFilters';
@@ -61,6 +61,14 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
     'low',
   ]);
   useScrollLock(!!selectedEvent);
+
+  const navigate = useNavigate();
+  const openEntity = React.useCallback(
+    (entityId: string) => {
+      navigate(`/entity/${entityId}`);
+    },
+    [navigate],
+  );
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => filteredSignificance.includes(event.significance));
@@ -424,10 +432,13 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                     {event.entities.length > 0 && (
                       <div className={styles.pillRow}>
                         {event.entities.slice(0, 4).map((entity, i) => (
-                          <span key={i} className={styles.pill}>
-                            <Users className={styles.pillIcon} />
-                            {typeof entity === 'string' ? entity : entity.name}
-                          </span>
+                          <EntityMentionPill
+                            key={i}
+                            entityId={typeof entity === 'object' && entity.id ? entity.id : null}
+                            entityName={typeof entity === 'string' ? entity : entity.name}
+                            onOpen={openEntity}
+                            showIcon={false}
+                          />
                         ))}
                         {event.entities.length > 4 && (
                           <span className={styles.pill}>+{event.entities.length - 4} more</span>
