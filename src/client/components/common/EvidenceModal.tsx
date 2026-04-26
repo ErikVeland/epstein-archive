@@ -24,6 +24,9 @@ import {
 } from './subcomponents/EvidenceNetworkTab';
 import { EvidenceInvestigationsTab } from './subcomponents/EvidenceInvestigationsTab';
 import { ClaimsTab } from './subcomponents/ClaimsTab';
+import { EntityFlightsTab } from './subcomponents/EntityFlightsTab';
+import { EntityFinancialTab } from './subcomponents/EntityFinancialTab';
+import { EntityPropertiesTab } from './subcomponents/EntityPropertiesTab';
 
 // Utilities
 import {
@@ -119,14 +122,36 @@ const EVIDENCE_TABS: TabItem[] = [
   { key: 'evidence', label: 'Evidence' },
   { key: 'claims', label: 'AI Claims' },
   { key: 'investigations', label: 'Investigations' },
+  { key: 'flights', label: 'Flights' },
+  { key: 'financial', label: 'Financial' },
+  { key: 'properties', label: 'Properties' },
   { key: 'media', label: 'Media' },
   { key: 'network', label: 'Network' },
 ];
 
-type EvidenceModalTab = 'overview' | 'evidence' | 'claims' | 'media' | 'network' | 'investigations';
+type EvidenceModalTab =
+  | 'overview'
+  | 'evidence'
+  | 'claims'
+  | 'media'
+  | 'network'
+  | 'investigations'
+  | 'flights'
+  | 'financial'
+  | 'properties';
 
 const isEvidenceModalTab = (value: string): value is EvidenceModalTab =>
-  ['overview', 'evidence', 'claims', 'media', 'network', 'investigations'].includes(value);
+  [
+    'overview',
+    'evidence',
+    'claims',
+    'media',
+    'network',
+    'investigations',
+    'flights',
+    'financial',
+    'properties',
+  ].includes(value);
 
 interface EvidenceModalProps {
   entityId: string;
@@ -830,6 +855,18 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 onOpenCase={(uuid) => navigateFromModal(`/investigations/${uuid}`)}
               />
             )}
+
+            {activeTab === 'flights' && tabsLoaded.has('flights') && (
+              <EntityFlightsTab entityId={entityId} />
+            )}
+
+            {activeTab === 'financial' && tabsLoaded.has('financial') && (
+              <EntityFinancialTab entityId={entityId} entityName={entity?.fullName} />
+            )}
+
+            {activeTab === 'properties' && tabsLoaded.has('properties') && (
+              <EntityPropertiesTab entityId={entityId} />
+            )}
           </div>
         </div>
       </LiquidSheet>
@@ -959,6 +996,18 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 investigationsInitialized={investigationsInitialized}
                 onOpenCase={(uuid) => navigateFromModal(`/investigations/${uuid}`)}
               />
+            )}
+
+            {activeTab === 'flights' && tabsLoaded.has('flights') && (
+              <EntityFlightsTab entityId={entityId} />
+            )}
+
+            {activeTab === 'financial' && tabsLoaded.has('financial') && (
+              <EntityFinancialTab entityId={entityId} entityName={entity?.fullName} />
+            )}
+
+            {activeTab === 'properties' && tabsLoaded.has('properties') && (
+              <EntityPropertiesTab entityId={entityId} />
             )}
           </div>
         </motion.div>

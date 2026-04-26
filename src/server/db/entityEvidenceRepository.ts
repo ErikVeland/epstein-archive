@@ -39,6 +39,11 @@ interface RelationEvidenceRow {
   document_path?: string | null;
 }
 
+interface EntityTransactionResult {
+  entityName: string;
+  transactions: Array<Record<string, unknown>>;
+}
+
 export const entityEvidenceRepository = {
   async getEntityMentionEvidence(entityId: string) {
     const eid = BigInt(entityId);
@@ -214,5 +219,106 @@ export const entityEvidenceRepository = {
       relations: Array.from(byRelation.values()),
       evidence: rows,
     };
+  },
+
+  async getFlightsForEntity(entityId: string | number) {
+    const pool = getApiPool();
+    const result = await pool.query(
+      `SELECT
+         f.id,
+         f.date,
+         f.departure_airport,
+         f.departure_city,
+         f.departure_country,
+         f.arrival_airport,
+         f.arrival_city,
+         f.arrival_country,
+         f.aircraft_tail,
+         f.aircraft_type,
+         fp_self.role AS passenger_role,
+         COALESCE(
+           json_agg(
+             json_build_object(
+               'passenger_name', fp_other.passenger_name,
+               'role', fp_other.role,
+               'entity_id', fp_other.entity_id
+             ) ORDER BY fp_other.passenger_name
+           ) FILTER (WHERE fp_other.id IS NOT NULL),
+           '[]'::json
+         ) AS co_passengers
+       FROM flight_passengers fp_self
+       JOIN flights f ON f.id = fp_self.flight_id
+       LEFT JOIN flight_passengers fp_other
+         ON fp_other.flight_id = f.id
+         AND fp_other.entity_id IS DISTINCT FROM fp_self.entity_id
+       WHERE fp_self.entity_id = $1
+       GROUP BY f.id, f.date, f.departure_airport, f.departure_city,
+                f.departure_country, f.arrival_airport, f.arrival_city,
+                f.arrival_country, f.aircraft_tail, f.aircraft_type,
+                fp_self.role
+       ORDER BY f.date DESC`,
+      [Number(entityId)],
+    );
+    return result.rows;
+  },
+
+  async getTransactionsForEntity(
+    entityId: string | number,
+  ): Promise<EntityTransactionResult | null> {
+    const pool = getApiPool();
+    const entityRow = await pool.query(`SELECT full_name FROM entities WHERE id = $1 LIMIT 1`, [
+      Number(entityId),
+    ]);
+    if (entityRow.rows.length === 0) return null;
+
+    const entityName: string = entityRow.rows[0].full_name;
+    const result = await pool.query(
+      `SELECT
+         id,
+         from_entity,
+         to_entity,
+         amount,
+         currency,
+         transaction_date,
+         transaction_type,
+         method,
+         risk_level,
+         description,
+         source_document_id
+       FROM financial_transactions
+       WHERE from_entity ILIKE $1 OR to_entity ILIKE $1
+       ORDER BY transaction_date DESC`,
+      [entityName],
+    );
+    return { transactions: result.rows, entityName };
+  },
+
+  async getPropertiesForEntity(entityId: string | number) {
+    const pool = getApiPool();
+    const result = await pool.query(
+      `SELECT
+         id,
+         pcn,
+         owner_name_1,
+         owner_name_2,
+         site_address,
+         street_name,
+         total_tax_value,
+         acres,
+         property_use,
+         year_built,
+         bedrooms,
+         full_bathrooms,
+         half_bathrooms,
+         building_area,
+         living_area,
+         is_epstein_property,
+         is_known_associate
+       FROM properties
+       WHERE linked_entity_id = $1
+       ORDER BY total_tax_value DESC NULLS LAST`,
+      [Number(entityId)],
+    );
+    return result.rows;
   },
 };
