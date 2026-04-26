@@ -21,6 +21,7 @@ import {
 } from '../../../utils/evidenceUtils';
 import { cn } from '../../../utils/cn';
 import { EntityPhoto } from '../EvidenceModal';
+import { EntityMentionPill } from '../EntityMentionPill';
 import { AudioPlayer } from '../../media/AudioPlayer';
 import { VideoPlayer } from '../../media/VideoPlayer';
 import s from './EvidenceMediaTab.module.css';
@@ -37,6 +38,7 @@ interface EvidenceMediaTabProps {
   isMediaLoading: boolean;
   brokenMediaIds: Record<string, boolean>;
   setBrokenMediaIds: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  onOpenEntity?: (entityId: string) => void;
 }
 
 type MediaCategory = 'all' | 'photos' | 'videos' | 'audio';
@@ -47,6 +49,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   isMediaLoading,
   brokenMediaIds,
   setBrokenMediaIds,
+  onOpenEntity,
 }) => {
   const [activeCategory, setActiveCategory] = useState<MediaCategory>('all');
   const [selectedItemId, setSelectedItemId] = useState<string | number | null>(null);
@@ -270,9 +273,20 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
 
                   {taggedPeople.length > 0 && (
                     <div className={s.tagsRow}>
-                      <span className={s.tagsLabel}>Tagged:</span>{' '}
-                      {taggedPeople.slice(0, 3).join(', ')}
-                      {taggedPeople.length > 3 ? ` +${taggedPeople.length - 3}` : ''}
+                      <span className={s.tagsLabel}>Tagged:</span>
+                      <span className={s.taggedPeople}>
+                        {taggedPeople.slice(0, 3).map((person, idx) => (
+                          <EntityMentionPill
+                            key={idx}
+                            entityName={String(person)}
+                            onOpen={onOpenEntity}
+                            showIcon={false}
+                          />
+                        ))}
+                        {taggedPeople.length > 3 && (
+                          <span className={s.tagOverflow}>+{taggedPeople.length - 3}</span>
+                        )}
+                      </span>
                     </div>
                   )}
 

@@ -833,6 +833,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 isMediaLoading={isMediaLoading}
                 brokenMediaIds={brokenMediaIds}
                 setBrokenMediaIds={setBrokenMediaIds}
+                onOpenEntity={(id) => navigateFromModal(`/entity/${id}`)}
               />
             )}
 
@@ -975,6 +976,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 isMediaLoading={isMediaLoading}
                 brokenMediaIds={brokenMediaIds}
                 setBrokenMediaIds={setBrokenMediaIds}
+                onOpenEntity={(id) => navigateFromModal(`/entity/${id}`)}
               />
             )}
 
