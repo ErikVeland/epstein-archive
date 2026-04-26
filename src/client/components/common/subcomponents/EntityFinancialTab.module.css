@@ -1,0 +1,224 @@
+.tabContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: transparent;
+}
+
+.header {
+  padding: var(--space-6);
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 60%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.headerTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-strong);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-wide);
+}
+
+.financialIcon {
+  color: #f59e0b;
+}
+
+.countBadge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background-color: var(--glass-bg);
+  padding: var(--space-2) var(--space-4);
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--glass-border) 80%, transparent);
+}
+
+.listContainer {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  composes: custom-scrollbar from global;
+}
+
+.card {
+  composes: surface-panel from global;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: box-shadow var(--duration-normal) var(--easing-liquid);
+}
+
+.card:hover {
+  box-shadow: var(--glass-shadow);
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.direction {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 0;
+}
+
+.directionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.incoming {
+  background: color-mix(in srgb, #10b981 15%, transparent);
+  color: #10b981;
+}
+
+.outgoing {
+  background: color-mix(in srgb, #ef4444 15%, transparent);
+  color: #ef4444;
+}
+
+.entityName {
+  font-weight: 500;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.metaChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.riskHigh {
+  color: #ef4444;
+}
+
+.riskMedium {
+  color: #f59e0b;
+}
+
+.riskLow {
+  color: #10b981;
+}
+
+.description {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.sourceLink:hover {
+  text-decoration: underline;
+}
+
+.skeletonStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeletonCard {
+  composes: surface-panel from global;
+  padding: var(--space-5);
+  height: 5.5rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.emptyState {
+  height: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-6);
+  color: var(--text-dim);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-4);
+  opacity: 0.3;
+  color: #f59e0b;
+}
+
+.emptyTitle {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin-bottom: var(--space-2);
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 24rem;
+}
