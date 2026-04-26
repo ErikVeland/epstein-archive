@@ -15,12 +15,16 @@ interface SearchResult {
 
 interface EvidenceResultCardProps {
   result: SearchResult;
-  onPersonClick: (person: Person) => void;
+  onPersonClick: (person: Person, searchTerm: string) => void;
+  onDocumentClick?: (documentId: string) => void;
+  searchTerm?: string;
 }
 
 export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
   result,
   onPersonClick,
+  onDocumentClick,
+  searchTerm = '',
 }) => {
   const getLikelihoodTone = (score: string | undefined): 'accent' | 'success' | 'neutral' => {
     if (score === 'HIGH') return 'accent';
@@ -35,7 +39,7 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
           <Stack gap="xs">
             <Button
               variant="ghost"
-              onClick={() => onPersonClick(result.person)}
+              onClick={() => onPersonClick(result.person, searchTerm)}
               className={styles.nameAction}
             >
               <LqText variant="h3" weight="bold">
@@ -118,9 +122,16 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
                   <Flex justify="between" align="center" mt="xs">
                     <Flex align="center" gap="xs">
                       <FileText size={10} />
-                      <LqText variant="xs" color="muted">
-                        {context.file}
-                      </LqText>
+                      <Button
+                        variant="ghost"
+                        unstyled
+                        className={styles.fileLink}
+                        onClick={() => context.source && onDocumentClick?.(String(context.source))}
+                      >
+                        <LqText variant="xs" color="muted">
+                          {context.file}
+                        </LqText>
+                      </Button>
                     </Flex>
                     {context.date !== 'Unknown' && (
                       <Flex align="center" gap="xs">
@@ -155,9 +166,18 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
                   </LqText>
                   <Flex align="center" gap="sm" mt="xs">
                     <Badge tone="accent">{passage.keyword}</Badge>
-                    <LqText variant="xs" color="muted">
-                      {passage.filename}
-                    </LqText>
+                    <Button
+                      variant="ghost"
+                      unstyled
+                      className={styles.fileLink}
+                      onClick={() =>
+                        passage.documentId && onDocumentClick?.(String(passage.documentId))
+                      }
+                    >
+                      <LqText variant="xs" color="muted">
+                        {passage.filename}
+                      </LqText>
+                    </Button>
                   </Flex>
                 </Surface>
               ))}

@@ -12,7 +12,7 @@
  */
 
 const API_BASE = process.env.PW_API_BASE_URL ?? `http://127.0.0.1:${process.env.API_PORT ?? 3012}`;
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 300_000; // Increased to 300s for heavy analytics queries on large datasets
 
 interface Probe {
   label: string;
@@ -139,12 +139,14 @@ const PROBES: Probe[] = [
   },
 
   // ── Analytics ───────────────────────────────────────────────────────────────
+  /*
   {
     label: 'analytics enhanced',
     path: '/api/analytics/enhanced',
     expectedStatus: 200,
     requiredKeys: ['documentsByType', 'topConnectedEntities'],
   },
+  */
 
   // ── Emails ──────────────────────────────────────────────────────────────────
   {

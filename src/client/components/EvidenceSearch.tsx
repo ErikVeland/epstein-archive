@@ -15,6 +15,7 @@ import styles from './EvidenceSearch.module.css';
 
 interface EvidenceSearchProps {
   onPersonClick?: (person: Person, searchTerm: string) => void;
+  onDocumentClick?: (documentId: string) => void;
 }
 
 type EvidenceSortBy = 'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name';
@@ -26,7 +27,10 @@ const VALID_SORTS = new Set<string>([
   'name',
 ]);
 
-export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick }) => {
+export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
+  onPersonClick,
+  onDocumentClick,
+}) => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
@@ -296,12 +300,21 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
             <Grid cols={{ base: 1, md: 2 }} gap="lg">
               {searchResults.map((result, index) => (
-                <EvidenceResultCard key={index} result={result} onPersonClick={handlePersonClick} />
+                <EvidenceResultCard
+                  key={index}
+                  result={result}
+                  onPersonClick={handlePersonClick}
+                  onDocumentClick={onDocumentClick}
+                />
               ))}
             </Grid>
 
             {docSnippets.length > 0 && (
-              <EvidenceDocSnippets snippets={docSnippets} searchTerm={searchTerm} />
+              <EvidenceDocSnippets
+                snippets={docSnippets}
+                searchTerm={searchTerm}
+                onDocumentClick={onDocumentClick}
+              />
             )}
           </>
         )}

@@ -308,3 +308,15 @@
     display: block;
   }
 }
+
+.fileLink {
+  text-align: left;
+  display: flex;
+  align-items: center;
+  transition: opacity 150ms ease;
+}
+
+.fileLink:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}

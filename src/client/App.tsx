@@ -1934,8 +1934,12 @@ function App() {
                             }
                           />
                           <Route
-                            path="/search"
-                            element={<EvidenceSearch onPersonClick={handlePersonClick} />}
+                            element={
+                              <EvidenceSearch
+                                onPersonClick={handlePersonClick}
+                                onDocumentClick={handleDocumentSuggestionClick}
+                              />
+                            }
                           />
                           <Route
                             path="/documents/*"

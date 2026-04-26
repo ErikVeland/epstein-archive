@@ -76,7 +76,7 @@ const POOL_SIZES = {
 
 const API_POOL_OPTIONS =
   process.env.PG_API_POOL_OPTIONS ??
-  '-c statement_timeout=8000 -c lock_timeout=500 -c idle_in_transaction_session_timeout=3000';
+  '-c statement_timeout=60000 -c lock_timeout=500 -c idle_in_transaction_session_timeout=3000';
 
 const MAINTENANCE_POOL_OPTIONS =
   process.env.PG_MAINTENANCE_POOL_OPTIONS ??

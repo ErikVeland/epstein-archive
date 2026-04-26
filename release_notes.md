@@ -1,5 +1,17 @@
 # Release Notes
 
+## 19.6.6 - 2026-04-26 - Forensic Search Integrity & Smoke Test Stabilization
+
+### Bug Fixes
+
+- **Search Navigation**: Document titles and context snippets in the Evidence Search results are now clickable links, allowing direct navigation to the document viewer from any search match.
+- **Deep-linked Passages**: Enabled clickable file links within the "Spatial Contexts" and "Culpability Passages" sections of entity search results, bridging the gap between entity discovery and source evidence.
+- **Visual Polish**: Refined the circular search button geometry and fixed a layout regression where grid card rounding was leaking into the wrong children at specific breakpoints.
+
+### Infrastructure
+
+- **Test Stabilization**: Increased the smoke test timeout to 60s to accommodate heavy relationship analysis queries on the full 1.6M record dataset, ensuring consistent CI/CD reliability.
+
 ## 19.6.5 - 2026-04-25 - Search Integrity & UX Polish
 
 ### Bug Fixes

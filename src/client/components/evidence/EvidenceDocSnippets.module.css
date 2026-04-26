@@ -127,3 +127,14 @@
   background: rgba(0, 0, 0, 0.15);
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
 }
+
+.titleButton {
+  text-align: left;
+  display: block;
+  width: 100%;
+}
+
+.titleButton:hover .docTitle {
+  color: var(--accent-light);
+  text-decoration: underline;
+}

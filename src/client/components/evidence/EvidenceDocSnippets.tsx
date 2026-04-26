@@ -1,7 +1,7 @@
 import React from 'react';
 import DOMPurify from 'isomorphic-dompurify';
 import { FileText, File } from 'lucide-react';
-import { Surface, Flex, Box, Stack, LqText, Badge } from '../../design-system/lib';
+import { Surface, Flex, Box, Stack, LqText, Badge, Button } from '../../design-system/lib';
 import styles from './EvidenceDocSnippets.module.css';
 
 interface DocSnippet {
@@ -14,11 +14,13 @@ interface DocSnippet {
 interface EvidenceDocSnippetsProps {
   snippets: DocSnippet[];
   searchTerm: string;
+  onDocumentClick?: (documentId: string) => void;
 }
 
 export const EvidenceDocSnippets: React.FC<EvidenceDocSnippetsProps> = ({
   snippets,
   searchTerm,
+  onDocumentClick,
 }) => {
   if (snippets.length === 0) return null;
 
@@ -48,14 +50,21 @@ export const EvidenceDocSnippets: React.FC<EvidenceDocSnippetsProps> = ({
               <Stack gap="md">
                 <Flex justify="between" align="start">
                   <Stack gap="none">
-                    <LqText
-                      variant="small"
-                      weight="bold"
-                      color="accent"
-                      className={styles.docTitle}
+                    <Button
+                      variant="ghost"
+                      unstyled
+                      className={styles.titleButton}
+                      onClick={() => onDocumentClick?.(String(doc.id))}
                     >
-                      {doc.title}
-                    </LqText>
+                      <LqText
+                        variant="small"
+                        weight="bold"
+                        color="accent"
+                        className={styles.docTitle}
+                      >
+                        {doc.title}
+                      </LqText>
+                    </Button>
                     <Flex align="center" gap="xs">
                       <File size={12} className={styles.iconMuted} />
                       <LqText variant="xs" color="muted">

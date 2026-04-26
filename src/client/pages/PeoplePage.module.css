@@ -152,7 +152,7 @@
 }
 
 /* 2-column layout (md) */
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1279px) {
   /* Reset previous rounding */
   .resultsGrid > *:first-child :global([data-testid='subject-card']) {
     border-top-right-radius: 0;
@@ -182,8 +182,14 @@
 /* 3-column layout (xl) */
 @media (min-width: 1280px) {
   /* Reset previous rounding */
+  .resultsGrid > *:first-child :global([data-testid='subject-card']) {
+    border-top-right-radius: 0;
+  }
   .resultsGrid > *:nth-child(2) :global([data-testid='subject-card']) {
     border-top-right-radius: 0;
+  }
+  .resultsGrid > *:last-child :global([data-testid='subject-card']) {
+    border-bottom-left-radius: 0;
   }
 
   /* Top Right corner */
@@ -204,7 +210,7 @@
   }
 
   /* Reset mid-row bottom rounding if next item exists */
-  .resultsGrid > *:nth-last-child(n + 2):nth-child(3n + 1) :global([data-testid='subject-card']) {
+  .resultsGrid > *:nth-last-child(n + 4):nth-child(3n + 1) :global([data-testid='subject-card']) {
     border-bottom-left-radius: 0;
   }
 

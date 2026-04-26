@@ -108,7 +108,7 @@ export const analyticsRepository = {
     const client = await getApiPool().connect();
     try {
       await client.query('BEGIN');
-      await client.query("SET LOCAL statement_timeout = '60000ms'");
+      await client.query("SET LOCAL statement_timeout = '300000ms'");
       const result = await client.query<TopConnectedPerson>(`
         WITH rel_counts AS (
           SELECT entity_id, SUM(cnt)::bigint AS cnt
