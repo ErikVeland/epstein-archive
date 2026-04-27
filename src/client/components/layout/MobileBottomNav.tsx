@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '../../design-system/lib';
 import Icon, { type IconName } from '../common/Icon';
 import styles from './MobileBottomNav.module.css';
@@ -18,15 +18,20 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'people', label: 'People', icon: 'Users', path: '/people' },
-  { id: 'search', label: 'Search', icon: 'Search', path: '/search' },
+  { id: 'search', label: 'Search', icon: 'Search', path: '' },
   { id: 'investigations', label: 'Investigate', icon: 'Target', path: '/investigations' },
   { id: 'more', label: 'More', icon: 'MoreHorizontal', path: '' },
 ];
 
 export function MobileBottomNav({ className }: MobileBottomNavProps) {
+  const location = useLocation();
+
   const handleNav = (item: NavItem) => {
     if (item.id === 'more') {
       const event = new CustomEvent('toggleMobileMenu');
+      window.dispatchEvent(event);
+    } else if (item.id === 'search') {
+      const event = new CustomEvent('toggleMobileSearch');
       window.dispatchEvent(event);
     }
   };
@@ -46,7 +51,10 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
         ) : (
           <button
             key={item.id}
-            className={styles.navItem}
+            className={cn(
+              styles.navItem,
+              item.id === 'search' && location.pathname === '/search' && styles.active,
+            )}
             onClick={() => handleNav(item)}
             type="button"
           >

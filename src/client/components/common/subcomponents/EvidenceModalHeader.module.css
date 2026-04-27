@@ -419,28 +419,35 @@
     width: 100%;
     margin-left: 0;
     margin-top: var(--space-1);
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: stretch !important;
-    gap: var(--space-1) !important;
-    overflow: visible !important;
+    display: flex !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: var(--space-4) !important;
+    padding: var(--space-1) 0 var(--space-2) !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    border-bottom: 1px solid var(--glass-border) !important;
+  }
+
+  .tabsOverride::-webkit-scrollbar {
+    display: none;
   }
 
   .tabsOverride :global(button[role='tab']) {
-    width: 100%;
-    min-width: 0;
-    height: 2rem;
-    justify-content: center;
+    flex: 0 0 auto;
+    width: auto;
+    height: 2.5rem;
     padding: 0 var(--space-2);
-    font-size: 10px;
-    line-height: 1;
-    overflow: hidden;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    justify-content: center;
+    white-space: nowrap;
   }
 
   .tabsOverride :global(button[role='tab'] span) {
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls, useAnimation } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 import { cn } from '../../utils/cn';
@@ -42,7 +43,7 @@ export const LiquidSheet: React.FC<LiquidSheetProps> = ({
     }
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -83,6 +84,7 @@ export const LiquidSheet: React.FC<LiquidSheetProps> = ({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 };

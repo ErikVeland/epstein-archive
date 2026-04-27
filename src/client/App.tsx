@@ -673,8 +673,13 @@ function App() {
 
   useEffect(() => {
     const handleToggleMobileMenu = () => setIsMobileMenuOpen((v) => !v);
+    const handleToggleMobileSearch = () => setIsMobileSearchOpen((v) => !v);
     window.addEventListener('toggleMobileMenu', handleToggleMobileMenu);
-    return () => window.removeEventListener('toggleMobileMenu', handleToggleMobileMenu);
+    window.addEventListener('toggleMobileSearch', handleToggleMobileSearch);
+    return () => {
+      window.removeEventListener('toggleMobileMenu', handleToggleMobileMenu);
+      window.removeEventListener('toggleMobileSearch', handleToggleMobileSearch);
+    };
   }, []);
 
   useEffect(() => {
@@ -1934,6 +1939,7 @@ function App() {
                             }
                           />
                           <Route
+                            path="/search"
                             element={
                               <EvidenceSearch
                                 onPersonClick={handlePersonClick}

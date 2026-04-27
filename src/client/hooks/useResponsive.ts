@@ -7,7 +7,7 @@ const BREAKPOINTS: Record<Breakpoint, string> = {
   md: '(min-width: 768px)',
   lg: '(min-width: 1024px)',
   xl: '(min-width: 1280px)',
-  mobile: '(max-width: 767px)',
+  mobile: '(max-width: 768px)',
   tablet: '(min-width: 768px) and (max-width: 1023px)',
   desktop: '(min-width: 1024px)',
 };
@@ -87,7 +87,7 @@ export const BREAKPOINT_VALUES = {
   md: 768,
   lg: 1024,
   xl: 1280,
-  mobile: 767,
+  mobile: 768,
   tablet: 1023,
   desktop: 1024,
 } as const;

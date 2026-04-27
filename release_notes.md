@@ -1,5 +1,14 @@
 # Release Notes
 
+## 19.6.9 - 2026-04-27 - Mobile Navigation & Document Access Hardening
+
+### Bug Fixes
+
+- **Mobile Navigation**: Unified mobile breakpoints to 768px across the design system to ensure the search sheet and bottom navigation work consistently on all mobile-sized devices, including large-screen phones and iPad mini.
+- **Entity Card Interface**: Replaced the rigid 3x3 tab grid on mobile with a touch-optimized horizontal scroller. This saves vertical space, prevents content overlap, and fixes the tab indicator's horizontal positioning.
+- **Document Access**: Portalled the `LiquidSheet` component for documents to ensure it always renders at the top of the stack and avoids layout clipping regressions.
+- **Search Bottom Nav**: Fixed the search button in the bottom navigation bar by ensuring the `toggleMobileSearch` event is correctly handled and triggers the appropriate UI state.
+
 ## 19.6.8 - 2026-04-27 - Mobile Entity Header Overlap Resolution
 
 ### Bug Fixes
