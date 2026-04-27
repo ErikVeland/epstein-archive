@@ -2,8 +2,24 @@ import { Router, Request, Response } from 'express';
 import { entityEvidenceRepository } from '../db/entityEvidenceRepository.js';
 import crypto from 'crypto';
 import { logger } from '../services/Logger.js';
+import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
 
 const router = Router();
+
+router.param('entityId', async (req, res, next, value) => {
+  try {
+    const resolved = await resolveCanonicalEntityId(value);
+    req.params.entityId = String(resolved.canonicalId);
+    res.locals.rawEntityId = String(value);
+    res.locals.canonicalId = String(resolved.canonicalId);
+    next();
+  } catch (error) {
+    if (error instanceof EntityIdError) {
+      return res.status(400).json({ error: error.message });
+    }
+    next(error);
+  }
+});
 
 // GET /api/entities/:id/evidence
 router.get('/:entityId/evidence', async (req: Request, res: Response) => {

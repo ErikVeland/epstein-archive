@@ -1,6 +1,7 @@
 import { relationshipsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
+import { resolveCanonicalEntityId } from '../utils/id_utils.js';
 import {
   IGetRelationshipsResult,
   IGetNeighborsCachedResult,
@@ -58,16 +59,7 @@ export const relationshipsRepository = {
     } = {},
   ) => {
     const pool = getApiPool();
-    // Most relationship tables are keyed by canonical_id, but many UI surfaces pass the
-    // concrete `entities.id`. Resolve to canonical_id first so relationships reliably show up.
-    const canonicalRows = await relationshipsQueries.getEntityCanonical.run(
-      { id: Number(entityId) },
-      pool,
-    );
-    const canonicalId =
-      canonicalRows.length > 0 && canonicalRows[0]?.cid != null
-        ? Number(canonicalRows[0].cid)
-        : Number(entityId);
+    const { canonicalId } = await resolveCanonicalEntityId(entityId, pool);
 
     const rowsRes = await pool.query(
       `SELECT 
@@ -85,7 +77,7 @@ export const relationshipsRepository = {
        ORDER BY proximity_score DESC
        LIMIT $4::int`,
       [
-        canonicalId,
+        Number(canonicalId),
         filters.minWeight ?? null,
         filters.minConfidence ?? null,
         Math.max(1, Math.min(500, Number(filters.limit ?? 50))),
@@ -94,7 +86,7 @@ export const relationshipsRepository = {
     const rows = rowsRes.rows as IGetRelationshipsResult[];
 
     return {
-      canonicalId,
+      canonicalId: Number(canonicalId),
       relationships: rows.map((r: IGetRelationshipsResult) => ({
         source_id: Number(r.sourceId),
         target_id: Number(r.targetId),
@@ -152,16 +144,10 @@ export const relationshipsRepository = {
     const MAX_QUEUE_ITERATIONS = 500;
     const safeDepth = Math.min(depth, MAX_DEPTH);
 
-    // 0. Resolve to Canonical ID
-    const startNodeRows = await relationshipsQueries.getEntityCanonical.run(
-      { id: Number(entityId) },
-      getApiPool(),
-    );
-    if (startNodeRows.length === 0) return { nodes: [], edges: [] };
-
-    const startId = startNodeRows[0].cid;
-
     const pool = getApiPool();
+    const resolution = await resolveCanonicalEntityId(entityId, pool);
+    if (!resolution.found) return { nodes: [], edges: [] };
+    const startId = resolution.canonicalId;
     const visited = new Set<number>();
     const queue: { id: number; d: number; bridge_score?: number }[] = [
       { id: Number(startId), d: 0, bridge_score: 0 },
@@ -345,13 +331,9 @@ export const relationshipsRepository = {
   },
 
   getEntitySummarySource: async (entityId: number | string, topN: number = 10) => {
-    // Resolve Canonical ID
-    const startNodeRows = await relationshipsQueries.getEntityCanonical.run(
-      { id: Number(entityId) },
-      getApiPool(),
-    );
-    if (startNodeRows.length === 0) return null;
-    const canonicalId = startNodeRows[0].cid;
+    const resolution = await resolveCanonicalEntityId(entityId);
+    if (!resolution.found) return null;
+    const canonicalId = resolution.canonicalId;
 
     const entityRows = await relationshipsQueries.getEntityDetailsAggregated.run(
       { canonicalId: String(canonicalId!) },

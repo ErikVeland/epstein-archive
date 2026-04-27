@@ -40,7 +40,12 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
 }) => {
   const queryClient = useQueryClient();
 
-  const { data: claims = [], isLoading } = useQuery<ClaimTriple[]>({
+  const {
+    data: claims = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery<ClaimTriple[]>({
     queryKey: ['claims', documentId || entityId],
     queryFn: () =>
       documentId
@@ -63,6 +68,20 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
         <div className="spinner" />
         <LqText variant="body" color="muted">
           Analyzing forensic claims...
+        </LqText>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className={styles.emptyState}>
+        <XCircle size={48} opacity={0.3} style={{ marginBottom: '1rem' }} />
+        <LqText variant="h3" weight="bold">
+          Claims could not be loaded
+        </LqText>
+        <LqText variant="body" color="muted">
+          {error instanceof Error ? error.message : 'The claims endpoint returned an error.'}
         </LqText>
       </div>
     );

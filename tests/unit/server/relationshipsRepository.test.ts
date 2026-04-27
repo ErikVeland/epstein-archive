@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
 const queryMock = vi.fn();
-const canonicalRunMock = vi.fn();
 
 vi.mock('../../../src/server/db/connection.js', () => {
   return {
@@ -14,14 +13,20 @@ vi.mock('../../../src/server/db/connection.js', () => {
 vi.mock('@epstein/db', () => {
   return {
     relationshipsQueries: {
-      getEntityCanonical: { run: canonicalRunMock },
+      getNeighborsCached: { run: vi.fn() },
+      getRelationshipStats: { run: vi.fn() },
+      getTopEntitiesByRelationshipCount: { run: vi.fn() },
+      getEntityDetailsAggregated: { run: vi.fn() },
+      getRelationships: { run: vi.fn() },
     },
   };
 });
 
 describe('relationshipsRepository.getRelationships', () => {
   it('queries relationships using canonical_id when available', async () => {
-    canonicalRunMock.mockResolvedValueOnce([{ cid: 1 }]);
+    queryMock.mockResolvedValueOnce({
+      rows: [{ id: '42', canonical_id: 1 }],
+    });
     queryMock.mockResolvedValueOnce({
       rows: [
         {
@@ -41,16 +46,16 @@ describe('relationshipsRepository.getRelationships', () => {
     const result = await relationshipsRepository.getRelationships(42, { limit: 50 });
 
     expect(result.canonicalId).toBe(1);
-    expect(queryMock).toHaveBeenCalledTimes(1);
+    expect(queryMock).toHaveBeenCalledTimes(2);
     // Ensure the SQL bind uses canonicalId (1), not the requested entityId (42).
-    expect(queryMock.mock.calls[0]?.[1]?.[0]).toBe(1);
+    expect(queryMock.mock.calls[1]?.[1]?.[0]).toBe(1);
     expect(result.relationships).toHaveLength(1);
     expect(result.relationships[0]?.source_id).toBe(1);
     expect(result.relationships[0]?.target_id).toBe(2);
   });
 
   it('falls back to the requested id when canonical lookup fails', async () => {
-    canonicalRunMock.mockResolvedValueOnce([]);
+    queryMock.mockResolvedValueOnce({ rows: [] });
     queryMock.mockResolvedValueOnce({ rows: [] });
 
     const { relationshipsRepository } =

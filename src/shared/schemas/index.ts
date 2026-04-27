@@ -9,3 +9,4 @@ export * from './blackBook';
 export * from './properties';
 export * from './stats';
 export * from './exportManifest';
+export * from './entityTabs';

@@ -7,6 +7,10 @@ cd "$ROOT_DIR"
 log() { echo "[pg-nuclear] $*"; }
 fail() { echo "[pg-nuclear] $*" >&2; exit 1; }
 is_ci() { [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; }
+# Some environments (including local/dev containers) set CI=true; we only want to
+# fail-closed on missing DATABASE_URL when we are in a *strict* CI environment.
+# GitHub Actions sets GITHUB_ACTIONS=true; deploy pipelines may opt-in via CI_STRICT_DB_GATES=1.
+is_strict_ci() { [[ "${GITHUB_ACTIONS:-}" == "true" || "${CI_STRICT_DB_GATES:-}" == "1" ]]; }
 have_rg() { command -v rg >/dev/null 2>&1; }
 
 log "Guard: no SQLite remnants in src/"
@@ -75,7 +79,7 @@ pnpm lint
 pnpm type-check
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
-  if is_ci; then
+  if is_strict_ci; then
     fail "❌ DATABASE_URL required in CI for PG explain/schema gates"
   fi
   log "DATABASE_URL not set; skipping pg_explain + schema hash gates for local prebuild"
@@ -91,7 +95,7 @@ fi
 PGDUMP_MAJOR="$(pg_dump --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
 SERVER_MAJOR="$(psql "$DATABASE_URL" -Atc "SHOW server_version_num" 2>/dev/null | cut -c1-2)"
 if [[ -n "$PGDUMP_MAJOR" && -n "$SERVER_MAJOR" && "$PGDUMP_MAJOR" != "$SERVER_MAJOR" ]]; then
-  if is_ci; then
+  if is_strict_ci; then
     fail "❌ pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR)"
   fi
   log "pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR); skipping DB-backed gates"
@@ -102,7 +106,7 @@ if command -v sha256sum >/dev/null 2>&1; then
 elif command -v shasum >/dev/null 2>&1; then
   HASH_CMD="shasum -a 256"
 else
-  if is_ci; then
+  if is_strict_ci; then
     fail "❌ sha256sum/shasum is required"
   fi
   log "sha256 tool not installed locally; skipping DB-backed gates"
@@ -129,7 +133,7 @@ if command -v psql >/dev/null 2>&1; then
     " 2>/dev/null || echo '__PSQL_ERROR__ __PSQL_ERROR__ __PSQL_ERROR__'
   )
   if [[ "$DOC_COUNT" == "__PSQL_ERROR__" || "$ENTITY_COUNT" == "__PSQL_ERROR__" || "$REL_COUNT" == "__PSQL_ERROR__" ]]; then
-    if is_ci; then
+    if is_strict_ci; then
       fail "❌ Unable to inspect table cardinality before plan regression gate"
     fi
     log "Skipping plan regression gate (psql cardinality probe failed locally)"
@@ -159,7 +163,7 @@ if command -v psql >/dev/null 2>&1; then
     psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM media_items WHERE (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''" 2>/dev/null || echo '__PSQL_ERROR__'
   )"
   if [[ "$MISSING_MEDIA_FILETYPE" == "__PSQL_ERROR__" ]]; then
-    if is_ci; then
+    if is_strict_ci; then
       fail "❌ Unable to run media file_type completeness gate"
     fi
     log "Skipping media file_type completeness gate (psql query failed locally)"
@@ -177,7 +181,7 @@ if command -v psql >/dev/null 2>&1; then
     " 2>/dev/null || echo '__PSQL_ERROR__ __PSQL_ERROR__'
   )
   if [[ "$MISSING_DOC_FILETYPE" == "__PSQL_ERROR__" || "$MISSING_DOC_EVIDENCETYPE" == "__PSQL_ERROR__" ]]; then
-    if is_ci; then
+    if is_strict_ci; then
       fail "❌ Unable to run documents metadata completeness gate"
     fi
     log "Skipping documents metadata completeness gate (psql query failed locally)"

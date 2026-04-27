@@ -36,6 +36,7 @@ interface EvidenceMediaTabProps {
   entity: EvidenceEntity | null;
   mediaItems: EntityPhoto[];
   isMediaLoading: boolean;
+  isMediaError: boolean;
   brokenMediaIds: Record<string, boolean>;
   setBrokenMediaIds: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   onOpenEntity?: (entityId: string) => void;
@@ -47,6 +48,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   entity,
   mediaItems,
   isMediaLoading,
+  isMediaError,
   brokenMediaIds,
   setBrokenMediaIds,
   onOpenEntity,
@@ -141,6 +143,12 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
         <div className={s.loadingState}>
           <Search size={48} className={s.loadingIcon} />
           <p>Loading linked media…</p>
+        </div>
+      ) : isMediaError ? (
+        <div className={s.emptyState}>
+          <X size={48} className={s.emptyIcon} />
+          <h4 className={s.emptyTitle}>Media could not be loaded</h4>
+          <p className={s.emptyText}>The media endpoint returned an error.</p>
         </div>
       ) : displayItems.length > 0 ? (
         <div className={s.grid}>

@@ -18,6 +18,13 @@ import {
   propertyStatsResponseSchema,
   statsResponseSchema,
   healthResponseSchema,
+  entityMediaResponseSchema,
+  entityDocumentsResponseSchema,
+  entityFlightsResponseSchema,
+  entityTransactionsResponseSchema,
+  entityPropertiesResponseSchema,
+  entityClaimsResponseSchema,
+  entityInvestigationsResponseSchema,
 } from '../src/shared/schemas';
 
 const apiPort = Number(process.env.PW_API_PORT || 3312);
@@ -47,6 +54,36 @@ const waitForOk = async (request: APIRequestContext, url: string, attempts = 4) 
   }
   throw new Error(`Expected OK from ${url}, last status was ${lastStatus ?? 'unknown'}`);
 };
+
+async function resolveHighMentionEntityId(request: APIRequestContext): Promise<string | null> {
+  const response = await request.get(
+    `${API_BASE_URL}/api/entities?limit=15&sortBy=mentions&sortOrder=desc`,
+  );
+  if (!response.ok()) return null;
+  const body = await response.json();
+  const items: Record<string, unknown>[] = Array.isArray(body?.data)
+    ? (body.data as Record<string, unknown>[])
+    : Array.isArray(body)
+      ? (body as Record<string, unknown>[])
+      : [];
+  const first = items.find((item) => Number.isFinite(Number(item?.id)));
+  return first ? String(first.id) : null;
+}
+
+async function resolveEntityWithVerifiedMedia(request: APIRequestContext): Promise<string | null> {
+  const response = await request.get(
+    `${API_BASE_URL}/api/entities?limit=50&sortBy=mentions&sortOrder=desc`,
+  );
+  if (!response.ok()) return null;
+  const body = await response.json();
+  const items: Record<string, unknown>[] = Array.isArray(body?.data)
+    ? (body.data as Record<string, unknown>[])
+    : Array.isArray(body)
+      ? (body as Record<string, unknown>[])
+      : [];
+  const match = items.find((item) => Number(item?.verifiedMedia ?? item?.verified_media ?? 0) > 0);
+  return match?.id != null ? String(match.id) : null;
+}
 
 test.describe('API DTO Contracts', () => {
   test.describe.configure({ mode: 'serial' });
@@ -280,5 +317,78 @@ test.describe('API DTO Contracts', () => {
     expect([200, 503]).toContain(response.status());
     const body = await response.json();
     assertSchema(healthResponseSchema, body, 'GET /api/stats/health');
+  });
+
+  test('entity tab endpoints return 200 JSON bodies matching shared schemas', async ({
+    request,
+  }) => {
+    const entityId = await resolveHighMentionEntityId(request);
+    if (!entityId) {
+      test.skip(true, 'No entities available in test dataset');
+      return;
+    }
+
+    const tabEndpoints: Array<{ name: string; url: string; schema: ZodSchema<unknown> }> = [
+      {
+        name: 'media',
+        url: `/api/entities/${entityId}/media`,
+        schema: entityMediaResponseSchema,
+      },
+      {
+        name: 'documents',
+        url: `/api/entities/${entityId}/documents?limit=50`,
+        schema: entityDocumentsResponseSchema,
+      },
+      {
+        name: 'flights',
+        url: `/api/entities/${entityId}/flights`,
+        schema: entityFlightsResponseSchema,
+      },
+      {
+        name: 'transactions',
+        url: `/api/entities/${entityId}/transactions`,
+        schema: entityTransactionsResponseSchema,
+      },
+      {
+        name: 'properties',
+        url: `/api/entities/${entityId}/properties`,
+        schema: entityPropertiesResponseSchema,
+      },
+      {
+        name: 'claims',
+        url: `/api/entities/${entityId}/claims`,
+        schema: entityClaimsResponseSchema,
+      },
+      {
+        name: 'investigations',
+        url: `/api/entities/${entityId}/investigations`,
+        schema: entityInvestigationsResponseSchema,
+      },
+    ];
+
+    for (const endpoint of tabEndpoints) {
+      const response = await request.get(`${API_BASE_URL}${endpoint.url}`, { timeout: 20_000 });
+      expect(response.status(), `[${endpoint.name}] must return 200`).toBe(200);
+      const body = await response.json();
+      assertSchema(endpoint.schema, body, `GET ${endpoint.url}`);
+    }
+  });
+
+  test('entity with verified media returns non-empty media tab response', async ({ request }) => {
+    const entityId = await resolveEntityWithVerifiedMedia(request);
+    if (!entityId) {
+      test.skip(true, 'No entity with verifiedMedia > 0 found in test dataset');
+      return;
+    }
+
+    const response = await request.get(`${API_BASE_URL}/api/entities/${entityId}/media`);
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    const parsed = assertSchema(
+      entityMediaResponseSchema,
+      body,
+      `GET /api/entities/${entityId}/media`,
+    );
+    expect(parsed.length).toBeGreaterThan(0);
   });
 });

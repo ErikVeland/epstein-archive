@@ -609,15 +609,22 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   });
 
   const mediaEnabled = isOpen && !!entityId && (activeTab === 'media' || activeTab === 'overview');
-  const { data: mediaItems = [], isLoading: isMediaLoading } = useQuery<EntityPhoto[]>({
+  const {
+    data: mediaItems = [],
+    isLoading: isMediaLoading,
+    isError: isMediaError,
+  } = useQuery<EntityPhoto[]>({
     queryKey: ['entityMedia', entityId],
     queryFn: async () => {
       const response = await fetch(`/api/entities/${entityId}/media`, { credentials: 'include' });
-      if (response.status === 204) return [];
+      if (!response.ok) {
+        throw new Error(`Failed to fetch media: ${response.status}`);
+      }
       const payload = (await response.json()) as Record<string, unknown>[];
-      return Array.isArray(payload)
-        ? payload.map((item, index) => normalizeEntityMediaItem(item, index))
-        : [];
+      if (!Array.isArray(payload)) {
+        throw new Error('Media response was not an array');
+      }
+      return payload.map((item, index) => normalizeEntityMediaItem(item, index));
     },
     enabled: mediaEnabled,
     staleTime: 60_000,
@@ -831,6 +838,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 entity={entity ?? null}
                 mediaItems={mediaItems}
                 isMediaLoading={isMediaLoading}
+                isMediaError={isMediaError}
                 brokenMediaIds={brokenMediaIds}
                 setBrokenMediaIds={setBrokenMediaIds}
                 onOpenEntity={(id) => navigateFromModal(`/entity/${id}`)}
@@ -974,6 +982,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 entity={entity ?? null}
                 mediaItems={mediaItems}
                 isMediaLoading={isMediaLoading}
+                isMediaError={isMediaError}
                 brokenMediaIds={brokenMediaIds}
                 setBrokenMediaIds={setBrokenMediaIds}
                 onOpenEntity={(id) => navigateFromModal(`/entity/${id}`)}

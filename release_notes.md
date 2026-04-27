@@ -1,5 +1,19 @@
 # Release Notes
 
+## 19.7.0 - 2026-04-27 - Entity Integrity & API Hardening
+
+### Data Integrity & Validation
+
+- **Canonical ID Normalization**: Implemented a centralized `parseEntityId` utility to enforce `BigInt` identifiers across all repositories (Evidence, Media, Entities), eliminating type-casting bugs and standardizing the backend interface.
+- **Entity Tab Schemas**: Introduced strictly typed Zod schemas for all 7 entity tab endpoints (`/media`, `/flights`, `/documents`, etc.) in `src/shared/schemas/entityTabs.ts`.
+- **Contract Enforcement**: Fortified `entityEvidenceRoutes.ts` with strict ID validation (returning safe 400s instead of 500s) and guaranteed response shapes.
+
+### Observability & Testing
+
+- **Structured Logging**: Added Pino structured logging to all entity tab endpoints, tracking `rowCount`, `durationMs`, and `canonicalId`, with dedicated warnings for empty media states and missing assets.
+- **Data-Integrity Audits**: Shipped a new Playwright-based `data-integrity-audit.spec.ts` suite to assert database invariants through the API layer (e.g., verifying entities with `verifiedMedia` stats return actual media payloads).
+- **Golden Path Resiliency**: Upgraded the `golden-path.spec.ts` tests to dynamically discover entities with broad data coverage across multiple tabs, preventing test fragility.
+
 ## 19.6.11 - 2026-04-27
 
 ### Forensic Data Model & Infrastructure

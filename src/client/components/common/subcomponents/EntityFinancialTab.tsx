@@ -23,7 +23,7 @@ interface EntityFinancialTabProps {
 }
 
 export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId, entityName }) => {
-  const { data, isLoading } = useQuery<{
+  const { data, isLoading, isError } = useQuery<{
     transactions: Transaction[];
     entityName: string;
   }>({
@@ -84,7 +84,15 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
           </div>
         )}
 
-        {!isLoading && transactions.length === 0 && (
+        {!isLoading && isError && (
+          <div className={s.emptyState}>
+            <DollarSign size={48} className={s.emptyIcon} />
+            <h4 className={s.emptyTitle}>Financial records could not be loaded</h4>
+            <p className={s.emptyText}>The financial endpoint returned an error.</p>
+          </div>
+        )}
+
+        {!isLoading && !isError && transactions.length === 0 && (
           <div className={s.emptyState}>
             <DollarSign size={48} className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Financial Records</h4>
@@ -95,6 +103,7 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
         )}
 
         {!isLoading &&
+          !isError &&
           transactions.map((tx) => {
             const isIncoming = tx.to_entity.toLowerCase() === resolvedName.toLowerCase();
             const counterparty = isIncoming ? tx.from_entity : tx.to_entity;

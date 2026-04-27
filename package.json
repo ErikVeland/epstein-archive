@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "19.6.11",
+  "version": "19.7.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -42,6 +42,7 @@
     "check:design-tokens:strict": "STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "check:design-tokens:baseline": "STRICT_DESIGN_TOKENS=1 WRITE_STRICT_BASELINE=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "audit:design-system": "node --import tsx/esm scripts/audit_design_system_usage.ts",
+    "audit:data-integrity": "node --import tsx/esm scripts/data_integrity_audit.ts",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

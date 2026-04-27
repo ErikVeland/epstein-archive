@@ -30,7 +30,7 @@ interface EntityFlightsTabProps {
 }
 
 export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) => {
-  const { data, isLoading } = useQuery<{ flights: EntityFlight[] }>({
+  const { data, isLoading, isError } = useQuery<{ flights: EntityFlight[] }>({
     queryKey: ['entity-flights', entityId],
     queryFn: async () => {
       const res = await fetch(`/api/entities/${entityId}/flights`);
@@ -73,7 +73,15 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
           </div>
         )}
 
-        {!isLoading && flights.length === 0 && (
+        {!isLoading && isError && (
+          <div className={s.emptyState}>
+            <Plane size={48} className={s.emptyIcon} />
+            <h4 className={s.emptyTitle}>Flight records could not be loaded</h4>
+            <p className={s.emptyText}>The flight log endpoint returned an error.</p>
+          </div>
+        )}
+
+        {!isLoading && !isError && flights.length === 0 && (
           <div className={s.emptyState}>
             <Plane size={48} className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Flight Records</h4>
@@ -84,6 +92,7 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
         )}
 
         {!isLoading &&
+          !isError &&
           flights.map((flight) => (
             <div key={flight.id} className={s.card}>
               <div className={s.cardTop}>

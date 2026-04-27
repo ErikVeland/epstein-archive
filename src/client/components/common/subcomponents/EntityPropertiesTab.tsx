@@ -29,7 +29,7 @@ interface EntityPropertiesTabProps {
 }
 
 export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entityId }) => {
-  const { data, isLoading } = useQuery<{ properties: EntityProperty[] }>({
+  const { data, isLoading, isError } = useQuery<{ properties: EntityProperty[] }>({
     queryKey: ['entity-properties', entityId],
     queryFn: async () => {
       const res = await fetch(`/api/entities/${entityId}/properties`);
@@ -75,7 +75,15 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
           </div>
         )}
 
-        {!isLoading && properties.length === 0 && (
+        {!isLoading && isError && (
+          <div className={s.emptyState}>
+            <Building2 size={48} className={s.emptyIcon} />
+            <h4 className={s.emptyTitle}>Properties could not be loaded</h4>
+            <p className={s.emptyText}>The properties endpoint returned an error.</p>
+          </div>
+        )}
+
+        {!isLoading && !isError && properties.length === 0 && (
           <div className={s.emptyState}>
             <Building2 size={48} className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Properties Linked</h4>
@@ -86,6 +94,7 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
         )}
 
         {!isLoading &&
+          !isError &&
           properties.map((prop) => (
             <div key={prop.id} className={s.card}>
               <div className={s.cardTop}>

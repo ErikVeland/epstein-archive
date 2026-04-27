@@ -1,4 +1,4 @@
-import { test, expect, type APIRequestContext } from '@playwright/test';
+import { expect, test, type APIRequestContext } from '@playwright/test';
 
 const apiPort = Number(process.env.PW_API_PORT || 3312);
 const useProductionBaseUrl = process.env.PW_USE_PROD_BASE_URL === '1';
@@ -37,6 +37,47 @@ async function resolveEntityWithEvidence(
       const firstDoc = docs.find((doc: Record<string, unknown>) => doc?.id != null);
       if (firstDoc) return { entityId, documentId: String(firstDoc.id) };
     }
+  }
+
+  return null;
+}
+
+async function resolveEntityWithTabData(
+  request: APIRequestContext,
+  tab: string,
+): Promise<string | null> {
+  const entitiesResp = await request.get(
+    `${API_BASE}/entities?limit=20&sortBy=mentions&sortOrder=desc`,
+  );
+  if (!entitiesResp.ok()) return null;
+  const payload = await entitiesResp.json();
+  const entities = Array.isArray(payload?.data)
+    ? payload.data
+    : Array.isArray(payload)
+      ? payload
+      : [];
+
+  const readItems = (body: Record<string, unknown> | unknown[]): unknown[] => {
+    if (Array.isArray(body)) return body;
+    if (Array.isArray(body.data)) return body.data;
+    if (Array.isArray(body.flights)) return body.flights;
+    if (Array.isArray(body.transactions)) return body.transactions;
+    if (Array.isArray(body.properties)) return body.properties;
+    return [];
+  };
+
+  for (const entity of entities) {
+    const entityId = String(entity?.id ?? '');
+    if (!entityId) continue;
+    const tabPath = tab === 'financial' ? 'transactions' : tab;
+    const endpoint =
+      tab === 'evidence'
+        ? `${API_BASE}/entities/${entityId}/documents?limit=5`
+        : `${API_BASE}/entities/${entityId}/${tabPath}?limit=5`;
+    const response = await request.get(endpoint);
+    if (!response.ok()) continue;
+    const body = await response.json();
+    if (readItems(body).length > 0) return entityId;
   }
 
   return null;
@@ -90,6 +131,33 @@ test.describe('Golden Path A: People → Entity → Documents → DocumentModal'
 
     await page.goto(`/documents/${documentId}`);
     await expect(page).toHaveURL(new RegExp(`/documents/${documentId}`));
+  });
+});
+
+test.describe('Golden Path A2: Entity modal populated tabs', () => {
+  test('opens seeded entity modal tabs with data states', async ({ page, request }) => {
+    const tabs = [
+      'evidence',
+      'media',
+      'claims',
+      'investigations',
+      'flights',
+      'financial',
+      'properties',
+    ];
+
+    for (const tab of tabs) {
+      const entityId = await resolveEntityWithTabData(request, tab);
+      if (!entityId) continue;
+
+      await page.goto(`/entity/${entityId}?entityTab=${tab}`);
+      await page.waitForSelector('[data-testid="evidence-modal"]', { timeout: 15000 });
+      const panel = page.locator(`[data-testid="entity-modal-tab-${tab}"]`);
+      await expect(panel).toBeVisible({ timeout: 20000 });
+      await expect(panel).not.toContainText(
+        /could not be loaded|No .*Found|No .*Records|No .*Linked|No Active Investigations|No AI Claims/i,
+      );
+    }
   });
 });
 
