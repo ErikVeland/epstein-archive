@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls, useAnimation } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
 import { cn } from '../../utils/cn';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import s from './LiquidSheet.module.css';
 
 interface LiquidSheetProps {
@@ -22,6 +23,7 @@ export const LiquidSheet: React.FC<LiquidSheetProps> = ({
   const controls = useAnimation();
   const dragControls = useDragControls();
   const sheetRef = useRef<HTMLDivElement>(null);
+  useScrollLock(isOpen);
 
   useEffect(() => {
     if (isOpen) {
@@ -63,6 +65,7 @@ export const LiquidSheet: React.FC<LiquidSheetProps> = ({
             drag="y"
             dragDirectionLock
             dragControls={dragControls}
+            dragListener={false}
             dragConstraints={{ top: 0 }}
             dragElastic={{ top: 0.05, bottom: 0.5 }}
             onDragEnd={handleDragEnd}

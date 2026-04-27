@@ -11,8 +11,10 @@
 
 @media (max-width: 767px) {
   .header {
-    padding: var(--space-4);
-    gap: var(--space-4);
+    max-height: var(--entity-mobile-header-max, 42dvh);
+    padding: var(--space-3) var(--space-4) var(--space-2);
+    gap: var(--space-3);
+    overflow: hidden;
   }
 }
 
@@ -42,8 +44,8 @@
 
 @media (max-width: 767px) {
   .photoRing {
-    width: 4.25rem;
-    height: 4.25rem;
+    width: 3.5rem;
+    height: 3.5rem;
   }
 }
 
@@ -136,9 +138,9 @@
 
 @media (max-width: 767px) {
   .titleRow {
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: var(--space-3);
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
   }
 }
 
@@ -155,11 +157,12 @@
 
 @media (max-width: 767px) {
   .title {
-    font-size: clamp(1.5rem, 7vw, 2.25rem);
-    white-space: normal;
-    overflow: visible;
-    text-overflow: initial;
-    line-height: 1.1;
+    min-width: 0;
+    font-size: 1.35rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.15;
     word-break: break-word;
   }
 }
@@ -172,6 +175,12 @@
 
 .riskBadge {
   composes: semantic-chip from global;
+}
+
+@media (max-width: 767px) {
+  .riskBadge {
+    flex: 0 0 auto;
+  }
 }
 
 /* getRiskClass mappings */
@@ -210,9 +219,10 @@
 
 @media (max-width: 767px) {
   .subtitleRow {
-    margin-bottom: var(--space-4);
-    font-size: 0.875rem;
+    margin-bottom: var(--space-2);
+    font-size: 0.75rem;
     gap: var(--space-2);
+    line-height: 1.2;
   }
 }
 
@@ -247,7 +257,7 @@
   .forensicContainer {
     border-left: none;
     padding-left: 0;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-2);
   }
 }
 
@@ -270,6 +280,23 @@
   max-width: 48rem; /* max-w-3xl */
 }
 
+@media (max-width: 767px) {
+  .forensicLabel {
+    margin-bottom: var(--space-1);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+  }
+
+  .forensicText {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
+
 .quickActions {
   display: flex;
   align-items: center;
@@ -279,8 +306,19 @@
 
 @media (max-width: 767px) {
   .quickActions {
-    flex-wrap: wrap;
-    gap: var(--space-3);
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+    margin-bottom: 0;
+    scrollbar-width: none;
+  }
+
+  .quickActions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .quickActions > * {
+    flex: 0 0 auto;
   }
 }
 
@@ -337,6 +375,12 @@
   border: none !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
+}
+
+@media (max-width: 767px) {
+  .tabsOverride {
+    margin-top: var(--space-1);
+  }
 }
 
 .closeBtn {

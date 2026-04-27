@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.6.7 - 2026-04-27 - Mobile Entity Card Scroll Recovery
+
+### Bug Fixes
+
+- **Mobile Entity Cards**: Restored background scroll locking through the shared sheet scroll-lock hook, constrained sheet drag behavior to the handle, and compacted the forensic header so overview content can scroll and remain usable on mobile.
+
 ## 19.6.6 - 2026-04-26 - Forensic Search Integrity & Smoke Test Stabilization
 
 ### Bug Fixes

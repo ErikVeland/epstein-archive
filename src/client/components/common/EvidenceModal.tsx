@@ -764,7 +764,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   if (isMobile) {
     return (
-      <LiquidSheet isOpen={isOpen} onClose={onClose} title={entity?.fullName}>
+      <LiquidSheet isOpen={isOpen} onClose={onClose} className={s.mobileSheet}>
         <div className={s.mobileContent}>
           <EvidenceModalHeader
             entity={entity ?? null}
