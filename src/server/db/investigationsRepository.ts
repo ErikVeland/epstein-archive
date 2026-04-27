@@ -990,8 +990,8 @@ export const investigationsRepository = {
         SELECT DISTINCT i.id
         FROM investigations i
         JOIN investigation_leads l ON i.id = l.investigation_id
-        JOIN forensic_signals fs ON l.forensic_signal_id = fs.id
-        WHERE $1::bigint = ANY(fs.entity_ids)
+        JOIN forensic_signal_entities fse ON l.forensic_signal_id = fse.signal_id
+        WHERE fse.entity_id = $1::bigint
       ),
       linked_via_mentions AS (
         SELECT DISTINCT i.id
@@ -1024,11 +1024,16 @@ export const investigationsRepository = {
         fs.confidence,
         fs.risk_score as "riskScore",
         fs.metadata_json as "signalMetadata",
-        fs.entity_ids as "entityIds",
+        (
+          SELECT ARRAY_AGG(fse.entity_id)
+          FROM forensic_signal_entities fse
+          WHERE fse.signal_id = fs.id
+        ) as "entityIds",
         (
           SELECT ARRAY_AGG(e.full_name)
-          FROM entities e
-          WHERE e.id = ANY(fs.entity_ids)
+          FROM forensic_signal_entities fse
+          JOIN entities e ON e.id = fse.entity_id
+          WHERE fse.signal_id = fs.id
         ) as "entityNames"
       FROM investigation_leads l
       LEFT JOIN documents d ON l.source_document_id = d.id

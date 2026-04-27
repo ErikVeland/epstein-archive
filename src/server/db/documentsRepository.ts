@@ -652,7 +652,10 @@ export const documentsRepository = {
         fs.risk_score as "riskScore",
         fs.metadata_json as "metadata",
         ARRAY(
-          SELECT full_name FROM entities WHERE id = ANY(fs.entity_ids)
+          SELECT e.full_name 
+          FROM forensic_signal_entities fse
+          JOIN entities e ON e.id = fse.entity_id
+          WHERE fse.signal_id = fs.id
         ) as "entityNames"
       FROM forensic_signals fs
       WHERE (fs.source_source = 'documents' AND fs.source_ref_id = $1)

@@ -1,5 +1,14 @@
 # Release Notes
 
+## 19.6.11 - 2026-04-27
+
+### Forensic Data Model & Infrastructure
+
+- **CRITICAL**: Fixed 500 Internal Server Errors on `/api/documents/:id` and `/api/investigations` by correcting forensic signals schema (migrated from `entity_ids` column to `forensic_signal_entities` join table).
+- **CRITICAL**: Restored missing entity evidence by adding name-based fallback joins to Flights, Properties, and Media repositories, bypassing NULL foreign keys in legacy data.
+- **Table Schema**: Corrected `properties` table name to `palm_beach_properties` in entity evidence queries.
+- **Media Linking**: Integrated `entity_mentions` -> `document_id` join to automatically link 7,000+ photos to entities mentioned in source documents.
+
 ## 19.6.10 - 2026-04-27 - Desktop Navigation Alignment Fix
 
 ### Bug Fixes

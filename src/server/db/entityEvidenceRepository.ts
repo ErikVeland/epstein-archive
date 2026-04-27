@@ -143,8 +143,8 @@ export const entityEvidenceRepository = {
         entityCategory: entity.entity_category || '',
         riskLevel: entity.risk_level || 'LOW',
         redFlagRating: Number(entity.red_flag_rating || 0),
-        birthDate: (entity as any).birth_date || null,
-        deathDate: (entity as any).death_date || null,
+        birthDate: ((entity as Record<string, unknown>).birth_date as string | null) || null,
+        deathDate: ((entity as Record<string, unknown>).death_date as string | null) || null,
       },
       evidence,
       stats: {
@@ -223,6 +223,8 @@ export const entityEvidenceRepository = {
 
   async getFlightsForEntity(entityId: string | number) {
     const pool = getApiPool();
+    // flight_passengers.entity_id is not populated — passengers are stored by name only.
+    // Look up the entity's full_name first, then match by passenger_name (case-insensitive).
     const result = await pool.query(
       `SELECT
          f.id,
@@ -250,8 +252,19 @@ export const entityEvidenceRepository = {
        JOIN flights f ON f.id = fp_self.flight_id
        LEFT JOIN flight_passengers fp_other
          ON fp_other.flight_id = f.id
-         AND fp_other.entity_id IS DISTINCT FROM fp_self.entity_id
+         AND fp_other.passenger_name IS DISTINCT FROM fp_self.passenger_name
        WHERE fp_self.entity_id = $1
+          OR fp_self.passenger_name ILIKE (
+            SELECT full_name FROM entities WHERE id = $1 LIMIT 1
+          )
+          OR EXISTS (
+            SELECT 1 FROM entities e
+            WHERE e.id = $1
+            AND (
+              fp_self.passenger_name ILIKE '%' || e.full_name || '%'
+              OR e.full_name ILIKE '%' || fp_self.passenger_name || '%'
+            )
+          )
        GROUP BY f.id, f.date, f.departure_airport, f.departure_city,
                 f.departure_country, f.arrival_airport, f.arrival_city,
                 f.arrival_country, f.aircraft_tail, f.aircraft_type,
@@ -314,8 +327,14 @@ export const entityEvidenceRepository = {
          living_area,
          is_epstein_property,
          is_known_associate
-       FROM properties
+       FROM palm_beach_properties
        WHERE linked_entity_id = $1
+          OR owner_name_1 ILIKE (
+            SELECT full_name FROM entities WHERE id = $1 LIMIT 1
+          )
+          OR owner_name_2 ILIKE (
+            SELECT full_name FROM entities WHERE id = $1 LIMIT 1
+          )
        ORDER BY total_tax_value DESC NULLS LAST`,
       [Number(entityId)],
     );

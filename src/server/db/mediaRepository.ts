@@ -350,6 +350,13 @@ export const mediaRepository = {
             WHERE f.media_item_id = m.id
               AND fc.entity_id = $1::bigint
           )
+          OR m.document_id::bigint IN (
+            SELECT document_id FROM entity_mentions WHERE entity_id = $1::bigint
+          )
+          OR (
+            SELECT full_name FROM entities WHERE id = $1::bigint LIMIT 1
+          ) ILIKE ANY(ARRAY['%' || m.title || '%', '%' || m.description || '%'])
+          OR m.title ILIKE '%' || (SELECT full_name FROM entities WHERE id = $1::bigint LIMIT 1) || '%'
         )
         ORDER BY m.red_flag_rating DESC, m.created_at DESC
       `,
@@ -748,6 +755,17 @@ export const mediaRepository = {
           WHERE (
             mip.entity_id = ANY($1::bigint[])
             OR m.entity_id = ANY($1::bigint[])
+            OR m.document_id::bigint IN (
+              SELECT document_id FROM entity_mentions WHERE entity_id = ANY($1::bigint[])
+            )
+            OR EXISTS (
+              SELECT 1 FROM entities e
+              WHERE e.id = ANY($1::bigint[])
+              AND (
+                m.title ILIKE '%' || e.full_name || '%'
+                OR e.full_name ILIKE '%' || m.title || '%'
+              )
+            )
           )
             AND m.file_type LIKE 'image/%'
         ) t
