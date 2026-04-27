@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.6.8 - 2026-04-27 - Mobile Entity Header Overlap Resolution
+
+### Bug Fixes
+
+- **Mobile Entity Card**: Resolved a critical layout bug where the tab grid overlapped the content area on mobile viewports. By removing restrictive max-height constraints and allowing the header to expand naturally, we ensured that all 9 forensic tabs are fully visible and correctly push the content down within the scrollable Liquid Sheet.
+
 ## 19.6.7 - 2026-04-27 - Mobile Entity Card Scroll Recovery
 
 ### Bug Fixes
