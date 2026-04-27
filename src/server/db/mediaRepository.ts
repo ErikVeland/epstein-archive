@@ -325,13 +325,13 @@ export const mediaRepository = {
             SELECT e.full_name as tagged_name
             FROM media_item_people mip2
             JOIN entities e ON e.id = mip2.entity_id
-            WHERE mip2.media_item_id = m.id::bigint
+            WHERE mip2.media_item_id::text = m.id::text
             UNION
             SELECT e2.full_name as tagged_name
             FROM faces f2
             JOIN face_clusters fc2 ON fc2.id = f2.cluster_id
             JOIN entities e2 ON e2.id = fc2.entity_id
-            WHERE f2.media_item_id = m.id
+            WHERE f2.media_item_id::text = m.id::text
               AND fc2.entity_id IS NOT NULL
           ) tagged_people_union
         ) tags ON true
@@ -340,14 +340,14 @@ export const mediaRepository = {
           OR EXISTS (
             SELECT 1
             FROM media_item_people mip
-            WHERE mip.media_item_id = m.id::bigint
+            WHERE mip.media_item_id::text = m.id::text
               AND mip.entity_id = $1::bigint
           )
           OR EXISTS (
             SELECT 1
             FROM faces f
             JOIN face_clusters fc ON fc.id = f.cluster_id
-            WHERE f.media_item_id = m.id
+            WHERE f.media_item_id::text = m.id::text
               AND fc.entity_id = $1::bigint
           )
           OR m.document_id::bigint IN (

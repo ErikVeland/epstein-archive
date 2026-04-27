@@ -658,15 +658,12 @@ export const documentsRepository = {
           WHERE fse.signal_id = fs.id
         ) as "entityNames"
       FROM forensic_signals fs
-      WHERE (fs.source_source = 'documents' AND fs.source_ref_id = $1)
-         OR (
-           fs.source_source = 'media' AND fs.source_ref_id IN (
-             SELECT id::text FROM media_items WHERE document_id = $2
-           )
-         )
+      WHERE fs.id IN (
+        SELECT signal_id FROM forensic_signal_evidence WHERE document_id = $1
+      )
       ORDER BY fs.risk_score DESC
       `,
-      [String(docId), docId],
+      [docId],
     );
 
     const signals = signalRowsRes.rows.map((row) => ({

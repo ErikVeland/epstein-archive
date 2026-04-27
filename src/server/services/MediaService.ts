@@ -617,10 +617,21 @@ export class MediaService {
     );
   }
 
-  async getImagePeople(imageId: number): Promise<Array<{ id: number; name: string }>> {
-    const rows = await this.pgRows<{ id: string | number; name: string }>(
+  async getImagePeople(
+    imageId: number,
+  ): Promise<Array<{ id: number; name: string; role: string; redFlagRating: number }>> {
+    const rows = await this.pgRows<{
+      id: string | number;
+      name: string;
+      primaryRole: string | null;
+      redFlagRating: string | number | null;
+    }>(
       `
-      SELECT e.id, e.full_name as name
+      SELECT
+        e.id,
+        e.full_name as name,
+        e.primary_role as "primaryRole",
+        e.red_flag_rating as "redFlagRating"
       FROM media_item_people mp
       JOIN entities e ON e.id = mp.entity_id
       WHERE mp.media_item_id = $1
@@ -628,7 +639,12 @@ export class MediaService {
     `,
       [imageId],
     );
-    return rows.map((row) => ({ id: Number(row.id), name: row.name }));
+    return rows.map((row) => ({
+      id: Number(row.id),
+      name: row.name,
+      role: String(row.primaryRole || 'Unknown'),
+      redFlagRating: Number(row.redFlagRating || 0),
+    }));
   }
 
   // ============ MEDIA ITEM (AUDIO/VIDEO) TAGS ============

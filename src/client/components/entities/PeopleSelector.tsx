@@ -81,7 +81,8 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
       await fetch(`/api/media/images/${mediaId}/people`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entityId: person.id }),
+        // Server expects personId; keep payload explicit to avoid silent 400s.
+        body: JSON.stringify({ personId: person.id }),
       });
       onPeopleChange([...selectedPeople, person]);
       setSearchTerm('');
