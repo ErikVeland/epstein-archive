@@ -67,7 +67,7 @@
 }
 
 .mobileSheet {
-  --entity-mobile-header-max: min(42dvh, 19rem);
+  --entity-mobile-header-max: min(52dvh, 25rem);
 }
 
 @media (max-width: 639px) {

@@ -1,6 +1,7 @@
 .header {
   composes: app-header-glass from global;
   display: flex;
+  flex-wrap: wrap;
   padding: var(--space-6);
   align-items: flex-start;
   gap: var(--space-6);
@@ -14,7 +15,7 @@
     max-height: var(--entity-mobile-header-max, 42dvh);
     padding: var(--space-3) var(--space-4) var(--space-2);
     gap: var(--space-3);
-    overflow: hidden;
+    overflow: visible;
   }
 }
 
@@ -91,6 +92,12 @@
 .infoColumn {
   flex: 1;
   min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .infoColumn {
+    padding-right: var(--touch-target-min, 44px);
+  }
 }
 
 .skeletonInfo {
@@ -304,21 +311,37 @@
   margin-bottom: var(--space-2);
 }
 
-@media (max-width: 767px) {
-  .quickActions {
-    gap: var(--space-2);
-    overflow-x: auto;
-    padding-bottom: var(--space-1);
-    margin-bottom: 0;
-    scrollbar-width: none;
-  }
+.mobileActions {
+  display: none;
+}
 
-  .quickActions::-webkit-scrollbar {
+@media (max-width: 767px) {
+  .desktopActions {
     display: none;
   }
 
+  .mobileActions {
+    display: block;
+    flex: 1 0 100%;
+    min-width: 0;
+  }
+
+  .quickActions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin-bottom: var(--space-1);
+  }
+
   .quickActions > * {
-    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .quickActions .blackbookBtn {
+    grid-column: 1 / -1;
   }
 }
 
@@ -335,6 +358,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .blackbookBtn:hover {
@@ -352,6 +377,8 @@
   background: none;
   border: none;
   cursor: pointer;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .timelineBtn:hover {
@@ -371,25 +398,66 @@
 }
 
 .tabsOverride {
+  flex: 1 0 100%;
+  min-width: 0;
+  margin-left: calc(6rem + var(--space-6));
+  width: calc(100% - 6rem - var(--space-6));
   background: transparent !important;
   border: none !important;
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
+@media (min-width: 768px) {
+  .tabsOverride {
+    margin-left: calc(8rem + var(--space-10));
+    width: calc(100% - 8rem - var(--space-10));
+  }
+}
+
 @media (max-width: 767px) {
   .tabsOverride {
+    flex-basis: 100%;
+    width: 100%;
+    margin-left: 0;
     margin-top: var(--space-1);
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch !important;
+    gap: var(--space-1) !important;
+    overflow: visible !important;
+  }
+
+  .tabsOverride :global(button[role='tab']) {
+    width: 100%;
+    min-width: 0;
+    height: 2rem;
+    justify-content: center;
+    padding: 0 var(--space-2);
+    font-size: 10px;
+    line-height: 1;
+    overflow: hidden;
+  }
+
+  .tabsOverride :global(button[role='tab'] span) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
 .closeBtn {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
   color: var(--text-muted);
   transition: color var(--duration-fast) var(--easing-liquid);
 }
 
 @media (max-width: 767px) {
   .closeBtn {
+    top: var(--space-3);
+    right: var(--space-3);
     min-width: var(--touch-target-min, 44px);
     min-height: var(--touch-target-min, 44px);
     display: flex;
