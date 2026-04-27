@@ -58,6 +58,17 @@ export const relationshipsRepository = {
     } = {},
   ) => {
     const pool = getApiPool();
+    // Most relationship tables are keyed by canonical_id, but many UI surfaces pass the
+    // concrete `entities.id`. Resolve to canonical_id first so relationships reliably show up.
+    const canonicalRows = await relationshipsQueries.getEntityCanonical.run(
+      { id: Number(entityId) },
+      pool,
+    );
+    const canonicalId =
+      canonicalRows.length > 0 && canonicalRows[0]?.cid != null
+        ? Number(canonicalRows[0].cid)
+        : Number(entityId);
+
     const rowsRes = await pool.query(
       `SELECT 
          source_entity_id as "sourceId",
@@ -74,7 +85,7 @@ export const relationshipsRepository = {
        ORDER BY proximity_score DESC
        LIMIT $4::int`,
       [
-        Number(entityId),
+        canonicalId,
         filters.minWeight ?? null,
         filters.minConfidence ?? null,
         Math.max(1, Math.min(500, Number(filters.limit ?? 50))),
@@ -82,21 +93,24 @@ export const relationshipsRepository = {
     );
     const rows = rowsRes.rows as IGetRelationshipsResult[];
 
-    return rows.map((r: IGetRelationshipsResult) => ({
-      source_id: Number(r.sourceId),
-      target_id: Number(r.targetId),
-      relationship_type: r.relationshipType,
-      proximity_score: r.proximityScore,
-      risk_score: Number(r.riskScore),
-      confidence: r.confidence,
-      metadata_json: filters.includeBreakdown
-        ? r.metadataJson
-          ? JSON.parse(r.metadataJson as string)
-          : null
-        : undefined,
-      disclaimer:
-        'This reflects data connections and evidence categories, not a legal determination.',
-    }));
+    return {
+      canonicalId,
+      relationships: rows.map((r: IGetRelationshipsResult) => ({
+        source_id: Number(r.sourceId),
+        target_id: Number(r.targetId),
+        relationship_type: r.relationshipType,
+        proximity_score: r.proximityScore,
+        risk_score: Number(r.riskScore),
+        confidence: r.confidence,
+        metadata_json: filters.includeBreakdown
+          ? r.metadataJson
+            ? JSON.parse(r.metadataJson as string)
+            : null
+          : undefined,
+        disclaimer:
+          'This reflects data connections and evidence categories, not a legal determination.',
+      })),
+    };
   },
 
   /**

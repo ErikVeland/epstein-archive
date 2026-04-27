@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import { relationshipsRepository } from '../db/relationshipsRepository.js';
 
 const router = Router();
 
@@ -19,15 +20,13 @@ router.get('/', validate(getRelationshipsSchema), async (req, res, next) => {
     type RelQuery = z.infer<typeof getRelationshipsSchema>['query'];
     const { entityId, limit, minWeight } = req.query as unknown as RelQuery;
 
-    const { relationshipsRepository } = await import('../db/relationshipsRepository.js');
-
-    const relations = await relationshipsRepository.getRelationships(entityId, {
+    const result = await relationshipsRepository.getRelationships(entityId, {
       minWeight,
       limit,
     });
 
-    const currentId = String(entityId);
-    const mapped = relations.map((r) => {
+    const currentId = String(result.canonicalId);
+    const mapped = result.relationships.map((r) => {
       const sourceId = String(r.source_id);
       const targetId = String(r.target_id);
       const neighborId = sourceId === currentId ? targetId : sourceId;

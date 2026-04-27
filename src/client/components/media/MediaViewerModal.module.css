@@ -484,6 +484,23 @@
   }
 }
 
+@media (max-width: 767px) {
+  .viewerContent {
+    padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .navButton {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .iconButton,
+  .controlButton {
+    min-width: 40px;
+    min-height: 40px;
+  }
+}
+
 @keyframes media-viewer-modal-spin {
   to {
     transform: rotate(360deg);
