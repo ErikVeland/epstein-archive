@@ -121,7 +121,7 @@
   position: absolute;
   top: 50%;
   z-index: var(--z-raised);
-  padding: var(--space-3);
+  padding: var(--space-2);
   border-radius: 9999px;
   transform: translateY(-50%);
 }
@@ -375,7 +375,7 @@
 .description,
 .miniStatCard,
 .miniStatCardWide {
-  padding: var(--space-3);
+  padding: var(--space-2);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   background: var(--glass-bg);
@@ -557,7 +557,7 @@
 .provenanceLink {
   justify-content: flex-start;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-2);
   background: var(--glass-bg-highlight);
   border: 1px solid var(--glass-border);
   transition: all 0.2s ease;
