@@ -1,5 +1,11 @@
 # Release Notes
 
+## 19.6.10 - 2026-04-27 - Desktop Navigation Alignment Fix
+
+### Bug Fixes
+
+- **Desktop Navigation**: Fixed a vertical alignment regression where navigation buttons would overflow their container or appear off-center. Explicitly reset browser-default button styles and enforced strict height constraints to ensure pixel-perfect alignment within the pill container.
+
 ## 19.6.9 - 2026-04-27 - Mobile Navigation & Document Access Hardening
 
 ### Bug Fixes

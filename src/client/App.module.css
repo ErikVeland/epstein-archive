@@ -777,6 +777,8 @@
   flex: 1 1 auto;
   min-width: 0;
   height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .navItemRelative {
@@ -812,6 +814,7 @@
     0 10px 24px rgba(2, 6, 23, 0.26);
   transition: color 200ms ease;
   flex: 1 1 auto;
+  box-sizing: border-box;
 }
 
 .navPillNormal,
@@ -831,6 +834,8 @@
   width: 100%;
   min-width: 0;
   height: 100%;
+  margin: 0;
+  padding: 0;
   line-height: 1;
   white-space: nowrap;
   background: transparent;
@@ -839,6 +844,8 @@
   transition: color var(--duration-fast) var(--easing-liquid);
   position: relative;
   z-index: 1;
+  appearance: none;
+  box-sizing: border-box;
 }
 
 .navSegmentBase :global(svg) {
