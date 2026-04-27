@@ -423,7 +423,13 @@ router.post(
   async (req, res, next) => {
     try {
       const imageId = Number(req.params.id);
-      const personId = Number(req.body?.personId);
+      // Backward compatible payloads:
+      // - { personId } (canonical)
+      // - { entityId } (legacy clients)
+      const personId = Number(
+        (req.body as Record<string, unknown> | undefined)?.personId ??
+          (req.body as Record<string, unknown> | undefined)?.entityId,
+      );
       if (!Number.isFinite(personId))
         return res.status(400).json({ error: 'personId is required' });
       await mediaService.addPersonToItem(imageId, personId);

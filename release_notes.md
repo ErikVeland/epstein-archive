@@ -14,6 +14,13 @@
 - **Data-Integrity Audits**: Shipped a new Playwright-based `data-integrity-audit.spec.ts` suite to assert database invariants through the API layer (e.g., verifying entities with `verifiedMedia` stats return actual media payloads).
 - **Golden Path Resiliency**: Upgraded the `golden-path.spec.ts` tests to dynamically discover entities with broad data coverage across multiple tabs, preventing test fragility.
 
+## 19.6.12 - 2026-04-27
+
+### Forensic Data Model Fixes
+
+- **CRITICAL**: Fixed document retrieval 500 error by correcting the forensic signals source join (migrated to `forensic_signal_evidence` table).
+- **Schema Cleanup**: Removed legacy `source_source` and `source_ref_id` column references.
+
 ## 19.6.11 - 2026-04-27
 
 ### Forensic Data Model & Infrastructure
