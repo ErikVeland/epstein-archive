@@ -24,6 +24,21 @@ pnpm check:design-tokens
 echo "▶ Running unit tests"
 pnpm test:unit
 
+if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
+  if [[ -n "${DATABASE_URL:-}" ]]; then
+    echo "▶ Seeding Entity #1 canary fixture (Jeffrey Epstein)"
+    pnpm db:seed:entity1-canary
+
+    echo "▶ Running data-quality gates (DB-backed)"
+    pnpm test:data-quality
+  else
+    echo "⚠️  DATABASE_URL not set; skipping data-quality gates"
+  fi
+fi
+
+echo "▶ Ensuring Playwright dependencies (when required)"
+bash scripts/ensure_playwright_deps.sh
+
 echo "▶ Building production artifacts"
 pnpm build:prod
 

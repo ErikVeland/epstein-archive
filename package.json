@@ -65,7 +65,7 @@
     "prepare": "husky",
     "test": "playwright test",
     "test:bundle-smoke": "pnpm build:prod && playwright test --config playwright.config.bundle.ts",
-    "test:bundle-smoke:only": "playwright test --config playwright.config.bundle.ts"
+    "test:bundle-smoke:only": "node --import tsx/esm scripts/run_bundle_smoke.ts"
   },
   "dependencies": {
     "@epstein/db": "workspace:*",
