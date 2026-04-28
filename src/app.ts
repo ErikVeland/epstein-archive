@@ -64,11 +64,14 @@ import dataQualityRoutes from './server/routes/dataQualityRoutes.js';
 import vitalsRoutes from './server/routes/vitalsRoutes.js';
 import sitemapRouter from './server/routes/sitemap.js';
 import entitiesRoutes from './server/routes/entitiesRoutes.js';
+import { mapSubjectsListResponseDto } from './server/mappers/entitiesDtoMapper.js';
+import { subjectsQuerySchema } from './server/middleware/validate.js';
 import searchRoutes from './server/routes/searchRoutes.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
 import { evidenceRepository } from './server/db/evidenceRepository.js';
 import { purgeCacheByPattern } from './server/middleware/cache.js';
+import { validate } from './server/middleware/validate.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
 import { queryCounter } from './server/queryCounter.js';
@@ -420,6 +423,34 @@ export class App {
 
   private initializeRoutes() {
     const router = express.Router();
+
+    router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
+      try {
+        const query = req.query as any;
+        const page = Number(query.page || 1);
+        const limit = Number(query.limit || 24);
+        const likelihoodRaw = query.likelihoodScore;
+        const likelihoodScore = Array.isArray(likelihoodRaw)
+          ? (likelihoodRaw as any)
+          : typeof likelihoodRaw === 'string' && likelihoodRaw.length > 0
+            ? [likelihoodRaw]
+            : undefined;
+
+        const filters: any = {
+          searchTerm: typeof query.search === 'string' ? query.search : undefined,
+          role: typeof query.role === 'string' ? query.role : undefined,
+          entityType: typeof query.entityType === 'string' ? query.entityType : undefined,
+          likelihoodScore,
+          sortOrder: String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc',
+        };
+        const sortBy: any = typeof query.sortBy === 'string' ? query.sortBy : 'risk';
+        const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
+
+        res.json(mapSubjectsListResponseDto(result));
+      } catch (error) {
+        next(error);
+      }
+    });
 
     // Health check
     router.get('/health', (_req, res) => {

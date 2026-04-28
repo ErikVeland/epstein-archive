@@ -428,83 +428,92 @@ export const DocumentModal: React.FC<Props> = ({
   const ocrText = String(doc.content || '');
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'pdf':
-        return (
-          <>
-            {String(doc.evidenceType || '').toLowerCase() === 'email' && (
-              <Box
-                p="md"
-                style={{
-                  backgroundColor: 'var(--glass-bg-highlight)',
-                  borderBottom: '1px solid var(--glass-border)',
+    const isEmail = String(doc.evidenceType || '').toLowerCase() === 'email';
+    return (
+      <>
+        {isEmail && (
+          <Box
+            p="md"
+            style={{
+              backgroundColor: 'var(--glass-bg-highlight)',
+              borderBottom: '1px solid var(--glass-border)',
+            }}
+          >
+            <Flex align="center" justify="between" gap="sm">
+              <LqText variant="small">
+                This document is an email. For the best experience, use the specialized Email
+                Viewer.
+              </LqText>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  window.location.href = `/emails?messageId=${id}`;
                 }}
               >
-                <Flex align="center" justify="between" gap="sm">
-                  <LqText variant="small">
-                    This document is an email. For the best experience, use the specialized Email
-                    Viewer.
-                  </LqText>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      onClose();
-                      window.location.href = `/emails?messageId=${id}`;
-                    }}
-                  >
-                    Open Email Viewer
-                  </Button>
-                </Flex>
-              </Box>
-            )}
-            <DocumentPDFTab
-              documentId={id}
-              docId={String(doc.id ?? id)}
-              content={cleanText || ocrText}
-              searchTerm={localSearchTerm}
-              openOriginalDocument={openOriginalDocument}
-              isEmail={String(doc.evidenceType || '').toLowerCase() === 'email'}
-              metadata={doc.metadata as never}
-              title={doc.title || doc.fileName || ''}
-            />
-          </>
-        );
-      case 'analysis':
-        return (
-          <DocumentAnalysisTab
-            doc={doc}
-            id={id}
-            textSubview={textSubview}
-            setTextSubview={setTextSubview}
-            localSearchTerm={localSearchTerm}
-            summary={summary}
-            showRecoveryHighlights={showRecoveryHighlights}
-            setShowRecoveryHighlights={setShowRecoveryHighlights}
-            isReadingMode={isReadingMode}
-            setIsReadingMode={setIsReadingMode}
-            setSelectedEntity={setSelectedEntity}
-            setEntityModalId={setEntityModalId}
-            entities={entities}
-            groupedEntities={groupedEntities}
-            relatedDocs={(relatedDocs || []).filter((d): d is DocRecord => d.id !== undefined)}
-            isLoadingRelated={isLoadingRelated}
-            onNavigateToDoc={(newId) =>
-              navigate(`${location.pathname}?documentId=${encodeURIComponent(newId)}`)
-            }
-            cleanText={cleanText}
-            ocrText={ocrText}
-          />
-        );
-      case 'provenance':
-        return <ProvenancePanel document={doc as never} />; // Workaround for slight interface mismatch without using any
-      case 'assets':
-        return <DocumentAssetsTab documentId={id} />;
-      case 'claims':
-        return <ClaimsTab documentId={id} onOpenEntity={(entId) => setEntityModalId(entId)} />;
-      default:
-        return null;
-    }
+                Open Email Viewer
+              </Button>
+            </Flex>
+          </Box>
+        )}
+        {(() => {
+          switch (activeTab) {
+            case 'pdf':
+              return (
+                <DocumentPDFTab
+                  documentId={id}
+                  docId={String(doc.id ?? id)}
+                  content={cleanText || ocrText}
+                  searchTerm={localSearchTerm}
+                  openOriginalDocument={openOriginalDocument}
+                  isEmail={isEmail}
+                  metadata={doc.metadata as never}
+                  title={doc.title || doc.fileName || ''}
+                />
+              );
+            case 'analysis':
+              return (
+                <DocumentAnalysisTab
+                  doc={doc}
+                  id={id}
+                  textSubview={textSubview}
+                  setTextSubview={setTextSubview}
+                  localSearchTerm={localSearchTerm}
+                  summary={summary}
+                  showRecoveryHighlights={showRecoveryHighlights}
+                  setShowRecoveryHighlights={setShowRecoveryHighlights}
+                  isReadingMode={isReadingMode}
+                  setIsReadingMode={setIsReadingMode}
+                  setSelectedEntity={setSelectedEntity}
+                  setEntityModalId={setEntityModalId}
+                  entities={entities}
+                  groupedEntities={groupedEntities}
+                  relatedDocs={(relatedDocs || []).filter(
+                    (d): d is DocRecord => d.id !== undefined,
+                  )}
+                  isLoadingRelated={isLoadingRelated}
+                  onNavigateToDoc={(newId) =>
+                    navigate(`${location.pathname}?documentId=${encodeURIComponent(newId)}`)
+                  }
+                  cleanText={cleanText}
+                  ocrText={ocrText}
+                />
+              );
+            case 'provenance':
+              return <ProvenancePanel document={doc as never} />;
+            case 'assets':
+              return <DocumentAssetsTab documentId={id} />;
+            case 'claims':
+              return (
+                <ClaimsTab documentId={id} onOpenEntity={(entId) => setEntityModalId(entId)} />
+              );
+            default:
+              return null;
+          }
+        })()}
+      </>
+    );
   };
 
   if (isMobile) {

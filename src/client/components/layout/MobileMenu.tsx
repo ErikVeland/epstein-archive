@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import s from './MobileMenu.module.css';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 
 import { Button, SearchField } from '../../design-system/lib';
 
@@ -24,6 +26,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   onClose,
   onSearch,
 }) => {
+  const { showAllSensitive, toggleShowAllSensitive } = useSensitiveSettings();
   const [attract, setAttract] = useState(() => {
     if (typeof window === 'undefined') return false;
     const shown = localStorage.getItem('investigate_attract_shown') === 'true';
@@ -255,6 +258,16 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </Button>
           <Button
             unstyled
+            className={`${s.navItem} ${s.navItemFinancial}`}
+            onClick={() => handleNavigation('/financial')}
+          >
+            <div className={`${s.iconWrap} ${s.iconWrapFinancial}`}>
+              <Icon name="DollarSign" size="sm" className={s.iconFinancial} />
+            </div>
+            <span className={s.navLabel}>Financial</span>
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemAnalytics}`}
             onClick={() => handleNavigation('/analytics')}
           >
@@ -276,6 +289,19 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             </div>
             <span className={s.navLabel}>About</span>
           </Button>
+          <Button
+            unstyled
+            className={`${s.navItem} ${s.navItemAbout}`}
+            onClick={() => {
+              onClose();
+              window.dispatchEvent(new CustomEvent('toggleReleaseNotes'));
+            }}
+          >
+            <div className={`${s.iconWrap} ${s.iconWrapAbout}`}>
+              <Icon name="Book" size="sm" />
+            </div>
+            <span className={s.navLabel}>What's New</span>
+          </Button>
 
           {isAdmin && (
             <Button
@@ -293,6 +319,30 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 
         {/* Footer - Flex item at bottom */}
         <div className={s.panelFooter}>
+          <div className={s.footerActions}>
+            <Button
+              unstyled
+              className={`${s.footerToggle} ${showAllSensitive ? s.footerToggleActive : ''}`}
+              onClick={() => {
+                toggleShowAllSensitive();
+              }}
+              title={showAllSensitive ? 'Hide sensitive content' : 'Show sensitive content'}
+            >
+              <Icon name={showAllSensitive ? 'Eye' : 'EyeOff'} size="xs" />
+              <span>{showAllSensitive ? 'Sensitive: Visible' : 'Sensitive: Hidden'}</span>
+            </Button>
+          </div>
+          <div className={s.footerLinks}>
+            <Link to="/privacy" className={s.footerLink} onClick={onClose}>
+              Privacy
+            </Link>
+            <span className={s.footerDot} aria-hidden="true">
+              ·
+            </span>
+            <Link to="/terms" className={s.footerLink} onClick={onClose}>
+              Terms
+            </Link>
+          </div>
           <p className={s.versionText}>v{__APP_VERSION__} &bull; Epstein Archive</p>
         </div>
       </div>

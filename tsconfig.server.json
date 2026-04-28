@@ -24,6 +24,7 @@
   },
   "include": [
     "src/server.ts",
+    "src/app.ts",
     "src/server/**/*",
     "src/shared/**/*",
     "src/types.ts",

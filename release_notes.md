@@ -1,5 +1,20 @@
 # Release Notes
 
+## 19.9.0 - 2026-04-28 - Security Hardening & Breach Remediation
+
+### Security & Infrastructure
+
+- **Breach Remediation**: Successfully purged a cryptojacking miner and malicious package dependencies identified on the production server.
+- **Dependency Hardening**: Upgraded Next.js and core dependencies to patched, secure versions to prevent supply chain attacks (dependency confusion).
+- **Secrets Rotation**: Performed a full rotation of all production secrets (JWT, Session, Database) following an environment leak.
+- **Nginx Security**: Implemented a global security policy at the gateway level to explicitly block access to hidden sensitive files (e.g., `.env`).
+- **File System Permissions**: Enforced strict `600` permissions on all environment files and audited service account privileges.
+
+### API & Stability
+
+- **Subjects Route Restoration**: Restored the `/api/subjects` endpoint directly in the core application router to eliminate 404/504 regressions and stabilize the landing page entity directory.
+- **Deployment Stability**: Hardened the deployment pipeline with automated environment sanity checks and improved process management reliability.
+
 ## 19.8.0 - 2026-04-28 - Immersive Mobile Document Experience
 
 ### Immersive Forensic Upgrades

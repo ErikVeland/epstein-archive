@@ -674,11 +674,14 @@ function App() {
   useEffect(() => {
     const handleToggleMobileMenu = () => setIsMobileMenuOpen((v) => !v);
     const handleToggleMobileSearch = () => setIsMobileSearchOpen((v) => !v);
+    const handleToggleReleaseNotes = () => setShowReleaseNotes((v) => !v);
     window.addEventListener('toggleMobileMenu', handleToggleMobileMenu);
     window.addEventListener('toggleMobileSearch', handleToggleMobileSearch);
+    window.addEventListener('toggleReleaseNotes', handleToggleReleaseNotes);
     return () => {
       window.removeEventListener('toggleMobileMenu', handleToggleMobileMenu);
       window.removeEventListener('toggleMobileSearch', handleToggleMobileSearch);
+      window.removeEventListener('toggleReleaseNotes', handleToggleReleaseNotes);
     };
   }, []);
 
@@ -1235,7 +1238,9 @@ function App() {
 
               {/* Skip links for accessibility */}
               <div className={styles.srOnly}>
-                <a className={styles.skipLink}>Skip to main content</a>
+                <a href="#main-content" className={styles.skipLink}>
+                  Skip to main content
+                </a>
                 <a href="#navigation" className={cn(styles.skipLink, styles.skipNavigation)}>
                   Skip to navigation
                 </a>
