@@ -116,7 +116,7 @@
     "helmet": "^8.1.0",
     "html-entities": "^2.6.0",
     "html-to-text": "^9.0.5",
-    "isomorphic-dompurify": "^3.0.0",
+    "isomorphic-dompurify": "^2.16.0",
     "jsdom": "^24.0.0",
     "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
