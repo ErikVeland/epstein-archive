@@ -117,7 +117,7 @@
     "html-entities": "^2.6.0",
     "html-to-text": "^9.0.5",
     "isomorphic-dompurify": "^3.0.0",
-    "jsdom": "^27.3.0",
+    "jsdom": "^24.0.0",
     "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.460.0",
@@ -222,7 +222,7 @@
       "postcss": "^8.5.12",
       "qs": "^6.15.1",
       "tar": "^7.5.13",
-      "undici": "^8.1.0"
+      "undici": "^6.21.0"
     },
     "onlyBuiltDependencies": [
       "canvas",
