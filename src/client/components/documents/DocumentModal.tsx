@@ -440,7 +440,7 @@ export const DocumentModal: React.FC<Props> = ({
                   borderBottom: '1px solid var(--glass-border)',
                 }}
               >
-                <Flex align="center" justify="space-between" gap="sm">
+                <Flex align="center" justify="between" gap="sm">
                   <LqText variant="small">
                     This document is an email. For the best experience, use the specialized Email
                     Viewer.
