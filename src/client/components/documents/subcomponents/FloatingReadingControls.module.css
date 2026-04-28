@@ -1,0 +1,73 @@
+.floatingContainer {
+  position: absolute;
+  bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.4s var(--easing-liquid);
+}
+
+.floatingContainer.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  background: rgba(10, 10, 13, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border-highlight);
+  border-radius: 9999px;
+  padding: 4px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.pillButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.pillButton span {
+  display: none;
+}
+
+@media (min-width: 380px) {
+  .pillButton span {
+    display: inline;
+  }
+}
+
+.pillButton:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pillButton.active {
+  color: var(--color-text-inverse, #fff);
+  background: var(--accent);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.divider {
+  width: 1px;
+  height: 16px;
+  background: var(--glass-border);
+  margin: 0 2px;
+}

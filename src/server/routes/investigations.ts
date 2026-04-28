@@ -3,9 +3,9 @@ import type { AuthRequest } from '../auth/middleware.js';
 import { investigationsRepository } from '../db/investigationsRepository.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import {
-  mapInvestigationEvidenceListItemDto,
   mapInvestigationEvidenceByTypeResponseDto,
   mapInvestigationEvidenceListResponseDto,
+  mapInvestigationListItemDto,
 } from '../mappers/investigationsDtoMapper.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
@@ -15,6 +15,7 @@ import path from 'path';
 import { InvestigationIngestorService } from '../services/InvestigationIngestorService.js';
 import { buildManifest, buildEvidenceCsv, BUNDLE_README } from '../utils/exportManifest.js';
 import { buildExportFileInventory } from '../utils/investigationExportInventory.js';
+import { InvestigationRow, InvestigationEvidenceRow } from '../db/rowTypes.js';
 
 const router = Router();
 const DATA_ROOT = path.resolve(process.cwd(), 'data');
@@ -156,7 +157,7 @@ const evidenceAnnotationCreateSchema = z.object({
     color: z.string().max(32).optional(),
     startOffset: z.number().int().min(0).optional(),
     endOffset: z.number().int().min(1).optional(),
-    metadata: z.record(z.any()).optional(),
+    metadata: z.record(z.unknown()).optional(),
   }),
 });
 
@@ -172,7 +173,7 @@ const evidenceAnnotationUpdateSchema = z.object({
       color: z.string().max(32).nullable().optional(),
       startOffset: z.number().int().min(0).nullable().optional(),
       endOffset: z.number().int().min(1).nullable().optional(),
-      metadata: z.record(z.any()).optional(),
+      metadata: z.record(z.unknown()).optional(),
     })
     .refine(
       (body) =>
@@ -259,7 +260,7 @@ const notebookSchema = z.object({
   }),
   body: z.object({
     order: z.array(z.string()).optional(),
-    annotations: z.array(z.any()).optional(),
+    annotations: z.array(z.unknown()).optional(),
   }),
 });
 
@@ -276,7 +277,12 @@ router.get('/', validate(getInvestigationsSchema), async (req, res, next) => {
     res.setHeader('X-Limit-Applied', String(filters.limit));
 
     const result = await investigationsRepository.getInvestigations(filters);
-    res.json(result);
+    res.json({
+      ...result,
+      data: Array.isArray(result.data)
+        ? (result.data as unknown as InvestigationRow[]).map(mapInvestigationListItemDto)
+        : [],
+    });
   } catch (error) {
     next(error);
   }
@@ -334,7 +340,7 @@ router.get('/:id', validate(idParamSchema), async (req, res, next) => {
       return res.status(404).json({ error: 'Investigation not found' });
     }
 
-    res.json(investigation);
+    res.json(mapInvestigationListItemDto(investigation as unknown as InvestigationRow));
   } catch (error) {
     next(error);
   }
@@ -495,9 +501,6 @@ router.get('/:id/evidence', validate(evidenceParamsSchema), async (req, res, nex
       limit: limit !== undefined ? Number(limit) : undefined,
       offset: offset !== undefined ? Number(offset) : undefined,
     });
-    if (Array.isArray(evidence)) {
-      return res.json(evidence.map(mapInvestigationEvidenceListItemDto));
-    }
     res.json(mapInvestigationEvidenceListResponseDto(evidence));
   } catch (error) {
     next(error);
@@ -780,7 +783,15 @@ router.get('/:id/activity', validate(activityQuerySchema), async (req, res, next
     const parsed = activity.map(
       (a: { metadata_json?: string | null } & Record<string, unknown>) => {
         const metaJson = typeof a.metadata_json === 'string' ? a.metadata_json : null;
-        return { ...a, metadata: metaJson ? JSON.parse(metaJson) : null };
+        let metadata = null;
+        if (metaJson) {
+          try {
+            metadata = JSON.parse(metaJson);
+          } catch {
+            metadata = null;
+          }
+        }
+        return { ...a, metadata };
       },
     );
 
@@ -998,7 +1009,7 @@ router.get(
       // --- Build manifest (includes checksum over sorted inventory) ---
       const evidenceIds = Array.from(
         new Set(
-          (evidenceList as EvidenceRow[])
+          (evidenceList as unknown as InvestigationEvidenceRow[])
             .map((e) => Number(e.id ?? e.investigation_evidence_id ?? 0))
             .filter((n) => n > 0),
         ),
@@ -1019,7 +1030,7 @@ router.get(
       });
 
       // --- Build evidence CSV ---
-      const evidenceCsv = buildEvidenceCsv(evidenceList as EvidenceRow[]);
+      const evidenceCsv = buildEvidenceCsv(evidenceList as unknown as InvestigationEvidenceRow[]);
 
       // --- Stream archive ---
       const archive = archiver('zip', { zlib: { level: 6 } });

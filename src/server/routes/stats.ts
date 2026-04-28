@@ -16,7 +16,7 @@ import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import { withSafeStatsContract } from '../utils/stats.js';
+import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 
 const router = Router();
 const execFileAsync = promisify(execFile);
@@ -46,8 +46,8 @@ router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
 // Cache for 5 minutes (300 seconds)
 router.get('/', cacheMiddleware(300), async (_req, res, next) => {
   try {
-    const stats = statsRepository.getStatistics();
-    res.json(withSafeStatsContract(await stats));
+    const stats = await statsRepository.getStatistics();
+    res.json(mapStatsDto(stats as unknown as RawStatsRow));
   } catch (e) {
     next(e);
   }

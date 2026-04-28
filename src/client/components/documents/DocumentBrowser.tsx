@@ -200,6 +200,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     setCurrentPage,
     totalDocuments,
     isFetching,
+    isError,
+    error,
     searchMeta,
   } = useDocumentBrowserData({
     effectiveSearchTerm,
@@ -346,6 +348,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           handleHoverStart={handleHoverStart}
           handleHoverEnd={handleHoverEnd}
           isFetching={isFetching}
+          isError={isError}
+          error={error}
           currentPage={currentPage}
           totalDocuments={totalDocuments}
           itemsPerPage={itemsPerPage}

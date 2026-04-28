@@ -74,3 +74,31 @@ export interface EntityListResponseDto {
   pageSize: number;
   totalPages: number;
 }
+export interface EntityDetailDto {
+  id: string;
+  name: string;
+  fullName: string;
+  entityType: string;
+  primaryRole: string;
+  secondaryRoles: string[];
+  mentions: number;
+  files: number;
+  contexts: unknown[];
+  evidenceTypes: string[];
+  likelihoodScore: string;
+  redFlagScore: number;
+  redFlagRating: number;
+  redFlagPeppers: string;
+  redFlagDescription: string;
+  connectionsToEpstein: string;
+  fileReferences: unknown[];
+  timelineEvents: unknown[];
+  networkConnections: unknown[];
+  blackBookEntries: unknown[];
+  bio: string;
+  description: string;
+  photos: unknown[];
+  significantPassages: unknown[];
+  birthDate: string | null;
+  deathDate: string | null;
+}

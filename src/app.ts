@@ -23,8 +23,6 @@ import { validateStartup } from './server/utils/startupValidation.js';
 import { runMigrations } from './server/db/migrator.js';
 import { initRevisionManager } from './server/revisionManager.js';
 import { getEntityAndDocumentCounts } from './server/db/routesDb.js';
-import { resolveMediaPath } from './server/utils/pathResolver.js';
-import type { SearchFilters, SortOption } from './types.js';
 
 // Route imports
 import authRoutes from './server/auth/routes.js';
@@ -65,16 +63,11 @@ import memoryRoutes from './server/routes/memoryRoutes.js';
 import dataQualityRoutes from './server/routes/dataQualityRoutes.js';
 import vitalsRoutes from './server/routes/vitalsRoutes.js';
 import sitemapRouter from './server/routes/sitemap.js';
+import entitiesRoutes from './server/routes/entitiesRoutes.js';
+import searchRoutes from './server/routes/searchRoutes.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
 import { evidenceRepository } from './server/db/evidenceRepository.js';
-import { searchRepository } from './server/db/searchRepository.js';
-import {
-  mapEntityDetailDto,
-  mapEntityListResponseDto,
-  mapSubjectsListResponseDto,
-} from './server/mappers/entitiesDtoMapper.js';
-import { validate, subjectsQuerySchema } from './server/middleware/validate.js';
 import { purgeCacheByPattern } from './server/middleware/cache.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
@@ -700,192 +693,8 @@ export class App {
         return requireRole('admin')(req, res, next);
       });
     });
-    router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
-      try {
-        const query = req.query as Record<string, unknown>;
-        const page = Number(query.page || 1);
-        const limit = Number(query.limit || 24);
-        const likelihoodRaw = query.likelihoodScore;
-        const likelihoodScore = Array.isArray(likelihoodRaw)
-          ? likelihoodRaw
-          : typeof likelihoodRaw === 'string' && likelihoodRaw.length > 0
-            ? [likelihoodRaw]
-            : undefined;
-
-        const filters: SearchFilters = {
-          searchTerm: typeof query.search === 'string' ? query.search : undefined,
-          role: typeof query.role === 'string' ? query.role : undefined,
-          entityType: typeof query.entityType === 'string' ? query.entityType : undefined,
-          likelihoodScore,
-          sortOrder: String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc',
-        };
-        const sortBy: SortOption =
-          typeof query.sortBy === 'string' ? (query.sortBy as SortOption) : 'risk';
-        const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
-
-        res.json(mapSubjectsListResponseDto(result as unknown as Record<string, unknown>));
-      } catch (error) {
-        next(error);
-      }
-    });
-    router.get('/entities', async (req, res, next) => {
-      try {
-        const query = req.query as Record<string, unknown>;
-        const page = Math.max(1, Number(query.page || 1));
-        const limit = Math.min(500, Math.max(1, Number(query.limit || 24)));
-        const sortByRaw = String(query.sortBy || 'risk').toLowerCase();
-        const sortByAliases: Record<string, SortOption> = {
-          default: 'red_flag',
-          red_flag: 'red_flag',
-          red_flag_rating: 'red_flag',
-          rfi: 'red_flag',
-          risk: 'risk',
-          mentions: 'mentions',
-          name: 'name',
-          recent: 'recent',
-          relevance: 'relevance',
-          document_count: 'document-count',
-          'document-count': 'document-count',
-        };
-        const sortBy = sortByAliases[sortByRaw] || 'red_flag';
-
-        const likelihoodRaw = query.likelihood || query.likelihoodScore;
-        const likelihoodScore = Array.isArray(likelihoodRaw)
-          ? likelihoodRaw
-          : typeof likelihoodRaw === 'string' && likelihoodRaw.length > 0
-            ? [likelihoodRaw]
-            : undefined;
-
-        const filters: SearchFilters = {
-          searchTerm: typeof query.search === 'string' ? query.search : undefined,
-          role: typeof query.role === 'string' ? query.role : undefined,
-          likelihoodScore,
-          minRedFlagIndex:
-            query.minRedFlagIndex !== undefined ? Number(query.minRedFlagIndex) : undefined,
-          maxRedFlagIndex:
-            query.maxRedFlagIndex !== undefined ? Number(query.maxRedFlagIndex) : undefined,
-          entityType: typeof query.type === 'string' ? query.type : undefined,
-        };
-        const result = await entitiesRepository.getEntities(page, limit, filters, sortBy);
-
-        res.json(
-          mapEntityListResponseDto({
-            entities: result.entities,
-            total: result.total,
-            page,
-            pageSize: limit,
-            photosByEntity: {},
-          }),
-        );
-      } catch (error) {
-        next(error);
-      }
-    });
-    router.get('/entities/all', async (req, res, next) => {
-      try {
-        const query = req.query as Record<string, unknown>;
-        const requestedLimit = Number(query.limit || 1000);
-        const limit = Math.min(5000, Math.max(1, requestedLimit));
-        const entities = await entitiesRepository.getAllEntities(limit);
-        res.json(entities);
-      } catch (error) {
-        next(error);
-      }
-    });
-    router.get('/entities/search', async (req, res, next) => {
-      try {
-        const query = req.query as Record<string, unknown>;
-        const q = String(query.q || '').trim();
-        const limit = Math.min(100, Math.max(1, Number(query.limit || 20)));
-        const result = await entitiesRepository.getEntities(
-          1,
-          limit,
-          q ? ({ searchTerm: q } as SearchFilters) : undefined,
-          'relevance',
-        );
-        res.json({ results: result.entities });
-      } catch (error) {
-        next(error);
-      }
-    });
-    router.get('/search', async (req, res, next) => {
-      try {
-        const query = req.query as Record<string, unknown>;
-        const q = String(query.q || query.query || '').trim();
-        const limit = Math.min(100, Math.max(1, Number(query.limit || 20)));
-
-        if (!q) {
-          return res.json({
-            entities: [],
-            documents: [],
-            investigations: [],
-            articles: [],
-            media: [],
-            didYouMean: [],
-          });
-        }
-
-        const result = await searchRepository.search(q, limit);
-        res.json(result);
-      } catch (error) {
-        next(error);
-      }
-    });
-    router.get('/entities/:id', async (req, res, next) => {
-      try {
-        const entity = await entitiesRepository.getEntityById(req.params.id);
-        if (!entity) return res.status(404).json({ error: 'Entity not found' });
-        return res.json(mapEntityDetailDto(entity as unknown as Record<string, unknown>));
-      } catch (error) {
-        next(error);
-      }
-    });
-
-    router.get('/entities/:id/portrait', async (req, res, next) => {
-      try {
-        const { id } = req.params;
-        const portraitPath = await mediaRepository.getEntityProfilePhoto(id);
-        if (!portraitPath) {
-          return res.status(404).json({ error: 'Portrait not found' });
-        }
-
-        const resolved = resolveMediaPath(portraitPath);
-        if (!resolved || !fs.existsSync(resolved)) {
-          return res.status(404).json({ error: 'Portrait file not found' });
-        }
-
-        res.type(path.extname(resolved) || 'image/jpeg');
-        return res.sendFile(resolved);
-      } catch (error) {
-        next(error);
-      }
-    });
-
-    router.get('/entities/batch/portraits', async (req, res, next) => {
-      try {
-        const idsStr = req.query.ids as string;
-        if (!idsStr) return res.status(400).json({ error: 'ids parameter required' });
-
-        const rawIds = idsStr.split(',').filter(Boolean);
-        if (rawIds.length > 100) {
-          return res.status(400).json({ error: 'Max 100 ids allowed per batch request' });
-        }
-
-        const results = await Promise.all(
-          rawIds.map(async (id) => {
-            const portraitPath = await mediaRepository.getEntityProfilePhoto(id);
-            return {
-              entityId: id,
-              url: portraitPath ? `/api/entities/${id}/portrait` : null,
-            };
-          }),
-        );
-
-        res.json({ items: results });
-      } catch (error) {
-        next(error);
-      }
-    });
+    router.use('/entities', entitiesRoutes);
+    router.use('/search', searchRoutes);
     router.use('/stats', statsRoutes);
     router.use('/relationships', relationshipsRoutes);
     router.use('/analytics', analyticsRoutes);

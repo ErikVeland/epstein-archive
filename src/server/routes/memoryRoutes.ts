@@ -50,7 +50,8 @@ const memoryIdParamSchema = z.object({
 
 router.get('/', authenticateRequest, validate(memoryQuerySchema), async (req, res, next) => {
   try {
-    const { page, limit, memoryType, status, q } = req.query as any;
+    type MemoryQuery = z.infer<typeof memoryQuerySchema>['query'];
+    const { page, limit, memoryType, status, q } = req.query as unknown as MemoryQuery;
     const pool = getApiPool();
     const result = await memoryRepository.searchMemoryEntries(
       pool,

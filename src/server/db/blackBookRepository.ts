@@ -252,11 +252,13 @@ export const blackBookRepository = {
         );
 
         await getApiPool().query(
-          'INSERT INTO audit_log (action, target_type, target_id, payload_json) VALUES ($1, $2, $3, $4)',
+          'INSERT INTO audit_log (action, target_type, target_id, ent_id, actor_id, payload_json) VALUES ($1, $2, $3, $4, $5, $6)',
           [
             'black_book_review',
             'person',
             personId.toString(),
+            Number(personId),
+            'system',
             JSON.stringify({ action: 'approve', correctedName }),
           ],
         );
@@ -271,11 +273,13 @@ export const blackBookRepository = {
         );
 
         await getApiPool().query(
-          'INSERT INTO audit_log (operation, entity_type, entity_id, details_json) VALUES ($1, $2, $3, $4)',
+          'INSERT INTO audit_log (action, target_type, target_id, ent_id, actor_id, payload_json) VALUES ($1, $2, $3, $4, $5, $6)',
           [
             'black_book_review',
             'person',
             personId.toString(),
+            Number(personId),
+            'system',
             JSON.stringify({ action: 'delete' }),
           ],
         );

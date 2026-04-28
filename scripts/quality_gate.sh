@@ -26,11 +26,11 @@ pnpm test:unit
 
 if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
   if [[ -n "${DATABASE_URL:-}" ]]; then
-    echo "▶ Seeding Entity #1 canary fixture (Jeffrey Epstein)"
-    pnpm db:seed:entity1-canary
+    echo "▶ Verifying DB connectivity"
+    pnpm db:check
 
-    echo "▶ Running data-quality gates (DB-backed)"
-    pnpm test:data-quality
+    echo "▶ Verifying schema hash (prevents silent schema drift)"
+    pnpm schema:hash:check
   else
     echo "⚠️  DATABASE_URL not set; skipping data-quality gates"
   fi

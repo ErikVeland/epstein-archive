@@ -297,40 +297,61 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  position: relative;
 }
 
-.tabsScroller {
-  display: flex;
-  overflow-x: auto;
-  gap: var(--space-4);
-  padding: var(--space-2) var(--space-4);
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+/* Immersive Reading Mode Transitions */
+.mobileHeaderChrome {
+  flex-shrink: 0;
+  transition:
+    transform 0.4s var(--easing-liquid),
+    opacity 0.4s var(--easing-liquid);
+  transform: translateY(0);
+  opacity: 1;
+  z-index: 10;
+  background: var(--bg-surface);
+}
+
+.chromeHiddenTop {
+  transform: translateY(-100%);
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+  pointer-events: none;
+}
+
+.chromeHiddenBottom {
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Make sure mobile sheet doesn't cut off when immersive */
+.immersiveReading .mobileScrollArea {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Tabs override for DocumentModal mobile */
+.tabsOverride {
+  flex-shrink: 0;
   border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
 }
 
-.tabsScroller::-webkit-scrollbar {
-  display: none;
-}
-
-.mobileTab {
-  white-space: nowrap;
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--type-xs);
-  font-weight: var(--weight-medium);
-  color: var(--text-muted);
-  border-bottom: 2px solid transparent;
-}
-
-.mobileTabActive {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+@media (max-width: 767px) {
+  .tabsOverride :global(.tabItem) {
+    height: 40px;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
 }
 
 .mobileScrollArea {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-4);
+  padding: 0; /* Let content handle internal padding if needed, or set base here */
+  position: relative;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mobileBottomBar {
@@ -342,6 +363,10 @@
   border-top: 1px solid var(--glass-border);
   padding-bottom: env(safe-area-inset-bottom);
   flex-shrink: 0;
+  transition:
+    transform 0.4s var(--easing-liquid),
+    opacity 0.4s var(--easing-liquid);
+  transform: translateY(0);
 }
 
 .bottomBarItem {
@@ -366,10 +391,11 @@
   position: absolute;
   inset: 0;
   z-index: 1000;
-  background: var(--bg-surface);
+  background: rgba(10, 10, 13, 0.98);
+  backdrop-filter: blur(24px);
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: slideUp 0.4s var(--easing-liquid);
 }
 
 @keyframes slideUp {
@@ -385,13 +411,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-4);
+  padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+}
+
+.overlayClose {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlayClose:hover {
+  color: var(--text-primary);
 }
 
 .overlayContent {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-4);
+  padding: 0;
   -webkit-overflow-scrolling: touch;
 }

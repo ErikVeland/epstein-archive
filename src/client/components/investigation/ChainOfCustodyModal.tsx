@@ -6,7 +6,9 @@ import { History, ShieldCheck, CheckCircle } from 'lucide-react';
 // UI Library
 import { Box, Button, Flex, LqText, Stack, Surface, TextInput } from '../../design-system/lib';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { CloseButton } from '../common/CloseButton';
+import { LiquidSheet } from '../common/LiquidSheet';
 import styles from './ChainOfCustodyModal.module.css';
 
 interface CustodyEvent {
@@ -23,7 +25,8 @@ interface Props {
 }
 
 export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) => {
-  useScrollLock(true);
+  const isMobile = useIsMobile();
+  useScrollLock(!isMobile);
   const queryClient = useQueryClient();
   const [actor, setActor] = useState('');
   const [action, setAction] = useState('analyzed');
@@ -80,6 +83,98 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
     setNotes('');
   };
 
+  const modalContent = (
+    <Box className={styles.body}>
+      <Flex align="center" gap="sm">
+        <History size={16} />
+        <LqText variant="xs" weight="bold" color="muted" style={{ textTransform: 'uppercase' }}>
+          Custody Events
+        </LqText>
+      </Flex>
+
+      {loading ? (
+        <Stack gap="sm">
+          {[1, 2, 3, 4].map((i) => (
+            <Surface key={i} variant="glass" p="lg" />
+          ))}
+        </Stack>
+      ) : events.length === 0 ? (
+        <LqText className={styles.emptyText}>
+          Custody stream clear. Record the first handling event below.
+        </LqText>
+      ) : (
+        <div className={styles.eventsList}>
+          {events.map((ev) => (
+            <div key={ev.id} className={styles.eventCard}>
+              <div className={styles.eventHeader}>
+                <div className={styles.eventAction}>{ev.action.toUpperCase()}</div>
+                <div className={styles.eventDate}>{ev.date}</div>
+              </div>
+              <div className={styles.eventActor}>
+                Handler: <span className={styles.actorName}>{ev.actor}</span>
+              </div>
+              {ev.notes ? <div className={styles.eventNotes}>"{ev.notes}"</div> : null}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className={styles.addEventSection}>
+        <LqText className={styles.addEventTitle}>Register Custody Event</LqText>
+
+        <div className={styles.addEventGrid}>
+          <Stack gap="xs">
+            <LqText variant="xs" weight="bold" color="muted">
+              Handler Name
+            </LqText>
+            <TextInput value={actor} onChange={(e) => setActor(e.target.value)} />
+          </Stack>
+          <Stack gap="xs">
+            <LqText variant="xs" weight="bold" color="muted">
+              Action
+            </LqText>
+            <TextInput value={action} onChange={(e) => setAction(e.target.value)} />
+          </Stack>
+          <Stack gap="xs">
+            <LqText variant="xs" weight="bold" color="muted">
+              Notes
+            </LqText>
+            <TextInput value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </Stack>
+        </div>
+
+        <Button variant="secondary" size="sm" onClick={addEvent} disabled={!actor || !action}>
+          <CheckCircle size={14} className={styles.mr2} /> Commit Signature
+        </Button>
+      </div>
+    </Box>
+  );
+
+  const exportActions = (
+    <div className={styles.exportButtons}>
+      <button type="button" onClick={exportReport} className={styles.exportButton}>
+        Export Report
+      </button>
+      <button type="button" onClick={exportCsv} className={styles.exportButton}>
+        Export CSV
+      </button>
+      <button type="button" onClick={openPrintable} className={styles.exportButton}>
+        Printable PDF
+      </button>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <LiquidSheet isOpen={true} onClose={onClose} title="Chain of Custody">
+        <Stack gap="md">
+          {exportActions}
+          {modalContent}
+        </Stack>
+      </LiquidSheet>
+    );
+  }
+
   return createPortal(
     <Box
       className={styles.overlay}
@@ -100,85 +195,12 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
           </Stack>
 
           <Flex align="center" gap="sm">
-            <div className={styles.exportButtons}>
-              <button type="button" onClick={exportReport} className={styles.exportButton}>
-                Export Report
-              </button>
-              <button type="button" onClick={exportCsv} className={styles.exportButton}>
-                Export CSV
-              </button>
-              <button type="button" onClick={openPrintable} className={styles.exportButton}>
-                Printable PDF
-              </button>
-            </div>
+            {exportActions}
             <CloseButton onClick={onClose} size="md" className={styles.closeButton} />
           </Flex>
         </Box>
 
-        <Box className={styles.body}>
-          <Flex align="center" gap="sm">
-            <History size={16} />
-            <LqText variant="xs" weight="bold" color="muted" style={{ textTransform: 'uppercase' }}>
-              Custody Events
-            </LqText>
-          </Flex>
-
-          {loading ? (
-            <Stack gap="sm">
-              {[1, 2, 3, 4].map((i) => (
-                <Surface key={i} variant="glass" p="lg" />
-              ))}
-            </Stack>
-          ) : events.length === 0 ? (
-            <LqText className={styles.emptyText}>
-              Custody stream clear. Record the first handling event below.
-            </LqText>
-          ) : (
-            <div className={styles.eventsList}>
-              {events.map((ev) => (
-                <div key={ev.id} className={styles.eventCard}>
-                  <div className={styles.eventHeader}>
-                    <div className={styles.eventAction}>{ev.action.toUpperCase()}</div>
-                    <div className={styles.eventDate}>{ev.date}</div>
-                  </div>
-                  <div className={styles.eventActor}>
-                    Handler: <span className={styles.actorName}>{ev.actor}</span>
-                  </div>
-                  {ev.notes ? <div className={styles.eventNotes}>"{ev.notes}"</div> : null}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className={styles.addEventSection}>
-            <LqText className={styles.addEventTitle}>Register Custody Event</LqText>
-
-            <div className={styles.addEventGrid}>
-              <Stack gap="xs">
-                <LqText variant="xs" weight="bold" color="muted">
-                  Handler Name
-                </LqText>
-                <TextInput value={actor} onChange={(e) => setActor(e.target.value)} />
-              </Stack>
-              <Stack gap="xs">
-                <LqText variant="xs" weight="bold" color="muted">
-                  Action
-                </LqText>
-                <TextInput value={action} onChange={(e) => setAction(e.target.value)} />
-              </Stack>
-              <Stack gap="xs">
-                <LqText variant="xs" weight="bold" color="muted">
-                  Notes
-                </LqText>
-                <TextInput value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </Stack>
-            </div>
-
-            <Button variant="secondary" size="sm" onClick={addEvent} disabled={!actor || !action}>
-              <CheckCircle size={14} className={styles.mr2} /> Commit Signature
-            </Button>
-          </div>
-        </Box>
+        {modalContent}
       </Surface>
     </Box>,
     document.body,

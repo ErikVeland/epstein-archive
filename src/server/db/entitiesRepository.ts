@@ -157,7 +157,7 @@ async function loadAggregateStatsForSubjects(
           WHERE d.evidence_type = 'media' OR d.file_type ~* '^(image|video|audio)/'
         ) AS verified_media
       FROM entity_mentions em
-      JOIN documents d ON d.id = em.document_id
+      LEFT JOIN documents d ON d.id = em.document_id
       WHERE em.entity_id = ANY($1::bigint[])
       GROUP BY em.entity_id
     `,

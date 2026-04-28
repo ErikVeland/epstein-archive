@@ -172,7 +172,13 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   const getProvenance = (item: EvidenceItem) => {
     let metadata: Record<string, unknown> = {};
     try {
-      metadata = item.metadataJson ? JSON.parse(item.metadataJson) : {};
+      if (typeof item.metadataJson === 'string' && item.metadataJson.trim().length > 0) {
+        metadata = JSON.parse(item.metadataJson) as Record<string, unknown>;
+      } else if (typeof item.metadataJson === 'object' && item.metadataJson !== null) {
+        metadata = item.metadataJson as Record<string, unknown>;
+      } else {
+        metadata = {};
+      }
     } catch {
       metadata = {};
     }

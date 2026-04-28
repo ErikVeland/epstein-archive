@@ -77,6 +77,68 @@ export const entityListResponseSchema = z.object({
   totalPages: z.number(),
 });
 
+// Schema for GET /api/entities/all and GET /api/entities/search
+export const entityMinimalItemSchema = z.object({
+  id: z.union([z.string(), z.number()]),
+  name: z.string().optional(),
+  fullName: z.string().optional(),
+  full_name: z.string().optional(),
+  primary_role: z.string().optional(),
+  primaryRole: z.string().optional(),
+  mentions: z.number().optional(),
+});
+
+export const entityAllResponseSchema = z.array(entityMinimalItemSchema);
+
+export const entitySearchResponseSchema = z.object({
+  results: z.array(entityMinimalItemSchema),
+});
+
+// Schema for GET /api/entities/:id/evidence
+const entityEvidenceItemSchema = z.object({
+  id: z.union([z.string(), z.number()]).nullable(),
+  documentId: z.union([z.string(), z.number()]).nullable(),
+  evidenceType: z.string(),
+  title: z.string(),
+  sourcePath: z.string(),
+  contentPreview: z.string(),
+  redFlagRating: z.number(),
+  confidence: z.number(),
+  role: z.string(),
+  flags: z.array(z.object({ type: z.string(), severity: z.string().nullable() })),
+});
+
+export const entityEvidenceResponseSchema = z
+  .object({
+    entity: z.object({
+      id: z.string(),
+      fullName: z.string(),
+      primaryRole: z.string(),
+      entityCategory: z.string(),
+      riskLevel: z.string(),
+      redFlagRating: z.number(),
+      birthDate: z.string().nullable(),
+      deathDate: z.string().nullable(),
+    }),
+    evidence: z.array(entityEvidenceItemSchema),
+    stats: z.object({
+      totalEvidence: z.number(),
+      typeBreakdown: z.array(z.object({ evidenceType: z.string(), count: z.number() })),
+      roleBreakdown: z.array(z.object({ role: z.string(), count: z.number() })),
+      relatedEntities: z.array(
+        z.object({
+          id: z.number(),
+          fullName: z.string(),
+          entityCategory: z.string(),
+          sharedEvidenceCount: z.number(),
+        }),
+      ),
+      highRiskCount: z.number(),
+      averageConfidence: z.number(),
+    }),
+  })
+  .nullable();
+
 // Schema for GET /api/entities/:id — single entity detail
 export const entityDetailSchema = z.object({
   id: z.union([z.string(), z.number()]),

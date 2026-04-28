@@ -24,6 +24,23 @@
   filter: blur(32px);
 }
 
+.mobileSheet {
+  --liquid-sheet-bg: var(--glass-bg-strong);
+}
+
+.mobileSheet :global(.liquidSheetContent) {
+  padding: 0;
+}
+
+.mobileScrollFrame {
+  overflow-x: hidden;
+  padding-bottom: calc(var(--space-6) + env(safe-area-inset-bottom));
+}
+
+.mobileHeroSection {
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
 .modal {
   position: relative;
   display: flex;

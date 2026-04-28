@@ -43,7 +43,31 @@ router.get('/:entityId/relations', async (req: Request, res: Response) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const result = await entityEvidenceRepository.getRelationEvidenceForEntity(entityId);
-    res.json(result);
+    const relations = Array.isArray(result.relations)
+      ? result.relations.map((rel) => ({
+          id: rel.id,
+          subjectEntityId: rel.subject_entity_id,
+          objectEntityId: rel.object_entity_id,
+          predicate: rel.predicate,
+          direction: rel.direction,
+          weight: rel.weight,
+          firstSeenAt: rel.first_seen_at,
+          lastSeenAt: rel.last_seen_at,
+          evidence: Array.isArray(rel.evidence)
+            ? rel.evidence.map((ev) => ({
+                id: ev.id,
+                documentId: ev.document_id,
+                spanId: ev.span_id,
+                quoteText: ev.quote_text,
+                confidence: ev.confidence,
+                mentionIds: ev.mention_ids,
+                documentTitle: ev.document_title,
+                documentPath: ev.document_path,
+              }))
+            : [],
+        }))
+      : [];
+    res.json({ relations });
   } catch (error) {
     logger.error({ err: error }, 'Error fetching entity relation evidence');
     res.status(500).json({ error: 'Failed to fetch relation evidence' });

@@ -100,7 +100,7 @@ SELECT
   ie.added_at, 
   ie.added_by
 FROM investigation_evidence ie
-JOIN evidence e ON ie.evidence_id = e.id
+LEFT JOIN evidence e ON ie.evidence_id = e.id
 WHERE ie.investigation_id = :investigationId!
 ORDER BY ie.added_at DESC
 LIMIT :limit OFFSET :offset;
@@ -173,7 +173,7 @@ SELECT * FROM hypotheses WHERE investigation_id = :investigationId! ORDER BY cre
 /* @name getHypothesisEvidence */
 SELECT he.*, e.title as evidence_title, e.evidence_type 
 FROM hypothesis_evidence he
-JOIN evidence e ON he.evidence_id = e.id
+LEFT JOIN evidence e ON he.evidence_id = e.id
 WHERE he.hypothesis_id = :hypothesisId!;
 
 /* @name createHypothesis */
@@ -239,7 +239,7 @@ SELECT
   ie.added_by,
   ie.notes
 FROM investigation_evidence ie
-JOIN evidence e ON ie.evidence_id = e.id
+LEFT JOIN evidence e ON ie.evidence_id = e.id
 LEFT JOIN documents d ON d.file_path = e.source_path
 LEFT JOIN media_items m ON m.file_path = e.source_path
 WHERE ie.investigation_id = :investigationId! 

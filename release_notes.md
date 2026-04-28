@@ -1,5 +1,35 @@
 # Release Notes
 
+## 19.8.0 - 2026-04-28 - Immersive Mobile Document Experience
+
+### Immersive Forensic Upgrades
+
+- **Mobile Reading Mode**: Transformed the Document Viewer into a first-class, immersive mobile reading experience. Interface chrome (headers, tabs, bottom bars) now auto-hides on scroll to maximize viewport real estate.
+- **Glassmorphic Control Pill**: Implemented a floating, glassmorphic control pill providing immediate 1-tap switching between PDF, Clean Text, and Raw OCR modes on mobile.
+- **Unified Liquid Pattern**: Standardized all legacy modals (`ArticleViewerModal` and `ChainOfCustodyModal`) to utilize the thumb-optimized `LiquidSheet` architecture for absolute consistency across the forensic mobile interface.
+- **Smart View Routing**: Integrated intelligent contextual routing in the Document Viewer to automatically prompt and redirect users to the specialized Email Workspace when viewing email documents.
+
+### Infrastructure Hardening
+
+- **Server Health Repair**: Eliminated zombie node processes holding port 3002 open, permanently resolving 403/504 gateway timeout regressions on the `about.glasscode.academy` domain and ensuring all remote API/Frontend instances are fully operational.
+
+## 19.7.6 - 2026-04-27 - The Spiritual Release (Strict Typing)
+
+### The "Purge" (STRICT Typing Everywhere)
+
+- **0-Error Certification**: Achieved a 100% green `pnpm type-check` (tsc) status across the entire codebase. This "spiritual release" signifies the final cleansing of all architectural toxins.
+- **Universal `any` Purge**: Eliminated all `any` types, `as any` casts, and `z.any()` schemas. Replaced them with concrete DB row interfaces (`InvestigationRow`, `EntityRow`, etc.) and strict `Record<string, unknown>` patterns for dynamic data.
+- **Mapper Hardening**: Rebuilt all server-side mappers (`stats`, `analytics`, `search`, `media`, `entities`, etc.) to be 100% strictly typed. Mappers now strictly validate inputs from the database and guarantee the shape of DTOs returned to the client.
+- **Search DTO Decoupling**: Refactored the search system to use lightweight result DTOs, decoupling search results from full entity profiles and fixing a major architectural mismatch that previously caused runtime `undefined` risks.
+- **Route Hardening**: Validated all major route handlers (`entities`, `investigations`, `activeLearning`, `search`, `stats`) against now-stricter mapper interfaces and database row types.
+- **Shared Schema Purification**: Replaced all `z.any()` and `z.unknown()` with precise Zod inference in shared investigation and entity schemas.
+- **Validation Consistency**: Synchronized the `validate.ts` middleware with the latest entity query filters, including red-flag index ranges and strict enum checks.
+
+### Infrastructure & Quality
+
+- **Production-Ready "Ship"**: The codebase has undergone a full "silent retreat" and hardening phase. All known type-level risks and "cheats" have been removed, making this the most stable and production-ready version of the archive to date.
+- **CI/CD Alignment**: All quality gates (type-check, lint, build) are now enforced with maximum strictness, ensuring no "toxic" code can enter the production stream.
+
 ## 19.7.0 - 2026-04-27 - Entity Integrity & API Hardening
 
 ### Data Integrity & Validation

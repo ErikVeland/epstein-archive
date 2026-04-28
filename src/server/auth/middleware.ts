@@ -21,13 +21,20 @@ interface JwtPayload {
 }
 
 const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
-  // eslint-disable-next-line no-console
-  console.error('CRITICAL: JWT_SECRET environment variable is not set!');
-  process.exit(1);
+if (!JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('CRITICAL: JWT_SECRET environment variable is not set!');
+    process.exit(1);
+  }
+  console.warn('WARNING: JWT_SECRET not set. Using insecure fallback for development only.');
 }
-// Fallback only for development
-const ACTUAL_SECRET = JWT_SECRET || 'dev-secret-do-not-use-in-prod';
+
+const getJwtSecret = (): string => {
+  if (!JWT_SECRET) {
+    return 'dev-secret-do-not-use-in-prod';
+  }
+  return JWT_SECRET;
+};
 
 // Shared verification helper — uses JWT payload claims directly (no DB round-trip).
 // Access tokens have no server-side revocation table, so re-fetching adds latency with no benefit.
@@ -42,7 +49,7 @@ const verifyToken = (req: Request): AuthRequest['user'] | null => {
   if (!token) return null;
 
   try {
-    const decoded = jwt.verify(token, ACTUAL_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, getJwtSecret()) as JwtPayload;
     if (!decoded?.id) return null;
     return {
       id: String(decoded.id),

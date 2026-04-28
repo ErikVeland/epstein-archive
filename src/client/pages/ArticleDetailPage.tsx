@@ -126,9 +126,9 @@ export const ArticleDetailPage: React.FC = () => {
           {/* Author */}
           <div className={panelStyles.authorSection}>
             <div className={panelStyles.authorRow}>
-              <div className={panelStyles.authorAvatar}>{article.author.charAt(0)}</div>
+              <div className={panelStyles.authorAvatar}>{(article.author || '?').charAt(0)}</div>
               <div>
-                <div className={panelStyles.authorName}>{article.author}</div>
+                <div className={panelStyles.authorName}>{article.author ?? 'Unknown'}</div>
                 <div className={panelStyles.authorRole}>Investigative Journalist</div>
               </div>
             </div>

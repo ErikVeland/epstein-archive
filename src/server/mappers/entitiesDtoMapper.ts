@@ -1,6 +1,7 @@
 import {
   EntityListItemDto,
   EntityListResponseDto,
+  EntityDetailDto,
   SubjectCardListItemDto,
   SubjectsListResponseDto,
   RiskLevel,
@@ -10,6 +11,21 @@ type UnknownRecord = Record<string, unknown>;
 
 const asRecord = (value: unknown): UnknownRecord =>
   typeof value === 'object' && value !== null ? (value as UnknownRecord) : {};
+
+const asString = (value: unknown, fallback = ''): string => {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint')
+    return String(value);
+  return fallback;
+};
+
+const asNullableString = (value: unknown): string | null => {
+  if (value == null) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint')
+    return String(value);
+  return null;
+};
 
 const asStringArray = (value: unknown): string[] =>
   Array.isArray(value) ? value.map((item) => String(item)) : [];
@@ -129,12 +145,15 @@ export const mapSubjectCardDto = (subject: UnknownRecord): SubjectCardListItemDt
   })(),
 });
 
-export const mapSubjectsListResponseDto = (result: UnknownRecord): SubjectsListResponseDto => ({
-  subjects: Array.isArray(result?.subjects)
-    ? (result.subjects as UnknownRecord[]).map(mapSubjectCardDto)
-    : [],
-  total: Number(result?.total || 0),
-});
+export const mapSubjectsListResponseDto = (result: unknown): SubjectsListResponseDto => {
+  const rec = asRecord(result);
+  return {
+    subjects: Array.isArray(rec.subjects)
+      ? (rec.subjects as UnknownRecord[]).map(mapSubjectCardDto)
+      : [],
+    total: Number(rec.total || 0),
+  };
+};
 
 export const mapEntityListItemDto = (
   entity: UnknownRecord,
@@ -190,8 +209,8 @@ export const mapEntityListResponseDto = (input: {
   totalPages: Math.ceil(Number(input.total || 0) / Math.max(1, Number(input.pageSize || 1))),
 });
 
-export const mapEntityDetailDto = (entity: UnknownRecord) => {
-  const name = entity.full_name || entity.fullName || entity.name || 'Unknown';
+export const mapEntityDetailDto = (entity: UnknownRecord): EntityDetailDto => {
+  const name = asString(entity.full_name ?? entity.fullName ?? entity.name, 'Unknown');
   const redFlagRating = Number(entity.red_flag_rating ?? entity.redFlagRating ?? 0);
   const secondaryRolesRaw = entity.secondary_roles || entity.secondaryRoles;
   const secondaryRoles = Array.isArray(secondaryRolesRaw)
@@ -223,8 +242,8 @@ export const mapEntityDetailDto = (entity: UnknownRecord) => {
     id: String(entity.id),
     name,
     fullName: name,
-    entityType: entity.entity_type || entity.entityType || 'Person',
-    primaryRole: entity.primary_role || entity.primaryRole || 'Unknown',
+    entityType: asString(entity.entity_type ?? entity.entityType, 'Person'),
+    primaryRole: asString(entity.primary_role ?? entity.primaryRole, 'Unknown'),
     secondaryRoles,
     mentions: Number(entity.mentions || 0),
     files: Number(
@@ -238,9 +257,11 @@ export const mapEntityDetailDto = (entity: UnknownRecord) => {
     redFlagScore: Number(entity.red_flag_score ?? entity.redFlagScore ?? 0),
     redFlagRating,
     redFlagPeppers: redFlagRating > 0 ? '🚩'.repeat(redFlagRating) : '🏳️',
-    redFlagDescription:
-      entity.red_flag_description || entity.redFlagDescription || `Red Flag Index ${redFlagRating}`,
-    connectionsToEpstein: entity.connections_summary || entity.connectionsSummary || '',
+    redFlagDescription: asString(
+      entity.red_flag_description ?? entity.redFlagDescription,
+      `Red Flag Index ${redFlagRating}`,
+    ),
+    connectionsToEpstein: asString(entity.connections_summary ?? entity.connectionsSummary, ''),
     fileReferences,
     timelineEvents,
     networkConnections,
@@ -249,7 +270,7 @@ export const mapEntityDetailDto = (entity: UnknownRecord) => {
     description: String(entity.description || bio),
     photos,
     significantPassages,
-    birthDate: entity.birthDate ?? entity.birth_date ?? null,
-    deathDate: entity.deathDate ?? entity.death_date ?? null,
+    birthDate: asNullableString(entity.birthDate ?? entity.birth_date),
+    deathDate: asNullableString(entity.deathDate ?? entity.death_date),
   };
 };

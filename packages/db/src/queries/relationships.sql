@@ -14,13 +14,15 @@ WHERE (source_entity_id = :entityId!::bigint OR target_entity_id = :entityId!::b
 ORDER BY proximity_score DESC;
 
 /* @name rebuildAdjacencyCache */
-INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types)
+INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)
 SELECT 
   s.canonical_id as entity_id,
   t.canonical_id as neighbor_id,
   MAX(er.proximity_score) as weight,
   CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,
-  STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types
+  STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,
+  MAX(er.risk_score) as risk_score,
+  MAX(er.confidence) as confidence
 FROM entity_relationships er
 JOIN entities s ON er.source_entity_id = s.id
 JOIN entities t ON er.target_entity_id = t.id
@@ -29,7 +31,9 @@ GROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id
 ON CONFLICT (entity_id, neighbor_id) DO UPDATE SET
   weight = EXCLUDED.weight,
   bridge_score = EXCLUDED.bridge_score,
-  relationship_types = EXCLUDED.relationship_types;
+  relationship_types = EXCLUDED.relationship_types,
+  risk_score = EXCLUDED.risk_score,
+  confidence = EXCLUDED.confidence;
 
 /* @name getEntityCanonical */
 SELECT COALESCE(canonical_id, id) as cid FROM entities WHERE id = :id!;
@@ -58,7 +62,9 @@ SELECT
   neighbor_id as "targetId",
   weight as "proximityScore",
   bridge_score as "bridgeScore",
-  relationship_types as "relationshipTypes"
+  relationship_types as "relationshipTypes",
+  risk_score as "riskScore",
+  confidence as "confidence"
 FROM entity_adjacency
 WHERE entity_id = :entityId!
 ORDER BY bridge_score DESC, weight DESC

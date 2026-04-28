@@ -164,6 +164,16 @@
   box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
 }
 
+.readingModeToggle {
+  display: flex;
+}
+
+@media (max-width: 767px) {
+  .readingModeToggle {
+    display: none !important;
+  }
+}
+
 .matchCounter {
   display: flex;
   align-items: center;

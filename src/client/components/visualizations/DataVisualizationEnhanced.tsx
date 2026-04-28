@@ -612,7 +612,9 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
         <div className={`${styles.summaryCard} ${styles.summaryIndigo}`}>
           <div className={styles.summaryHeader}>
             <div className={styles.summaryValue}>
-              {Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length)}
+              {people.length > 0
+                ? Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length)
+                : 0}
             </div>
             <div className={styles.summaryEmoji}>📈</div>
           </div>

@@ -546,7 +546,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
           <Button
             unstyled
             onClick={onToggleReadingMode}
-            className={`${styles.iconButton} ${isReadingMode ? styles.iconButtonActive : ''}`}
+            className={`${styles.iconButton} ${isReadingMode ? styles.iconButtonActive : ''} ${styles.readingModeToggle}`}
             title={isReadingMode ? 'Disable Reading Mode' : 'Enable Reading Mode'}
           >
             <FileText className={styles.iconMedium} />

@@ -215,7 +215,9 @@ export const analyticsRepository = {
     const result = await getApiPool().query<TopEntitySummaryRow>(`
       SELECT e.id, e.canonical_id AS "canonicalId", e.full_name AS "fullName", e.name
       FROM entities e
-      ORDER BY (SELECT COUNT(*) FROM entity_mentions em WHERE em.entity_id = e.id) DESC
+      JOIN entity_mentions em ON e.id = em.entity_id
+      GROUP BY e.id, e.canonical_id, e.full_name, e.name
+      ORDER BY COUNT(*) DESC
       LIMIT 1
     `);
     return result.rows[0] ?? null;

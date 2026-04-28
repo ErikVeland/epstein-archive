@@ -174,7 +174,7 @@ interface EntitySearchRow {
 
 type DocumentSearchRow = ISearchDocumentsResult | ISearchDocumentsPrefixResult;
 
-interface UnifiedSearchResult {
+export interface UnifiedSearchResult {
   entities: Record<string, unknown>[];
   documents: Record<string, unknown>[];
   investigations: Record<string, unknown>[];

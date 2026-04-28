@@ -4,6 +4,9 @@ import { validate } from '../middleware/validate.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { investigationsRepository } from '../db/investigationsRepository.js';
 import { logger } from '../services/Logger.js';
+import { InvestigativeLeadRow } from '../db/rowTypes.js';
+
+import { mapInvestigativeLeadDto } from '../mappers/investigationsDtoMapper.js';
 
 const router = Router({ mergeParams: true }); // mergeParams to access :id from parent
 
@@ -52,27 +55,6 @@ const deleteLeadSchema = z.object({
   }),
 });
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function mapLead(row: Record<string, unknown>) {
-  return {
-    id: Number(row.id),
-    investigationId: Number(row.investigation_id),
-    title: row.title as string,
-    description: (row.description as string) ?? null,
-    status: row.status as string,
-    priority: row.priority as string,
-    sourceDocumentId: row.source_document_id ? Number(row.source_document_id) : null,
-    sourceEftaRef: (row.source_efta_ref as string) ?? null,
-    assignedTo: (row.assigned_to as string) ?? null,
-    createdBy: (row.created_by as string) ?? null,
-    resolvedAt: row.resolved_at ?? null,
-    resolutionNotes: (row.resolution_notes as string) ?? null,
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
-  };
-}
-
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
 // GET all leads for an investigation
@@ -85,7 +67,7 @@ router.get('/', async (req, res, next) => {
     const rows = await investigationsRepository.getLeads(investigationId, {
       status: typeof status === 'string' ? status : undefined,
     });
-    res.json(rows.map((r: Record<string, unknown>) => mapLead(r)));
+    res.json(rows.map((r: InvestigativeLeadRow) => mapInvestigativeLeadDto(r)));
   } catch (err) {
     next(err);
   }
@@ -119,7 +101,7 @@ router.post('/', authenticateRequest, validate(createLeadSchema), async (req, re
     });
 
     logger.info({ investigationId, title }, 'Investigation lead created');
-    res.status(201).json(mapLead(result));
+    res.status(201).json(mapInvestigativeLeadDto(result));
   } catch (err) {
     next(err);
   }
@@ -154,7 +136,7 @@ router.patch(
         return res.status(404).json({ error: 'Lead not found' });
       }
 
-      res.json(mapLead(result));
+      res.json(mapInvestigativeLeadDto(result));
     } catch (err) {
       next(err);
     }

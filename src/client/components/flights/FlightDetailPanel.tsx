@@ -175,7 +175,10 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                           <Flex align="center" gap="sm">
                             <Surface
                               variant="glass-strong"
-                              className={cn(styles.roleIcon, styles[p.role.toLowerCase()])}
+                              className={cn(
+                                styles.roleIcon,
+                                styles[(p.role || 'personnel').toLowerCase()],
+                              )}
                             >
                               <Shield size={12} />
                             </Surface>
@@ -404,7 +407,10 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                           <Flex align="center" gap="sm">
                             <Surface
                               variant="glass-strong"
-                              className={cn(styles.roleIcon, styles[p.role.toLowerCase()])}
+                              className={cn(
+                                styles.roleIcon,
+                                styles[(p.role || 'personnel').toLowerCase()],
+                              )}
                             >
                               <Shield size={12} />
                             </Surface>

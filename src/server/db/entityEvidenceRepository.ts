@@ -223,8 +223,12 @@ export const entityEvidenceRepository = {
 
   async getFlightsForEntity(entityId: string | number) {
     const pool = getApiPool();
-    // flight_passengers.entity_id is not populated — passengers are stored by name only.
-    // Look up the entity's full_name first, then match by passenger_name (case-insensitive).
+    const entityRow = await pool.query(`SELECT full_name FROM entities WHERE id = $1 LIMIT 1`, [
+      Number(entityId),
+    ]);
+    if (entityRow.rows.length === 0) return [];
+    const entityName = entityRow.rows[0].full_name;
+
     const result = await pool.query(
       `SELECT
          f.id,
@@ -254,23 +258,14 @@ export const entityEvidenceRepository = {
          ON fp_other.flight_id = f.id
          AND fp_other.passenger_name IS DISTINCT FROM fp_self.passenger_name
        WHERE fp_self.entity_id = $1
-          OR fp_self.passenger_name ILIKE (
-            SELECT full_name FROM entities WHERE id = $1 LIMIT 1
-          )
-          OR EXISTS (
-            SELECT 1 FROM entities e
-            WHERE e.id = $1
-            AND (
-              fp_self.passenger_name ILIKE '%' || e.full_name || '%'
-              OR e.full_name ILIKE '%' || fp_self.passenger_name || '%'
-            )
-          )
+          OR fp_self.passenger_name = $2
+          OR fp_self.passenger_name ~* ('\\y' || $2 || '\\y')
        GROUP BY f.id, f.date, f.departure_airport, f.departure_city,
                 f.departure_country, f.arrival_airport, f.arrival_city,
                 f.arrival_country, f.aircraft_tail, f.aircraft_type,
                 fp_self.role
        ORDER BY f.date DESC`,
-      [Number(entityId)],
+      [Number(entityId), entityName],
     );
     return result.rows;
   },
@@ -308,6 +303,12 @@ export const entityEvidenceRepository = {
 
   async getPropertiesForEntity(entityId: string | number) {
     const pool = getApiPool();
+    const entityRow = await pool.query(`SELECT full_name FROM entities WHERE id = $1 LIMIT 1`, [
+      Number(entityId),
+    ]);
+    if (entityRow.rows.length === 0) return [];
+    const entityName = entityRow.rows[0].full_name;
+
     const result = await pool.query(
       `SELECT
          id,
@@ -329,15 +330,20 @@ export const entityEvidenceRepository = {
          is_known_associate
        FROM palm_beach_properties
        WHERE linked_entity_id = $1
-          OR owner_name_1 ILIKE (
-            SELECT full_name FROM entities WHERE id = $1 LIMIT 1
-          )
-          OR owner_name_2 ILIKE (
-            SELECT full_name FROM entities WHERE id = $1 LIMIT 1
-          )
+          OR owner_name_1 = $2
+          OR owner_name_2 = $2
+          OR owner_name_1 ~* ('\\y' || $2 || '\\y')
+          OR owner_name_2 ~* ('\\y' || $2 || '\\y')
        ORDER BY total_tax_value DESC NULLS LAST`,
-      [Number(entityId)],
+      [Number(entityId), entityName],
     );
-    return result.rows;
+    return result.rows.map((row) => ({
+      ...row,
+      total_tax_value: Number(row.total_tax_value || 0),
+      acres: Number(row.acres || 0),
+      year_built: row.year_built ? Number(row.year_built) : null,
+      building_area: row.building_area ? Number(row.building_area) : 0,
+      living_area: row.living_area ? Number(row.living_area) : 0,
+    }));
   },
 };

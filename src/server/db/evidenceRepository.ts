@@ -404,12 +404,12 @@ export const evidenceRepository = {
       entityCategory: string;
     }>(
       `SELECT ie.evidence_id::text AS "evidenceId",
-              ent.id::text         AS "entityId",
-              ent.full_name        AS "fullName",
-              ent.entity_category  AS "entityCategory"
+              ee.entity_id::text   AS "entityId",
+              COALESCE(ent.full_name, '[deleted]') AS "fullName",
+              COALESCE(ent.entity_category, 'unknown') AS "entityCategory"
        FROM investigation_evidence ie
-       JOIN evidence_entity ee  ON ee.evidence_id = ie.evidence_id
-       JOIN entities        ent ON ent.id = ee.entity_id
+       LEFT JOIN evidence_entity ee  ON ee.evidence_id = ie.evidence_id
+       LEFT JOIN entities ent ON ent.id = ee.entity_id
        WHERE ie.investigation_id = $1`,
       [investigationId],
     );
@@ -420,6 +420,11 @@ export const evidenceRepository = {
     > = {};
     const evidenceByEntity: Record<string, string[]> = {};
     for (const row of memberRows.rows) {
+      if (!row.entityId) {
+        // Ensure evidenceId exists in the map even if no entities are linked
+        entityByEvidence[row.evidenceId] ??= [];
+        continue;
+      }
       (entityByEvidence[row.evidenceId] ??= []).push({
         entityId: row.entityId,
         fullName: row.fullName,

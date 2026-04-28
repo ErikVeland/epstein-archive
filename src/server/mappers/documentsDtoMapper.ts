@@ -1,4 +1,8 @@
-import type { DocumentListItemDto, DocumentsListResponseDto } from '@shared/dto/documents';
+import type {
+  DocumentDetailDto,
+  DocumentListItemDto,
+  DocumentsListResponseDto,
+} from '@shared/dto/documents';
 
 export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentListItemDto => ({
   id: String(doc.id || ''),
@@ -51,3 +55,24 @@ export const mapDocumentsListResponseDto = (
   }
   return response;
 };
+export const mapDocumentDetailDto = (doc: Record<string, unknown>): DocumentDetailDto => ({
+  id: String(doc.id || ''),
+  fileName: String(doc.fileName || doc.file_name || ''),
+  filePath: typeof doc.filePath === 'string' ? doc.filePath : null,
+  fileType: String(doc.fileType || doc.file_type || 'unknown'),
+  fileSize: Number(doc.fileSize || doc.file_size || 0),
+  dateCreated: typeof doc.dateCreated === 'string' ? doc.dateCreated : null,
+  title: String(doc.title || doc.fileName || doc.file_name || 'Untitled'),
+  content: String(doc.content || ''),
+  contentRefined: typeof doc.contentRefined === 'string' ? doc.contentRefined : null,
+  contentPreview: typeof doc.contentPreview === 'string' ? doc.contentPreview : null,
+  metadata:
+    typeof doc.metadata === 'object' && doc.metadata !== null
+      ? (doc.metadata as Record<string, unknown>)
+      : {},
+  evidenceType: String(doc.evidenceType || doc.evidence_type || 'document'),
+  redFlagRating: Number(doc.redFlagRating || doc.red_flag_rating || 0),
+  sourceCollection: typeof doc.sourceCollection === 'string' ? doc.sourceCollection : null,
+  fileUrl: typeof doc.fileUrl === 'string' ? doc.fileUrl : null,
+  originalFileUrl: typeof doc.originalFileUrl === 'string' ? doc.originalFileUrl : null,
+});

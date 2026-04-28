@@ -7,6 +7,8 @@
 
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import { z } from 'zod';
+import { validate } from '../middleware/validate.js';
 import {
   getWebVitalsAggregates,
   getWebVitalsAggregatesAverage,
@@ -24,15 +26,23 @@ const vitalsPostLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-interface VitalsPayload {
-  sessionId: string;
-  route: string;
-  cls: number;
-  lcp: number;
-  inp: number;
-  longTaskCount: number;
-  timestamp: number;
-}
+const vitalsPayloadSchema = z.object({
+  body: z.object({
+    sessionId: z.string().min(1),
+    route: z.string().min(1),
+    cls: z.number(),
+    lcp: z.number(),
+    inp: z.number(),
+    longTaskCount: z.number().int().min(0),
+    timestamp: z.number().int().positive(),
+  }),
+});
+
+const aggregatesQuerySchema = z.object({
+  query: z.object({
+    days: z.coerce.number().int().min(1).max(365).default(7),
+  }),
+});
 
 /**
  * POST /api/vitals
@@ -40,32 +50,32 @@ interface VitalsPayload {
  * Collect Web Vitals from production clients
  * 1% sampling, privacy-safe
  */
-router.post('/', vitalsPostLimiter, async (req: Request, res: Response) => {
-  try {
-    const payload: VitalsPayload = req.body;
+router.post(
+  '/',
+  vitalsPostLimiter,
+  validate(vitalsPayloadSchema),
+  async (req: Request, res: Response) => {
+    try {
+      const payload = req.body;
 
-    // Validate payload
-    if (!payload.sessionId || !payload.route || typeof payload.cls !== 'number') {
-      return res.status(400).json({ error: 'Invalid payload' });
+      // Check payload size < 2KB (safety against spam)
+      const payloadSize = JSON.stringify(payload).length;
+      if (payloadSize > 2048) {
+        return res.status(413).json({ error: 'Payload too large' });
+      }
+
+      // Fire-and-forget: respond immediately, log DB errors without affecting the client
+      recordWebVitals(payload).catch((err) => logger.error('Failed to record vitals:', err));
+
+      // Return 204 No Content (fastest response)
+      res.status(204).send();
+    } catch (error: unknown) {
+      logger.error({ err: error }, 'Error collecting vitals');
+      // Silent fail - don't affect client
+      res.status(204).send();
     }
-
-    // Check payload size < 2KB
-    const payloadSize = JSON.stringify(payload).length;
-    if (payloadSize > 2048) {
-      return res.status(413).json({ error: 'Payload too large' });
-    }
-
-    // Fire-and-forget: respond immediately, log DB errors without affecting the client
-    recordWebVitals(payload).catch((err) => logger.error('Failed to record vitals:', err));
-
-    // Return 204 No Content (fastest response)
-    res.status(204).send();
-  } catch (error: unknown) {
-    logger.error({ err: error }, 'Error collecting vitals');
-    // Silent fail - don't affect client
-    res.status(204).send();
-  }
-});
+  },
+);
 
 /**
  * GET /api/vitals/aggregates
@@ -76,20 +86,19 @@ router.get(
   '/aggregates',
   authenticateRequest,
   requireRole('admin'),
+  validate(aggregatesQuerySchema),
   async (req: Request, res: Response) => {
     try {
-      const days = parseInt(req.query.days as string) || 7;
+      const { days } = req.query as unknown as z.infer<typeof aggregatesQuerySchema>['query'];
 
-      const aggregates = getWebVitalsAggregates(days);
+      const aggregates = await getWebVitalsAggregates(days);
 
       res.json({ aggregates });
     } catch (_error: unknown) {
       // Fallback if PERCENTILE_CONT not supported
       try {
-        const days = parseInt(req.query.days as string) || 7;
-
-        const aggregates = getWebVitalsAggregatesAverage(days);
-
+        const { days } = req.query as unknown as z.infer<typeof aggregatesQuerySchema>['query'];
+        const aggregates = await getWebVitalsAggregatesAverage(days);
         res.json({ aggregates, note: 'Using averages (PERCENTILE_CONT not supported)' });
       } catch (fallbackError: unknown) {
         res.status(500).json({

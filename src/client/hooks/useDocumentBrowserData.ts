@@ -151,7 +151,12 @@ export function useDocumentBrowserData({
   const effectiveStart = globalTimeRange[0] ?? filters.dateRange?.start;
   const effectiveEnd = globalTimeRange[1] ?? filters.dateRange?.end;
 
-  const { data: queryResult, isFetching } = useQuery({
+  const {
+    data: queryResult,
+    isFetching,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['documents', queryKey, currentPage],
     queryFn: async () => {
       const requestKey = `${queryKey}:${currentPage}`;
@@ -215,6 +220,8 @@ export function useDocumentBrowserData({
     totalDocuments,
     hasMore,
     isFetching,
+    isError,
+    error,
     searchMeta,
   };
 }

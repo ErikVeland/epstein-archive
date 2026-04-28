@@ -1,5 +1,34 @@
 import { z } from 'zod';
 
+const collaboratorSchema = z.object({
+  userId: z.string(),
+  permissionLevel: z.string(),
+  joinedAt: z.string(),
+});
+
+export const investigationItemSchema = z.object({
+  id: z.number(),
+  uuid: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  ownerId: z.string(),
+  status: z.enum(['active', 'archived', 'closed']),
+  scope: z.string().optional(),
+  collaborators: z.array(collaboratorSchema),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const investigationListResponseSchema = z.object({
+  data: z.array(investigationItemSchema),
+  total: z.number(),
+  page: z.number(),
+  pageSize: z.number(),
+  totalPages: z.number(),
+});
+
+export const investigationDetailResponseSchema = investigationItemSchema.nullable();
+
 export const investigationEvidenceListItemSchema = z.object({
   id: z.number(),
   type: z.string(),
@@ -49,4 +78,32 @@ export const investigationEvidenceByTypeResponseSchema = z.object({
   byType: z.record(z.array(investigationCaseEvidenceItemSchema)),
   counts: z.record(z.number()),
   total: z.number(),
+});
+export const investigativeLeadSchema = z.object({
+  id: z.number(),
+  investigationId: z.number(),
+  title: z.string(),
+  description: z.string().nullable(),
+  status: z.enum(['open', 'pursued', 'dead_end', 'resolved', 'in_progress']),
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  sourceDocumentId: z.number().nullable(),
+  sourceEftaRef: z.string().nullable(),
+  assignedTo: z.string().nullable(),
+  createdBy: z.string().nullable(),
+  resolvedAt: z.string().nullable(),
+  resolutionNotes: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  forensicSignalId: z.number().nullable().optional(),
+});
+
+export const investigativeLeadResponseSchema = z.union([
+  investigativeLeadSchema,
+  z.array(investigativeLeadSchema),
+]);
+
+export const investigativeDiscoveryPayloadSchema = z.object({
+  leads: z.array(investigativeLeadSchema),
+  signals: z.array(z.unknown()),
+  confidence: z.number(),
 });

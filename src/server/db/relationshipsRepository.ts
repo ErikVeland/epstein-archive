@@ -67,13 +67,13 @@ export const relationshipsRepository = {
          target_entity_id as "targetId",
          relationship_type as "relationshipType",
          proximity_score as "proximityScore",
-         0 as "riskScore",
-         1 as "confidence",
-         NULL as "metadataJson"
+         risk_score as "riskScore",
+         confidence as "confidence",
+         evidence_pack_json as "metadataJson"
        FROM entity_relationships
        WHERE (source_entity_id = $1::bigint OR target_entity_id = $1::bigint)
          AND ($2::float IS NULL OR proximity_score >= $2)
-         AND ($3::float IS NULL OR 1.0 >= $3)
+         AND ($3::float IS NULL OR confidence >= $3)
        ORDER BY proximity_score DESC
        LIMIT $4::int`,
       [
@@ -212,14 +212,16 @@ export const relationshipsRepository = {
 
     const canonicalIds = Array.from(visited);
     const detailsRes = await pool.query(
-      `SELECT
-         canonical_id AS id,
-         MAX(full_name) AS "fullName",
-         MAX(primary_role) AS "primaryRole",
-         MAX(red_flag_rating) AS "redFlagRating"
+      `SELECT DISTINCT ON (COALESCE(canonical_id, id))
+         COALESCE(canonical_id, id) AS id,
+         full_name AS "fullName",
+         primary_role AS "primaryRole",
+         red_flag_rating AS "redFlagRating",
+         entity_type AS "type",
+         is_vip AS "isVip"
        FROM entities
-       WHERE canonical_id = ANY($1::bigint[])
-       GROUP BY canonical_id`,
+       WHERE COALESCE(canonical_id, id) = ANY($1::bigint[])
+       ORDER BY COALESCE(canonical_id, id), is_vip DESC, red_flag_rating DESC, id ASC`,
       [canonicalIds],
     );
 

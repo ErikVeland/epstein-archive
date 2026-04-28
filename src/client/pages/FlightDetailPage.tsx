@@ -279,7 +279,10 @@ export const FlightDetailPage: React.FC = () => {
                         <Flex align="center" gap="sm">
                           <Surface
                             variant="glass-strong"
-                            className={cn(panelStyles.roleIcon, panelStyles[p.role.toLowerCase()])}
+                            className={cn(
+                              panelStyles.roleIcon,
+                              panelStyles[(p.role || 'personnel').toLowerCase()],
+                            )}
                           >
                             <Shield size={12} />
                           </Surface>

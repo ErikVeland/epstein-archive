@@ -70,6 +70,8 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
     data: subjectsResponse,
     isLoading,
     isFetching,
+    isError,
+    error,
   } = useSubjectsQuery({
     page,
     pageSize: PAGE_SIZE,
@@ -226,6 +228,25 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                   <PersonCardSkeleton key={i} />
                 ))}
               </Grid>
+            ) : isError ? (
+              <Stack align="center" justify="center" gap="xl" className={styles.emptyState}>
+                <EmptyState
+                  title="Error Loading Subjects"
+                  description={
+                    error instanceof Error
+                      ? error.message
+                      : 'Failed to fetch subject data from the server.'
+                  }
+                  icon={
+                    <Icon
+                      name="AlertTriangle"
+                      size="xl"
+                      color="danger"
+                      className={styles.emptyIcon}
+                    />
+                  }
+                />
+              </Stack>
             ) : subjects.length === 0 ? (
               <Stack align="center" justify="center" gap="xl" className={styles.emptyState}>
                 <EmptyState

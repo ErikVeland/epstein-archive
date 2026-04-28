@@ -1,138 +1,144 @@
+import type { InvestigationEvidenceRow } from '../db/rowTypes';
 import type {
-  InvestigationCaseEvidenceItemDto,
+  InvestigativeLeadDto,
+  InvestigationListItemDto,
   InvestigationEvidenceByTypeResponseDto,
   InvestigationEvidenceListItemDto,
   InvestigationEvidenceListResponseDto,
+  InvestigationCaseEvidenceItemDto,
+  LeadStatus,
+  LeadPriority,
 } from '@shared/dto/investigations';
 
-const safeMetadataJson = (value: unknown): string | null => {
-  if (typeof value === 'string') return value;
+export const mapInvestigativeLeadDto = (row: any): InvestigativeLeadDto => ({
+  id: Number(row.id || 0),
+  investigationId: Number(row.investigationId ?? row.investigation_id ?? 0),
+  title: String(row.title ?? ''),
+  description: row.description ?? null,
+  status: (row.status ?? 'open') as LeadStatus,
+  priority: (row.priority ?? 'medium') as LeadPriority,
+  sourceDocumentId:
+    (row.sourceDocumentId ?? row.source_document_id) != null
+      ? Number(row.sourceDocumentId ?? row.source_document_id)
+      : null,
+  sourceEftaRef: row.sourceEftaRef ?? row.source_efta_ref ?? null,
+  assignedTo: row.assignedTo ?? row.assigned_to ?? null,
+  createdBy: row.createdBy ?? row.created_by ?? null,
+  resolvedAt: row.resolvedAt ?? row.resolved_at ?? null,
+  resolutionNotes: row.resolutionNotes ?? row.resolution_notes ?? null,
+  createdAt: String(row.createdAt ?? row.created_at ?? ''),
+  updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),
+});
+
+export const mapInvestigationListItemDto = (row: any): InvestigationListItemDto => ({
+  id: Number(row.id || 0),
+  title: String(row.title ?? ''),
+  description: row.description ?? null,
+  status: String(row.status ?? 'active'),
+  priority: String(row.priority ?? 'medium'),
+  createdAt: String(row.createdAt ?? row.created_at ?? ''),
+  updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),
+  leadCount: Number(row.leadCount ?? row.lead_count ?? 0),
+  evidenceCount: Number(row.evidenceCount ?? row.evidence_count ?? 0),
+});
+
+const asJsonValue = (value: unknown): unknown => {
   if (value == null) return null;
+  if (typeof value === 'object') return value;
+  if (typeof value !== 'string') return value;
   try {
-    return JSON.stringify(value);
+    return JSON.parse(value);
   } catch {
-    return null;
+    return value;
   }
 };
 
-const normalizeTargetType = (value: unknown): 'document' | 'entity' | 'media' | null => {
-  if (value === 'document' || value === 'entity' || value === 'media') return value;
-  return null;
-};
-
 export const mapInvestigationEvidenceListItemDto = (
-  row: Record<string, unknown>,
-): InvestigationEvidenceListItemDto => ({
-  id: Number(row.id || 0),
-  type: String(row.type || 'document'),
-  title: String(row.title || 'Untitled evidence'),
-  description: String(row.description || ''),
-  sourcePath: String(row.source_path || row.sourcePath || ''),
-  metadataJson: safeMetadataJson(row.metadata_json ?? row.metadataJson),
-  investigationEvidenceId: Number(
-    row.investigation_evidence_id ?? row.investigationEvidenceId ?? row.id ?? 0,
-  ),
-  relevance: String(row.relevance || 'medium'),
-  extractedAt: String(row.extracted_at || row.extractedAt || row.added_at || ''),
-  extractedBy:
-    row.extracted_by || row.extractedBy ? String(row.extracted_by ?? row.extractedBy) : null,
-});
-
-export const mapInvestigationEvidenceListResponseDto = (
-  result: Record<string, unknown> | Array<Record<string, unknown>>,
-): InvestigationEvidenceListResponseDto => {
-  const payload = Array.isArray(result) ? null : result;
+  row: InvestigationEvidenceRow,
+): InvestigationEvidenceListItemDto => {
+  const addedAt = String(row.addedAt ?? row.added_at ?? '');
+  const addedBy = (row.addedBy ?? row.added_by ?? null) as string | null;
   return {
-    data: Array.isArray(payload?.data)
-      ? payload.data.map(mapInvestigationEvidenceListItemDto)
-      : Array.isArray(result)
-        ? result.map(mapInvestigationEvidenceListItemDto)
-        : [],
-    total: Number(payload?.total || 0),
-    limit: Number(payload?.limit || 0),
-    offset: Number(payload?.offset || 0),
+    id: Number(row.id || 0),
+    type: String(row.type ?? row.evidence_type ?? ''),
+    title: row.title != null ? String(row.title) : null,
+    description: row.description != null ? String(row.description) : null,
+    sourcePath: String(row.sourcePath ?? row.source_path ?? ''),
+    metadataJson: asJsonValue(row.metadataJson ?? row.metadata_json),
+    investigationEvidenceId: Number(
+      row.investigationEvidenceId ?? row.investigation_evidence_id ?? 0,
+    ),
+    relevance: String(row.relevance ?? 'medium'),
+    addedAt,
+    addedBy,
+    // Back-compat aliases used by some UI normalizers
+    extractedAt: addedAt,
+    extractedBy: addedBy ?? undefined,
   };
 };
 
+export const mapInvestigationEvidenceListResponseDto = (
+  payload: Record<string, unknown>,
+): InvestigationEvidenceListResponseDto => ({
+  data: Array.isArray(payload.data)
+    ? (payload.data as InvestigationEvidenceRow[]).map(mapInvestigationEvidenceListItemDto)
+    : [],
+  total: Number(payload.total ?? 0),
+  limit: Number(payload.limit ?? 0),
+  offset: Number(payload.offset ?? 0),
+});
+
 export const mapInvestigationCaseEvidenceItemDto = (
-  row: Record<string, unknown>,
+  row: InvestigationEvidenceRow,
 ): InvestigationCaseEvidenceItemDto => {
-  const ingestRunId = row.ingest_run_id ?? row.ingestRunId;
+  const base = mapInvestigationEvidenceListItemDto(row);
   return {
-    id: Number(row.id || 0),
-    type: String(row.type || 'other'),
-    title: String(row.title || 'Untitled evidence'),
-    description: String(row.description || ''),
-    sourcePath: String(row.source_path || row.sourcePath || ''),
-    metadataJson: safeMetadataJson(row.metadata_json ?? row.metadataJson),
-    investigationEvidenceId:
-      typeof row.investigation_evidence_id === 'number'
-        ? row.investigation_evidence_id
-        : typeof row.investigationEvidenceId === 'number'
-          ? row.investigationEvidenceId
-          : Number(row.investigation_evidence_id ?? row.investigationEvidenceId ?? 0) || undefined,
+    ...base,
+    notes: row.notes ?? null,
     documentId:
-      (row.document_id ?? row.documentId) == null
-        ? null
-        : Number.isFinite(Number(row.document_id ?? row.documentId))
-          ? Number(row.document_id ?? row.documentId)
-          : null,
+      (row.documentId ?? row.document_id) != null
+        ? Number(row.documentId ?? row.document_id)
+        : null,
     mediaItemId:
-      (row.media_item_id ?? row.mediaItemId) == null
-        ? null
-        : Number.isFinite(Number(row.media_item_id ?? row.mediaItemId))
-          ? Number(row.media_item_id ?? row.mediaItemId)
-          : null,
-    redFlagRating: Number(row.red_flag_rating ?? row.redFlagRating ?? 0),
-    relevance: String(row.relevance || 'medium'),
-    addedAt: String(row.added_at || row.addedAt || row.extracted_at || ''),
-    addedBy: row.added_by || row.addedBy ? String(row.added_by ?? row.addedBy) : null,
-    notes: String(row.notes || ''),
-    targetType: normalizeTargetType(row.target_type ?? row.targetType),
-    targetId:
-      (row.target_id ?? row.targetId) == null
-        ? null
-        : Number.isFinite(Number(row.target_id ?? row.targetId))
-          ? Number(row.target_id ?? row.targetId)
-          : null,
+      (row.mediaItemId ?? row.media_item_id) != null
+        ? Number(row.mediaItemId ?? row.media_item_id)
+        : null,
+    redFlagRating: Number(row.redFlagRating ?? row.red_flag_rating ?? 0),
     ingestRunId:
-      typeof ingestRunId === 'string' || typeof ingestRunId === 'number' ? ingestRunId : null,
-    evidenceLadder:
-      (row.evidence_ladder ?? row.evidenceLadder)
-        ? String(row.evidence_ladder ?? row.evidenceLadder)
+      (row.ingestRunId ?? row.ingest_run_id) != null
+        ? Number(row.ingestRunId ?? row.ingest_run_id)
         : null,
-    pipelineVersion:
-      (row.pipeline_version ?? row.pipelineVersion)
-        ? String(row.pipeline_version ?? row.pipelineVersion)
-        : null,
-    evidencePack: row.evidence_pack ?? row.evidencePack ?? null,
-    wasAgentic: Boolean(row.was_agentic ?? row.wasAgentic),
+    evidenceLadder: (row.evidenceLadder ?? row.evidence_ladder ?? null) as string | null,
+    pipelineVersion: (row.pipelineVersion ?? row.pipeline_version ?? null) as string | null,
+    evidencePack: (row.evidencePack ?? row.evidence_pack ?? null) as string | null,
+    wasAgentic: Boolean(row.wasAgentic ?? row.was_agentic ?? false),
   };
 };
 
 export const mapInvestigationEvidenceByTypeResponseDto = (
   payload: Record<string, unknown>,
 ): InvestigationEvidenceByTypeResponseDto => {
-  const allItems = Array.isArray(payload?.all)
-    ? payload.all.map(mapInvestigationCaseEvidenceItemDto)
+  const all = Array.isArray(payload.all)
+    ? (payload.all as InvestigationEvidenceRow[]).map(mapInvestigationCaseEvidenceItemDto)
     : [];
 
   const byType: Record<string, InvestigationCaseEvidenceItemDto[]> = {};
-  for (const [type, items] of Object.entries(payload?.byType || {})) {
-    byType[type] = Array.isArray(items)
-      ? (items as Array<Record<string, unknown>>).map(mapInvestigationCaseEvidenceItemDto)
-      : [];
-  }
-
-  const counts: Record<string, number> = {};
-  for (const [type, items] of Object.entries(byType)) {
-    counts[type] = Array.isArray(items) ? items.length : 0;
+  const rawByType = payload.byType as Record<string, unknown> | undefined;
+  if (rawByType && typeof rawByType === 'object') {
+    for (const [type, items] of Object.entries(rawByType)) {
+      byType[type] = Array.isArray(items)
+        ? (items as InvestigationEvidenceRow[]).map(mapInvestigationCaseEvidenceItemDto)
+        : [];
+    }
   }
 
   return {
-    all: allItems,
+    all,
     byType,
-    counts,
-    total: Number(payload?.total || allItems.length),
+    counts: (payload.counts && typeof payload.counts === 'object' ? payload.counts : {}) as Record<
+      string,
+      number
+    >,
+    total: Number(payload.total ?? all.length),
   };
 };

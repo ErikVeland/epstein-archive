@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Sparkles, Users, Link2, Calendar } from 'lucide-react';
+import { Sparkles, Users, Link2, Calendar, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../services/apiClient';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
@@ -14,6 +14,9 @@ import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
 import { ViewerShell } from '../viewer/ViewerShell';
 import { ProvenancePanel } from './ProvenancePanel';
 import { LiquidSheet } from '../common/LiquidSheet';
+import { Tabs } from '../common/Tabs';
+import { FloatingReadingControls } from './subcomponents/FloatingReadingControls';
+import { useScrollDirection } from '../../hooks/useScrollDirection';
 import styles from './DocumentModal.module.css';
 
 // Design System
@@ -164,7 +167,11 @@ export const DocumentModal: React.FC<Props> = ({
     'metadata' | 'entities' | 'case' | 'timeline'
   >('metadata');
   const rightPaneScrollRef = useRef<HTMLDivElement | null>(null);
+  const mobileScrollAreaRef = useRef<HTMLDivElement | null>(null);
   const hasAutoSwitchedNoOcrRef = useRef(false);
+  const { scrollDirection } = useScrollDirection(
+    mobileScrollAreaRef as React.RefObject<HTMLElement>,
+  );
 
   const {
     data: fetchedDoc,
@@ -223,7 +230,9 @@ export const DocumentModal: React.FC<Props> = ({
   );
 
   const { modalRef } = useModalFocusTrap({ isActive: true && !isMobile, onEscape: onClose });
-  useScrollLock(true);
+  // useScrollLock is handled by LiquidSheet on mobile and naturally by modal overlays on desktop.
+  // We only need to ensure it's called for the desktop modal if it's not a native <dialog>.
+  useScrollLock(!isMobile);
 
   useEffect(() => {
     hasAutoSwitchedNoOcrRef.current = false;
@@ -422,16 +431,44 @@ export const DocumentModal: React.FC<Props> = ({
     switch (activeTab) {
       case 'pdf':
         return (
-          <DocumentPDFTab
-            documentId={id}
-            docId={String(doc.id ?? id)}
-            content={cleanText || ocrText}
-            searchTerm={localSearchTerm}
-            openOriginalDocument={openOriginalDocument}
-            isEmail={String(doc.evidenceType || '').toLowerCase() === 'email'}
-            metadata={doc.metadata as never}
-            title={doc.title || doc.fileName || ''}
-          />
+          <>
+            {String(doc.evidenceType || '').toLowerCase() === 'email' && (
+              <Box
+                p="md"
+                style={{
+                  backgroundColor: 'var(--glass-bg-highlight)',
+                  borderBottom: '1px solid var(--glass-border)',
+                }}
+              >
+                <Flex align="center" justify="space-between" gap="sm">
+                  <LqText variant="small">
+                    This document is an email. For the best experience, use the specialized Email
+                    Viewer.
+                  </LqText>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      onClose();
+                      window.location.href = `/emails?messageId=${id}`;
+                    }}
+                  >
+                    Open Email Viewer
+                  </Button>
+                </Flex>
+              </Box>
+            )}
+            <DocumentPDFTab
+              documentId={id}
+              docId={String(doc.id ?? id)}
+              content={cleanText || ocrText}
+              searchTerm={localSearchTerm}
+              openOriginalDocument={openOriginalDocument}
+              isEmail={String(doc.evidenceType || '').toLowerCase() === 'email'}
+              metadata={doc.metadata as never}
+              title={doc.title || doc.fileName || ''}
+            />
+          </>
         );
       case 'analysis':
         return (
@@ -471,39 +508,58 @@ export const DocumentModal: React.FC<Props> = ({
   };
 
   if (isMobile) {
+    const isImmersive = scrollDirection === 'down' && rightPaneCollapsed;
+    const floatingMode = activeTab === 'pdf' ? 'pdf' : textSubview === 'clean' ? 'clean' : 'ocr';
+
     return (
       <LiquidSheet
         isOpen={id !== undefined}
         onClose={onClose}
         title={doc.title || doc.fileName || 'Record'}
+        className={cn(styles.mobileSheet, isImmersive && styles.immersiveReading)}
       >
         <div className={styles.mobileLayout}>
           <div className={styles.viewerWrapper}>
-            <DocumentHeader
-              doc={doc}
-              localSearchTerm={localSearchTerm}
-              setLocalSearchTerm={setLocalSearchTerm}
-              canReturnToCase={canReturnToCase}
-              handleBackToCase={handleBackToCase}
-              downloadOriginalDocument={downloadOriginalDocument}
-              onClose={onClose}
-            />
-            <div className={styles.tabsScroller}>
-              {viewerTabs.map((tab) => (
-                <Button
-                  unstyled
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={cn(styles.mobileTab, activeTab === tab.key && styles.mobileTabActive)}
-                >
-                  {tab.label}
-                </Button>
-              ))}
+            <div className={cn(styles.mobileHeaderChrome, isImmersive && styles.chromeHiddenTop)}>
+              <DocumentHeader
+                doc={doc}
+                localSearchTerm={localSearchTerm}
+                setLocalSearchTerm={setLocalSearchTerm}
+                canReturnToCase={canReturnToCase}
+                handleBackToCase={handleBackToCase}
+                downloadOriginalDocument={downloadOriginalDocument}
+                onClose={onClose}
+              />
+
+              <Tabs
+                tabs={viewerTabs}
+                activeTab={activeTab}
+                onChange={(key) => setActiveTab(key as ViewerTab)}
+                variant="viewer"
+                className={styles.tabsOverride}
+              />
             </div>
-            <div className={styles.mobileScrollArea}>{renderTabContent()}</div>
+
+            <div className={styles.mobileScrollArea} ref={mobileScrollAreaRef}>
+              {renderTabContent()}
+            </div>
+
+            <FloatingReadingControls
+              activeMode={floatingMode}
+              onChange={(mode) => {
+                if (mode === 'pdf') {
+                  setActiveTab('pdf');
+                } else {
+                  setActiveTab('analysis');
+                  setTextSubview(mode);
+                }
+              }}
+              isVisible={activeTab === 'pdf' || activeTab === 'analysis'}
+              hasText={!!(doc.content || doc.contentRefined)}
+            />
           </div>
 
-          <div className={styles.mobileBottomBar}>
+          <div className={cn(styles.mobileBottomBar, isImmersive && styles.chromeHiddenBottom)}>
             <Button
               unstyled
               onClick={() => {
@@ -575,8 +631,12 @@ export const DocumentModal: React.FC<Props> = ({
                         ? 'Case References'
                         : 'Timeline Hooks'}
                 </LqText>
-                <Button unstyled onClick={() => setRightPaneCollapsed(true)}>
-                  Close
+                <Button
+                  unstyled
+                  onClick={() => setRightPaneCollapsed(true)}
+                  className={styles.overlayClose}
+                >
+                  <X size={20} />
                 </Button>
               </div>
               <div className={styles.overlayContent}>

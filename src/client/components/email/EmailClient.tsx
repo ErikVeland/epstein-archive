@@ -1253,6 +1253,8 @@ export const EmailClient: React.FC = () => {
             ) : (
               <div className={styles.stateNotFound}>Thread not found.</div>
             )
+          ) : threadError ? (
+            <div className={styles.stateError}>{threadError}</div>
           ) : (
             <div className={styles.placeholderState}>
               <div className={styles.placeholderInner}>

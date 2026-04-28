@@ -9,6 +9,8 @@ export const emailMailboxSchema = z.object({
   lastActivityAt: z.string().nullable(),
   riskSummary: z.enum(['minimal', 'low', 'medium', 'high']).nullable(),
   isJunkSuppressed: z.boolean(),
+  isVip: z.boolean().optional(),
+  isVerified: z.boolean().optional(),
 });
 
 export const emailMailboxesResponseSchema = z.object({

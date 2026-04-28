@@ -12,7 +12,10 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
     total: people.length,
     highRisk: people.filter((p) => p.likelihoodScore === 'HIGH').length,
     totalMentions: people.reduce((sum, p) => sum + p.mentions, 0),
-    avgMentions: Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length),
+    avgMentions:
+      people.length > 0
+        ? Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length)
+        : 0,
   };
 
   const cards = [

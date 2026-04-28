@@ -689,9 +689,9 @@ export const investigationsRepository = {
     // Fetch ALL evidence links for all these hypotheses in one go to avoid N+1
     const hypothesisIds = hypotheses.map((h) => Number(h.id));
     const allEvidenceLinks = await getApiPool().query(
-      `SELECT he.*, e.title as evidence_title, e.evidence_type 
+      `SELECT he.*, e.title as evidence_title, e.evidence_type
        FROM hypothesis_evidence he
-       JOIN evidence e ON he.evidence_id = e.id
+       LEFT JOIN evidence e ON he.evidence_id = e.id
        WHERE he.hypothesis_id = ANY($1::int[])`,
       [hypothesisIds],
     );
@@ -844,8 +844,8 @@ export const investigationsRepository = {
         ie.notes
       FROM investigation_evidence ie
       JOIN evidence e ON ie.evidence_id = e.id
-      LEFT JOIN documents d ON d.file_path = e.source_path
-      LEFT JOIN media_items m ON m.file_path = e.source_path
+      LEFT JOIN documents d ON d.file_path = e.source_path OR e.source_path LIKE '%' || d.file_path || '%'
+      LEFT JOIN media_items m ON m.file_path = e.source_path OR e.source_path LIKE '%' || m.file_path || '%'
       WHERE ie.investigation_id = $1 
       ORDER BY ie.added_at DESC
       LIMIT $2 OFFSET $3`,
@@ -998,9 +998,10 @@ export const investigationsRepository = {
         FROM investigations i
         JOIN investigation_evidence ie ON i.id = ie.investigation_id
         JOIN evidence ev ON ie.evidence_id = ev.id
-        JOIN documents d ON d.file_path = ev.source_path
-        JOIN entity_mentions em ON d.id = em.document_id
-        WHERE em.entity_id = $1::bigint
+        LEFT JOIN evidence_entity ee ON ev.id = ee.evidence_id
+        LEFT JOIN documents d ON d.file_path = ev.source_path
+        LEFT JOIN entity_mentions em ON d.id = em.document_id
+        WHERE ee.entity_id = $1::bigint OR em.entity_id = $1::bigint
       )
       SELECT * FROM investigations
       WHERE id IN (SELECT id FROM linked_via_leads UNION SELECT id FROM linked_via_mentions)

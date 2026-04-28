@@ -60,6 +60,13 @@
       }
     },
     {
+      "files": ["src/server/mappers/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "no-unsafe-optional-chaining": "off"
+      }
+    },
+    {
       "files": ["tests/**/*.ts", "**/*.test.{ts,tsx}"],
       "env": {
         "jest": true

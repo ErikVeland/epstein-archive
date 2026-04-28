@@ -57,7 +57,7 @@ export const FlightStatsView: React.FC<FlightStatsViewProps> = ({ stats }) => (
             <div
               className="year-fill"
               style={{
-                height: `${(y.count / Math.max(...stats.flightsByYear.map((x) => x.count))) * 100}%`,
+                height: `${(y.count / Math.max(1, ...stats.flightsByYear.map((x) => x.count))) * 100}%`,
               }}
             />
             <span className="year-label">{y.year}</span>

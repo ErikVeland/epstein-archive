@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "19.7.0",
+  "version": "19.8.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -105,11 +105,11 @@
     "d3-selection": "^3.0.0",
     "date-fns": "^3.3.1",
     "diff": "^8.0.3",
-    "dompurify": "^3.3.1",
+    "dompurify": "^3.4.1",
     "dotenv": "^16.4.5",
     "exif-parser": "^0.1.12",
     "express": "^4.21.1",
-    "express-rate-limit": "^8.2.1",
+    "express-rate-limit": "^8.4.1",
     "framer-motion": "^11.0.8",
     "fuse.js": "^7.0.0",
     "glob": "^13.0.0",
@@ -121,7 +121,7 @@
     "jsonwebtoken": "^9.0.3",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.460.0",
-    "mailparser": "^3.9.3",
+    "mailparser": "^3.9.8",
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
     "open": "^11.0.0",
@@ -213,6 +213,17 @@
     ]
   },
   "pnpm": {
+    "overrides": {
+      "brace-expansion": "^5.0.5",
+      "lodash": "^4.18.1",
+      "minimatch": "^10.2.5",
+      "nodemailer": "^8.0.7",
+      "path-to-regexp": "0.1.13",
+      "postcss": "^8.5.12",
+      "qs": "^6.15.1",
+      "tar": "^7.5.13",
+      "undici": "^8.1.0"
+    },
     "onlyBuiltDependencies": [
       "canvas",
       "esbuild",

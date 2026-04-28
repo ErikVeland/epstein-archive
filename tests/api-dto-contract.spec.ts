@@ -5,12 +5,19 @@ import {
   documentDetailSchema,
   emailMailboxesResponseSchema,
   emailThreadsResponseSchema,
+  emailThreadDetailsResponseSchema,
   entityDetailSchema,
+  entityAllResponseSchema,
+  entitySearchResponseSchema,
+  entityEvidenceResponseSchema,
   graphGlobalResponseSchema,
   investigationEvidenceByTypeResponseSchema,
   investigationEvidenceListResponseSchema,
+  investigationListResponseSchema,
+  investigationDetailResponseSchema,
   subjectsListResponseSchema,
   flightsListResponseSchema,
+  flightStatsResponseSchema,
   flightCoOccurrencesResponseSchema,
   timelineEventsResponseSchema,
   blackBookListResponseSchema,
@@ -25,6 +32,8 @@ import {
   entityPropertiesResponseSchema,
   entityClaimsResponseSchema,
   entityInvestigationsResponseSchema,
+  relationshipsResponseSchema,
+  entityGraphResponseSchema,
 } from '../src/shared/schemas';
 
 const apiPort = Number(process.env.PW_API_PORT || 3312);
@@ -390,5 +399,120 @@ test.describe('API DTO Contracts', () => {
       `GET /api/entities/${entityId}/media`,
     );
     expect(parsed.length).toBeGreaterThan(0);
+  });
+
+  test('investigations list and detail endpoints match shared DTO schemas', async ({ request }) => {
+    const listResponse = await request.get(`${API_BASE_URL}/api/investigations?page=1&limit=5`);
+    expect(listResponse.ok()).toBeTruthy();
+    const listBody = await listResponse.json();
+    const parsed = assertSchema(
+      investigationListResponseSchema,
+      listBody,
+      'GET /api/investigations',
+    );
+    expect(Array.isArray(parsed.data)).toBe(true);
+    expect(typeof parsed.total).toBe('number');
+
+    if (parsed.data.length === 0) return;
+
+    const invId = parsed.data[0].id;
+    const detailResponse = await request.get(`${API_BASE_URL}/api/investigations/${invId}`);
+    expect(detailResponse.ok()).toBeTruthy();
+    const detailBody = await detailResponse.json();
+    assertSchema(investigationDetailResponseSchema, detailBody, `GET /api/investigations/${invId}`);
+  });
+
+  test('flights stats endpoint matches shared DTO schema', async ({ request }) => {
+    const response = await request.get(`${API_BASE_URL}/api/flights/stats`);
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    assertSchema(flightStatsResponseSchema, body, 'GET /api/flights/stats');
+  });
+
+  test('relationships endpoint matches shared DTO schema', async ({ request }) => {
+    const entityId = await resolveHighMentionEntityId(request);
+    if (!entityId) {
+      test.skip(true, 'No entities available in test dataset');
+      return;
+    }
+    const response = await request.get(
+      `${API_BASE_URL}/api/relationships?entityId=${entityId}&limit=20`,
+    );
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    const parsed = assertSchema(relationshipsResponseSchema, body, 'GET /api/relationships');
+    expect(Array.isArray(parsed.relationships)).toBe(true);
+  });
+
+  test('entity graph endpoint matches shared DTO schema', async ({ request }) => {
+    const entityId = await resolveHighMentionEntityId(request);
+    if (!entityId) {
+      test.skip(true, 'No entities available in test dataset');
+      return;
+    }
+    const response = await request.get(
+      `${API_BASE_URL}/api/entities/${entityId}/analytics/graph?depth=1`,
+      { timeout: 20_000 },
+    );
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    const parsed = assertSchema(
+      entityGraphResponseSchema,
+      body,
+      `GET /api/entities/${entityId}/analytics/graph`,
+    );
+    expect(Array.isArray(parsed.nodes)).toBe(true);
+    expect(Array.isArray(parsed.edges)).toBe(true);
+  });
+
+  test('entity evidence endpoint matches shared DTO schema', async ({ request }) => {
+    const entityId = await resolveHighMentionEntityId(request);
+    if (!entityId) {
+      test.skip(true, 'No entities available in test dataset');
+      return;
+    }
+    const response = await request.get(`${API_BASE_URL}/api/entities/${entityId}/evidence`, {
+      timeout: 20_000,
+    });
+    expect(response.ok()).toBeTruthy();
+    const body = await response.json();
+    assertSchema(entityEvidenceResponseSchema, body, `GET /api/entities/${entityId}/evidence`);
+  });
+
+  test('entities all and search endpoints return valid JSON arrays', async ({ request }) => {
+    const allResponse = await request.get(`${API_BASE_URL}/api/entities/all`);
+    expect(allResponse.ok()).toBeTruthy();
+    const allBody = await allResponse.json();
+    assertSchema(entityAllResponseSchema, allBody, 'GET /api/entities/all');
+
+    const searchResponse = await request.get(`${API_BASE_URL}/api/entities/search?q=jeffrey`);
+    expect(searchResponse.ok()).toBeTruthy();
+    const searchBody = await searchResponse.json();
+    assertSchema(entitySearchResponseSchema, searchBody, 'GET /api/entities/search');
+  });
+
+  test('email thread details endpoint matches shared DTO schema', async ({ request }) => {
+    test.setTimeout(30_000);
+    const mailboxesResponse = await request.get(`${API_BASE_URL}/api/emails/mailboxes`);
+    if (!mailboxesResponse.ok()) return;
+    const mailboxesBody = await mailboxesResponse.json();
+    const mailboxId = mailboxesBody?.data?.[0]?.mailboxId ?? 'all';
+
+    const threadsResponse = await request.get(
+      `${API_BASE_URL}/api/emails/threads?mailboxId=${encodeURIComponent(mailboxId)}&tab=all&limit=1`,
+    );
+    if (!threadsResponse.ok()) return;
+    const threadsBody = await threadsResponse.json();
+    const threadId = threadsBody?.data?.[0]?.threadId;
+    if (!threadId) return;
+
+    const detailResponse = await request.get(`${API_BASE_URL}/api/emails/threads/${threadId}`);
+    expect(detailResponse.ok()).toBeTruthy();
+    const detailBody = await detailResponse.json();
+    assertSchema(
+      emailThreadDetailsResponseSchema,
+      detailBody,
+      `GET /api/emails/threads/${threadId}`,
+    );
   });
 });

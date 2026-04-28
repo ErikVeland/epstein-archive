@@ -4,6 +4,11 @@ import { financialRepository } from '../db/financialRepository.js';
 import { validate, financialTransactionsQuerySchema } from '../middleware/validate.js';
 import { z } from 'zod';
 
+import {
+  mapFinancialTransactionDto,
+  mapFinancialSummaryDto,
+} from '../mappers/financialDtoMapper.js';
+
 const router = Router();
 
 // Get all transactions (with limit)
@@ -17,7 +22,7 @@ router.get(
         typeof financialTransactionsQuerySchema
       >['query'];
       const transactions = await financialRepository.getTransactions(limit);
-      res.json(transactions);
+      res.json(transactions.map(mapFinancialTransactionDto));
     } catch (error) {
       next(error);
     }
@@ -28,7 +33,7 @@ router.get(
 router.get('/stats', authenticateRequest, validate(z.object({})), async (_req, res, next) => {
   try {
     const summary = await financialRepository.getFinancialSummary();
-    res.json(summary);
+    res.json(mapFinancialSummaryDto(summary));
   } catch (error) {
     next(error);
   }

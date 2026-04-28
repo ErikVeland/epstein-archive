@@ -340,7 +340,11 @@ export function EvidenceDetail() {
 
             <Flex align="center" gap={4} className={styles.metaStats}>
               <span>{evidence.wordCount?.toLocaleString()} words</span>
-              <span>{formatFileSize(evidence.fileSize)}</span>
+              <span>
+                {evidence.fileSize != null
+                  ? formatFileSize(evidence.fileSize as number)
+                  : 'Unknown Size'}
+              </span>
             </Flex>
           </Flex>
 

@@ -25,6 +25,8 @@ interface DocumentListProps {
   handleHoverStart: (doc: Document, rect: DOMRect) => void;
   handleHoverEnd: () => void;
   isFetching: boolean;
+  isError?: boolean;
+  error?: unknown;
   currentPage: number;
   totalDocuments: number;
   itemsPerPage: number;
@@ -44,6 +46,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   handleHoverStart,
   handleHoverEnd,
   isFetching,
+  isError,
+  error,
   currentPage,
   totalDocuments,
   itemsPerPage,
@@ -58,6 +62,23 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       <Box className={viewMode === 'grid' ? styles.gridLayout : styles.listLayout}>
         <DocumentSkeleton count={itemsPerPage} />
       </Box>
+    );
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        className={styles.emptyState}
+        icon={
+          <Box className={styles.emptyIconBox}>
+            <FileText className={styles.emptyIcon} color="var(--danger)" />
+          </Box>
+        }
+        title="Error Loading Documents"
+        description={
+          error instanceof Error ? error.message : 'Failed to fetch document data from the server.'
+        }
+      />
     );
   }
 

@@ -103,7 +103,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
             <Surface
               key={i}
               variant="panel"
-              className={cn(styles.passengerTag, styles[p.role.toLowerCase()])}
+              className={cn(styles.passengerTag, styles[(p.role || 'personnel').toLowerCase()])}
             >
               <LqText variant="xs" weight="bold">
                 {p.passenger_name}

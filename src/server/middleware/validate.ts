@@ -50,8 +50,12 @@ export const entitySchema = z.object({
 });
 
 export const searchSchema = z.object({
-  q: z.string().min(1).max(200),
-  limit: z.preprocess((val) => Number(val), z.number().int().min(1).max(100)).optional(),
+  query: z.object({
+    q: z.string().min(1).max(200),
+    // Back-compat alias (some callers send `?query=...`)
+    query: z.string().min(1).max(200).optional(),
+    limit: z.preprocess((val) => Number(val), z.number().int().min(1).max(100)).optional(),
+  }),
 });
 
 const ENTITY_SORT_BY_VALUES = [
@@ -73,7 +77,11 @@ export const entitiesQuerySchema = z.object({
     search: z.string().max(100).optional(),
     role: z.string().optional(),
     likelihood: z.union([z.string(), z.array(z.string())]).optional(),
+    // Back-compat alias (some callers use likelihoodScore instead of likelihood)
+    likelihoodScore: z.union([z.string(), z.array(z.string())]).optional(),
     type: z.string().optional(),
+    minRedFlagIndex: z.coerce.number().int().min(0).max(5).optional(),
+    maxRedFlagIndex: z.coerce.number().int().min(0).max(5).optional(),
     sortBy: z.enum(ENTITY_SORT_BY_VALUES).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
     includeJunk: z.preprocess((v) => v === 'true', z.boolean()).optional(),
@@ -99,17 +107,30 @@ export const entityIdParamSchema = z.object({
   }),
 });
 
-export const numericIdParamSchema = z.object({
+export const entityParamSchema = z.object({
   params: z.object({
-    id: z.coerce.number().int().min(1),
+    entityId: z.string().min(1),
   }),
 });
 
 // ── Shared reusable schemas ───────────────────────────────────────────────────
-
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(500).default(50),
+});
+
+export const entityDocumentsQuerySchema = z.object({
+  query: paginationSchema.extend({
+    search: z.string().optional(),
+    source: z.string().optional(),
+    sort: z.string().optional(),
+  }),
+});
+
+export const numericIdParamSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().min(1),
+  }),
 });
 
 export const dateRangeSchema = z.object({
