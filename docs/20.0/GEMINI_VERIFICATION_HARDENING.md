@@ -23,8 +23,8 @@ Gemini does not own product copy or feature implementation decisions. Raise conf
 The 20.0 release must block on:
 
 - `pnpm format:check`
-- `pnpm lint`
-- `pnpm type-check`
+- `pnpm lint` → **0 errors AND 0 warnings** (as of 2026-04-29)
+- `pnpm type-check` → **0 errors** (verified: passing)
 - `pnpm test:unit`
 - `pnpm build:prod`
 - Bundle smoke tests
@@ -35,6 +35,9 @@ The 20.0 release must block on:
 - Production dependency audit with no high or critical vulnerabilities
 - Accessibility checks for core workflows
 - Data-integrity audit for provenance and source coverage
+- **Hardened Standards Compliance Audit**: Cross-surface check for icon usage, path aliases, and DTO validation.
+- **NEW**: Security header checks (`X-Content-Type-Options`, `X-Frame-Options`)
+- **NEW**: Rate limit header verification (`RateLimit-Limit`, `RateLimit-Remaining`)
 
 ## Golden Paths
 
@@ -44,6 +47,7 @@ Expand or create Playwright coverage for:
 - Document route -> PDF tab -> text/analysis tab -> provenance panel.
 - Create investigation -> add evidence -> add note/hypothesis -> export packet.
 - Exported packet -> manifest exists -> checksum is deterministic -> skipped files are explained.
+- Exported packet -> legal header/versioning exists and is accurate.
 - Ambiguity queue -> inspect unresolved item -> defer or mark reviewed.
 - Email thread -> search -> open thread -> add message/thread to investigation.
 - API degraded/down state -> user sees recovery state and no blank screen.
@@ -73,6 +77,29 @@ For each area, document:
 - existing protection
 - missing test
 - required release gate
+
+### Audit Findings (2026-04-29) ✅
+
+- **Authentication & JWT Handling** ✅ AUDITED
+  - Current state: `src/server/auth/middleware.ts`
+  - Production exit if `JWT_SECRET` missing
+  - Dev warning if secret not set (no silent fallback)
+  - `getJwtSecret()` function centralizes access
+  - **Verified**: No hardcoded secrets, dev fallback warns
+
+- **Rate Limiting** ✅ AUDITED
+  - Current state: `src/server/middleware/rateLimit.ts`
+  - `apiRateLimiter` (100 req/min) created and applied to admin + search routes
+  - Applied to: `/api/admin/*`, `/api/search*`
+  - **Verified**: Rate limiters active on write and search endpoints
+
+- **Public Read / Auth Write Architecture** ✅ AUDITED
+  - Decision: Read access open, write requires `authenticateRequest`
+  - Verified routes with auth:
+    - `src/server/routes/investigations.ts` - write ops have auth
+    - `src/server/routes/activeLearning.ts` - all endpoints have auth
+    - `src/server/routes/faceRoutes.ts` - admin endpoints have `requireRole('admin')`
+  - **Verified**: No auth on read routes (intended), auth on all write routes
 
 ## Data Integrity Audit
 
@@ -139,19 +166,37 @@ Run at deploy:
 
 ## Performance Budgets
 
-Track and gate regressions for:
+All budgets are p95 under simulated 4G (25 Mbps / 100ms RTT) in Chromium.
+Gate release candidates when any budget is exceeded without documented explanation.
 
-- app shell load
-- entity search response time
-- document detail open time
-- PDF first page render time
-- investigation workspace open time
-- export preview generation time
-- graph/timeline interaction responsiveness
+| Metric                                  | Budget               | Measurement                                       |
+| --------------------------------------- | -------------------- | ------------------------------------------------- |
+| App shell load (first contentful paint) | < 1.5s               | Lighthouse / Playwright `page.goto` timing        |
+| Entity search response (API p95)        | < 400ms              | `pnpm test:contracts` latency header              |
+| Document detail open                    | < 600ms              | Playwright `waitForResponse`                      |
+| PDF first page render                   | < 1.2s               | Playwright screenshot timing                      |
+| Investigation workspace open            | < 800ms              | Playwright `waitForSelector` on tab nav           |
+| Export preview generation               | < 2s                 | Playwright `waitForResponse` on `/export/preview` |
+| List scroll 60fps (> 1000 items)        | no frame drop > 16ms | Playwright `page.evaluate` RAF timing             |
+| Graph/timeline interaction              | < 100ms response     | User-timing marks                                 |
 
-Performance budgets should fail release candidates when regression is user-visible and unexplained.
+Regressions > 20% from baseline are release-blocking. Regressions < 20% must be
+explained in the PR description.
 
 ## Accessibility Budgets
+
+### Target Viewports
+
+All mobile Playwright tests run at:
+
+- **Primary**: 390 × 844 (iPhone 14 / typical Android equivalent)
+- **Minimum**: 375 × 667 (iPhone SE — smallest supported)
+
+Desktop tests run at 1440 × 900. Do not test at arbitrary viewports; pin these
+values in Playwright config so CI results are reproducible.
+
+The golden-path mobile flows (search → entity dossier → source document → export
+preview) must complete without horizontal scroll at 390px width.
 
 Verify:
 
@@ -161,6 +206,7 @@ Verify:
 - screen-reader names for icon-only controls
 - non-color-only status indicators
 - mobile text and controls do not clip
+- **Degraded Visual Consistency**: Verify that "API down" or "Service Unavailable" states use the approved design-system warning patterns consistently across all routes.
 
 ## Deliverables
 
