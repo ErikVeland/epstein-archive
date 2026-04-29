@@ -32,6 +32,7 @@ export interface ThreadDTO {
   last_date: string; // ISO
   preview_snippet: string;
   messages?: EmailDTO[]; // Optional, for detailed view
+  linkedEntities?: { entityId: number; name: string }[];
 }
 
 export interface EmailSearchFilters {

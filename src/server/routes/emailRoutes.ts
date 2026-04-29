@@ -17,6 +17,7 @@ import {
   getEmailCategoriesCounts,
   getEmailDocumentContentById,
   getEmailLinkedEntitiesForMessages,
+  getEmailLinkedEntitiesForThreads,
   getEmailMailboxes,
   getEmailMessageBodyRecord,
   getEmailMessageThreadPointer,
@@ -316,31 +317,46 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
         )
       : null;
 
+    const threadIds = pageRows.map((row) =>
+      String(threadRowField(row as Record<string, unknown>, 'threadId') || ''),
+    );
+    const entityRows = await getEmailLinkedEntitiesForThreads(threadIds);
+    const entitiesByThread = new Map<string, { entityId: number; name: string }[]>();
+    for (const er of entityRows) {
+      const list = entitiesByThread.get(er.threadId) ?? [];
+      list.push({ entityId: er.entityId, name: er.name });
+      entitiesByThread.set(er.threadId, list);
+    }
+
     const payload = {
-      data: pageRows.map((row) => ({
-        threadId: String(threadRowField(row as Record<string, unknown>, 'threadId') || ''),
-        subject: String((row as Record<string, unknown>).subject || 'No Subject'),
-        participants: normalizeList(
-          threadRowField(row as Record<string, unknown>, 'participantsRaw') || '',
-        ),
-        participantCount: threadRowField(row as Record<string, unknown>, 'participantCount') || 0,
-        lastMessageAt: threadRowField(row as Record<string, unknown>, 'lastMessageAt') || '',
-        snippet: String((row as Record<string, unknown>).snippet || ''),
-        messageCount: threadRowField(row as Record<string, unknown>, 'messageCount') || 0,
-        hasAttachments:
-          Number(threadRowField(row as Record<string, unknown>, 'hasAttachments') || 0) === 1,
-        linkedEntityIds: parseEntityIds(
-          threadRowField(row as Record<string, unknown>, 'linkedEntityIdsRaw') || '',
-        ),
-        risk:
-          (row as Record<string, unknown>).risk == null
-            ? null
-            : typeof (row as Record<string, unknown>).risk === 'number'
-              ? (row as Record<string, unknown>).risk
-              : Number((row as Record<string, unknown>).risk),
-        ladder: readString((row as Record<string, unknown>).ladder) || null,
-        confidence: readOptionalNumber((row as Record<string, unknown>).confidence) ?? null,
-      })),
+      data: pageRows.map((row) => {
+        const threadId = String(threadRowField(row as Record<string, unknown>, 'threadId') || '');
+        return {
+          threadId,
+          subject: String((row as Record<string, unknown>).subject || 'No Subject'),
+          participants: normalizeList(
+            threadRowField(row as Record<string, unknown>, 'participantsRaw') || '',
+          ),
+          participantCount: threadRowField(row as Record<string, unknown>, 'participantCount') || 0,
+          lastMessageAt: threadRowField(row as Record<string, unknown>, 'lastMessageAt') || '',
+          snippet: String((row as Record<string, unknown>).snippet || ''),
+          messageCount: threadRowField(row as Record<string, unknown>, 'messageCount') || 0,
+          hasAttachments:
+            Number(threadRowField(row as Record<string, unknown>, 'hasAttachments') || 0) === 1,
+          linkedEntityIds: parseEntityIds(
+            threadRowField(row as Record<string, unknown>, 'linkedEntityIdsRaw') || '',
+          ),
+          linkedEntities: entitiesByThread.get(threadId) ?? [],
+          risk:
+            (row as Record<string, unknown>).risk == null
+              ? null
+              : typeof (row as Record<string, unknown>).risk === 'number'
+                ? (row as Record<string, unknown>).risk
+                : Number((row as Record<string, unknown>).risk),
+          ladder: readString((row as Record<string, unknown>).ladder) || null,
+          confidence: readOptionalNumber((row as Record<string, unknown>).confidence) ?? null,
+        };
+      }),
       meta: {
         total: countRow.total || 0,
         limit,

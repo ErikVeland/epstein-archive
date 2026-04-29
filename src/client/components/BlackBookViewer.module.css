@@ -190,6 +190,19 @@
   font-weight: 600;
 }
 
+.searchEvidenceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  margin-top: var(--space-1);
+}
+
+.searchEvidenceLink:hover {
+  color: var(--accent);
+}
+
 .textClamp {
   overflow: hidden;
   text-overflow: ellipsis;

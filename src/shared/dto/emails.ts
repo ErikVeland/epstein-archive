@@ -28,6 +28,7 @@ export interface EmailThreadListItemDto {
   messageCount: number;
   hasAttachments: boolean;
   linkedEntityIds: number[];
+  linkedEntities: { entityId: number; name: string }[];
   risk: number | null;
   ladder: string | null;
   confidence: number | null;

@@ -320,6 +320,30 @@ export async function getEmailLinkedEntitiesForMessages(messageIds: number[]) {
   return rows;
 }
 
+export async function getEmailLinkedEntitiesForThreads(
+  threadIds: string[],
+): Promise<Array<{ threadId: string; entityId: number; name: string }>> {
+  if (threadIds.length === 0) return [];
+  const pool = getApiPool();
+  const { rows } = await pool.query<{ threadId: string; entityId: number; name: string }>(
+    `
+    SELECT
+      COALESCE(d.metadata_json->>'thread_id', d.id::text) AS "threadId",
+      e.id AS "entityId",
+      e.full_name AS name
+    FROM documents d
+    JOIN entity_mentions em ON d.id = em.document_id
+    JOIN entities e ON em.entity_id = e.id
+    WHERE d.evidence_type = 'email'
+      AND COALESCE(d.metadata_json->>'thread_id', d.id::text) = ANY($1)
+    GROUP BY "threadId", e.id, e.full_name
+    ORDER BY "threadId", e.full_name
+    `,
+    [threadIds],
+  );
+  return rows;
+}
+
 export async function getEmailMessageBodyRecord(messageId: string) {
   const pool = getApiPool();
   const { rows } = await pool.query(

@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Phone, Mail, MapPin, User, Book, Eye, FileText, ExternalLink } from 'lucide-react';
+import { Phone, Mail, MapPin, User, Book, Eye, FileText, ExternalLink, Search } from 'lucide-react';
 import { extractCleanName, formatPhoneNumber } from '../utils/prettifyOCR';
 import { Link } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
@@ -348,9 +348,19 @@ export const BlackBookViewer: React.FC = () => {
                                       <ExternalLink className={styles.tinyExternal} />
                                     </Button>
                                   ) : (
-                                    <h3 className={`${styles.plainName} ${styles.textClamp}`}>
-                                      {displayName}
-                                    </h3>
+                                    <>
+                                      <h3 className={`${styles.plainName} ${styles.textClamp}`}>
+                                        {displayName}
+                                      </h3>
+                                      <Link
+                                        to={`/documents?search=${encodeURIComponent(displayName)}`}
+                                        className={styles.searchEvidenceLink}
+                                        title="Search evidence for this name"
+                                      >
+                                        <Search className={styles.tinyExternal} />
+                                        Search Evidence
+                                      </Link>
+                                    </>
                                   )}
                                 </div>
                                 <div className={styles.headerActions}>

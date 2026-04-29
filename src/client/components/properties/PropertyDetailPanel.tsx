@@ -53,7 +53,13 @@ export function PropertyDetailPanel({
               )}
             </div>
             <h3 id="property-detail-title" className={styles.ownerName}>
-              {property.owner_name_1 || 'Unknown Owner'}
+              {property.linked_entity_id ? (
+                <Link to={`/entity/${property.linked_entity_id}`} onClick={onClose}>
+                  {property.owner_name_1 || 'Unknown Owner'}
+                </Link>
+              ) : (
+                property.owner_name_1 || 'Unknown Owner'
+              )}
             </h3>
             {property.owner_name_2 && <p className={styles.ownerName2}>{property.owner_name_2}</p>}
             <p className={styles.propertyValue}>{formatCurrency(property.total_tax_value)}</p>

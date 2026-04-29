@@ -50,6 +50,12 @@ export const mapEmailThreadListItemDto = (
         .map((id: unknown) => Number(id))
         .filter((id: number) => Number.isFinite(id))
     : [],
+  linkedEntities: Array.isArray(row.linkedEntities)
+    ? (row.linkedEntities as Array<Record<string, unknown>>).map((e) => ({
+        entityId: Number(e.entityId || 0),
+        name: String(e.name || ''),
+      }))
+    : [],
   risk: row.risk == null ? null : Number(row.risk),
   ladder: row.ladder ? String(row.ladder) : null,
   confidence: row.confidence == null ? null : Number(row.confidence),

@@ -73,6 +73,8 @@ router.get('/co-occurrences', validate(coOccurrenceQuerySchema), async (req, res
     const shaped = rows.slice(0, limit).map((r: Record<string, unknown>) => ({
       passenger1: String(r.passenger1 || ''),
       passenger2: String(r.passenger2 || ''),
+      entity_id_1: r.entity_id_1 != null ? Number(r.entity_id_1) : null,
+      entity_id_2: r.entity_id_2 != null ? Number(r.entity_id_2) : null,
       flights_together: Number(r.flightsTogether || 0),
       first_flight: r.firstFlight || null,
       last_flight: r.lastFlight || null,

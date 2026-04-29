@@ -293,7 +293,8 @@ export const flightsRepository = {
       `
       SELECT
         passenger_name AS name,
-        COUNT(*)::int AS flight_count
+        COUNT(*)::int AS flight_count,
+        MAX(entity_id) AS entity_id
       FROM flight_passengers
       GROUP BY passenger_name
       ORDER BY passenger_name ASC
@@ -302,6 +303,7 @@ export const flightsRepository = {
     return rows.rows.map((r) => ({
       name: String(r.name || ''),
       flight_count: Number(r.flight_count || 0),
+      entity_id: r.entity_id ? Number(r.entity_id) : null,
     }));
   },
 
@@ -312,9 +314,11 @@ export const flightsRepository = {
   getPassengerCoOccurrences: async (minFlights = 2) => {
     const rows = await getApiPool().query(
       `
-      SELECT 
+      SELECT
         p1.passenger_name as passenger1,
         p2.passenger_name as passenger2,
+        MAX(p1.entity_id) as entity_id_1,
+        MAX(p2.entity_id) as entity_id_2,
         COUNT(*) as "flightsTogether",
         MIN(f.date) as "firstFlight",
         MAX(f.date) as "lastFlight"
@@ -327,7 +331,11 @@ export const flightsRepository = {
     `,
       [minFlights],
     );
-    return rows.rows;
+    return rows.rows.map((r: Record<string, unknown>) => ({
+      ...r,
+      entity_id_1: r.entity_id_1 ? Number(r.entity_id_1) : null,
+      entity_id_2: r.entity_id_2 ? Number(r.entity_id_2) : null,
+    }));
   },
 
   getCoPassengers: async (passengerName: string) => {

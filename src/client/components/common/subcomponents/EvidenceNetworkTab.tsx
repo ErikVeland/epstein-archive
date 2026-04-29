@@ -37,6 +37,11 @@ interface EvidenceNetworkTabProps {
   onEntityClick?: (node: GraphNode) => void;
 }
 
+const formatRelationshipType = (type: string | undefined): string => {
+  if (!type) return '';
+  return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
 export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
   networkLoading,
   relationships,
@@ -118,7 +123,9 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
                   <span className={s.listName}>{node.name ?? String(node.id)}</span>
                   {node.role && <span className={s.listRole}>{String(node.role)}</span>}
                 </div>
-                {rel?.type && <span className={s.listRelType}>{String(rel.type)}</span>}
+                {rel?.type && (
+                  <span className={s.listRelType}>{formatRelationshipType(rel.type)}</span>
+                )}
               </button>
             );
           })}
