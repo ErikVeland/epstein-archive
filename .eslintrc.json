@@ -30,7 +30,20 @@
               "../../server/*",
               "../../../server/*",
               "src/server/*"
+            ],
+            "paths": [
+              {
+                "name": "lucide-react",
+                "message": "Use the <Icon /> component from @client/components/common/Icon instead of importing from lucide-react directly."
+              }
             ]
+          }
+        ],
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "ImportDeclaration[source.value=/^\\.\\.\\/\\.\\.\\//]",
+            "message": "Deep relative paths are prohibited. Use @client, @server, or @shared aliases."
           }
         ]
       }
@@ -39,6 +52,12 @@
       "files": ["src/client/**/*.tsx"],
       "rules": {
         "no-restricted-syntax": "off"
+      }
+    },
+    {
+      "files": ["src/client/components/common/Icon.tsx"],
+      "rules": {
+        "no-restricted-imports": "off"
       }
     },
     {

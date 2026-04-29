@@ -135,6 +135,11 @@ import {
   XCircle,
   ZoomIn,
   ZoomOut,
+  ArrowDownRight,
+  FileQuestion,
+  Plane,
+  SearchX,
+  Zap,
 } from 'lucide-react';
 
 const icons = {
@@ -273,6 +278,11 @@ const icons = {
   XCircle,
   ZoomIn,
   ZoomOut,
+  ArrowDownRight,
+  FileQuestion,
+  Plane,
+  SearchX,
+  Zap,
 };
 
 export type IconName = keyof typeof icons;
@@ -291,7 +301,8 @@ interface IconProps {
     | 'gray'
     | 'inherit'
     | 'black'
-    | 'blue';
+    | 'blue'
+    | 'accent';
   className?: string;
   ariaLabel?: string;
   ariaHidden?: boolean;
@@ -331,6 +342,7 @@ const Icon: React.FC<IconProps> = ({
     gray: 'text-[var(--text-muted)]',
     black: 'text-[var(--bg-dark)]',
     blue: 'text-[var(--accent)]',
+    accent: 'text-[var(--accent)]',
     inherit: '',
   };
 
