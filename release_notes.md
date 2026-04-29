@@ -1,5 +1,23 @@
 # Release Notes
 
+## 20.0.0 - 2026-04-29 - Hardening & Release Readiness
+
+### Quality & Reliability
+
+- **Golden Path E2E**: Expanded test coverage for fast entity switching (race conditions) and terminal state checks for all entity modal tabs.
+- **Icon Coverage**: Added 25+ missing icons to `Icon.tsx` mapping to eliminate runtime "missing icon" warnings.
+- **Type-Check**: Client and shared code TypeScript checks pass cleanly.
+
+### Developer Experience
+
+- **DTO Integrity**: Standardized client components to use `apiClient` + shared DTO/Zod parsing.
+- **Lint Gates**: Enforced deep-relative import prohibition and `lucide-react` restrictions.
+- **Build Pipeline**: Streamlined production build by separating client and server compilation steps.
+
+### Documentation
+
+- **HARDENING_20_0.md**: Tracking document for v20.0 reliability and data-integrity work.
+
 ## 19.9.0 - 2026-04-28 - Security Hardening & Breach Remediation
 
 ### Security & Infrastructure
