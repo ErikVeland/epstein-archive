@@ -63,6 +63,7 @@ Owns:
 - Manifest summary UI.
 - Export readiness checks.
 - Human-readable warning display.
+- **Legal Header and Metadata**: Include an automated "Chain of Custody" section in the README, detailing app version, schema hash, and generation timestamp.
 - Deterministic metadata compatibility with existing checksum tests.
 
 Implementation notes:
@@ -79,6 +80,8 @@ Owns:
 
 - Review queue API and UI for alias conflicts, missing provenance, weak confidence, duplicate entities, and disputed dates.
 - Review decisions that preserve original source data.
+- **Bulk Triage API**: Add endpoint for bulk accepting or rejecting automated matches (e.g., `POST /api/review/bulk`).
+- **Flagging API**: Add endpoint for user-initiated review requests on entities/claims.
 - Audit-friendly state transitions.
 
 Implementation notes:
@@ -111,6 +114,11 @@ Owns:
 
 - Route-level fallback UI.
 - API-down/degraded states.
+- **Onboarding and Command Palette**:
+  - `CommandPalette` component using a library like `cmdk` or similar.
+  - `Onboarding` modal/tour triggered by version bump in `localStorage`.
+- **Archive Status**:
+  - Global "Archive Sync" indicator using a lightweight endpoint (e.g., `/api/status/archive`).
 - Recoverable document/PDF/email/media loading failures.
 - Mobile-safe state layouts.
 
@@ -120,26 +128,72 @@ Implementation notes:
 - Loading state must not look like "no data".
 - Error state must name the failed resource and provide a retry or navigation action.
 
+### Packet 7: Standardization and Hardened Style
+
+Goal: bring existing investigative surfaces into compliance with the 20.0 hardened standards.
+
+Owns:
+
+- Migration of all direct `lucide-react` imports to the `Icon` component.
+- Refactor of relative path imports to use `@client/`, `@server/`, and `@shared/` aliases.
+- Audit and update of Express routes to ensure 100% `sendValidated` coverage.
+- Conversion of ad-hoc layout CSS to design system primitives (`Stack`, `Flex`, `Grid`).
+
+Implementation notes:
+
+- Prioritize high-traffic surfaces: Search, Entity Dossier, Document Modal.
+- Standardize icon sizes and colors across the app using the `Icon` component props.
+- Fix any `strict` mode TypeScript errors revealed by the type-check gate.
+
 ## Public Interface Expectations
 
-Add or extend DTOs with:
+### Canonical Provenance Field Table
 
-- `sourceHash`
-- `sourceId` or existing source document/media identifier
-- `extractionMethod`
-- `confidence`
-- `reviewState`
-- `verificationState`
-- `lastVerifiedAt`
-- `provenanceStatus`
+All provenance-bearing DTOs add these fields. Names here are canonical —
+use them exactly in Zod schemas, mappers, and React prop types.
+
+| Field              | Type                                                                                | Nullable | Description                                                  |
+| ------------------ | ----------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------ |
+| `sourceDocumentId` | `number \| null`                                                                    | yes      | FK to the source document record                             |
+| `sourceHash`       | `string \| null`                                                                    | yes      | Immutable content hash of the source file                    |
+| `extractionMethod` | `'ocr' \| 'manual' \| 'structured' \| 'agentic' \| null`                            | yes      | How the fact was extracted                                   |
+| `confidence`       | `number \| null`                                                                    | yes      | Machine confidence 0–1; null = not assessed                  |
+| `reviewState`      | `'unreviewed' \| 'accepted' \| 'rejected' \| 'deferred' \| 'insufficient_evidence'` | no       | Default `'unreviewed'`                                       |
+| `lastVerifiedAt`   | `string \| null`                                                                    | yes      | ISO-8601; null = never verified                              |
+| `provenanceStatus` | `'complete' \| 'partial' \| 'missing'`                                              | no       | Derived: complete if hash+method present, missing if neither |
 
 Rules:
 
-- Prefer additive optional fields.
-- Keep legacy field names working for current clients.
-- Use Zod validation for any new route response.
-- Map database nulls to explicit API nulls, not empty strings.
+- All fields are **optional additions** to existing DTOs — do not break existing
+  callers by making them required.
+- Map database nulls to explicit API nulls, never empty strings.
+- Use Zod `.optional()` for fields that may be absent in legacy data.
+- `provenanceStatus` is a **derived field**: compute it in the mapper, never
+  store it in the DB.
 - Keep export manifests deterministic and checksum-compatible.
+
+### Archive Status Endpoint
+
+`GET /api/status/archive` — lightweight, no auth required, used by the global
+freshness indicator.
+
+Response shape (Zod schema to add to `src/shared/schemas/stats.ts`):
+
+```typescript
+export const archiveStatusSchema = z.object({
+  lastIngestedAt: z.string().nullable(), // ISO-8601 of most recent ingest run
+  status: z.enum(['current', 'stale', 'unknown']),
+  // current  = lastIngestedAt within 48h
+  // stale    = lastIngestedAt older than 48h
+  // unknown  = no ingest record found
+  documentCount: z.number().int(),
+  entityCount: z.number().int(),
+});
+export type ArchiveStatusDto = z.infer<typeof archiveStatusSchema>;
+```
+
+Implement in `src/server/routes/stats.ts`. Query: `SELECT MAX(created_at) FROM
+ingest_runs` (or the closest existing table that records pipeline runs).
 
 ## Engineering Constraints
 
@@ -149,6 +203,10 @@ Rules:
 - Add migrations only for durable state that cannot be represented now.
 - Keep write sets narrow and announce integration points before touching shared files.
 - Do not alter another model's planning doc except through integrator-approved changes.
+- **NEW**: All mapper files must have typed interfaces, no `Record<string, any>`
+- **NEW**: Use `interface FooInput { field?: unknown }` pattern for DB row mapping
+- **NEW**: Cast to typed interfaces inside mapper functions, not at boundaries
+- **NEW**: Run `pnpm lint:fix` before committing type changes
 
 ## Suggested Implementation Order
 
@@ -160,6 +218,27 @@ Rules:
 6. Add ambiguity/review queue aggregation.
 7. Extend search filters and saved search behavior.
 8. Harden route-level loading/error/degraded states.
+9. **NEW**: Lint warning cleanup (see Packet 7).
+
+### Packet 7: Lint Warning Cleanup
+
+Goal: Achieve 0 lint warnings in production code.
+
+Owns:
+
+- `src/app.ts` lines 429, 434, 439, 446 (4 `no-explicit-any` warnings) - **COMPLETED 2026-04-29**
+
+Implementation notes:
+
+- Replace `any` types with explicit interfaces or `Record<string, unknown>`
+- Follow existing patterns in `src/server/auth/middleware.ts`
+- Run `pnpm lint:fix` to auto-fix formatting
+
+Acceptance:
+
+- [x] `pnpm lint` shows 0 warnings (completed)
+- [x] All type annotations are explicit (no `any`)
+- [ ] `pnpm lint` maintains 0 warnings in future changes
 
 ## Required Verification Before Handoff
 
