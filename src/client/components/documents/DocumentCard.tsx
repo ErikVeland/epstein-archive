@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles, User, Database, Calendar, Eye, SearchCheck } from 'lucide-react';
 import { Button } from '../../design-system/components/Button';
@@ -182,7 +183,18 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
           <Flex align="center" gap="xs" className={styles.entitiesRow}>
             <User className={styles.entityIcon} />
             <LqText variant="xs" color="muted" weight="medium" className={styles.entityLabel}>
-              {document.keyEntities.join(' · ')}
+              {document.keyEntities.map((e, i) => (
+                <React.Fragment key={e.id || i}>
+                  {i > 0 && ' · '}
+                  {e.id ? (
+                    <Link to={`/entity/${e.id}`} onClick={(ev) => ev.stopPropagation()}>
+                      {e.name}
+                    </Link>
+                  ) : (
+                    e.name
+                  )}
+                </React.Fragment>
+              ))}
             </LqText>
           </Flex>
         )}

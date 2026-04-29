@@ -119,6 +119,18 @@ const ThreadRow = React.memo(
             {!compact && thread.snippet && (
               <div className={styles.rowSnippet}>{thread.snippet}</div>
             )}
+            {!compact && thread.linkedEntities && thread.linkedEntities.length > 0 && (
+              <div className={styles.rowEntityPills}>
+                {thread.linkedEntities.slice(0, 3).map((e) => (
+                  <span key={e.entityId} className={styles.entityPill}>
+                    {e.name}
+                  </span>
+                ))}
+                {thread.linkedEntities.length > 3 && (
+                  <span className={styles.entityPillMore}>+{thread.linkedEntities.length - 3}</span>
+                )}
+              </div>
+            )}
           </div>
           <div className={styles.rowAside}>
             <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>

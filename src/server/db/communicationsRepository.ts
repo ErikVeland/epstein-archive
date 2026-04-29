@@ -99,10 +99,11 @@ function mapRowToEmailDTO(row: Record<string, unknown>): EmailDTO {
 export const communicationsRepository = {
   async getThreads(page: number = 1, limit: number = 50): Promise<ThreadDTO[]> {
     const offset = (page - 1) * limit;
+    const pool = getApiPool();
 
-    const rows = await communicationsQueries.getThreads.run({ limit, offset }, getApiPool());
+    const rows = await communicationsQueries.getThreads.run({ limit, offset }, pool);
 
-    return rows.map((row: IGetThreadsResult) => {
+    const threads: Omit<ThreadDTO, 'linkedEntities'>[] = rows.map((row: IGetThreadsResult) => {
       let participants: string[] = [];
       if (Array.isArray(row.participantsJson)) {
         participants = [...new Set(normalizeList(row.participantsJson))];
@@ -122,6 +123,41 @@ export const communicationsRepository = {
           : '',
       };
     });
+
+    // Batch-enrich threads with linked entity names via entity_mentions
+    if (threads.length > 0) {
+      const threadIds = threads.map((t) => t.thread_id);
+      const entityRows = await pool.query<{ thread_id: string; entity_id: number; name: string }>(
+        `
+        SELECT
+          COALESCE(d.metadata_json->>'thread_id', d.id::text) AS thread_id,
+          e.id AS entity_id,
+          e.full_name AS name
+        FROM documents d
+        JOIN entity_mentions em ON d.id = em.document_id
+        JOIN entities e ON em.entity_id = e.id
+        WHERE d.evidence_type = 'email'
+          AND COALESCE(d.metadata_json->>'thread_id', d.id::text) = ANY($1)
+        GROUP BY thread_id, e.id, e.full_name
+        ORDER BY thread_id, e.full_name
+        `,
+        [threadIds],
+      );
+
+      const entityByThread = new Map<string, { entityId: number; name: string }[]>();
+      for (const row of entityRows.rows) {
+        const list = entityByThread.get(row.thread_id) ?? [];
+        list.push({ entityId: Number(row.entity_id), name: row.name });
+        entityByThread.set(row.thread_id, list);
+      }
+
+      return threads.map((t) => ({
+        ...t,
+        linkedEntities: entityByThread.get(t.thread_id) ?? [],
+      }));
+    }
+
+    return threads;
   },
 
   async getThreadById(threadId: string): Promise<ThreadDTO | null> {

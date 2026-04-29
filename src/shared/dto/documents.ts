@@ -10,7 +10,7 @@ export interface DocumentListItemDto {
   redFlagRating: number;
   wordCount: number;
   entitiesCount: number;
-  keyEntities: string[];
+  keyEntities: { id: string; name: string }[];
   sourceType: string;
   previewText: string;
   previewKind: 'ai_summary' | 'excerpt' | 'fallback' | string;

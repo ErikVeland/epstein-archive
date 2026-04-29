@@ -350,6 +350,31 @@
   color: var(--text-secondary);
 }
 
+.rowEntityPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.entityPill {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  background: var(--surface-overlay, rgba(255, 255, 255, 0.07));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  border-radius: 0.25rem;
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.entityPillMore {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
 .rowAside {
   flex-shrink: 0;
   text-align: right;

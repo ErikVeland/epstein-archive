@@ -190,7 +190,13 @@ const GlobalSearch: React.FC = () => {
                 )
                 .filter(Boolean)
             : Array.isArray(doc.keyEntities)
-              ? doc.keyEntities.map((entity) => asString(entity)).filter(Boolean)
+              ? doc.keyEntities
+                  .map((entity) =>
+                    typeof entity === 'object' && entity !== null
+                      ? asString((entity as UnknownRecord).name)
+                      : asString(entity),
+                  )
+                  .filter(Boolean)
               : [],
           dates: [asString(doc.dateCreated), asString(doc.extractedDate)].filter(Boolean),
           wordCount: asNumber(doc.wordCount, 0),

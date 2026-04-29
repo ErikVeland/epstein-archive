@@ -116,6 +116,20 @@ export function MobileThreadList({
                       {thread.participants.slice(0, 3).join(' · ') || 'Unknown participants'}
                     </div>
                     {thread.snippet && <div className={styles.rowSnippet}>{thread.snippet}</div>}
+                    {thread.linkedEntities && thread.linkedEntities.length > 0 && (
+                      <div className={styles.entityPills}>
+                        {thread.linkedEntities.slice(0, 2).map((e) => (
+                          <span key={e.entityId} className={styles.entityPill}>
+                            {e.name}
+                          </span>
+                        ))}
+                        {thread.linkedEntities.length > 2 && (
+                          <span className={styles.entityPill}>
+                            +{thread.linkedEntities.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className={styles.rowAside}>
                     <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>

@@ -12,7 +12,7 @@ const documentListItemCanonicalSchema = z.object({
   redFlagRating: z.number(),
   wordCount: z.number(),
   entitiesCount: z.number(),
-  keyEntities: z.array(z.string()),
+  keyEntities: z.array(z.object({ id: z.string(), name: z.string() })),
   sourceType: z.string(),
   previewText: z.string(),
   previewKind: z.string(),
