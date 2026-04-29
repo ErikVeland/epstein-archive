@@ -40,13 +40,20 @@ describe('relationshipsRepository.getRelationships', () => {
         },
       ],
     });
+    // Third query: batch entity name lookup added in data-joins enrichment
+    queryMock.mockResolvedValueOnce({
+      rows: [
+        { id: 1, full_name: 'Entity One' },
+        { id: 2, full_name: 'Entity Two' },
+      ],
+    });
 
     const { relationshipsRepository } =
       await import('../../../src/server/db/relationshipsRepository');
     const result = await relationshipsRepository.getRelationships(42, { limit: 50 });
 
     expect(result.canonicalId).toBe(1);
-    expect(queryMock).toHaveBeenCalledTimes(2);
+    expect(queryMock).toHaveBeenCalledTimes(3);
     // Ensure the SQL bind uses canonicalId (1), not the requested entityId (42).
     expect(queryMock.mock.calls[1]?.[1]?.[0]).toBe(1);
     expect(result.relationships).toHaveLength(1);
