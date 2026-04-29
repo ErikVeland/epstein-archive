@@ -1,33 +1,73 @@
-# Architecture Wiki - Epstein Archive
+# Architecture Wiki — Epstein Archive
 
 ## Overview
 
-The Epstein Archive platform serves as an investigative hub for digesting and analyzing large-scale document dumps (primarily DOJ files, court records, and flight logs). It integrates a robust ingestion pipeline, a React-based frontend using the "Liquid Glass" design system, and an SQLite-based data layer.
+The Epstein Archive is an investigative research platform for analyzing documents,
+entities, and relationships from the Epstein Files corpus. It is a full-stack
+monolith: React 18 SPA frontend, Express.js API server, PostgreSQL 16+ database.
 
 ## System Architecture
 
 ### 1. Data Ingestion Pipeline
 
-The `scripts/` directory houses the core ETL (Extract, Transform, Load) logic.
+The `scripts/` directory contains the ETL logic.
 
-- **Ingestion (`scripts/ingest.ts`)**: Automates the parsing of raw PDFs, CSV flight logs, and JSON dumps into normalized SQLite rows.
-- **Enrichment**: Pipeline steps to extract latent entities, assign investigation confidence scores, and flag VIPs (e.g. subject #405628, Vladislav Doronin).
+- **`scripts/unified_pipeline.ts`** — canonical entry point; parses PDFs, CSV
+  flight logs, and JSON dumps into normalized PostgreSQL rows.
+- **Enrichment** — pipeline steps extract entities, assign confidence scores,
+  and flag VIPs. An optional agentic stage (`scripts/ingest_intelligence.ts`)
+  applies LLM-based contextual repair and entity linking.
 
 ### 2. Client Application
 
-- **Framework**: React / Vite (SSR/SSG pending).
-- **Design System**: Liquid Glass (`src/client/design-system/`). We have officially retired Tailwind CSS; all new features must strictly employ CSS Modules and governed UI primitives.
+- **Framework**: React 18 / Vite (no SSR).
+- **Design System**: CSS Modules + governed design-system primitives in
+  `src/client/design-system/`. Tailwind CSS is **not used**; do not add it.
+- **State**: React context (`AuthContext`, `FilterContext`,
+  `InvestigationsContext`, `SensitiveSettingsContext`).
 - **Component Architecture**:
-  - **Investigation Workspace**: The command center for connecting evidence strings and hypothesis testing.
-  - **Evidence Boards**: Visual representation mapping entities and communications.
+  - Investigation Workspace (`src/client/components/investigation/`)
+  - Evidence, Entity, Document, Email, Media surfaces
+  - Shared design-system primitives (`Box`, `Surface`, `Button`, `LqText`, etc.)
 
-### 3. Database Schema (SQLite)
+### 3. Database (PostgreSQL 16+)
 
-- `investigations`: The core model linking evidence and hypotheses.
-- `entities`: Extracted actors/subjects. Supports alias mappings (e.g., `dvycit`, `DV`).
-- `documents`: Processed DOJ/court records.
-- `communications`: Logs extracted from raw sources (thread ID, participants, date).
+All schema is managed via migrations in `src/server/db/postgres/migrations/`.
+The active database is **PostgreSQL only** — SQLite has been fully removed.
 
-## Data Density Strategy
+Core tables: `investigations`, `entities`, `documents`, `communications`,
+`investigation_evidence`, `entity_mentions`, `claims`, `review_queue`.
 
-We utilize localized subsets (sample databases) for development environments (refer to KI: Epstein Archive Sample Database Generation Strategy) to reduce overhead, mapping full large-scale SQLite files on production (Linode Block Storage).
+The `@epstein/db` workspace package provides pgtyped-generated strongly-typed
+SQL queries.
+
+### 4. API Server
+
+Express.js routes in `src/server/routes/`. Each route domain has one file.
+DTOs and Zod validation schemas live in `src/shared/schemas/` and
+`src/server/mappers/`. All responses are validated against Zod schemas before
+being sent (`sendValidated()` pattern).
+
+## Three DB Pool Strategy
+
+| Pool                   | Function                         | Use for                             |
+| ---------------------- | -------------------------------- | ----------------------------------- |
+| `getApiPool()`         | Read-only queries, short timeout | Route handlers, analysis scripts    |
+| `getIngestPool()`      | Heavy workloads, 8 connections   | Ingest pipeline scripts             |
+| `getMaintenancePool()` | Long timeouts, 256MB work_mem    | Backfill, repair, migration scripts |
+
+## URL and Deep Link Strategy
+
+Every major surface encodes its state in the URL so that links are shareable
+and bookmarkable. The canonical URL shapes are:
+
+| Surface                 | URL shape                                                       |
+| ----------------------- | --------------------------------------------------------------- |
+| Investigation workspace | `/investigations/:uuid?tab=<tab>&evidenceId=<id>`               |
+| Entity dossier          | `/entity/:id?tab=<tab>`                                         |
+| Document modal          | `?docId=<id>&page=<n>`                                          |
+| Search                  | `/?q=<query>&type=<type>&sort=<sort>&order=<order>&risk=<risk>` |
+
+URL state is managed via React Router v6 `useSearchParams`. Direct access to
+`window.location.search` is **not allowed** in React components — use the
+`useSearchParam` hook from `src/client/hooks/useSearchParam.ts`.
