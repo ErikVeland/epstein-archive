@@ -1,10 +1,10 @@
 import React from 'react';
 import { FixedSizeList as List } from 'react-window';
-import { Box } from '../../design-system/lib';
+import { Box } from '@client/design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { FlightCard } from './FlightCard';
 import { EmptyCorpus } from '../common/EmptyCorpus';
-import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
+import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
 import type { Flight } from './types';
 import styles from './FlightTimelineView.module.css';
 

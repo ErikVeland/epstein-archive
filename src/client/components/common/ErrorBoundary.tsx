@@ -1,7 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import s from './ErrorBoundary.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 async function clearClientCaches(): Promise<void> {
   try {

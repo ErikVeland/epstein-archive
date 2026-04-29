@@ -21,6 +21,7 @@ export default defineConfig({
       '@client': path.resolve(__dirname, 'src/client'),
       '@server': path.resolve(__dirname, 'src/server'),
       '@shared': path.resolve(__dirname, 'src/shared'),
+      '@root': path.resolve(__dirname, '.'),
     },
     dedupe: ['react', 'react-dom'],
   },

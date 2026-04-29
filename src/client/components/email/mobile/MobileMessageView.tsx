@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Loader2, Paperclip, Sparkles, User } from 'lucide-react';
-import { EmailMailboxDTO, EmailThreadDetailsDTO } from '../../../services/apiClient';
-import { AddToInvestigationButton } from '../../common/AddToInvestigationButton';
-import { riskToneFromRating } from '../../../utils/riskSemantics';
+import Icon from '@client/components/common/Icon';
+import { EmailMailboxDTO, EmailThreadDetailsDTO } from '@client/services/apiClient';
+import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
+import { riskToneFromRating } from '@client/utils/riskSemantics';
 import styles from './MobileMessageView.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 const formatTime = (value: string | null): string => {
   if (!value) return '';
@@ -75,7 +75,7 @@ export function MobileMessageView({
     <div className={styles.root}>
       <div className={styles.header}>
         <Button unstyled className={styles.backBtn} onClick={onBack} type="button">
-          <ChevronLeft size={20} />
+          <Icon name="ChevronLeft" size="md" />
           Threads
         </Button>
         <AddToInvestigationButton
@@ -106,7 +106,7 @@ export function MobileMessageView({
 
       {threadLoading && thread.messages.length === 0 ? (
         <div className={styles.loading}>
-          <Loader2 size={20} className={styles.spinner} />
+          <Icon name="Loader2" size="md" className={styles.spinner} />
           Opening thread
         </div>
       ) : (
@@ -129,7 +129,7 @@ export function MobileMessageView({
                   type="button"
                 >
                   <div className={styles.avatar}>
-                    <User size={16} />
+                    <Icon name="User" size="sm" />
                   </div>
                   <div className={styles.cardMeta}>
                     <div className={styles.fromRow}>
@@ -148,8 +148,9 @@ export function MobileMessageView({
                       R{message.redFlagRating}
                     </span>
                   )}
-                  <ChevronRight
-                    size={16}
+                  <Icon
+                    name="ChevronRight"
+                    size="sm"
                     className={`${styles.chevron} ${expanded ? styles.chevronDown : ''}`}
                   />
                 </Button>
@@ -169,7 +170,7 @@ export function MobileMessageView({
                       )}
                       {message.wasAgentic && (
                         <span className={styles.agenticBadge}>
-                          <Sparkles size={11} />
+                          <Icon name="Sparkles" size="xs" />
                           Agentic
                         </span>
                       )}
@@ -222,7 +223,7 @@ export function MobileMessageView({
                     <div className={styles.bodyContent}>
                       {!body || body.loading ? (
                         <div className={styles.bodyLoading}>
-                          <Loader2 size={16} className={styles.spinner} />
+                          <Icon name="Loader2" size="sm" className={styles.spinner} />
                           Decompressing MIME stream
                         </div>
                       ) : body.error ? (
@@ -248,7 +249,7 @@ export function MobileMessageView({
                             onClick={() => onEntityClick(String(entity.entityId))}
                             type="button"
                           >
-                            <User size={11} />
+                            <Icon name="User" size="xs" />
                             {entity.name}
                           </Button>
                         ))}
@@ -258,7 +259,7 @@ export function MobileMessageView({
                     {(message.attachmentsMeta ?? []).length > 0 && (
                       <div className={styles.attachments}>
                         <div className={styles.attachmentsTitle}>
-                          <Paperclip size={13} />
+                          <Icon name="Paperclip" size="sm" />
                           Attachments ({(message.attachmentsMeta ?? []).length})
                         </div>
                         {(message.attachmentsMeta ?? []).map((att, idx) => {

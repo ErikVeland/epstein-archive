@@ -1,14 +1,16 @@
 import React from 'react';
-import { Calendar, Download, FileText, ArrowLeft } from 'lucide-react';
-import { CloseButton } from '../../common/CloseButton';
+import Icon from '@client/components/common/Icon';
+import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
+import { CloseButton } from '@client/components/common/CloseButton';
+import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
 import { formatDate } from '../DocumentModalUtils';
 import styles from './DocumentHeader.module.css';
-import { LqText } from '../../../design-system/components/typography/Text';
-import { Flex } from '../../../design-system/components/layout/Flex';
-import { Surface } from '../../../design-system/components/surfaces/Surface';
-import { Box } from '../../../design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
 
-import { Button, SearchField } from '../../../design-system/lib';
+import { Button, SearchField } from '@client/design-system/lib';
 
 interface DocumentHeaderProps {
   doc: {
@@ -18,6 +20,12 @@ interface DocumentHeaderProps {
     fileType?: string | null;
     dateModified?: string | null;
     updatedAt?: string | null;
+    sourceDocumentId?: number | null;
+    sourceHash?: string | null;
+    extractionMethod?: ExtractionMethod | null;
+    confidence?: number | null;
+    reviewState?: ReviewState;
+    provenanceStatus?: ProvenanceStatus;
   };
   localSearchTerm: string;
   setLocalSearchTerm: (value: string) => void;
@@ -40,7 +48,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
     <Box className={styles.header}>
       <Flex align="start" gap="md" className={styles.titleGroup}>
         <Surface variant="glass-highlight" className={styles.iconBox}>
-          <FileText size={28} className={styles.fileIcon} />
+          <Icon name="FileText" size="xl" className={styles.fileIcon} />
         </Surface>
         <Box className={styles.titleMeta}>
           <LqText
@@ -60,9 +68,18 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
               {doc.evidenceType || doc.fileType || 'Unclassified Record'}
             </span>
             <LqText variant="xs" weight="bold" className={styles.dateBadge}>
-              <Calendar size={14} className={styles.calendarIcon} />
+              <Icon name="Calendar" size="sm" className={styles.calendarIcon} />
               {formatDate(doc.dateModified || doc.updatedAt || doc.dateModified)}
             </LqText>
+            <ProvenanceBadge
+              sourceDocumentId={doc.sourceDocumentId}
+              sourceHash={doc.sourceHash}
+              reviewState={doc.reviewState}
+              confidence={doc.confidence}
+              extractionMethod={doc.extractionMethod}
+              provenanceStatus={doc.provenanceStatus}
+              showLabel={false}
+            />
           </Flex>
         </Box>
       </Flex>
@@ -78,7 +95,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
 
         {canReturnToCase && (
           <Button unstyled onClick={handleBackToCase} className={styles.backButton}>
-            <ArrowLeft size={16} className={styles.backButtonIcon} />
+            <Icon name="ArrowLeft" size="sm" className={styles.backButtonIcon} />
             <span className={styles.backButtonLabel}>Case</span>
           </Button>
         )}
@@ -88,7 +105,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
           className={`${styles.iconButton} ${styles.downloadButton}`}
           title="Download Original Document"
         >
-          <Download size={20} />
+          <Icon name="Download" size="md" />
         </Button>
         <CloseButton onClick={onClose} size="md" label="Close" className={styles.closeButton} />
       </Flex>

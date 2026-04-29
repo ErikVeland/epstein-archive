@@ -28,7 +28,8 @@
     "src/server/**/*",
     "src/shared/**/*",
     "src/types.ts",
-    "src/types/**/*"
+    "src/types/**/*",
+    "src/client/types/**/*.d.ts"
   ],
   "exclude": ["node_modules", "dist", "src/client"]
 }

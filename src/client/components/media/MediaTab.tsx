@@ -1,6 +1,6 @@
 import React from 'react';
 import PhotoBrowser from './PhotoBrowser';
-import styles from '../../App.module.css';
+import styles from '@client/App.module.css';
 
 type MediaTabProps = Record<string, never>;
 

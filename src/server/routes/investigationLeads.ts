@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { authenticateRequest } from '../auth/middleware.js';
@@ -8,7 +8,7 @@ import { InvestigativeLeadRow } from '../db/rowTypes.js';
 
 import { mapInvestigativeLeadDto } from '../mappers/investigationsDtoMapper.js';
 
-const router = Router({ mergeParams: true }); // mergeParams to access :id from parent
+const router = express.Router({ mergeParams: true }); // mergeParams to access :id from parent
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 

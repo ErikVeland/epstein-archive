@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { cn } from '../../../utils/cn';
+import { cn } from '@client/utils/cn';
 import './FileInput.css';
 
 type Density = 'compact' | 'default' | 'comfortable';

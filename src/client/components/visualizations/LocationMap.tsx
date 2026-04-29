@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { MapPin, Maximize2, Minimize2, ExternalLink, Navigation } from 'lucide-react';
-import { Button } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Button } from '@client/design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import styles from './LocationMap.module.css';
 
 interface LocationMapProps {
@@ -43,7 +43,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
           {/* Header */}
           <div className={styles.fullscreenHeader}>
             <div className={styles.fullscreenTitleGroup}>
-              <MapPin className={styles.fullscreenTitleIcon} />
+              <Icon name="MapPin" className={styles.fullscreenTitleIcon} />
               <div>
                 <h3 className={styles.fullscreenTitle}>{title}</h3>
                 <p className={styles.fullscreenCoordinates}>
@@ -58,7 +58,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
                 rel="noopener noreferrer"
                 className={styles.openMapsButton}
               >
-                <Navigation className={styles.buttonIcon} />
+                <Icon name="Navigation" className={styles.buttonIcon} />
                 Open in Maps
               </a>
               <Button
@@ -67,7 +67,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
                 onClick={() => setIsExpanded(false)}
                 className={styles.collapseButton}
               >
-                <Minimize2 className={styles.fullscreenTitleIcon} />
+                <Icon name="Minimize2" className={styles.fullscreenTitleIcon} />
               </Button>
             </div>
           </div>
@@ -92,7 +92,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
         {/* Header */}
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderLabel}>
-            <MapPin className={styles.cardHeaderIcon} />
+            <Icon name="MapPin" className={styles.cardHeaderIcon} />
             <span className={styles.cardHeaderText}>Location</span>
           </div>
           <Button
@@ -102,7 +102,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
             className={styles.expandButton}
             title="Expand map"
           >
-            <Maximize2 className={styles.cardHeaderIcon} />
+            <Icon name="Maximize2" className={styles.cardHeaderIcon} />
           </Button>
         </div>
 
@@ -135,7 +135,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
               rel="noopener noreferrer"
               className={styles.mapLink}
             >
-              <ExternalLink className={styles.linkIcon} />
+              <Icon name="ExternalLink" className={styles.linkIcon} />
               Apple Maps
             </a>
             <a
@@ -144,7 +144,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
               rel="noopener noreferrer"
               className={styles.mapLink}
             >
-              <ExternalLink className={styles.linkIcon} />
+              <Icon name="ExternalLink" className={styles.linkIcon} />
               Google Maps
             </a>
           </div>

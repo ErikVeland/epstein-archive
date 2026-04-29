@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
-import { History, ShieldCheck, CheckCircle } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 
 // UI Library
-import { Box, Button, Flex, LqText, Stack, Surface, TextInput } from '../../design-system/lib';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { Box, Button, Flex, LqText, Stack, Surface, TextInput } from '@client/design-system/lib';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { CloseButton } from '../common/CloseButton';
 import { LiquidSheet } from '../common/LiquidSheet';
 import styles from './ChainOfCustodyModal.module.css';
@@ -86,7 +86,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
   const modalContent = (
     <Box className={styles.body}>
       <Flex align="center" gap="sm">
-        <History size={16} />
+        <Icon name="History" size="sm" />
         <LqText variant="xs" weight="bold" color="muted" style={{ textTransform: 'uppercase' }}>
           Custody Events
         </LqText>
@@ -144,7 +144,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
         </div>
 
         <Button variant="secondary" size="sm" onClick={addEvent} disabled={!actor || !action}>
-          <CheckCircle size={14} className={styles.mr2} /> Commit Signature
+          <Icon name="CheckCircle" size="sm" className={styles.mr2} /> Commit Signature
         </Button>
       </div>
     </Box>
@@ -186,7 +186,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
         <Box className={styles.header}>
           <Stack gap="xs">
             <Flex align="center" gap="sm">
-              <ShieldCheck size={18} />
+              <Icon name="ShieldCheck" size="md" />
               <LqText className={styles.headerTitle}>Chain of Custody</LqText>
             </Flex>
             <LqText variant="xs" color="muted" weight="bold" style={{ textTransform: 'uppercase' }}>

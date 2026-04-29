@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { cn } from '../../utils/cn';
+import { cn } from '@client/utils/cn';
 import s from './Tabs.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 export interface TabItem {
   key: string;

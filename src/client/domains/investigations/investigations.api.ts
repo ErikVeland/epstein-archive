@@ -1,4 +1,4 @@
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import type {
   InvestigationEvidenceByTypeResponseDto,
   InvestigationEvidenceListResponseDto,

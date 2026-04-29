@@ -1,6 +1,6 @@
 import React from 'react';
-import { Users, AlertTriangle, FileText, TrendingUp } from 'lucide-react';
-import { Person } from '../../types';
+import { Person } from '@client/types';
+import Icon from '@client/components/common/Icon';
 import s from './StatsDashboard.module.css';
 
 interface StatsDashboardProps {
@@ -22,7 +22,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
     {
       title: 'Total People',
       value: stats.total.toLocaleString(),
-      icon: Users,
+      iconName: 'Users',
       iconColor: s.colorAccent,
       description: 'Individuals tracked in the archive',
       trend: 'Updated daily',
@@ -30,7 +30,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
     {
       title: 'High Risk Targets',
       value: stats.highRisk.toLocaleString(),
-      icon: AlertTriangle,
+      iconName: 'AlertTriangle',
       iconColor: s.colorDanger,
       valueColor: s.colorDanger,
       description: 'Red Flag Index 4+',
@@ -39,7 +39,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
     {
       title: 'Total Mentions',
       value: stats.totalMentions.toLocaleString(),
-      icon: FileText,
+      iconName: 'FileText',
       iconColor: s.colorSuccess,
       description: 'Cross-referenced citations',
       trend: 'Across 2,000+ docs',
@@ -47,7 +47,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
     {
       title: 'Avg. Mentions',
       value: stats.avgMentions.toLocaleString(),
-      icon: TrendingUp,
+      iconName: 'TrendingUp',
       iconColor: s.colorWarning,
       description: 'Per individual entity',
       trend: 'Relevance metric',
@@ -67,7 +67,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
                 </h3>
               </div>
               <div className={`${s.iconBox} ${card.iconColor}`}>
-                <card.icon className={`${s.icon} ${card.iconColor}`} />
+                <Icon name={card.iconName} className={`${s.icon} ${card.iconColor}`} />
               </div>
             </div>
 

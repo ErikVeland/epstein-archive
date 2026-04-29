@@ -1,36 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Database,
-  Search,
-  Shield,
-  FileText,
-  Image as ImageIcon,
-  FolderOpen,
-  Phone,
-  Users,
-  Network,
-  AlertTriangle,
-  Eye,
-  Download,
-  Mail,
-  Newspaper,
-  Info,
-  HelpCircle,
-  ArrowRight,
-  Mic,
-  ClipboardList,
-  CheckCircle2,
-  BookOpen,
-  Scale,
-  TrendingUp,
-  Cpu,
-  Play,
-  Pause,
-  Square,
-  ExternalLink,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
-import { Button, Surface } from '../../design-system/lib';
+import { Button, Surface } from '@client/design-system/lib';
 import s from './AboutPage.module.css';
 
 interface PipelineDataset {
@@ -317,7 +288,7 @@ export const AboutPage: React.FC = () => {
       {/* What is this */}
       <section className={s.glassCard}>
         <div className={s.sectionHeader}>
-          <FileText size={32} className={s.iconAccent} />
+          <Icon name="FileText" size="xl" className={s.iconAccent} />
           <h2 className={s.sectionTitle}>What is this?</h2>
         </div>
         <p className={s.bodyText}>
@@ -336,14 +307,14 @@ export const AboutPage: React.FC = () => {
       {/* The Dataset */}
       <section className={s.section}>
         <div className={s.sectionHeader}>
-          <Database size={32} className={s.iconSuccess} />
+          <Icon name="Database" size="xl" className={s.iconSuccess} />
           <h2 className={s.sectionTitle}>The Dataset</h2>
         </div>
 
         <div className={s.statsGrid}>
           <div className={s.statCard}>
             <h3 className={s.statCardHeader}>
-              <FileText size={20} className={s.iconAccent} />
+              <Icon name="FileText" size="md" className={s.iconAccent} />
               Documents
             </h3>
             <p className={`${s.statValue} ${s.statValueAccent}`}>
@@ -354,7 +325,7 @@ export const AboutPage: React.FC = () => {
             </p>
             <div className={s.statDivider}>
               <p className={s.statRepairLabel}>
-                <Shield size={12} /> AI Semantic Repair
+                <Icon name="Shield" size="xs" /> AI Semantic Repair
               </p>
               <p className={s.statRepairCount}>{stats.documentsFixed.toLocaleString()}</p>
               <p className={s.statRepairNote}>Fixed &amp; Refined for Readability</p>
@@ -363,7 +334,7 @@ export const AboutPage: React.FC = () => {
 
           <div className={s.statCard}>
             <h3 className={s.statCardHeader}>
-              <Users size={20} className={s.iconSuccess} />
+              <Icon name="Users" size="md" className={s.iconSuccess} />
               Entities
             </h3>
             <p className={`${s.statValue} ${s.statValueSuccess}`}>
@@ -376,7 +347,7 @@ export const AboutPage: React.FC = () => {
 
           <div className={s.statCard}>
             <h3 className={s.statCardHeader}>
-              <Phone size={20} className={s.iconAccent} />
+              <Icon name="Phone" size="md" className={s.iconAccent} />
               Black Book
             </h3>
             <p className={`${s.statValue} ${s.statValueAccent}`}>
@@ -387,7 +358,7 @@ export const AboutPage: React.FC = () => {
 
           <div className={s.statCard}>
             <h3 className={s.statCardHeader}>
-              <ImageIcon size={20} className={s.iconWarning} />
+              <Icon name="Image" size="lg" className={s.iconWarning} />
               Media
             </h3>
             <p className={`${s.statValue} ${s.statValueWarning}`}>{stats.media.toLocaleString()}</p>
@@ -441,14 +412,14 @@ export const AboutPage: React.FC = () => {
                   <div className={s.sourceCardActions}>
                     {source.link ? (
                       <a href={source.link} className={s.viewBtn}>
-                        <Eye size={14} /> View
+                        <Icon name="Eye" size="sm" /> View
                       </a>
                     ) : (
                       <a
                         href={`/documents?search=${encodeURIComponent(source.search || '')}`}
                         className={s.viewBtn}
                       >
-                        <Eye size={14} /> View
+                        <Icon name="Eye" size="sm" /> View
                       </a>
                     )}
                   </div>
@@ -496,7 +467,7 @@ export const AboutPage: React.FC = () => {
                       <div className={s.tableActions}>
                         {source.link ? (
                           <a href={source.link} className={s.viewBtn}>
-                            <Eye size={14} />
+                            <Icon name="Eye" size="sm" />
                             View
                           </a>
                         ) : (
@@ -504,7 +475,7 @@ export const AboutPage: React.FC = () => {
                             href={`/documents?search=${encodeURIComponent(source.search || '')}`}
                             className={s.viewBtn}
                           >
-                            <Eye size={14} />
+                            <Icon name="Eye" size="sm" />
                             View
                           </a>
                         )}
@@ -515,7 +486,7 @@ export const AboutPage: React.FC = () => {
                             className={s.downloadBtn}
                             title="Download Original"
                           >
-                            <Download size={14} />
+                            <Icon name="Download" size="sm" />
                           </a>
                         )}
                         {source.title === 'Flight Logs' && (
@@ -525,7 +496,7 @@ export const AboutPage: React.FC = () => {
                             className={s.downloadBtn}
                             title="Download Original"
                           >
-                            <Download size={14} />
+                            <Icon name="Download" size="sm" />
                           </a>
                         )}
                         {source.title !== 'Unredacted Black Book' &&
@@ -536,7 +507,7 @@ export const AboutPage: React.FC = () => {
                               className={s.downloadBtnDisabled}
                               title="Download not available"
                             >
-                              <Download size={14} />
+                              <Icon name="Download" size="sm" />
                             </Button>
                           )}
                       </div>
@@ -552,7 +523,7 @@ export const AboutPage: React.FC = () => {
       {/* Analysis Article */}
       <Surface as="section" variant="glass-strong" className={s.analysisSection}>
         <div className={s.analysisHeader}>
-          <FileText size={32} className={s.iconAccent} />
+          <Icon name="FileText" size="xl" className={s.iconAccent} />
           <div className={s.analysisHeaderText}>
             <h2 className={s.analysisTitle}>The Epstein Files: Analysis</h2>
             <p className={s.analysisMeta}>
@@ -643,7 +614,7 @@ export const AboutPage: React.FC = () => {
           {/* Ingestion Progress Dashboard */}
           <div className={`soft-glass-accent ${s.ingestionDashboard}`}>
             <h3 className={s.dashboardHeader}>
-              <Database size={24} className={s.iconAccent} />
+              <Icon name="Database" size="lg" className={s.iconAccent} />
               Dataset Ingestion Dashboard
               <span
                 className={
@@ -728,7 +699,7 @@ export const AboutPage: React.FC = () => {
               <div className={s.dashboardMeta}>
                 <div className={s.throughputRow}>
                   <div className={s.throughputLabel}>
-                    <TrendingUp size={16} className={s.iconAccent} />
+                    <Icon name="TrendingUp" size="sm" className={s.iconAccent} />
                     Cluster throughput: ~{pipelineStatus.throughput_docs_sec?.toFixed(1) ||
                       '68'}{' '}
                     docs/sec
@@ -764,7 +735,7 @@ export const AboutPage: React.FC = () => {
                       </span>
                       {pipelineStatus.exo && (
                         <div className={s.exoStatus}>
-                          <Cpu size={12} className={s.iconAccent} />
+                          <Icon name="Cpu" size="xs" className={s.iconAccent} />
                           <span>{pipelineStatus.exo.model}</span>
                           <a
                             href={pipelineStatus.exo.host}
@@ -772,7 +743,7 @@ export const AboutPage: React.FC = () => {
                             rel="noopener noreferrer"
                             className={s.exoLink}
                           >
-                            EXO Dashboard <ExternalLink size={12} />
+                            EXO Dashboard <Icon name="ExternalLink" size="xs" />
                           </a>
                         </div>
                       )}
@@ -790,7 +761,7 @@ export const AboutPage: React.FC = () => {
                           onClick={() => handlePipelineControl('pause')}
                           disabled={pipelineStatus.current_run.control_signal === 'pause'}
                         >
-                          <Pause size={14} />{' '}
+                          <Icon name="Pause" size="sm" />{' '}
                           {pipelineStatus.current_run.control_signal === 'pause'
                             ? 'Pausing...'
                             : 'Pause Ingestion'}
@@ -800,7 +771,7 @@ export const AboutPage: React.FC = () => {
                           className={s.controlBtnResume}
                           onClick={() => handlePipelineControl('resume')}
                         >
-                          <Play size={14} /> Resume Ingestion
+                          <Icon name="Play" size="sm" /> Resume Ingestion
                         </button>
                       ) : null}
 
@@ -809,7 +780,7 @@ export const AboutPage: React.FC = () => {
                         onClick={() => handlePipelineControl('stop')}
                         disabled={pipelineStatus.current_run.control_signal === 'stop'}
                       >
-                        <Square size={14} />{' '}
+                        <Icon name="Square" size="sm" />{' '}
                         {pipelineStatus.current_run.control_signal === 'stop'
                           ? 'Stopping...'
                           : 'Stop Pipeline'}
@@ -826,7 +797,7 @@ export const AboutPage: React.FC = () => {
             )}
             {ingestionComplete && (
               <div className={s.completeBanner}>
-                <CheckCircle2 size={16} className={s.iconSuccess} />
+                <Icon name="CheckCircle2" size="sm" className={s.iconSuccess} />
                 <p className={s.completeText}>
                   Ingestion has reached 100%. Remaining pipeline work is intelligence analysis,
                   entity normalization, OCR cleanup reruns, and graph enrichment.
@@ -846,7 +817,7 @@ export const AboutPage: React.FC = () => {
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
-                  <FileText size={16} className={s.iconAccent} />
+                  <Icon name="FileText" size="sm" className={s.iconAccent} />
                   <span className={s.textSecondary}>35 prosecutorial files</span>
                 </div>
                 <p className={s.discoveryCardText}>
@@ -865,7 +836,7 @@ export const AboutPage: React.FC = () => {
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
-                  <FileText size={16} className={s.iconAccent} />
+                  <Icon name="FileText" size="sm" className={s.iconAccent} />
                   <span className={s.textSecondary}>8,497 financial documents</span>
                 </div>
                 <p className={s.discoveryCardText}>
@@ -885,7 +856,7 @@ export const AboutPage: React.FC = () => {
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
-                  <FileText size={16} className={s.iconAccent} />
+                  <Icon name="FileText" size="sm" className={s.iconAccent} />
                   <span className={s.textSecondary}>4,721 multimedia files</span>
                 </div>
                 <p className={s.discoveryCardText}>
@@ -903,7 +874,7 @@ export const AboutPage: React.FC = () => {
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
-                  <FileText size={16} className={s.iconAccent} />
+                  <Icon name="FileText" size="sm" className={s.iconAccent} />
                   <span className={s.textSecondary}>202 investigative documents</span>
                 </div>
                 <p className={s.discoveryCardText}>
@@ -940,7 +911,7 @@ export const AboutPage: React.FC = () => {
 
           <div className={`soft-glass-accent ${s.learnedBox}`}>
             <h4 className={s.learnedTitle}>
-              <Info size={20} />
+              <Icon name="Info" size="md" />
               What We Learned
             </h4>
             <ul className={s.learnedList}>
@@ -963,7 +934,7 @@ export const AboutPage: React.FC = () => {
             </ul>
             <div className={s.learnedFooter}>
               <a href="/faq" className={s.learnedLink}>
-                <Info size={16} />
+                <Icon name="Info" size="sm" />
                 Read Frequently Asked Questions
               </a>
             </div>
@@ -971,7 +942,7 @@ export const AboutPage: React.FC = () => {
 
           <Surface className={s.legalPanel}>
             <h3 className={s.legalPanelTitle}>
-              <Shield size={24} className={s.iconSuccess} />
+              <Icon name="Shield" size="lg" className={s.iconSuccess} />
               Legal Thresholds: Association vs. Complicity
             </h3>
 
@@ -1024,13 +995,13 @@ export const AboutPage: React.FC = () => {
       {/* How It Works */}
       <section className={s.section}>
         <div className={s.sectionHeader}>
-          <Network size={32} className={s.iconAccent} />
+          <Icon name="Network" size="xl" className={s.iconAccent} />
           <h2 className={s.sectionTitle}>How It Works</h2>
         </div>
 
         <div className={s.howGrid}>
           <div className={s.howCard}>
-            <Search size={40} className={s.iconAccent} />
+            <Icon name="Search" size="xl" className={s.iconAccent} />
             <h3 className={s.howCardTitle}>NLP Extraction</h3>
             <p className={s.howCardText}>
               Advanced natural language processing extracts entities, relationships, and context
@@ -1039,7 +1010,7 @@ export const AboutPage: React.FC = () => {
           </div>
 
           <div className={s.howCard}>
-            <Network size={40} className={s.iconSuccess} />
+            <Icon name="Network" size="xl" className={s.iconSuccess} />
             <h3 className={s.howCardTitle}>Relationship Mapping</h3>
             <p className={s.howCardText}>
               Automatically identifies connections between entities based on co-occurrence and
@@ -1048,7 +1019,7 @@ export const AboutPage: React.FC = () => {
           </div>
 
           <div className={s.howCard}>
-            <Shield size={40} className={s.iconWarning} />
+            <Icon name="Shield" size="xl" className={s.iconWarning} />
             <h3 className={s.howCardTitle}>Red Flag Index</h3>
             <p className={s.howCardText}>
               Risk scoring system based on document frequency, evidence types, and contextual
@@ -1061,35 +1032,35 @@ export const AboutPage: React.FC = () => {
           <h3 className={s.featuresTitle}>Key Features</h3>
           <ul className={s.featuresList}>
             <li className={s.featureItem}>
-              <CheckCircle2 size={16} className={s.iconSuccess} />
+              <Icon name="CheckCircle2" size="sm" className={s.iconSuccess} />
               Full-text search across all documents
             </li>
             <li className={s.featureItem}>
-              <CheckCircle2 size={16} className={s.iconSuccess} />
+              <Icon name="CheckCircle2" size="sm" className={s.iconSuccess} />
               Entity relationship visualization
             </li>
             <li className={s.featureItem}>
-              <CheckCircle2 size={16} className={s.iconSuccess} />
+              <Icon name="CheckCircle2" size="sm" className={s.iconSuccess} />
               Timeline of events and document releases
             </li>
             <li className={s.featureItem}>
-              <CheckCircle2 size={16} className={s.iconSuccess} />
+              <Icon name="CheckCircle2" size="sm" className={s.iconSuccess} />
               Forensic document analysis
             </li>
             <li className={s.featureItemAccent}>
-              <TrendingUp size={16} className={s.iconAccent} />
+              <Icon name="TrendingUp" size="sm" className={s.iconAccent} />
               Integrated Side-by-Side PDF Viewer
             </li>
             <li className={s.featureItem}>
-              <CheckCircle2 size={16} className={s.iconSuccess} />
+              <Icon name="CheckCircle2" size="sm" className={s.iconSuccess} />
               Investigation workspace with hypothesis tracking
             </li>
             <li className={s.featureItem}>
-              <CheckCircle2 size={16} className={s.iconSuccess} />
+              <Icon name="CheckCircle2" size="sm" className={s.iconSuccess} />
               Categorised media library with {stats.media.toLocaleString()} images
             </li>
             <li className={s.featureItemAccent}>
-              <TrendingUp size={16} className={s.iconAccent} />
+              <Icon name="TrendingUp" size="sm" className={s.iconAccent} />
               Audio &amp; Video with synchronized transcripts and chapter markers
             </li>
           </ul>
@@ -1099,7 +1070,7 @@ export const AboutPage: React.FC = () => {
       {/* Audio & Video Credits */}
       <section className={s.creditsSection}>
         <div className={s.sectionHeader}>
-          <ImageIcon size={32} className={s.iconAccent} />
+          <Icon name="Image" size="xl" className={s.iconAccent} />
           <h2 className={s.sectionTitle}>Audio &amp; Video with Transcripts</h2>
         </div>
         <p className={s.bodyText}>
@@ -1148,7 +1119,7 @@ export const AboutPage: React.FC = () => {
       {/* What's Next */}
       <section className={`surface-panel ${s.whatsNextSection}`}>
         <div className={s.sectionHeader}>
-          <ImageIcon size={32} className={s.iconAccent} />
+          <Icon name="Image" size="xl" className={s.iconAccent} />
           <h2 className={s.sectionTitle}>Fully Ingested, Intelligence Ongoing</h2>
         </div>
         <p className={s.bodyText}>
@@ -1195,7 +1166,7 @@ export const AboutPage: React.FC = () => {
       {/* Media Coverage */}
       <section className={s.section}>
         <div className={s.sectionHeader}>
-          <Newspaper size={32} className={s.iconAccent} />
+          <Icon name="Newspaper" size="xl" className={s.iconAccent} />
           <h2 className={s.sectionTitle}>Media Coverage</h2>
         </div>
 
@@ -1210,7 +1181,7 @@ export const AboutPage: React.FC = () => {
           >
             <div className={s.heroCard1Thumb}>
               <div className={s.heroCardIconWrap}>
-                <FolderOpen className={s.heroCard1Icon} />
+                <Icon name="FolderOpen" className={s.heroCard1Icon} />
               </div>
               <div className={s.heroCard1Badge}>Featured</div>
             </div>
@@ -1244,7 +1215,7 @@ export const AboutPage: React.FC = () => {
           >
             <div className={s.heroCard2Thumb}>
               <div className={s.heroCardIconWrap}>
-                <Scale size={64} className={s.accentIconLowOp} />
+                <Icon name="Scale" size="xl" className={s.accentIconLowOp} />
               </div>
               <div className={s.heroCard2Badge}>Genesis</div>
             </div>
@@ -1283,7 +1254,7 @@ export const AboutPage: React.FC = () => {
               className={`${s.compactCard} ${s.compactCardWired}`}
             >
               <div className={s.compactThumbRed}>
-                <Newspaper size={28} className={s.iconDanger} />
+                <Icon name="Newspaper" size="xl" className={s.iconDanger} />
               </div>
               <div className={s.compactCardBody}>
                 <div className={`${s.compactCardSource} ${s.compactCardSourceRed}`}>WIRED</div>
@@ -1299,7 +1270,7 @@ export const AboutPage: React.FC = () => {
               className={`${s.compactCard} ${s.compactCardPeople}`}
             >
               <div className={s.compactThumbPink}>
-                <Users size={28} className={s.iconDanger} />
+                <Icon name="Users" size="xl" className={s.iconDanger} />
               </div>
               <div className={s.compactCardBody}>
                 <div className={`${s.compactCardSource} ${s.compactCardSourcePink}`}>People</div>
@@ -1313,7 +1284,7 @@ export const AboutPage: React.FC = () => {
               className={`${s.compactCard} ${s.compactCardSfStandard}`}
             >
               <div className={s.compactThumbGreen}>
-                <Mail size={28} className={s.iconSuccess} />
+                <Icon name="Mail" size="xl" className={s.iconSuccess} />
               </div>
               <div className={s.compactCardBody}>
                 <div className={`${s.compactCardSource} ${s.compactCardSourceGreen}`}>
@@ -1331,7 +1302,7 @@ export const AboutPage: React.FC = () => {
               className={`${s.compactCard} ${s.compactCard404}`}
             >
               <div className={s.compactThumbAccent}>
-                <Mic size={28} className={s.iconAccent} />
+                <Icon name="Mic" size="xl" className={s.iconAccent} />
               </div>
               <div className={s.compactCardBody}>
                 <div className={`${s.compactCardSource} ${s.compactCardSourceAccent}`}>
@@ -1347,7 +1318,7 @@ export const AboutPage: React.FC = () => {
               className={`${s.compactCard} ${s.compactCardAxios}`}
             >
               <div className={s.compactThumbCyan}>
-                <ClipboardList size={28} className={s.iconAccent} />
+                <Icon name="ClipboardList" size="xl" className={s.iconAccent} />
               </div>
               <div className={s.compactCardBody}>
                 <div className={`${s.compactCardSource} ${s.compactCardSourceAccent}`}>Axios</div>
@@ -1363,7 +1334,7 @@ export const AboutPage: React.FC = () => {
               className={`${s.compactCard} ${s.compactCardAxios}`}
             >
               <div className={s.compactThumbCyan}>
-                <BookOpen size={28} className={s.iconAccent} />
+                <Icon name="BookOpen" size="xl" className={s.iconAccent} />
               </div>
               <div className={s.compactCardBody}>
                 <div className={`${s.compactCardSource} ${s.compactCardSourceAccent}`}>Axios</div>
@@ -1379,7 +1350,7 @@ export const AboutPage: React.FC = () => {
       {/* Legal Disclaimer */}
       <section className={s.legalDisclaimer}>
         <div className={s.legalDisclaimerHeader}>
-          <AlertTriangle size={24} className={s.iconWarning} />
+          <Icon name="AlertTriangle" size="lg" className={s.iconWarning} />
           <h2 className={s.legalDisclaimerTitle}>Legal Disclaimer</h2>
         </div>
         <div className={s.legalDisclaimerBody}>
@@ -1410,12 +1381,12 @@ export const AboutPage: React.FC = () => {
       <section className={s.faqSection}>
         <div className={s.faqSectionHeader}>
           <div className={s.faqHeaderLeft}>
-            <HelpCircle size={32} className={s.iconAccent} />
+            <Icon name="HelpCircle" size="xl" className={s.iconAccent} />
             <h2 className={s.sectionTitle}>Frequently Asked Questions</h2>
           </div>
           <Link to="/faq" className={s.faqLink}>
             Full FAQ
-            <ArrowRight className={s.faqLinkArrow} />
+            <Icon name="ArrowRight" className={s.faqLinkArrow} />
           </Link>
         </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { cn } from '../../design-system/lib';
+import { cn } from '@client/design-system/lib';
 import Icon from '../common/Icon';
 import styles from './OfflineIndicator.module.css';
 

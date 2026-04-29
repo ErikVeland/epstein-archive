@@ -3,31 +3,19 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EmailClient.module.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
-import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
+import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
-import {
-  ArrowLeft,
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  Mail,
-  Paperclip,
-  ShieldCheck,
-  SlidersHorizontal,
-  Sparkles,
-  User,
-  X,
-} from 'lucide-react';
-import { EmailMailboxDTO, EmailThreadDTO } from '../../services/apiClient';
+import Icon from '@client/components/common/Icon';
+import { EmailMailboxDTO, EmailThreadDTO } from '@client/services/apiClient';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { ViewerShell } from '../viewer/ViewerShell';
-import { riskToneFromRating } from '../../utils/riskSemantics';
-import { useFilters } from '../../contexts/useFilters';
-import { useEmailWorkspaceData } from '../../hooks/useEmailWorkspaceData';
+import { riskToneFromRating } from '@client/utils/riskSemantics';
+import { useFilters } from '@client/contexts/useFilters';
+import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
-import { isJunkEntity } from '../../utils/entityFilters';
-import { Button, SearchField, Select, TextInput } from '../../design-system/lib';
+import { isJunkEntity } from '@client/utils/entityFilters';
+import { Button, SearchField, Select, TextInput } from '@client/design-system/lib';
 
 type EmailDensity = 'comfortable' | 'compact';
 
@@ -135,7 +123,9 @@ const ThreadRow = React.memo(
           <div className={styles.rowAside}>
             <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>
             <div className={styles.rowMetaRight}>
-              {thread.hasAttachments && <Paperclip className={styles.paperclipIconSmall} />}
+              {thread.hasAttachments && (
+                <Icon name="Paperclip" className={styles.paperclipIconSmall} />
+              )}
               <span className={`${styles.riskBadge} ${riskTone(thread.risk)}`}>
                 R{thread.risk ?? '0'}
               </span>
@@ -178,12 +168,12 @@ const MailboxRow = React.memo(
               <div className={styles.rowSubject}>{mailbox.displayName}</div>
               {isVip && (
                 <span className={styles.mailboxVipBadge} title="VIP">
-                  <Sparkles className={styles.mailboxVipIcon} />
+                  <Icon name="Sparkles" className={styles.mailboxVipIcon} />
                 </span>
               )}
               {mailbox.isVerified && !isVip && (
                 <span className={styles.verifiedBadge} title="Verified">
-                  <ShieldCheck className={styles.verifiedIcon} />
+                  <Icon name="ShieldCheck" className={styles.verifiedIcon} />
                 </span>
               )}
             </div>
@@ -615,7 +605,7 @@ export const EmailClient: React.FC = () => {
           <div className={styles.paneBody}>
             {mailboxesLoading ? (
               <div className={styles.stateLoading}>
-                <Loader2 className={styles.loaderInline} /> Loading mailboxes
+                <Icon name="Loader2" className={styles.loaderInline} /> Loading mailboxes
               </div>
             ) : mailboxesError ? (
               <div className={styles.stateError}>{mailboxesError}</div>
@@ -675,7 +665,7 @@ export const EmailClient: React.FC = () => {
                 iconOnly
                 className={`${styles.backButtonMobile} ${styles.mobileOnly}`}
               >
-                <ArrowLeft className={styles.backIcon} />
+                <Icon name="ArrowLeft" className={styles.backIcon} />
               </Button>
               <span className={styles.threadLabel}>Conversations</span>
             </div>
@@ -690,7 +680,7 @@ export const EmailClient: React.FC = () => {
                 className={styles.metadataOnly}
                 title="Thread lists are metadata-only; message bodies are lazy-loaded."
               >
-                <ShieldCheck className={styles.metadataOnlyIcon} />
+                <Icon name="ShieldCheck" className={styles.metadataOnlyIcon} />
                 Metadata-only list
               </span>
             </div>
@@ -705,12 +695,13 @@ export const EmailClient: React.FC = () => {
                 }`}
                 title="Show or hide conversation filters"
               >
-                <SlidersHorizontal className={styles.slidersIcon} />
+                <Icon name="SlidersHorizontal" className={styles.slidersIcon} />
                 Filters
                 {activeQuickFilterCount > 0 && (
                   <span className={styles.filterCountBadge}>{activeQuickFilterCount}</span>
                 )}
-                <ChevronDown
+                <Icon
+                  name="ChevronDown"
                   className={`${styles.chevronSmallIcon} ${showFilterPanel ? styles.rotate180 : ''}`}
                 />
               </Button>
@@ -722,7 +713,7 @@ export const EmailClient: React.FC = () => {
                 className={styles.clearButton}
                 disabled={activeQuickFilterCount === 0}
               >
-                <X className={styles.xIcon} />
+                <Icon name="X" className={styles.xIcon} />
                 Clear
               </Button>
             </div>
@@ -812,7 +803,7 @@ export const EmailClient: React.FC = () => {
           <div className={styles.threadPaneBody}>
             {threadsLoading ? (
               <div className={styles.stateLoading}>
-                <Loader2 className={styles.loaderInline} /> Loading conversations
+                <Icon name="Loader2" className={styles.loaderInline} /> Loading conversations
               </div>
             ) : threadsError ? (
               <div className={styles.stateError}>{threadsError}</div>
@@ -907,7 +898,7 @@ export const EmailClient: React.FC = () => {
           {selectedThreadId ? (
             threadLoading && !selectedThread ? (
               <div className={styles.stateLoading}>
-                <Loader2 className={styles.loaderInline} /> Opening thread
+                <Icon name="Loader2" className={styles.loaderInline} /> Opening thread
               </div>
             ) : threadError ? (
               <div className={styles.stateError}>{threadError}</div>
@@ -945,7 +936,8 @@ export const EmailClient: React.FC = () => {
                                     </div>
                                   </div>
                                 </div>
-                                <ChevronRight
+                                <Icon
+                                  name="ChevronRight"
                                   className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
                                 />
                               </div>
@@ -1016,7 +1008,7 @@ export const EmailClient: React.FC = () => {
                         iconOnly
                         className={styles.backToThreadsButton}
                       >
-                        <ArrowLeft className={styles.backIcon} />
+                        <Icon name="ArrowLeft" className={styles.backIcon} />
                       </Button>
                       <AddToInvestigationButton
                         item={{
@@ -1061,7 +1053,7 @@ export const EmailClient: React.FC = () => {
                           >
                             <div className={styles.messageHeader}>
                               <div className={styles.messageAvatar}>
-                                <User className={styles.messageAvatarIcon} />
+                                <Icon name="User" className={styles.messageAvatarIcon} />
                               </div>
                               <div className={styles.messageMetaMain}>
                                 <div className={styles.messageFromRow}>
@@ -1076,7 +1068,8 @@ export const EmailClient: React.FC = () => {
                                   To: {message.to.join(' · ') || 'Unknown recipient'}
                                 </div>
                               </div>
-                              <ChevronRight
+                              <Icon
+                                name="ChevronRight"
                                 className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
                               />
                             </div>
@@ -1106,7 +1099,7 @@ export const EmailClient: React.FC = () => {
                                 </div>
                                 {message.wasAgentic && (
                                   <div className={styles.agenticBadge}>
-                                    <Sparkles className={styles.agenticIcon} />
+                                    <Icon name="Sparkles" className={styles.agenticIcon} />
                                     Agentic Highlighting
                                   </div>
                                 )}
@@ -1162,7 +1155,7 @@ export const EmailClient: React.FC = () => {
                               <div data-testid="email-message-body" className={styles.mimeContent}>
                                 {body?.loading ? (
                                   <div className={styles.bodyLoading}>
-                                    <Loader2 className={styles.bodyLoaderIcon} />
+                                    <Icon name="Loader2" className={styles.bodyLoaderIcon} />
                                     <span className={styles.bodyLoadingLabel}>
                                       Decompressing MIME Stream
                                     </span>
@@ -1192,7 +1185,7 @@ export const EmailClient: React.FC = () => {
                                       className={styles.entityChip}
                                       title={`Open entity ${entity.name}`}
                                     >
-                                      <User className={styles.entityChipIcon} />
+                                      <Icon name="User" className={styles.entityChipIcon} />
                                       {entity.name}
                                     </Button>
                                   ))}
@@ -1202,7 +1195,7 @@ export const EmailClient: React.FC = () => {
                               {(message.attachmentsMeta || []).length > 0 && (
                                 <div className={styles.attachmentSection}>
                                   <div className={styles.attachmentTitle}>
-                                    <Paperclip className={styles.entityChipIcon} />
+                                    <Icon name="Paperclip" className={styles.entityChipIcon} />
                                     Forensic Attachments ({(message.attachmentsMeta || []).length})
                                   </div>
                                   <div className={styles.attachmentGrid}>
@@ -1270,7 +1263,7 @@ export const EmailClient: React.FC = () => {
           ) : (
             <div className={styles.placeholderState}>
               <div className={styles.placeholderInner}>
-                <Mail className={styles.placeholderIcon} />
+                <Icon name="Mail" className={styles.placeholderIcon} />
                 <div className={styles.placeholderTitle}>Investigation-grade Email Workspace</div>
                 <p className={styles.placeholderBody}>
                   Select a thread to load message headers first, then lazy-load bodies. Use linked

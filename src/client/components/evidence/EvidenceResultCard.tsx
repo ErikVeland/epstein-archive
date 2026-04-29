@@ -1,9 +1,10 @@
 import React from 'react';
-import { FileText, Calendar, AlertTriangle, ShieldCheck } from 'lucide-react';
-import { Person } from '../../types';
+import Icon from '@client/components/common/Icon';
+import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
+import { Person } from '@client/types';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
-import { Surface, Flex, Box, Stack, LqText, Button, Badge } from '../../design-system/lib';
+import { Surface, Flex, Box, Stack, LqText, Button, Badge } from '@client/design-system/lib';
 import styles from './EvidenceResultCard.module.css';
 
 interface SearchResult {
@@ -26,6 +27,15 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
   onDocumentClick,
   searchTerm = '',
 }) => {
+  const parseDocumentId = (value: unknown): number | null => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim()) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  };
+
   const getLikelihoodTone = (score: string | undefined): 'accent' | 'success' | 'neutral' => {
     if (score === 'HIGH') return 'accent';
     if (score === 'MEDIUM') return 'success';
@@ -67,15 +77,24 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
         </Flex>
 
         <Flex align="center" gap="md" className={styles.statsBar}>
+          <ProvenanceBadge
+            sourceDocumentId={result.person.sourceDocumentId}
+            sourceHash={result.person.sourceHash}
+            reviewState={result.person.reviewState}
+            confidence={result.person.confidence}
+            extractionMethod={result.person.extractionMethod}
+            showLabel={false}
+          />
+          <Box className={styles.dot} />
           <Flex align="center" gap="xs">
-            <ShieldCheck size={14} className={styles.iconMuted} />
+            <Icon name="ShieldCheck" size="sm" className={styles.iconMuted} />
             <LqText variant="xs" color="muted">
               {result.person.mentions?.toLocaleString()} Mentions
             </LqText>
           </Flex>
           <Box className={styles.dot} />
           <Flex align="center" gap="xs">
-            <FileText size={14} className={styles.iconMuted} />
+            <Icon name="FileText" size="sm" className={styles.iconMuted} />
             <LqText variant="xs" color="muted">
               {result.person.files} Files
             </LqText>
@@ -107,7 +126,7 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
           <Stack gap="sm" className={styles.section}>
             <Flex align="center" gap="sm">
               <Box className={styles.sectionIcon}>
-                <FileText size={12} />
+                <Icon name="FileText" size="xs" />
               </Box>
               <LqText variant="xs" weight="bold" color="muted">
                 Spatial Contexts ({result.matchingContexts.length})
@@ -121,7 +140,7 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
                   </LqText>
                   <Flex justify="between" align="center" mt="xs">
                     <Flex align="center" gap="xs">
-                      <FileText size={10} />
+                      <Icon name="FileText" size="xs" />
                       <Button
                         variant="ghost"
                         unstyled
@@ -132,10 +151,15 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
                           {context.file}
                         </LqText>
                       </Button>
+                      <ProvenanceBadge
+                        sourceDocumentId={parseDocumentId(context.source)}
+                        reviewState="unreviewed"
+                        showLabel={false}
+                      />
                     </Flex>
                     {context.date !== 'Unknown' && (
                       <Flex align="center" gap="xs">
-                        <Calendar size={10} />
+                        <Icon name="Calendar" size="xs" />
                         <LqText variant="xs" color="muted">
                           {context.date}
                         </LqText>
@@ -152,7 +176,7 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
           <Stack gap="sm" className={styles.section}>
             <Flex align="center" gap="sm">
               <Box className={styles.sectionIconAccent}>
-                <AlertTriangle size={12} />
+                <Icon name="AlertTriangle" size="xs" />
               </Box>
               <LqText variant="xs" weight="bold" color="muted">
                 Culpability Passages ({result.matchingPassages.length})
@@ -166,6 +190,11 @@ export const EvidenceResultCard: React.FC<EvidenceResultCardProps> = ({
                   </LqText>
                   <Flex align="center" gap="sm" mt="xs">
                     <Badge tone="accent">{passage.keyword}</Badge>
+                    <ProvenanceBadge
+                      sourceDocumentId={parseDocumentId(passage.documentId)}
+                      reviewState="unreviewed"
+                      showLabel={false}
+                    />
                     <Button
                       variant="ghost"
                       unstyled

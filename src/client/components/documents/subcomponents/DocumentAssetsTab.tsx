@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Image as ImageIcon } from 'lucide-react';
-import { apiClient } from '../../../services/apiClient';
-import { MediaImage } from '../../../types/media.types';
-import { useToasts } from '../../common/useToasts';
-import LazyImage from '../../common/LazyImage';
-import { SensitiveContent } from '../../common/SensitiveContent';
-import { Surface, Flex, Box, Stack, LqText, Button } from '../../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
+import { MediaImage } from '@client/types/media.types';
+import { useToasts } from '@client/components/common/useToasts';
+import LazyImage from '@client/components/common/LazyImage';
+import { SensitiveContent } from '@client/components/common/SensitiveContent';
+import { Surface, Flex, Box, Stack, LqText, Button } from '@client/design-system/lib';
 import styles from './DocumentAssetsTab.module.css';
 
 interface Props {
@@ -42,7 +42,7 @@ export const DocumentAssetsTab: React.FC<Props> = ({ documentId, onImageClick })
     return (
       <Flex direction="column" align="center" justify="center" className={styles.emptyState}>
         <Box className={styles.iconBox}>
-          <ImageIcon size={48} className={styles.mutedIcon} />
+          <Icon name="Image" size="xl" className={styles.mutedIcon} />
         </Box>
         <LqText variant="h3" weight="bold">
           No Extracted Assets

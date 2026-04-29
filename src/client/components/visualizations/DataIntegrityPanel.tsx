@@ -1,6 +1,6 @@
 import React from 'react';
-import { AlertTriangle, Clock, Database } from 'lucide-react';
-import { Button } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Button } from '@client/design-system/lib';
 import styles from './DataIntegrityPanel.module.css';
 
 interface DataIntegrityStats {
@@ -37,11 +37,11 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
       {/* Header */}
       <div className={styles.header}>
         <h3 className={styles.title}>
-          <Database className={styles.titleIcon} />
+          <Icon name="Database" className={styles.titleIcon} />
           Data Integrity
         </h3>
         <span className={styles.lastRefresh}>
-          <Clock className={styles.refreshIcon} />
+          <Icon name="Clock" className={styles.refreshIcon} />
           {stats.lastRefresh}
         </span>
       </div>
@@ -89,7 +89,7 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
       <div className={styles.footer}>
         <Button variant="ghost" size="sm" className={styles.methodologyButton}>
           Methodology & Sources
-          <AlertTriangle className={styles.methodologyIcon} />
+          <Icon name="AlertTriangle" className={styles.methodologyIcon} />
         </Button>
       </div>
     </div>

@@ -1,0 +1,40 @@
+src/client/App.tsx(338,13): error TS2322: Type '{ kind: "entity"; id: string | number | undefined; name: string; fullName: string; canonicalName: string; matchedAlias: string | null; role: string; mentions: number; redFlagRating: number; ... 4 more ...; fileReferences: never[]; }[]' is not assignable to type 'HeaderSuggestion[]'.
+  Type '{ kind: "entity"; id: string | number | undefined; name: string; fullName: string; canonicalName: string; matchedAlias: string | null; role: string; mentions: number; redFlagRating: number; ... 4 more ...; fileReferences: never[]; }' is not assignable to type 'HeaderSuggestion'.
+    Type '{ kind: "entity"; id: string | number | undefined; name: string; fullName: string; canonicalName: string; matchedAlias: string | null; role: string; mentions: number; redFlagRating: number; ... 4 more ...; fileReferences: never[]; }' is not assignable to type '{ kind: "entity"; } & Person & { canonicalName?: string | undefined; matchedAlias?: string | null | undefined; }'.
+      Type '{ kind: "entity"; id: string | number | undefined; name: string; fullName: string; canonicalName: string; matchedAlias: string | null; role: string; mentions: number; redFlagRating: number; ... 4 more ...; fileReferences: never[]; }' is not assignable to type 'Person'.
+        Types of property 'id' are incompatible.
+          Type 'string | number | undefined' is not assignable to type 'string | number'.
+            Type 'undefined' is not assignable to type 'string | number'.
+src/client/App.tsx(464,9): error TS2322: Type 'Record<string, unknown>[] | undefined' is not assignable to type 'Photo[] | undefined'.
+  Type 'Record<string, unknown>[]' is not assignable to type 'Photo[]'.
+    Type 'Record<string, unknown>' is missing the following properties from type 'Photo': id, filePath
+src/client/App.tsx(465,9): error TS2322: Type 'Record<string, unknown>[] | undefined' is not assignable to type '{ id: number; phoneNumbers?: string[] | undefined; emailAddresses?: string[] | undefined; addresses?: string[] | undefined; entryText?: string | undefined; notes?: string | undefined; entryCategory?: string | undefined; documentId?: number | undefined; }[] | undefined'.
+  Type 'Record<string, unknown>[]' is not assignable to type '{ id: number; phoneNumbers?: string[] | undefined; emailAddresses?: string[] | undefined; addresses?: string[] | undefined; entryText?: string | undefined; notes?: string | undefined; entryCategory?: string | undefined; documentId?: number | undefined; }[]'.
+    Property 'id' is missing in type 'Record<string, unknown>' but required in type '{ id: number; phoneNumbers?: string[] | undefined; emailAddresses?: string[] | undefined; addresses?: string[] | undefined; entryText?: string | undefined; notes?: string | undefined; entryCategory?: string | undefined; documentId?: number | undefined; }'.
+src/client/components/common/CommandPalette.tsx(7,10): error TS2395: Individual declarations in merged declaration 'useCommandPalette' must be all exported or all local.
+src/client/components/common/CommandPalette.tsx(7,10): error TS2440: Import declaration conflicts with local declaration of 'useCommandPalette'.
+src/client/components/common/CommandPalette.tsx(317,14): error TS2395: Individual declarations in merged declaration 'useCommandPalette' must be all exported or all local.
+src/client/components/common/subcomponents/EvidenceMediaTab.tsx(13,29): error TS2307: Cannot find module '@client/media/AudioPlayer' or its corresponding type declarations.
+src/client/components/common/subcomponents/EvidenceMediaTab.tsx(14,29): error TS2307: Cannot find module '@client/media/VideoPlayer' or its corresponding type declarations.
+src/client/components/common/subcomponents/EvidenceNetworkTab.tsx(4,30): error TS2307: Cannot find module '@client/visualizations/NetworkGraph' or its corresponding type declarations.
+src/client/components/common/subcomponents/EvidenceOverviewTab.tsx(4,29): error TS2307: Cannot find module '@client/entities/cards/SignalPanel' or its corresponding type declarations.
+src/client/components/common/subcomponents/EvidenceOverviewTab.tsx(5,29): error TS2307: Cannot find module '@client/entities/cards/DriverChips' or its corresponding type declarations.
+src/client/components/documents/ProvenancePanel.tsx(63,45): error TS2322: Type '"verified"' is not assignable to type 'ReviewState'.
+src/client/components/documents/ProvenancePanel.tsx(64,45): error TS2322: Type '"disputed"' is not assignable to type 'ReviewState'.
+src/client/components/documents/subcomponents/DocumentAssetsTab.tsx(6,27): error TS2307: Cannot find module '@client/common/useToasts' or its corresponding type declarations.
+src/client/components/documents/subcomponents/DocumentAssetsTab.tsx(7,23): error TS2307: Cannot find module '@client/common/LazyImage' or its corresponding type declarations.
+src/client/components/documents/subcomponents/DocumentAssetsTab.tsx(8,34): error TS2307: Cannot find module '@client/common/SensitiveContent' or its corresponding type declarations.
+src/client/components/email/mobile/MobileEmailFilterSheet.tsx(2,29): error TS2307: Cannot find module '@client/common/SheetDialog' or its corresponding type declarations.
+src/client/components/email/mobile/MobileEmailFilterSheet.tsx(56,22): error TS7006: Parameter 'open' implicitly has an 'any' type.
+src/client/components/email/mobile/MobileMessageView.tsx(4,42): error TS2307: Cannot find module '@client/common/AddToInvestigationButton' or its corresponding type declarations.
+src/client/components/entities/cards/EvidenceBadge.tsx(3,18): error TS2307: Cannot find module '@client/common/Icon' or its corresponding type declarations.
+src/client/components/entities/cards/EvidenceBadge.tsx(4,31): error TS2307: Cannot find module '@client/common/Icon' or its corresponding type declarations.
+src/client/components/investigation/mobile/EvidenceCaptureSheet.tsx(5,27): error TS2307: Cannot find module '@client/common/useToasts' or its corresponding type declarations.
+src/client/components/investigation/mobile/EvidenceCaptureSheet.tsx(6,29): error TS2307: Cannot find module '@client/common/SheetDialog' or its corresponding type declarations.
+src/client/components/investigation/mobile/EvidenceCaptureSheet.tsx(183,22): error TS7006: Parameter 'open' implicitly has an 'any' type.
+src/client/components/investigation/mobile/MobileBoardView.tsx(6,29): error TS2307: Cannot find module '@client/common/SheetDialog' or its corresponding type declarations.
+src/client/components/investigation/mobile/MobileBoardView.tsx(249,26): error TS7006: Parameter 'open' implicitly has an 'any' type.
+src/client/components/investigation/mobile/MobileBoardView.tsx(282,26): error TS7006: Parameter 'open' implicitly has an 'any' type.
+src/client/components/investigation/mobile/MobileForensicView.tsx(5,40): error TS2307: Cannot find module '@client/visualizations/FinancialTransactionMapper' or its corresponding type declarations.
+src/server/db/entityEvidenceRepository.ts(103,7): error TS2322: Type 'unknown[]' is not assignable to type 'EvidenceRowInput[]'.
+  Type 'unknown' is not assignable to type 'EvidenceRowInput'.

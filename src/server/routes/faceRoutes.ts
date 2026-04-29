@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import express from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { faceClustersRepository } from '../db/faceClustersRepository.js';
 
-const router = Router();
+const router = express.Router();
 
 const clusterIdParamSchema = z.object({
   params: z.object({

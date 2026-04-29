@@ -1,6 +1,6 @@
 import React from 'react';
-import { DocumentBrowser } from '../components/documents/DocumentBrowser';
-import ScopedErrorBoundary from '../components/common/ScopedErrorBoundary';
+import { DocumentBrowser } from '@client/components/documents/DocumentBrowser';
+import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
 
 interface DocumentsPageProps {
   searchTerm: string;

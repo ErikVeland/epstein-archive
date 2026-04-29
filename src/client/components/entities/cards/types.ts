@@ -1,5 +1,5 @@
-import { Person } from '../../../types';
-import { EvidenceLadderLevel, SignalMetrics, DriverChip } from '../../../utils/forensics';
+import { Person } from '@client/types';
+import { EvidenceLadderLevel, SignalMetrics, DriverChip } from '@client/utils/forensics';
 
 export interface SubjectCardProps {
   person: Person;

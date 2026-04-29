@@ -5,30 +5,17 @@ import {
   TimelineEvent,
   Hypothesis,
   Annotation,
-} from '../../types/investigation';
-import {
-  ShieldAlert,
-  CheckCircle2,
-  Clock,
-  ChevronRight,
-  ChevronLeft,
-  FileText,
-  Package,
-  Database,
-  History,
-  Loader2,
-  Zap,
-  LucideIcon,
-} from 'lucide-react';
+} from '@client/types/investigation';
+import Icon, { IconName } from '@client/components/common/Icon';
 import { format } from 'date-fns';
 import { useToasts } from '../common/useToasts';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import {
   buildEvidenceCsv,
   buildExportIntegrityMeta,
   buildTimelineExportJson,
   prependMarkdownMetadata,
-} from '../../utils/investigationExportIntegrity';
+} from '@client/utils/investigationExportIntegrity';
 
 // UI Library
 import styles from './InvestigationExportTools.module.css';
@@ -43,7 +30,7 @@ import {
   Stack,
   Surface,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 interface ExportToolsProps {
   investigation: Investigation;
   evidence: EvidenceItem[];
@@ -60,7 +47,7 @@ interface ExportOption {
   description: string;
   available: boolean;
   unavailableReason?: string;
-  icon: LucideIcon;
+  icon: IconName;
 }
 
 const exportOptions: ExportOption[] = [
@@ -69,7 +56,7 @@ const exportOptions: ExportOption[] = [
     title: 'Intelligence Briefing',
     description: 'Comprehensive markdown report with automated provenance sections.',
     available: true,
-    icon: FileText,
+    icon: 'FileText',
   },
   {
     id: 'bundle',
@@ -77,21 +64,21 @@ const exportOptions: ExportOption[] = [
     description: 'Export full evidence package as a single encrypted archive.',
     available: false,
     unavailableReason: 'Bundle generation endpoint offline in this build.',
-    icon: Package,
+    icon: 'Package',
   },
   {
     id: 'evidence-csv',
     title: 'Evidence Matrix (CSV)',
     description: 'Structured table of all linked signals for external review.',
     available: true,
-    icon: Database,
+    icon: 'Database',
   },
   {
     id: 'timeline',
     title: 'Event Stream (JSON)',
     description: 'Machine-readable timeline orchestration data.',
     available: true,
-    icon: History,
+    icon: 'History',
   },
 ];
 
@@ -220,7 +207,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
           <Flex justify="between" align="center">
             <Stack gap="none">
               <Flex align="center" gap="md">
-                <Package size={20} className={styles.autoGen224} />
+                <Icon name="Package" size="md" className={styles.autoGen224} />
                 <LqText variant="small" weight="bold">
                   Artifact Export Pipeline
                 </LqText>
@@ -287,7 +274,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                             : 'bg-[var(--lq-surface-2)] text-[var(--lq-text-dim)]',
                         )}
                       >
-                        <o.icon size={24} />
+                        <Icon name={o.icon} size="md" />
                       </Box>
                       <Stack gap="none" style={{ flex: 1 }}>
                         <Flex justify="between">
@@ -465,9 +452,9 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                   disabled={isGenerating || !selectedOption.available}
                 >
                   {isGenerating ? (
-                    <Loader2 className={`animate-spin ${styles.mr2}`} />
+                    <Icon name="Loader2" className={`animate-spin ${styles.mr2}`} />
                   ) : (
-                    <Zap className={styles.mr2} />
+                    <Icon name="Zap" className={styles.mr2} />
                   )}
                   {isGenerating
                     ? `Synthesizing Artifact... ${progress}%`
@@ -483,7 +470,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               {generatedMeta && (
                 <Surface variant="glass" p="lg" className={styles.autoGen233}>
                   <Flex gap="md" align="start">
-                    <CheckCircle2 size={24} className={styles.autoGen234} />
+                    <Icon name="CheckCircle2" size="lg" className={styles.autoGen234} />
                     <Stack gap="sm" style={{ flex: 1 }}>
                       <LqText variant="small" weight="bold">
                         Artifact Export Complete
@@ -530,7 +517,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               {!selectedOption.available && (
                 <Surface variant="glass" p="md" className={styles.autoGen236}>
                   <Flex gap="md" align="center">
-                    <ShieldAlert size={20} className={styles.autoGen237} />
+                    <Icon name="ShieldAlert" size="md" className={styles.autoGen237} />
                     <LqText variant="xs" color="warning">
                       {selectedOption.unavailableReason || 'This modality is currently locked.'}
                     </LqText>
@@ -539,7 +526,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               )}
 
               <Flex gap="sm" align="center" justify="center" p="md">
-                <Clock size={12} className={styles.autoGen238} />
+                <Icon name="Clock" size="xs" className={styles.autoGen238} />
                 <LqText variant="xs" color="muted">
                   Exports are local machine downloads. No external signals transmitted.
                 </LqText>
@@ -555,7 +542,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               disabled={step === 1}
               onClick={() => setStep((s) => Math.max(1, s - 1) as 1 | 2 | 3 | 4)}
             >
-              <ChevronLeft size={16} className={styles.mr2} /> Back
+              <Icon name="ChevronLeft" size="sm" className={styles.mr2} /> Back
             </Button>
             <Button
               variant="primary"
@@ -563,7 +550,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               disabled={step === 4 || (!selectedOption.available && step === 1)}
               onClick={() => setStep((s) => Math.min(4, s + 1) as 1 | 2 | 3 | 4)}
             >
-              Next <ChevronRight size={16} className={styles.ml2} />
+              Next <Icon name="ChevronRight" size="sm" className={styles.ml2} />
             </Button>
           </Flex>
 

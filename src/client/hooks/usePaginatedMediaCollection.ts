@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 
 interface CollectionAlbum {
   id: number;

@@ -40,6 +40,14 @@
   margin-bottom: var(--space-sm);
 }
 
+.claimStatusGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
 .confidenceBadge {
   padding: 2px 8px;
   border-radius: 12px;

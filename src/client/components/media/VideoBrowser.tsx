@@ -1,17 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { FixedSizeGrid as Grid, GridChildComponentProps, areEqual } from 'react-window';
 import { createPortal } from 'react-dom';
-import {
-  Film,
-  Play,
-  Calendar,
-  CheckSquare,
-  Clock,
-  RefreshCw,
-  Users,
-  AlertTriangle,
-  User,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { TranscriptSegment, Chapter } from './AudioPlayer';
 import {
   Surface,
@@ -22,7 +12,7 @@ import {
   Button,
   cn,
   SearchField,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { VideoPlayer } from './VideoPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
@@ -31,9 +21,9 @@ import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { SEO } from '../common/SEO';
-import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
+import { usePaginatedMediaCollection } from '@client/hooks/usePaginatedMediaCollection';
 import { EmptyCorpus } from '../common/EmptyCorpus';
-import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
+import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
 import styles from './VideoBrowser.module.css';
 
 interface VideoItem {
@@ -177,7 +167,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
             />
             <Box className={styles.playOverlay}>
               <Box className={styles.playButton}>
-                <Play className={styles.playIcon} size={24} fill="currentColor" />
+                <Icon name="Play" className={styles.playIcon} size="lg" fill="currentColor" />
               </Box>
             </Box>
           </SensitiveContent>
@@ -185,7 +175,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
           {isBatchMode && (
             <Surface variant="glass" className={styles.selectionBox}>
               {isSelected ? (
-                <CheckSquare size={14} />
+                <Icon name="CheckSquare" size="sm" />
               ) : (
                 <LqText variant="xs" weight="bold">
                   {index + 1}
@@ -197,7 +187,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
           {video.metadata?.duration && (
             <Surface variant="glass-strong" className={styles.durationBadge}>
               <Flex gap="xs" align="center">
-                <Clock size={10} />
+                <Icon name="Clock" size="xs" />
                 <LqText variant="xs" weight="bold">
                   {Math.floor(video.metadata.duration / 60)}:
                   {
@@ -218,14 +208,14 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
           </LqText>
           <Flex align="center" justify="between">
             <Flex align="center" gap="xs">
-              <Calendar size={12} className={styles.metaIcon} />
+              <Icon name="Calendar" size="xs" className={styles.metaIcon} />
               <LqText variant="xs" color="muted">
                 {video.dateTaken ? formatDate(video.dateTaken) : formatDate(video.createdAt)}
               </LqText>
             </Flex>
             {video.people && video.people.length > 0 && (
               <Flex align="center" gap="xs">
-                <User size={10} className={styles.metaIcon} />
+                <Icon name="User" size="xs" className={styles.metaIcon} />
                 <LqText variant="xs" color="muted" weight="bold">
                   {video.people.length === 1 ? video.people[0].name : `${video.people.length} Ppl`}
                 </LqText>
@@ -381,7 +371,7 @@ export const VideoBrowser: React.FC = () => {
             {/* Identity */}
             <Flex align="center" gap="md">
               <Box className={styles.iconBox}>
-                <Film size={24} />
+                <Icon name="Film" size="lg" />
               </Box>
               <Stack gap="none">
                 <LqText variant="h2" weight="bold">
@@ -412,7 +402,7 @@ export const VideoBrowser: React.FC = () => {
                   onClick={() => void refresh()}
                   title="Reload archive"
                 >
-                  <RefreshCw size={14} />
+                  <Icon name="RefreshCw" size="sm" />
                 </Button>
                 <Button
                   variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
@@ -420,7 +410,7 @@ export const VideoBrowser: React.FC = () => {
                   onClick={() => setHasPeopleOnly((v) => !v)}
                   title="Filter by people"
                 >
-                  <Users size={14} />
+                  <Icon name="Users" size="sm" />
                   <span>People</span>
                 </Button>
                 <Button
@@ -428,7 +418,7 @@ export const VideoBrowser: React.FC = () => {
                   size="sm"
                   onClick={() => setIsBatchMode(!isBatchMode)}
                 >
-                  <CheckSquare size={14} />
+                  <Icon name="CheckSquare" size="sm" />
                   <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
                 </Button>
               </Flex>
@@ -471,7 +461,7 @@ export const VideoBrowser: React.FC = () => {
             {error && (
               <Surface variant="glass-strong" className={styles.errorBanner}>
                 <Flex align="center" gap="sm">
-                  <AlertTriangle size={18} />
+                  <Icon name="AlertTriangle" size="md" />
                   <LqText variant="xs" weight="bold">
                     {error}
                   </LqText>

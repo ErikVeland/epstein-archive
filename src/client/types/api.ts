@@ -1,6 +1,3 @@
-// Shared API payload types used across the client.
-// Centralised here to avoid inline duplication in App.tsx and other components.
-
 export type SeoSchema = Record<string, unknown> | Array<Record<string, unknown>>;
 
 export interface SeoConfig {
@@ -12,56 +9,33 @@ export interface SeoConfig {
   keywords: string[];
   schema?: SeoSchema;
 }
-
-export interface LikelihoodBucket {
-  level: 'HIGH' | 'MEDIUM' | 'LOW' | string;
-  count: number;
-}
-
 export interface GlobalStatsPayload {
   totalEntities: number;
-  totalMentions: number;
   totalDocuments: number;
-  likelihoodDistribution?: LikelihoodBucket[];
-}
-
-export interface SearchEntityPayload {
-  id: number | string;
-  name?: string;
-  fullName?: string;
-  canonicalName?: string;
-  matchedAlias?: string | null;
-  primaryRole?: string;
-  role?: string;
-  mention_count?: number;
-  mentions?: number;
-  redFlagRating?: number;
-  document_count?: number;
-  files?: number;
+  totalMentions: number;
+  likelihoodDistribution: Array<{ level: string; count: number }>;
 }
 
 export interface SearchDocumentPayload {
-  id: number | string;
-  fileName?: string;
+  id: string | number;
   title?: string;
-  filePath?: string;
+  fileName?: string;
   snippet?: string;
   evidenceType?: string;
-  fileType?: string | null;
-  redFlagRating?: number | null;
 }
 
 export interface SearchResponsePayload {
-  entities?: SearchEntityPayload[];
-  documents?: SearchDocumentPayload[];
+  entities: Array<Record<string, unknown>>;
+  documents: SearchDocumentPayload[];
 }
 
 export interface EntityByIdResponse {
   id: number;
   fullName?: string;
+  name?: string;
   primaryRole?: string;
-  mentions?: number;
   mention_count?: number;
+  mentions?: number;
   redFlagRating?: number;
   documentCount?: number;
   document_count?: number;
@@ -71,8 +45,8 @@ export interface EntityByIdResponse {
   description?: string;
   birthDate?: string;
   deathDate?: string;
-  photos?: import('../../types').Person['photos'];
-  blackBookEntry?: import('../../types').Person['blackBookEntries'];
+  photos?: Array<Record<string, unknown>>;
+  blackBookEntry?: Array<Record<string, unknown>>;
   entityType?: string;
   type?: string;
   redFlagDescription?: string;

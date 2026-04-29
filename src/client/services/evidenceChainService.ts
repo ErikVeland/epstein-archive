@@ -1,4 +1,4 @@
-import { EvidenceChain, AuthenticityScore, TransformationEvent } from '../types/investigation';
+import { EvidenceChain, AuthenticityScore, TransformationEvent } from '@client/types/investigation';
 import { apiClient } from './apiClient';
 
 /**

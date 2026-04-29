@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, TextInput, Textarea } from '../../design-system/lib';
+import { Button, TextInput, Textarea } from '@client/design-system/lib';
 import Icon from './Icon';
 import s from './BatchToolbar.module.css';
 

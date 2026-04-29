@@ -1,5 +1,5 @@
 import type { ReactNode, SVGProps } from 'react';
-import { ArrowLeft, HelpCircle, Shield, FileText, Lock, Eye, Database } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
 import s from './FAQPage.module.css';
 
@@ -15,31 +15,31 @@ const FAQPage = () => {
       question: 'What is the Epstein Archive?',
       answer:
         'The Epstein Archive is a centralized, searchable database of documents related to the Jeffrey Epstein investigation. It consolidates evidence from multiple sources, including unsealed court documents (Giuffre v. Maxwell), police reports, flight logs, and the newly integrated DOJ discovery datasets.',
-      icon: <Database size={20} className={s.iconAccent} />,
+      icon: <Icon name="Database" size="md" className={s.iconAccent} />,
     },
     {
       question: "What are the 'DOJ Datasets'?",
       answer:
         'These are large volumes of evidence released by the Department of Justice, which we have processed and ingested. They include Dataset 9 (prosecutorial files), Dataset 10 (financial records), Dataset 11 (multimedia), and Dataset 12 (investigative referrals). These files provide significantly more detail on financial networks and operational logistics than previous releases.',
-      icon: <FileText size={20} className={s.iconInfo} />,
+      icon: <Icon name="FileText" size="md" className={s.iconInfo} />,
     },
     {
       question: 'Why are some documents redacted?',
       answer:
         'Redactions protect the privacy of victims, innocent third parties, and ongoing investigations. Our system analyzes redaction levels (e.g., Dataset 11 is 52% redacted due to sensitive multimedia content) to give context on what remains withheld versus what is visible.',
-      icon: <Lock size={20} className={s.iconDanger} />,
+      icon: <Icon name="Lock" size="md" className={s.iconDanger} />,
     },
     {
       question: "What is the 'Red Flag' rating?",
       answer:
         'This is a forensic scoring system derived from legal thresholds. Mere presence in a flight log (Association) gets a low score, while sworn testimony alleging participation (Complicity) receives a higher score. It helps investigators prioritize which documents to review first.',
-      icon: <Shield size={20} className={s.iconWarning} />,
+      icon: <Icon name="Shield" size="md" className={s.iconWarning} />,
     },
     {
       question: "Why are there so many recent documents (past Epstein's death)?",
       answer:
         'The investigation into the network remained active long after 2019. These documents primarily pertain to the prosecution of Ghislaine Maxwell, ongoing civil litigation by survivors, and internal corporate investigations (e.g., Barclays, JPMorgan). They provide crucial context on how the network operated and the legal efforts to identify co-conspirators.',
-      icon: <Eye size={20} className={s.iconAccent} />,
+      icon: <Icon name="Eye" size="md" className={s.iconAccent} />,
     },
     {
       question: 'Can I download the documents?',
@@ -59,7 +59,7 @@ const FAQPage = () => {
           .
         </span>
       ),
-      icon: <FileText size={20} className={s.iconAccent} />,
+      icon: <Icon name="FileText" size="md" className={s.iconAccent} />,
     },
   ];
 
@@ -69,13 +69,13 @@ const FAQPage = () => {
         {/* Header */}
         <header className={s.header}>
           <Link to="/about" className={s.backLink}>
-            <ArrowLeft size={16} className={s.backIcon} />
+            <Icon name="ArrowLeft" size="sm" className={s.backIcon} />
             Back to About
           </Link>
 
           <div className={s.hero}>
             <div className={s.eyebrow}>
-              <HelpCircle size={16} />
+              <Icon name="HelpCircle" size="sm" />
               Frequently Asked Questions
             </div>
             <h1 className={s.title}>Understanding the Archive</h1>

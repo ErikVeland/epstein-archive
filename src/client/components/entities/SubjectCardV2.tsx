@@ -1,23 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SubjectCardDTO } from '../../types';
-import { formatNumber } from '../../utils/search';
+import { SubjectCardDTO } from '@client/types';
+import { formatNumber } from '@client/utils/search';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { CardActionSheet } from '../common/CardActionSheet';
 import Icon from '../common/Icon';
-import { getEntityTypeIcon } from '../../utils/entityTypeIcons';
+import { getEntityTypeIcon } from '@client/utils/entityTypeIcons';
 import { SignalPanel } from './cards/SignalPanel';
 import { EvidenceBadge } from './cards/EvidenceBadge';
 import { DriverChips } from './cards/DriverChips';
-import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../design-system/lib';
-import { riskToneFromRating } from '../../utils/riskSemantics';
-import { type EvidenceLadderLevel } from '../../utils/forensics';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Grid } from '../../design-system/components/layout/Grid';
-import { Button } from '../../design-system/lib';
-import { useIsTouch } from '../../hooks/useIsTouch';
-import { useLongPress } from '../../hooks/useLongPress';
-import { useInvestigations } from '../../contexts/InvestigationsContext';
+import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '@client/design-system/lib';
+import { riskToneFromRating } from '@client/utils/riskSemantics';
+import { type EvidenceLadderLevel } from '@client/utils/forensics';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Grid } from '@client/design-system/components/layout/Grid';
+import { Button } from '@client/design-system/lib';
+import { useIsTouch } from '@client/hooks/useIsTouch';
+import { useLongPress } from '@client/hooks/useLongPress';
+import { useInvestigations } from '@client/contexts/InvestigationsContext';
 import styles from './SubjectCardV2.module.css';
 
 interface SubjectCardV2Props {

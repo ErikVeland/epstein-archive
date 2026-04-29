@@ -1,10 +1,10 @@
 import React from 'react';
-import { Search, FileText } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { FixedSizeList as List } from 'react-window';
 import { InfiniteLoader } from 'react-window-infinite-loader';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { EvidenceCard } from './EvidenceCard';
-import { useListScrollRestoration } from '../../../hooks/useListScrollRestoration';
+import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
 import s from './EvidenceDocumentsTab.module.css';
 
 // Type-safe wrappers for virtualized components to bypass React 18/TS mismatches
@@ -29,7 +29,7 @@ const TypedInfiniteLoader = InfiniteLoader as unknown as React.ComponentType<{
 
 import { EvidenceDocument } from '../EvidenceModal';
 
-import { Button, Input } from '../../../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 interface DocFilterUpdates {
   search?: string;
@@ -87,7 +87,7 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
       {/* FILTERS TOOLBAR */}
       <div className={s.toolbar}>
         <div className={s.searchWrapper}>
-          <Search className={s.searchIcon} size={18} />
+          <Icon name="Search" className={s.searchIcon} size="md" />
           <Input
             type="text"
             placeholder="Search relevant documents..."
@@ -120,7 +120,7 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
           </div>
         ) : !isDocsLoading && documents.length === 0 && totalDocs === 0 ? (
           <div className={s.emptyState}>
-            <FileText size={44} className={s.emptyIcon} />
+            <Icon name="FileText" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Linked Evidence Found</h4>
             <p className={s.emptyText}>
               We could not find evidence items for "{entityName}" using current filters.
@@ -178,7 +178,7 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                         ))
                       ) : (
                         <div className={s.emptyState}>
-                          <FileText size={44} className={s.emptyIcon} />
+                          <Icon name="FileText" size="xl" className={s.emptyIcon} />
                           <h4 className={s.emptyTitle}>Syncing Evidence Records...</h4>
                           <p className={s.emptyText}>
                             The archive is currently retrieving and indexing evidence for "

@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import express from 'express';
 import { authenticateRequest } from '../auth/middleware.js';
 import { AdvancedAnalyticsService } from '../services/AdvancedAnalyticsService.js';
 import { VisualizationService } from '../services/VisualizationService.js';
 import { PredictiveAnalyticsService } from '../services/PredictiveAnalyticsService.js';
 
-const router = Router();
+const router = express.Router();
 const advancedAnalyticsService = new AdvancedAnalyticsService();
 const visualizationService = new VisualizationService();
 const predictiveAnalyticsService = new PredictiveAnalyticsService();

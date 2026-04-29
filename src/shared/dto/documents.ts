@@ -1,4 +1,6 @@
-export interface DocumentListItemDto {
+import type { ProvenanceFieldsDto } from './provenance';
+
+export interface DocumentListItemDto extends ProvenanceFieldsDto {
   id: string;
   fileName: string;
   title: string;
@@ -32,7 +34,7 @@ export interface DocumentsListResponseDto {
   };
 }
 
-export interface DocumentDetailDto {
+export interface DocumentDetailDto extends ProvenanceFieldsDto {
   id: string;
   fileName: string;
   filePath: string | null;

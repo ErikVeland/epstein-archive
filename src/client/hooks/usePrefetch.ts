@@ -3,7 +3,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { prefetchManager } from '../utils/prefetchManager';
+import { prefetchManager } from '@client/utils/prefetchManager';
 
 interface PrefetchOptions {
   enabled?: boolean;

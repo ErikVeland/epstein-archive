@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import express from 'express';
 import { propertiesRepository } from '../db/propertiesRepository.js';
 import { validate, propertiesQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 
 router.get('/', validate(propertiesQuerySchema), async (req, res, next) => {
   try {

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { LqText } from '../../design-system/components/typography/Text';
+import { LqText } from '@client/design-system/components/typography/Text';
 import styles from './WikiLink.module.css';
 
 interface WikiLinkProps {

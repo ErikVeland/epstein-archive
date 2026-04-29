@@ -3,6 +3,7 @@ import type {
   EntityEvidenceResponseDto,
   EntityRelationEvidenceDto,
 } from '@shared/dto/evidence';
+import { mapProvenanceFieldsDto } from './provenanceDtoMapper';
 
 const asId = (value: unknown): string | number | null => {
   if (value == null) return null;
@@ -32,7 +33,7 @@ const asFlagArray = (value: unknown): Array<{ type: string; severity: string | n
   });
 };
 
-interface EvidenceRowInput {
+export interface EvidenceRowInput {
   id?: unknown;
   documentId?: unknown;
   document_id?: unknown;
@@ -46,8 +47,25 @@ interface EvidenceRowInput {
   redFlagRating?: unknown;
   red_flag_rating?: unknown;
   confidence?: unknown;
+  confidenceScore?: unknown;
+  confidence_score?: unknown;
   role?: unknown;
   flags?: unknown[];
+  sourceDocumentId?: unknown;
+  source_document_id?: unknown;
+  sourceHash?: unknown;
+  source_hash?: unknown;
+  contentHash?: unknown;
+  content_hash?: unknown;
+  extractionMethod?: unknown;
+  extraction_method?: unknown;
+  reviewState?: unknown;
+  review_state?: unknown;
+  status?: unknown;
+  lastVerifiedAt?: unknown;
+  last_verified_at?: unknown;
+  verifiedAt?: unknown;
+  verified_at?: unknown;
 }
 
 interface EntityEvidenceResponseInput {
@@ -68,7 +86,7 @@ interface EntityEvidenceResponseInput {
     deathDate?: unknown;
     death_date?: unknown;
   };
-  evidence?: EvidenceRowInput[];
+  evidence?: unknown[];
   stats?: {
     totalEvidence?: unknown;
     total_evidence?: unknown;
@@ -94,6 +112,8 @@ interface RelationRowInput {
   relationshipType?: unknown;
   relationship_type?: unknown;
   confidence?: unknown;
+  confidenceScore?: unknown;
+  confidence_score?: unknown;
   riskScore?: unknown;
   risk_score?: unknown;
   firstSeen?: unknown;
@@ -104,20 +124,46 @@ interface RelationRowInput {
   source_name?: unknown;
   targetName?: unknown;
   target_name?: unknown;
+  sourceDocumentId?: unknown;
+  source_document_id?: unknown;
+  documentId?: unknown;
+  document_id?: unknown;
+  span_id?: unknown;
+  quote_text?: unknown;
+  mention_ids?: unknown;
+  document_title?: unknown;
+  document_path?: unknown;
+  sourceHash?: unknown;
+  source_hash?: unknown;
+  contentHash?: unknown;
+  content_hash?: unknown;
+  extractionMethod?: unknown;
+  extraction_method?: unknown;
+  reviewState?: unknown;
+  review_state?: unknown;
+  status?: unknown;
+  lastVerifiedAt?: unknown;
+  last_verified_at?: unknown;
+  verifiedAt?: unknown;
+  verified_at?: unknown;
 }
 
-export const mapEntityMentionEvidenceDto = (row: EvidenceRowInput): EntityMentionEvidenceDto => ({
-  id: asId(row.id),
-  documentId: asId(row.documentId ?? row.document_id),
-  evidenceType: String(row.evidenceType ?? row.evidence_type ?? 'document'),
-  title: String(row.title ?? ''),
-  sourcePath: String(row.sourcePath ?? row.source_path ?? ''),
-  contentPreview: String(row.contentPreview ?? row.content_preview ?? ''),
-  redFlagRating: Number(row.redFlagRating ?? row.red_flag_rating ?? 0),
-  confidence: Number(row.confidence ?? 0),
-  role: String(row.role ?? 'subject'),
-  flags: asFlagArray(row.flags),
-});
+export const mapEntityMentionEvidenceDto = (row: EvidenceRowInput): EntityMentionEvidenceDto => {
+  const provenance = mapProvenanceFieldsDto(row);
+  return {
+    ...provenance,
+    id: asId(row.id),
+    documentId: asId(row.documentId ?? row.document_id),
+    evidenceType: String(row.evidenceType ?? row.evidence_type ?? 'document'),
+    title: String(row.title ?? ''),
+    sourcePath: String(row.sourcePath ?? row.source_path ?? ''),
+    contentPreview: String(row.contentPreview ?? row.content_preview ?? ''),
+    redFlagRating: Number(row.redFlagRating ?? row.red_flag_rating ?? 0),
+    confidence: provenance.confidence ?? 0,
+    role: String(row.role ?? 'subject'),
+    flags: asFlagArray(row.flags),
+  };
+};
 
 export const mapEntityEvidenceResponseDto = (
   data: EntityEvidenceResponseInput,
@@ -132,7 +178,9 @@ export const mapEntityEvidenceResponseDto = (
     birthDate: asNullableString(data.entity?.birthDate ?? data.entity?.birth_date),
     deathDate: asNullableString(data.entity?.deathDate ?? data.entity?.death_date),
   },
-  evidence: Array.isArray(data.evidence) ? data.evidence.map(mapEntityMentionEvidenceDto) : [],
+  evidence: Array.isArray(data.evidence)
+    ? data.evidence.map((row) => mapEntityMentionEvidenceDto(row as EvidenceRowInput))
+    : [],
   stats: {
     totalEvidence: Number(data.stats?.totalEvidence ?? data.stats?.total_evidence ?? 0),
     typeBreakdown: (() => {
@@ -180,15 +228,25 @@ export const mapEntityEvidenceResponseDto = (
   },
 });
 
-export const mapEntityRelationEvidenceDto = (row: RelationRowInput): EntityRelationEvidenceDto => ({
-  id: asId(row.id) ?? '',
-  sourceId: asId(row.sourceId ?? row.source_id) ?? '',
-  targetId: asId(row.targetId ?? row.target_id) ?? '',
-  relationshipType: String(row.relationshipType ?? row.relationship_type ?? ''),
-  confidence: Number(row.confidence ?? 0),
-  riskScore: Number(row.riskScore ?? row.risk_score ?? 0),
-  firstSeen: asNullableString(row.firstSeen ?? row.first_seen),
-  lastSeen: asNullableString(row.lastSeen ?? row.last_seen),
-  sourceName: asNullableString(row.sourceName ?? row.source_name) ?? undefined,
-  targetName: asNullableString(row.targetName ?? row.target_name) ?? undefined,
-});
+export const mapEntityRelationEvidenceDto = (row: RelationRowInput): EntityRelationEvidenceDto => {
+  const provenance = mapProvenanceFieldsDto(row);
+  return {
+    ...provenance,
+    id: asId(row.id) ?? '',
+    sourceId: asId(row.sourceId ?? row.source_id) ?? '',
+    targetId: asId(row.targetId ?? row.target_id) ?? '',
+    relationshipType: String(row.relationshipType ?? row.relationship_type ?? ''),
+    confidence: provenance.confidence ?? 0,
+    riskScore: Number(row.riskScore ?? row.risk_score ?? 0),
+    firstSeen: asNullableString(row.firstSeen ?? row.first_seen),
+    lastSeen: asNullableString(row.lastSeen ?? row.last_seen),
+    sourceName: asNullableString(row.sourceName ?? row.source_name) ?? undefined,
+    targetName: asNullableString(row.targetName ?? row.target_name) ?? undefined,
+    document_id: asId(row.documentId ?? row.document_id),
+    span_id: asId(row.span_id),
+    quote_text: asNullableString(row.quote_text),
+    mention_ids: row.mention_ids,
+    document_title: asNullableString(row.document_title),
+    document_path: asNullableString(row.document_path),
+  };
+};

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { investigationsApi } from '../../../domains/investigations';
+import { investigationsApi } from '@client/domains/investigations';
 import type { InvestigationCaseEvidenceItemDto } from '@shared/dto/investigations';
 import styles from './MobileEvidenceList.module.css';
 
-import { Button, Input } from '../../../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 const FILTER_CHIPS = ['All', 'Documents', 'Testimony', 'Unsorted', 'Flagged'] as const;
 type FilterChip = (typeof FILTER_CHIPS)[number];

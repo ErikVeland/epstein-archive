@@ -1,23 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { TimelineEvent, EvidenceItem, Investigation, Hypothesis } from '../../types/investigation';
-import { format, parseISO } from 'date-fns';
 import {
-  Calendar,
-  Clock,
-  Link2,
-  FileText,
-  Users,
-  MapPin,
-  Plus,
-  Edit2,
-  Trash2,
-  Eye,
-  Zap,
-  GripVertical,
-  XCircle,
-} from 'lucide-react';
+  TimelineEvent,
+  EvidenceItem,
+  Investigation,
+  Hypothesis,
+} from '@client/types/investigation';
+import { format, parseISO } from 'date-fns';
+import Icon, { type IconName } from '@client/components/common/Icon';
 
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 
 // UI Library
 import {
@@ -32,7 +23,7 @@ import {
   Stack,
   Surface,
   TextArea,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './InvestigationTimelineBuilder.module.css';
 
 const css = <T,>(style: T) => style;
@@ -86,12 +77,17 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
     hypothesisIds: [],
   });
 
-  const eventTypes = [
-    { value: 'document', label: 'Document', icon: FileText, variant: 'accent' },
-    { value: 'meeting', label: 'Meeting', icon: Users, variant: 'warning' },
-    { value: 'location', label: 'Location', icon: MapPin, variant: 'purple' },
-    { value: 'communication', label: 'Communication', icon: Link2, variant: 'success' },
-    { value: 'hypothesis', label: 'Hypothesis', icon: Zap, variant: 'error' },
+  const eventTypes: Array<{
+    value: string;
+    label: string;
+    iconName: IconName;
+    variant: string;
+  }> = [
+    { value: 'document', label: 'Document', iconName: 'FileText', variant: 'accent' },
+    { value: 'meeting', label: 'Meeting', iconName: 'Users', variant: 'warning' },
+    { value: 'location', label: 'Location', iconName: 'MapPin', variant: 'purple' },
+    { value: 'communication', label: 'Communication', iconName: 'Link2', variant: 'success' },
+    { value: 'hypothesis', label: 'Hypothesis', iconName: 'Zap', variant: 'error' },
   ];
 
   const groupEventsByDate = useCallback(
@@ -177,7 +173,8 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
     setIsAddingEvent(true);
   };
 
-  const getTypeIcon = (t: string) => eventTypes.find((et) => et.value === t)?.icon || FileText;
+  const getTypeIcon = (t: string): IconName =>
+    eventTypes.find((et) => et.value === t)?.iconName || 'FileText';
   const getTypeVariant = (t: string) => eventTypes.find((et) => et.value === t)?.variant || 'glass';
 
   return (
@@ -200,7 +197,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
             </Stack>
             <Flex gap="sm">
               <Button variant="primary" onClick={() => setIsAddingEvent(true)}>
-                <Plus size={16} /> New Event
+                <Icon name="Plus" size="sm" /> New Event
               </Button>
             </Flex>
           </Flex>
@@ -209,7 +206,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
         <Surface variant="glass" p="md">
           <Flex gap="xl" wrap="wrap" align="center">
             <Flex align="center" gap="sm">
-              <Calendar size={14} className={styles.autoGen297} />
+              <Icon name="Calendar" size="sm" className={styles.autoGen297} />
               <NativeSelect
                 value={timelineScale}
                 onChange={(e) =>
@@ -247,7 +244,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
             </Surface>
 
             <Button variant="glass" size="sm" onClick={() => setShowFilters(!showFilters)}>
-              <Eye size={12} /> {showFilters ? 'Hide' : 'Show'} Filters
+              <Icon name="Eye" size="xs" /> {showFilters ? 'Hide' : 'Show'} Filters
             </Button>
           </Flex>
         </Surface>
@@ -289,7 +286,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
             <Stack key={group.startDate} gap="lg" mb="xxl">
               <Flex align="center" gap="md">
                 <Box p="xs" className={styles.autoGen301}>
-                  <Calendar size={14} className={styles.autoGen302} />
+                  <Icon name="Calendar" size="sm" className={styles.autoGen302} />
                 </Box>
                 <LqText
                   variant="small"
@@ -304,7 +301,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
 
               <Stack gap="sm">
                 {group.events.map((event) => {
-                  const Icon = getTypeIcon(event.type);
+                  const iconName = getTypeIcon(event.type);
                   const variant = getTypeVariant(event.type);
                   return (
                     <Surface
@@ -319,7 +316,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       <Flex gap="lg" align="start">
                         {orderingMode === 'narrative' && (
                           <Box style={css({ cursor: 'grab', opacity: 0.3, marginTop: '0.25rem' })}>
-                            <GripVertical size={16} />
+                            <Icon name="GripVertical" size="sm" />
                           </Box>
                         )}
                         <Stack grow gap="xs">
@@ -335,7 +332,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                                     display: 'inline-flex',
                                   })}
                                 >
-                                  <Icon size={12} />
+                                  <Icon name={iconName} size="sm" />
                                 </Box>
                                 <LqText variant="body" weight="bold">
                                   {event.title}
@@ -345,7 +342,6 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                                 <Badge
                                   variant="glass"
                                   label={format(event.startDate, 'HH:mm')}
-                                  icon={Clock}
                                   size="sm"
                                 />
                                 <Badge
@@ -361,7 +357,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                                 size="sm"
                                 onClick={() => handleEditEvent(event)}
                               >
-                                <Edit2 size={12} />
+                                <Icon name="Edit2" size="xs" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -369,7 +365,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                                 className={styles.autoGen304}
                                 onClick={() => onDeleteEvent?.(event.id)}
                               >
-                                <Trash2 size={12} />
+                                <Icon name="Trash2" size="xs" />
                               </Button>
                             </Flex>
                           </Flex>
@@ -380,22 +376,10 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                           )}
                           <Flex wrap="wrap" gap="sm" mt="sm">
                             {event.documents.map((dId: string) => (
-                              <Badge
-                                key={dId}
-                                variant="glass"
-                                label={`DOC ${dId}`}
-                                icon={FileText}
-                                size="sm"
-                              />
+                              <Badge key={dId} variant="glass" label={`DOC ${dId}`} size="sm" />
                             ))}
                             {(event.hypothesisIds || []).map((hId: string) => (
-                              <Badge
-                                key={hId}
-                                variant="accent"
-                                label={`HYP ${hId}`}
-                                icon={Zap}
-                                size="sm"
-                              />
+                              <Badge key={hId} variant="accent" label={`HYP ${hId}`} size="sm" />
                             ))}
                           </Flex>
                         </Stack>
@@ -425,7 +409,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                     setEditingEvent(null);
                   }}
                 >
-                  <XCircle size={18} />
+                  <Icon name="XCircle" size="md" />
                 </Button>
               </Flex>
 

@@ -1,15 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { Upload, AlertCircle, CheckCircle, FileText } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './DocumentUploader.module.css';
 
 // Design System
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { LqText } from '../../design-system/components/typography/Text';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { LqText } from '@client/design-system/components/typography/Text';
 
-import { DocumentProcessor } from '../../services/documentProcessor';
+import { DocumentProcessor } from '@client/services/documentProcessor';
 
-import { Button, Input } from '../../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 interface DocumentUploaderProps {
   processor: DocumentProcessor;
@@ -111,7 +111,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
   return (
     <Box className={styles.root}>
       <Flex align="center" gap="sm" className={styles.marginBottomMedium}>
-        <Upload size={20} className={styles.iconAccent} />
+        <Icon name="Upload" size="md" className={styles.iconAccent} />
         <LqText variant="h3" weight="bold">
           Document Ingestion
         </LqText>
@@ -135,7 +135,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
             onClick={() => fileInputRef.current?.click()}
           >
             <Box className={styles.uploadIconContainer}>
-              <FileText size={32} />
+              <Icon name="FileText" size="xl" />
             </Box>
             <LqText variant="body" weight="bold" className={styles.uploadTitle}>
               Drag and drop forensic text archives
@@ -177,7 +177,11 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
 
       {uploadStatus === 'success' && showUpload && (
         <Box className={styles.statusContainer}>
-          <CheckCircle size={48} className={`text-[var(--accent-success)] ${styles.statusIcon}`} />
+          <Icon
+            name="CheckCircle"
+            size="xl"
+            className={`text-[var(--accent-success)] ${styles.statusIcon}`}
+          />
           <LqText variant="h3" weight="bold">
             Ingestion Successful
           </LqText>
@@ -192,7 +196,11 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
 
       {uploadStatus === 'error' && showUpload && (
         <Box className={styles.statusContainer}>
-          <AlertCircle size={48} className={`text-[var(--accent-danger)] ${styles.statusIcon}`} />
+          <Icon
+            name="AlertCircle"
+            size="xl"
+            className={`text-[var(--accent-danger)] ${styles.statusIcon}`}
+          />
           <LqText variant="h3" weight="bold" color="accent">
             Ingestion Error
           </LqText>

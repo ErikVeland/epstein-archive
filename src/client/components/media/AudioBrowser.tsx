@@ -1,27 +1,18 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FixedSizeList as List, ListChildComponentProps, areEqual } from 'react-window';
-import {
-  Music,
-  Play,
-  Calendar,
-  ExternalLink,
-  Filter,
-  ChevronRight,
-  Square,
-  CheckSquare,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 
-import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
+import { usePaginatedMediaCollection } from '@client/hooks/usePaginatedMediaCollection';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { SEO } from '../common/SEO';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { AutoSizer } from '../common/AutoSizer';
-import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
+import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
 import {
   Surface,
   Button,
@@ -32,7 +23,7 @@ import {
   cn,
   Badge,
   SearchField,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './AudioBrowser.module.css';
 
 interface AudioItem {
@@ -120,13 +111,13 @@ const AudioRow = React.memo(({ index, style, data }: ListChildComponentProps<Aud
                       <img src={displayImage} alt="" className={styles.cardImage} />
                     ) : (
                       <Flex align="center" justify="center" className={styles.fallbackIcon}>
-                        <Music size={40} className={styles.iconMuted} />
+                        <Icon name="Music" size="xl" className={styles.iconMuted} />
                       </Flex>
                     )}
                     <Box className={styles.overlay}>
                       <Flex align="center" justify="center" fullHeight>
                         <Button variant="glass" size="lg" className={styles.playBtn}>
-                          <Play size={24} fill="currentColor" />
+                          <Icon name="Play" size="lg" fill="currentColor" />
                         </Button>
                       </Flex>
                     </Box>
@@ -144,9 +135,9 @@ const AudioRow = React.memo(({ index, style, data }: ListChildComponentProps<Aud
                     {isBatchMode && (
                       <Button variant="glass" size="sm">
                         {isSelected ? (
-                          <CheckSquare size={16} color="var(--lq-accent)" />
+                          <Icon name="CheckSquare" size="sm" color="accent" />
                         ) : (
-                          <Square size={16} />
+                          <Icon name="Square" size="sm" />
                         )}
                       </Button>
                     )}
@@ -159,7 +150,7 @@ const AudioRow = React.memo(({ index, style, data }: ListChildComponentProps<Aud
                       {item.title}
                     </LqText>
                     <Flex align="center" gap="xs">
-                      <Calendar size={12} className={styles.iconMuted} />
+                      <Icon name="Calendar" size="xs" className={styles.iconMuted} />
                       <LqText variant="xs" color="muted">
                         {new Date(item.createdAt).toLocaleDateString()}
                       </LqText>
@@ -219,7 +210,7 @@ const AudioRow = React.memo(({ index, style, data }: ListChildComponentProps<Aud
                       variant="quick"
                     />
                     <Button variant="ghost" size="sm" className={styles.moreBtn}>
-                      <ChevronRight size={14} />
+                      <Icon name="ChevronRight" size="sm" />
                     </Button>
                   </Flex>
                 </Stack>
@@ -355,7 +346,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           <Flex justify="between" align="center" gap="md" fullWidth>
             <Flex align="center" gap="md">
               <Box className={styles.iconBox}>
-                <Music size={24} />
+                <Icon name="Music" size="lg" />
               </Box>
               <Stack gap="none">
                 <LqText variant="h2" weight="bold">
@@ -381,12 +372,16 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 size="sm"
                 onClick={() => setIsBatchMode(!isBatchMode)}
               >
-                {isBatchMode ? <CheckSquare size={16} /> : <Filter size={16} />}
+                {isBatchMode ? (
+                  <Icon name="CheckSquare" size="sm" />
+                ) : (
+                  <Icon name="Filter" size="sm" />
+                )}
                 {isBatchMode ? `Apply (${selectedItems.size})` : 'Batch'}
               </Button>
 
               <Button variant="primary" size="sm">
-                <ExternalLink size={16} />
+                <Icon name="ExternalLink" size="sm" />
                 Open Leads
               </Button>
             </Flex>

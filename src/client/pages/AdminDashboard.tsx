@@ -1,37 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import {
-  Users,
-  UserPlus,
-  Edit2,
-  Trash2,
-  Shield,
-  Search,
-  Check,
-  AlertTriangle,
-  Lock,
-  LogOut,
-  Activity,
-  Server,
-  Database,
-  FileText,
-  RefreshCw,
-  Cpu,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { useAuth } from '../contexts/AuthContext';
-import { ReviewQueuePanel } from '../components/admin/ReviewQueuePanel';
-import { ShieldCheck } from 'lucide-react';
-import { CloseButton } from '../components/common/CloseButton';
-import { useScrollLock } from '../hooks/useScrollLock';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { LqText } from '../design-system/components/typography/Text';
-import { Grid } from '../design-system/components/layout/Grid';
+import { ReviewQueuePanel } from '@client/components/admin/ReviewQueuePanel';
+import { CloseButton } from '@client/components/common/CloseButton';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Box } from '@client/design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Grid } from '@client/design-system/components/layout/Grid';
 import styles from './AdminDashboard.module.css';
 
-import { Button, Input, NativeSelect } from '../design-system/lib';
+import { Button, Input, NativeSelect } from '@client/design-system/lib';
 
 interface User {
   id: string;
@@ -346,7 +328,7 @@ export const AdminDashboard: React.FC = () => {
         {/* Header */}
         {error && (
           <Flex align="start" gap={2} className={styles.errorBanner}>
-            <AlertTriangle className={styles.errorIcon} />
+            <Icon name="AlertTriangle" className={styles.errorIcon} />
             <Box className={styles.errorContent}>
               <p className={styles.errorTitle}>An error occurred while loading admin data.</p>
               <p className={styles.errorMessage}>{error}</p>
@@ -363,7 +345,7 @@ export const AdminDashboard: React.FC = () => {
         <Flex direction="column" align="start" className={styles.header}>
           <Box>
             <LqText as="h1" variant="h1" color="accent" className={styles.heading}>
-              <Shield className={styles.headingIcon} strokeWidth={1} />
+              <Icon name="Shield" className={styles.headingIcon} />
               Admin Dashboard
             </LqText>
             <LqText as="p" variant="body" color="muted" className={styles.subtitle}>
@@ -373,7 +355,7 @@ export const AdminDashboard: React.FC = () => {
 
           <Flex align="center" gap={3}>
             <Button unstyled onClick={handleLogout} className={styles.logoutButton}>
-              <LogOut size={18} />
+              <Icon name="LogOut" size="md" />
               <span>Log Out</span>
             </Button>
           </Flex>
@@ -386,7 +368,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('users')}
             className={getTabClassName(activeTab === 'users')}
           >
-            <Users size={18} />
+            <Icon name="Users" size="md" />
             User Management
           </Button>
           <Button
@@ -394,7 +376,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('audit')}
             className={getTabClassName(activeTab === 'audit')}
           >
-            <Activity size={18} />
+            <Icon name="Activity" size="md" />
             Audit Logs
           </Button>
           <Button
@@ -402,7 +384,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('system')}
             className={getTabClassName(activeTab === 'system')}
           >
-            <Server size={18} />
+            <Icon name="Server" size="md" />
             System Health
           </Button>
           <Button
@@ -410,7 +392,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('review')}
             className={getTabClassName(activeTab === 'review')}
           >
-            <ShieldCheck size={18} />
+            <Icon name="ShieldCheck" size="md" />
             Agentic Review
           </Button>
           <Button
@@ -418,7 +400,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('ingestion')}
             className={getTabClassName(activeTab === 'ingestion')}
           >
-            <RefreshCw size={18} />
+            <Icon name="RefreshCw" size="md" />
             Ingestion History
           </Button>
           <Button
@@ -426,7 +408,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('backups')}
             className={getTabClassName(activeTab === 'backups')}
           >
-            <Database size={18} />
+            <Icon name="Database" size="md" />
             Backups
           </Button>
         </Flex>
@@ -439,7 +421,7 @@ export const AdminDashboard: React.FC = () => {
               <Surface variant="glass" className={styles.statCard}>
                 <Flex align="center" justify="between" className={styles.statHeader}>
                   <h3 className={styles.statLabel}>Total Users</h3>
-                  <Users className={`${styles.statIcon} ${styles.accentIcon}`} />
+                  <Icon name="Users" className={`${styles.statIcon} ${styles.accentIcon}`} />
                 </Flex>
                 <LqText
                   as="div"
@@ -452,7 +434,7 @@ export const AdminDashboard: React.FC = () => {
               <Surface variant="glass" className={styles.statCard}>
                 <Flex align="center" justify="between" className={styles.statHeader}>
                   <h3 className={styles.statLabel}>Admins</h3>
-                  <Shield className={`${styles.statIcon} ${styles.purpleIcon}`} />
+                  <Icon name="Shield" className={`${styles.statIcon} ${styles.purpleIcon}`} />
                 </Flex>
                 <LqText
                   as="div"
@@ -465,7 +447,7 @@ export const AdminDashboard: React.FC = () => {
               <Surface variant="glass" className={styles.statCard}>
                 <Flex align="center" justify="between" className={styles.statHeader}>
                   <h3 className={styles.statLabel}>Active (24h)</h3>
-                  <Check className={`${styles.statIcon} ${styles.greenIcon}`} />
+                  <Icon name="Check" className={`${styles.statIcon} ${styles.greenIcon}`} />
                 </Flex>
                 <LqText
                   as="div"
@@ -490,7 +472,7 @@ export const AdminDashboard: React.FC = () => {
                 </LqText>
                 <Flex align="center" gap={3} className={styles.panelActions}>
                   <Box className={styles.searchField}>
-                    <Search className={styles.leadingIcon} />
+                    <Icon name="Search" className={styles.leadingIcon} />
                     <Input
                       type="text"
                       placeholder="Search users..."
@@ -500,7 +482,7 @@ export const AdminDashboard: React.FC = () => {
                     />
                   </Box>
                   <Button unstyled onClick={openCreateModal} className={styles.primaryButton}>
-                    <UserPlus size={18} />
+                    <Icon name="UserPlus" size="md" />
                     <span>Add User</span>
                   </Button>
                 </Flex>
@@ -543,7 +525,7 @@ export const AdminDashboard: React.FC = () => {
                           </td>
                           <td className={styles.cell}>
                             <span className={getRoleBadgeClassName(user.role)}>
-                              {user.role === 'admin' && <Shield size={12} />}
+                              {user.role === 'admin' && <Icon name="Shield" size="xs" />}
                               {user.role}
                             </span>
                           </td>
@@ -568,7 +550,7 @@ export const AdminDashboard: React.FC = () => {
                                 className={`${styles.iconButton} ${styles.editButton}`}
                                 title="Edit User"
                               >
-                                <Edit2 size={16} />
+                                <Icon name="Edit2" size="sm" />
                               </Button>
                               {user.id !== currentUser?.id && (
                                 <Button
@@ -577,7 +559,7 @@ export const AdminDashboard: React.FC = () => {
                                   className={`${styles.iconButton} ${styles.deleteButton}`}
                                   title="Delete User"
                                 >
-                                  <Trash2 size={16} />
+                                  <Icon name="Trash2" size="sm" />
                                 </Button>
                               )}
                             </Flex>
@@ -597,7 +579,7 @@ export const AdminDashboard: React.FC = () => {
           <Surface variant="panel" className={`${styles.panelShell} ${styles.fadeIn}`}>
             <Flex align="center" justify="between" className={styles.panelHeader}>
               <LqText as="h2" variant="h3" color="primary" className={styles.panelHeading}>
-                <Activity className={`${styles.statIcon} ${styles.blueIcon}`} />
+                <Icon name="Activity" className={`${styles.statIcon} ${styles.blueIcon}`} />
                 Audit Logs
               </LqText>
               <Button
@@ -606,7 +588,11 @@ export const AdminDashboard: React.FC = () => {
                 className={styles.refreshButton}
                 title="Refresh"
               >
-                <RefreshCw size={18} className={auditLoading ? styles.spin : undefined} />
+                <Icon
+                  name="RefreshCw"
+                  size="md"
+                  className={auditLoading ? styles.spin : undefined}
+                />
               </Button>
             </Flex>
             <Box className={`${styles.tableScroll} ${styles.tableScrollTall}`}>
@@ -671,7 +657,7 @@ export const AdminDashboard: React.FC = () => {
             <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="lg">
               <Surface variant="glass" className={styles.statCard}>
                 <Flex align="center" gap={3} className={styles.statHeader}>
-                  <Activity className={`${styles.statIcon} ${styles.greenIcon}`} />
+                  <Icon name="Activity" className={`${styles.statIcon} ${styles.greenIcon}`} />
                   <h3 className={styles.statLabel}>Status</h3>
                 </Flex>
                 <LqText
@@ -688,7 +674,7 @@ export const AdminDashboard: React.FC = () => {
 
               <Surface variant="glass" className={styles.statCard}>
                 <Flex align="center" gap={3} className={styles.statHeader}>
-                  <Database className={`${styles.statIcon} ${styles.blueIcon}`} />
+                  <Icon name="Database" className={`${styles.statIcon} ${styles.blueIcon}`} />
                   <h3 className={styles.statLabel}>Database</h3>
                 </Flex>
                 <LqText
@@ -705,7 +691,7 @@ export const AdminDashboard: React.FC = () => {
 
               <Surface variant="glass" className={styles.statCard}>
                 <Flex align="center" gap={3} className={styles.statHeader}>
-                  <FileText className={`${styles.statIcon} ${styles.orangeIcon}`} />
+                  <Icon name="FileText" className={`${styles.statIcon} ${styles.orangeIcon}`} />
                   <h3 className={styles.statLabel}>Documents</h3>
                 </Flex>
                 <LqText
@@ -719,7 +705,7 @@ export const AdminDashboard: React.FC = () => {
 
               <Surface variant="glass" className={styles.statCard}>
                 <Flex align="center" gap={3} className={styles.statHeader}>
-                  <Cpu className={`${styles.statIcon} ${styles.purpleIcon}`} />
+                  <Icon name="Cpu" className={`${styles.statIcon} ${styles.purpleIcon}`} />
                   <h3 className={styles.statLabel}>Environment</h3>
                 </Flex>
                 <Box className={styles.systemEnvironment}>{health?.environment || 'unknown'}</Box>
@@ -728,7 +714,7 @@ export const AdminDashboard: React.FC = () => {
 
             {/* Add more system controls here later */}
             <Flex align="start" gap={3} className={styles.warningBox}>
-              <AlertTriangle className={styles.warningIcon} />
+              <Icon name="AlertTriangle" className={styles.warningIcon} />
               <Box>
                 <h4 className={styles.warningTitle}>System Maintenance</h4>
                 <p className={styles.warningText}>
@@ -750,7 +736,7 @@ export const AdminDashboard: React.FC = () => {
               className={`${styles.panelHeader} ${styles.panelHeaderStrong}`}
             >
               <LqText as="h2" variant="h3" color="primary" className={styles.panelHeading}>
-                <RefreshCw className={`${styles.statIcon} ${styles.orangeIcon}`} />
+                <Icon name="RefreshCw" className={`${styles.statIcon} ${styles.orangeIcon}`} />
                 Ingestion History
               </LqText>
             </Flex>
@@ -818,7 +804,7 @@ export const AdminDashboard: React.FC = () => {
                 </LqText>
               </Box>
               <Button unstyled onClick={triggerBackup} className={styles.primaryButton}>
-                <RefreshCw size={18} />
+                <Icon name="RefreshCw" size="md" />
                 Snapshot Now
               </Button>
             </Flex>
@@ -836,7 +822,7 @@ export const AdminDashboard: React.FC = () => {
                   {backups.map((backup) => (
                     <tr key={backup.filename} className={styles.rowHover}>
                       <td className={`${styles.cell} ${styles.backupFilename}`}>
-                        <FileText size={14} className={styles.mutedIcon} />
+                        <Icon name="FileText" size="sm" className={styles.mutedIcon} />
                         {backup.filename}
                       </td>
                       <td className={`${styles.cell} ${styles.xsMonoCell} ${styles.rightAlign}`}>
@@ -907,7 +893,7 @@ export const AdminDashboard: React.FC = () => {
                   {editingUser ? 'New Password (leave blank to keep)' : 'Password'}
                 </label>
                 <div className={styles.searchField}>
-                  <Lock className={styles.leadingIcon} />
+                  <Icon name="Lock" className={styles.leadingIcon} />
                   <Input
                     type="password"
                     value={formData.password}

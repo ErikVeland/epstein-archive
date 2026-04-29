@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
-import { filterPeopleOnly } from '../../utils/entityFilters';
-import type { Person } from '../../types';
-import { useAnalytics } from '../../contexts/AnalyticsContextState';
-import { Button } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { filterPeopleOnly } from '@client/utils/entityFilters';
+import type { Person } from '@client/types';
+import { useAnalytics } from '@client/contexts/AnalyticsContextState';
+import { Button } from '@client/design-system/lib';
 import styles from './TreeMap.module.css';
 
 export interface PersonLike {
@@ -121,7 +121,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
           className={styles.controlButton}
           title="Zoom In"
         >
-          <ZoomIn size={16} />
+          <Icon name="ZoomIn" size="sm" />
         </Button>
         <Button
           variant="ghost"
@@ -130,7 +130,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
           className={styles.controlButton}
           title="Zoom Out"
         >
-          <ZoomOut size={16} />
+          <Icon name="ZoomOut" size="sm" />
         </Button>
         <Button
           variant="ghost"
@@ -139,7 +139,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
           className={styles.controlButton}
           title="Reset"
         >
-          <RotateCcw size={16} />
+          <Icon name="RotateCcw" size="sm" />
         </Button>
       </div>
 

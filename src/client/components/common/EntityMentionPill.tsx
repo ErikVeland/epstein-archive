@@ -1,5 +1,5 @@
 import React from 'react';
-import { User } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import s from './EntityMentionPill.module.css';
 
 interface EntityMentionPillProps {
@@ -24,7 +24,7 @@ export const EntityMentionPill: React.FC<EntityMentionPillProps> = ({
   if (!entityId) {
     return (
       <span className={`${s.pillPlain}${className ? ` ${className}` : ''}`}>
-        {showIcon && <User size={10} className={s.icon} />}
+        {showIcon && <Icon name="User" size="xs" className={s.icon} />}
         {entityName}
       </span>
     );
@@ -43,7 +43,7 @@ export const EntityMentionPill: React.FC<EntityMentionPillProps> = ({
       onClick={handleClick}
       title={`View profile: ${entityName}`}
     >
-      {showIcon && <User size={10} className={s.icon} />}
+      {showIcon && <Icon name="User" size="xs" className={s.icon} />}
       {entityName}
     </button>
   );

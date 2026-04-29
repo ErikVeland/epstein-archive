@@ -5,7 +5,7 @@ import {
   isTopRiskBaselineEntity,
   normalizeEntityRiskScore,
   toRedFlagRating,
-} from '../../../src/utils/entityRisk';
+} from '../../../src/client/utils/entityRisk';
 
 describe('entityRisk', () => {
   it('treats Epstein and Maxwell as top-risk baselines', () => {

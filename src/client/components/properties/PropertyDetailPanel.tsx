@@ -1,10 +1,10 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { X, MapPin, Home, Building2, AlertTriangle, User } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { PropertyLocationMap } from '../visualizations/PropertyLocationMap';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { formatCurrency, formatNumber } from '@client/utils/formatters';
 import { cn } from '@client/utils/cn';
 import { Button } from '@client/design-system/lib';
@@ -41,13 +41,13 @@ export function PropertyDetailPanel({
             <div className={styles.headerBadges}>
               {isEpstein && (
                 <span className={cn(styles.badge, styles.badgeEpstein)}>
-                  <AlertTriangle size={12} />
+                  <Icon name="AlertTriangle" size="xs" />
                   Epstein Property
                 </span>
               )}
               {isAssociate && (
                 <span className={cn(styles.badge, styles.badgeAssociate)}>
-                  <AlertTriangle size={12} />
+                  <Icon name="AlertTriangle" size="xs" />
                   Known Associate
                 </span>
               )}
@@ -73,14 +73,14 @@ export function PropertyDetailPanel({
             variant="ghost"
             iconOnly
           >
-            <X size={18} />
+            <Icon name="X" size="md" />
           </Button>
         </div>
 
         <div className={styles.content}>
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <MapPin size={14} className={styles.sectionIcon} />
+              <Icon name="MapPin" size="sm" className={styles.sectionIcon} />
               <span className={styles.sectionTitle}>Location</span>
             </div>
             <p className={styles.address}>
@@ -103,7 +103,7 @@ export function PropertyDetailPanel({
 
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <Home size={14} className={styles.sectionIcon} />
+              <Icon name="Home" size="sm" className={styles.sectionIcon} />
               <span className={styles.sectionTitle}>Property Details</span>
             </div>
             <div className={styles.detailGrid}>
@@ -150,7 +150,7 @@ export function PropertyDetailPanel({
 
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <Building2 size={14} className={styles.sectionIcon} />
+              <Icon name="Building2" size="sm" className={styles.sectionIcon} />
               <span className={styles.sectionTitle}>Valuation</span>
             </div>
             <div className={styles.detailGrid}>
@@ -188,7 +188,7 @@ export function PropertyDetailPanel({
           {isAssociate && property.linked_entity_id !== null && (
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
-                <User size={14} className={styles.sectionIcon} />
+                <Icon name="User" size="sm" className={styles.sectionIcon} />
                 <span className={styles.sectionTitle}>Linked Entity</span>
               </div>
               <Link
@@ -196,7 +196,7 @@ export function PropertyDetailPanel({
                 onClick={onClose}
                 className={styles.entityLink}
               >
-                <User size={14} />
+                <Icon name="User" size="sm" />
                 View Entity Profile
               </Link>
             </div>

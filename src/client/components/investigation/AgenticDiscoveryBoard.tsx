@@ -1,26 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import {
-  Cpu,
-  Search,
-  ArrowUpRight,
-  Trash2,
-  ExternalLink,
-  ShieldAlert,
-  Plane,
-  Camera,
-  User,
-  Zap,
-  Loader2,
-  RefreshCw,
-} from 'lucide-react';
+import { useIsMobile } from '@client/hooks/useIsMobile';
+import Icon from '@client/components/common/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiClient } from '../../services/apiClient';
-import { InvestigationLead } from '../../types/investigation';
+import { apiClient } from '@client/services/apiClient';
+import { InvestigationLead } from '@client/types/investigation';
 import { useToasts } from '../common/useToasts';
 
 // UI Library
-import { Box, Button, Flex, LqText, Stack } from '../../design-system/lib';
+import { Box, Button, Flex, LqText, Stack } from '@client/design-system/lib';
 
 import styles from './AgenticDiscoveryBoard.module.css';
 
@@ -78,10 +65,10 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
 
   const getSignalIcon = (type?: string | null) => {
     const t = (type || '').toLowerCase();
-    if (t.includes('travel') || t.includes('flight')) return <Plane size={18} />;
-    if (t.includes('presence')) return <Camera size={18} />;
-    if (t.includes('identity')) return <User size={18} />;
-    return <Zap size={18} />;
+    if (t.includes('travel') || t.includes('flight')) return <Icon name="Plane" size="md" />;
+    if (t.includes('presence')) return <Icon name="Camera" size="md" />;
+    if (t.includes('identity')) return <Icon name="User" size="md" />;
+    return <Icon name="Zap" size="md" />;
   };
 
   if (loading) {
@@ -93,7 +80,7 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
         gap="md"
         style={{ height: '100%', width: '100%' }}
       >
-        <Loader2 className="animate-spin text-accent" size={48} />
+        <Icon name="Loader2" className="animate-spin text-accent" size="xl" />
         <LqText variant="xs" color="muted" weight="black" className="tracking-widest uppercase">
           Neural Grid Initializing...
         </LqText>
@@ -106,7 +93,7 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
       <header className={styles.header}>
         <div className={styles.headerTitleBox}>
           <Flex align="center" gap="sm">
-            <Cpu size={24} className="text-accent" />
+            <Icon name="Cpu" size="lg" className="text-accent" />
             <LqText variant="bombastic" className={styles.bombasticTitle}>
               Discovery Intelligence
             </LqText>
@@ -118,18 +105,18 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
 
         <Flex gap="md">
           <Button variant="glass" size="sm" onClick={() => loadLeads(true)} disabled={refreshing}>
-            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            <Icon name="RefreshCw" size="sm" className={refreshing ? 'animate-spin' : ''} />
             {refreshing ? 'Scanning...' : 'Sync Graph'}
           </Button>
           <Button variant="accent-solid" size="sm">
-            <ArrowUpRight size={14} /> Intelligence Log
+            <Icon name="ArrowUpRight" size="sm" /> Intelligence Log
           </Button>
         </Flex>
       </header>
 
       {leads.length === 0 ? (
         <div className={styles.emptyState}>
-          <Search size={80} className={`${styles.pulseIcon}`} />
+          <Icon name="Search" size="xl" className={`${styles.pulseIcon}`} />
           <LqText variant="h2" weight="bold">
             Monitoring Neural Stream
           </LqText>
@@ -177,7 +164,7 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
                           lead.riskScore > 0.85 ? styles.riskCritical : ''
                         }`}
                       >
-                        <ShieldAlert size={10} style={{ marginRight: 4 }} />
+                        <Icon name="ShieldAlert" size="xs" style={{ marginRight: 4 }} />
                         Risk: {Math.round(lead.riskScore * 100)}%
                       </div>
                     )}
@@ -231,14 +218,14 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
                         size="sm"
                         style={{ width: isMobile ? '100%' : undefined }}
                       >
-                        <ExternalLink size={14} />
+                        <Icon name="ExternalLink" size="sm" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         style={{ width: isMobile ? '100%' : undefined }}
                       >
-                        <Trash2 size={14} />
+                        <Icon name="Trash2" size="sm" />
                       </Button>
                     </Flex>
                     <Button

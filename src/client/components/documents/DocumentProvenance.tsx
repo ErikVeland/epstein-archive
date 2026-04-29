@@ -4,11 +4,11 @@ import Icon from '../common/Icon';
 import styles from './DocumentProvenance.module.css';
 
 // Design System
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { LqText } from '../../design-system/components/typography/Text';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { LqText } from '@client/design-system/components/typography/Text';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface DocumentLineage {
   document: {

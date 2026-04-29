@@ -1,13 +1,14 @@
 import React, { useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, User, Database, Calendar, Eye, SearchCheck } from 'lucide-react';
-import { Button } from '../../design-system/components/Button';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { LqText } from '../../design-system/components/typography/Text';
-import { Document } from '../../types/documents';
+import Icon from '@client/components/common/Icon';
+import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
+import { Button } from '@client/design-system/components/Button';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Document } from '@client/types/documents';
 import {
   getRenderTypeIcon,
   getSafePreviewText,
@@ -15,8 +16,8 @@ import {
   formatDate,
   getSourceLabel,
   highlightSearchTerm,
-} from '../../utils/documentUtils';
-import { useIsMobile } from '../../hooks/useResponsive';
+} from '@client/utils/documentUtils';
+import { useIsMobile } from '@client/hooks/useResponsive';
 import styles from './DocumentCard.module.css';
 
 interface DocumentCardProps {
@@ -114,7 +115,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
           <Flex align="center" gap="sm">
             {document.previewKind === 'ai_summary' && (
               <Box className={styles.aiBadge} title="AI Forensic Summary">
-                <Sparkles className={styles.badgeIcon} />
+                <Icon name="Sparkles" className={styles.badgeIcon} />
               </Box>
             )}
             <Surface
@@ -135,7 +136,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
                 }}
                 className={styles.peekButton}
               >
-                <Eye size={16} />
+                <Icon name="Eye" size="sm" />
               </Button>
             )}
           </Flex>
@@ -147,12 +148,29 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
 
         {matchReasonLabel && searchTerm && (
           <Flex align="center" gap="xs" className={styles.matchReason}>
-            <SearchCheck className={styles.matchReasonIcon} />
+            <Icon name="SearchCheck" className={styles.matchReasonIcon} />
             <LqText variant="xxxs" weight="bold" className={styles.matchReasonText}>
               Match: {matchReasonLabel}
             </LqText>
           </Flex>
         )}
+
+        <Flex align="center" gap="xs" className={styles.provenanceRow}>
+          <ProvenanceBadge
+            sourceDocumentId={document.sourceDocumentId}
+            sourceHash={document.sourceHash}
+            reviewState={document.reviewState}
+            confidence={document.confidence}
+            extractionMethod={document.extractionMethod}
+            provenanceStatus={document.provenanceStatus}
+            showLabel={false}
+          />
+          {document.provenanceStatus === 'missing' && (
+            <LqText variant="xxxs" color="muted" weight="medium" className={styles.missingSource}>
+              Source missing
+            </LqText>
+          )}
+        </Flex>
 
         {(() => {
           const type = (document.evidenceType || document.fileType || '').toLowerCase();
@@ -181,7 +199,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
 
         {document.keyEntities && document.keyEntities.length > 0 && (
           <Flex align="center" gap="xs" className={styles.entitiesRow}>
-            <User className={styles.entityIcon} />
+            <Icon name="User" className={styles.entityIcon} />
             <LqText variant="xs" color="muted" weight="medium" className={styles.entityLabel}>
               {document.keyEntities.map((e, i) => (
                 <React.Fragment key={e.id || i}>
@@ -201,19 +219,19 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
 
         <Flex align="center" gap="sm" className={styles.footerRow}>
           <Flex align="center" gap="xs" className={styles.metaPill}>
-            <Calendar className={styles.metaIcon} />
+            <Icon name="Calendar" className={styles.metaIcon} />
             <LqText variant="xs" color="muted" weight="medium">
               {formatDate(document.dateCreated)}
             </LqText>
           </Flex>
           <Flex align="center" gap="xs" className={styles.metaPill}>
-            <Eye className={styles.metaIcon} />
+            <Icon name="Eye" className={styles.metaIcon} />
             <LqText variant="xs" color="muted" weight="medium" className={styles.footerText}>
               {entitiesCount} {entitiesCount === 1 ? 'Entity' : 'Entities'}
             </LqText>
           </Flex>
           <Flex align="center" gap="xs" className={styles.metaPill}>
-            <Database className={styles.metaIcon} />
+            <Icon name="Database" className={styles.metaIcon} />
             <LqText variant="xs" color="muted" weight="medium" className={styles.metaLabelTruncate}>
               {getSourceLabel(document)}
             </LqText>

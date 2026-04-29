@@ -1,8 +1,8 @@
 import React from 'react';
-import { EvidenceLadderLevel } from '../../../utils/forensics';
-import Icon from '../../common/Icon';
-import type { IconName } from '../../common/Icon';
-import { riskToneFromRating } from '../../../utils/riskSemantics';
+import { EvidenceLadderLevel } from '@client/utils/forensics';
+import Icon from '@client/components/common/Icon';
+import type { IconName } from '@client/components/common/Icon';
+import { riskToneFromRating } from '@client/utils/riskSemantics';
 import styles from './EvidenceBadge.module.css';
 
 interface EvidenceBadgeProps {

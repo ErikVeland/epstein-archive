@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Select, Surface, TextInput, Textarea } from '../../design-system/lib';
-import { Investigation } from '../../types/investigation';
+import { Button, Select, Surface, TextInput, Textarea } from '@client/design-system/lib';
+import { Investigation } from '@client/types/investigation';
 import Icon from './Icon';
-import { useInvestigations } from '../../contexts/InvestigationsContext';
+import { useInvestigations } from '@client/contexts/InvestigationsContext';
 import { CloseButton } from './CloseButton';
 import s from './AddToInvestigationButton.module.css';
 

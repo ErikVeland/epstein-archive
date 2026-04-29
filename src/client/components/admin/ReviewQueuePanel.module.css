@@ -50,6 +50,11 @@
   text-transform: uppercase;
 }
 
+.countBadges {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .countBadge {
   padding: 0.125rem var(--space-2);
   border-radius: 9999px;
@@ -59,10 +64,30 @@
   font-family: var(--font-mono);
 }
 
+.unreviewedBadge {
+  background: color-mix(in srgb, var(--accent-warning) 20%, transparent);
+  color: var(--accent-warning);
+}
+
+.deferredBadge {
+  background: color-mix(in srgb, var(--accent-muted) 20%, transparent);
+  color: var(--accent-muted);
+}
+
 .layout {
   display: grid;
   min-height: 31.25rem;
   grid-template-columns: 1fr;
+}
+
+.summaryBar {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 30%, transparent);
+  font-size: var(--type-xs);
+  color: var(--text-muted);
 }
 
 @media (min-width: 768px) {
@@ -176,6 +201,41 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.detailBadges {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.priorityBadge {
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+  background: color-mix(in srgb, var(--accent-warning) 20%, transparent);
+  color: var(--accent-warning);
+}
+
+.detailDescription {
+  color: var(--text-secondary);
+  font-size: var(--type-small);
+  line-height: 1.5;
+}
+
+.closeButton {
+  padding: var(--space-1);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color var(--duration-fast);
+}
+
+.closeButton:hover {
+  color: var(--text-primary);
 }
 
 .detailTitle {
@@ -251,6 +311,33 @@
   font-size: var(--type-xs);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
+}
+
+.auditInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+}
+
+.decisionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.decisionGroupLabel {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.placeholderHint {
+  font-size: var(--type-small);
+  color: var(--text-muted);
+  max-width: 20rem;
 }
 
 .notesBody {

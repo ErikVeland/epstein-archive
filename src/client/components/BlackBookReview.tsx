@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle, XCircle, SkipForward, AlertCircle } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { useToasts } from './common/useToasts';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import styles from './BlackBookReview.module.css';
 
-import { Button, Input } from '../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 interface ReviewEntry {
   id: number;
@@ -127,7 +127,7 @@ export const BlackBookReview: React.FC = () => {
   if (entries.length === 0) {
     return (
       <div className={styles.emptyState}>
-        <CheckCircle className={styles.emptyIcon} />
+        <Icon name="CheckCircle" className={styles.emptyIcon} />
         <h3 className={styles.emptyTitle}>All Done!</h3>
         <p className={styles.emptyBody}>All Black Book entries have been reviewed.</p>
       </div>
@@ -172,7 +172,7 @@ export const BlackBookReview: React.FC = () => {
       <div className={styles.card}>
         <div className={styles.reviewHeader}>
           <div className={styles.reviewBadge}>
-            <AlertCircle className={styles.reviewBadgeIcon} />
+            <Icon name="AlertCircle" className={styles.reviewBadgeIcon} />
             <span>Needs Review</span>
           </div>
           <div className={styles.entryMeta}>
@@ -244,7 +244,7 @@ export const BlackBookReview: React.FC = () => {
             disabled={saving || !editedName.trim()}
             className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
           >
-            <CheckCircle className={styles.actionIcon} />
+            <Icon name="CheckCircle" className={styles.actionIcon} />
             <span>Approve & Save</span>
           </Button>
 
@@ -254,7 +254,7 @@ export const BlackBookReview: React.FC = () => {
             disabled={saving}
             className={`${styles.actionButton} ${styles.actionButtonSecondary}`}
           >
-            <SkipForward className={styles.actionIcon} />
+            <Icon name="SkipForward" className={styles.actionIcon} />
             <span>Skip</span>
           </Button>
 
@@ -264,7 +264,7 @@ export const BlackBookReview: React.FC = () => {
             disabled={saving}
             className={`${styles.actionButton} ${styles.actionButtonDanger}`}
           >
-            <XCircle className={styles.actionIcon} />
+            <Icon name="XCircle" className={styles.actionIcon} />
             <span>Delete</span>
           </Button>
         </div>

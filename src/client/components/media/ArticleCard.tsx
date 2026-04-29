@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, ArrowUpRight, User, Clock } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import LazyImage from '../common/LazyImage';
 import { cn } from '@client/utils/cn';
 import styles from './ArticleCard.module.css';
@@ -56,7 +56,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
         <div className={styles.badgeRow}>
           <span className={styles.publicationBadge}>{article.publication}</span>
           <span className={styles.dateChip}>
-            <Calendar className={styles.metaIcon} />
+            <Icon name="Calendar" className={styles.metaIcon} />
             {new Date(article.published_date).toLocaleDateString()}
           </span>
         </div>
@@ -79,19 +79,20 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
               />
             ) : (
               <div className={styles.avatarFallback}>
-                <User className={styles.avatarIcon} />
+                <Icon name="User" className={styles.avatarIcon} />
               </div>
             )}
             <div className={styles.authorMeta}>
               <span className={styles.authorName}>{article.author}</span>
               <span className={styles.readTime}>
-                <Clock className={styles.metaIcon} /> {article.readingTime || '5 min read'}
+                <Icon name="Clock" className={styles.metaIcon} />{' '}
+                {article.readingTime || '5 min read'}
               </span>
             </div>
           </div>
 
           <div className={styles.arrowButton}>
-            <ArrowUpRight className={styles.arrowIcon} />
+            <Icon name="ArrowUpRight" className={styles.arrowIcon} />
           </div>
         </div>
       </div>

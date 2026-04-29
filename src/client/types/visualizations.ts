@@ -1,28 +1,26 @@
-export type EventType =
+export type TimelineEventType =
+  | 'flight'
+  | 'document'
   | 'arrest'
   | 'conviction'
-  | 'death'
-  | 'flight'
   | 'testimony'
-  | 'document'
-  | 'meeting'
-  | 'email'
-  | 'legal'
-  | 'financial'
-  | 'incident'
-  | 'other';
-export type Significance = 'high' | 'medium' | 'low' | 'critical';
+  | 'death'
+  | (string & Record<never, never>);
 
-export interface BaseTimelineEvent {
+export type TimelineSignificance =
+  | 'low'
+  | 'medium'
+  | 'high'
+  | 'critical'
+  | (string & Record<never, never>);
+
+export interface TimelineVisualizationEvent {
   id: string;
-  date: string | Date;
+  date: string;
   title: string;
   description: string;
-  type: EventType;
-  significance: Significance;
-  sources: string[];
-}
-
-export interface TimelineVisualizationEvent extends BaseTimelineEvent {
+  type: TimelineEventType;
   people: string[];
+  significance: TimelineSignificance;
+  sources: string[];
 }

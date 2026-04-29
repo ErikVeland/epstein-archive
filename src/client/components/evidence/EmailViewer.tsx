@@ -4,10 +4,10 @@
  * Displays correspondence evidence in email client style
  */
 
-import { Mail, Paperclip, Copy, Download, User, Calendar } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './EmailViewer.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface EmailViewerProps {
   evidence: {
@@ -64,7 +64,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
               className={styles.downloadLink}
               title="Download original email"
             >
-              <Download size={16} />
+              <Icon name="Download" size="sm" />
               Original
             </a>
           )}
@@ -73,7 +73,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
         <div className={styles.metaStack}>
           {metadata.from && (
             <div className={styles.metaRow}>
-              <User size={20} className={styles.metaIcon} />
+              <Icon name="User" size="md" className={styles.metaIcon} />
               <div className={styles.metaContent}>
                 <div className={styles.metaLabel}>From</div>
                 <div className={styles.metaValueRow}>
@@ -84,7 +84,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
                     className={styles.copyButton}
                     title="Copy email"
                   >
-                    <Copy size={16} />
+                    <Icon name="Copy" size="sm" />
                   </Button>
                 </div>
               </div>
@@ -93,7 +93,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
           {metadata.to && (
             <div className={styles.metaRow}>
-              <Mail size={20} className={styles.metaIcon} />
+              <Icon name="Mail" size="md" className={styles.metaIcon} />
               <div className={styles.metaContent}>
                 <div className={styles.metaLabel}>To</div>
                 <div className={styles.metaValueRow}>
@@ -104,7 +104,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
                     className={styles.copyButton}
                     title="Copy email"
                   >
-                    <Copy size={16} />
+                    <Icon name="Copy" size="sm" />
                   </Button>
                 </div>
               </div>
@@ -113,7 +113,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
           {metadata.cc && (
             <div className={styles.metaRow}>
-              <Mail size={20} className={styles.metaIcon} />
+              <Icon name="Mail" size="md" className={styles.metaIcon} />
               <div className={styles.metaContent}>
                 <div className={styles.metaLabel}>CC</div>
                 <div className={styles.metaValue}>{metadata.cc}</div>
@@ -123,7 +123,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
           {metadata.sentDate && (
             <div className={styles.metaRow}>
-              <Calendar size={20} className={styles.metaIcon} />
+              <Icon name="Calendar" size="md" className={styles.metaIcon} />
               <div className={styles.metaContent}>
                 <div className={styles.metaLabel}>Date</div>
                 <div className={styles.metaValue}>{metadata.sentDate}</div>
@@ -133,7 +133,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
           {metadata.attachmentCount && metadata.attachmentCount > 0 && (
             <div className={styles.metaRow}>
-              <Paperclip size={20} className={styles.metaIcon} />
+              <Icon name="Paperclip" size="md" className={styles.metaIcon} />
               <div className={styles.metaContent}>
                 <div className={styles.metaLabel}>Attachments</div>
                 <div className={styles.metaValue}>{metadata.attachmentCount} file(s)</div>

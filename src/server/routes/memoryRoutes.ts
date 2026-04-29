@@ -1,11 +1,11 @@
-import { Router } from 'express';
+import express from 'express';
 import { memoryRepository } from '../db/memoryRepository.js';
 import { getApiPool } from '../db/connection.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 
 const memoryQuerySchema = z.object({
   query: z.object({

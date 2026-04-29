@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
-import { GraphService, GraphNode as ServiceGraphNode } from '../../services/GraphService';
-import { ZoomIn, ZoomOut, Move, RefreshCw, AlertTriangle, Link2, Filter } from 'lucide-react';
-import { Button, cn } from '../../design-system/lib';
-import { Semaphore } from '../../utils/semaphore';
+import { GraphService, GraphNode as ServiceGraphNode } from '@client/services/GraphService';
+import Icon from '@client/components/common/Icon';
+import { Button, cn } from '@client/design-system/lib';
+import { Semaphore } from '@client/utils/semaphore';
 import styles from './NetworkGraph.module.css';
 
 const avatarSemaphore = new Semaphore(2);
@@ -388,7 +388,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     if (useWorkerRef.current && typeof Worker !== 'undefined') {
       try {
         workerRef.current = new Worker(
-          new URL('../../workers/networkGraph.worker.ts', import.meta.url),
+          new URL('@client/workers/networkGraph.worker.ts', import.meta.url),
           { type: 'module' },
         );
 
@@ -633,13 +633,13 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       {/* Controls */}
       <div className={styles.controls}>
         <Button variant="ghost" size="sm" onClick={zoomIn} className={styles.controlButton}>
-          <ZoomIn className={styles.controlIcon} />
+          <Icon name="ZoomIn" className={styles.controlIcon} />
         </Button>
         <Button variant="ghost" size="sm" onClick={zoomOut} className={styles.controlButton}>
-          <ZoomOut className={styles.controlIcon} />
+          <Icon name="ZoomOut" className={styles.controlIcon} />
         </Button>
         <Button variant="ghost" size="sm" onClick={resetView} className={styles.controlButton}>
-          <RefreshCw className={styles.controlIcon} />
+          <Icon name="RefreshCw" className={styles.controlIcon} />
         </Button>
         <Button
           variant="ghost"
@@ -654,7 +654,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             showFilters && styles.filterButtonActive,
           )}
         >
-          <Filter className={styles.controlIcon} />
+          <Icon name="Filter" className={styles.controlIcon} />
           {!hasInteractedWithFilter && !showFilters && <span className={styles.filterPing} />}
           {!hasInteractedWithFilter && !showFilters && <span className={styles.filterDot} />}
         </Button>
@@ -682,14 +682,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       {showFilters && (
         <div className={styles.filterPanel}>
           <p className={styles.filterTitle}>
-            <Filter className={styles.tinyIcon} /> Node Filters
+            <Icon name="Filter" className={styles.tinyIcon} /> Node Filters
           </p>
 
           <div className={styles.filterGroups}>
             {/* Severity Filter */}
             <div className={styles.filterGroup}>
               <label className={styles.filterLabel}>
-                <AlertTriangle className={`${styles.tinyIcon} ${styles.warningIcon}`} />
+                <Icon name="AlertTriangle" className={`${styles.tinyIcon} ${styles.warningIcon}`} />
                 Min Severity: {minSeverity}
               </label>
               <input
@@ -709,7 +709,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             {/* Connections Filter */}
             <div className={styles.filterGroup}>
               <label className={styles.filterLabel}>
-                <Link2 className={`${styles.tinyIcon} ${styles.accentIcon}`} />
+                <Icon name="Link2" className={`${styles.tinyIcon} ${styles.accentIcon}`} />
                 Min Connections: {minConnections}
               </label>
               <input
@@ -821,7 +821,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             </div>
           </div>
           <div className={styles.legendHint}>
-            <Move className={styles.tinyIcon} />
+            <Icon name="Move" className={styles.tinyIcon} />
             <span>Drag Background to Pan</span>
           </div>
           <div className={styles.legendHint}>
@@ -1058,9 +1058,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                 className={styles.expandButton}
               >
                 {isExpanding ? (
-                  <RefreshCw className={`${styles.tinyIcon} ${styles.spin}`} />
+                  <Icon name="RefreshCw" className={`${styles.tinyIcon} ${styles.spin}`} />
                 ) : (
-                  <Link2 className={styles.tinyIcon} />
+                  <Icon name="Link2" className={styles.tinyIcon} />
                 )}
                 Discover Connections
               </Button>

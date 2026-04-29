@@ -3,8 +3,10 @@ import type {
   DocumentListItemDto,
   DocumentsListResponseDto,
 } from '@shared/dto/documents';
+import { mapProvenanceFieldsDto } from './provenanceDtoMapper';
 
 export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentListItemDto => ({
+  ...mapProvenanceFieldsDto(doc),
   id: String(doc.id || ''),
   fileName: String(doc.fileName || ''),
   title: String(doc.title || doc.fileName || 'Untitled'),
@@ -66,6 +68,7 @@ export const mapDocumentsListResponseDto = (
   return response;
 };
 export const mapDocumentDetailDto = (doc: Record<string, unknown>): DocumentDetailDto => ({
+  ...mapProvenanceFieldsDto(doc),
   id: String(doc.id || ''),
   fileName: String(doc.fileName || doc.file_name || ''),
   filePath: typeof doc.filePath === 'string' ? doc.filePath : null,

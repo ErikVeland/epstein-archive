@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Investigation } from '../../../types/investigation';
+import { Investigation } from '@client/types/investigation';
 import { MultiSourceCorrelationEngine } from '../MultiSourceCorrelationEngine';
 import ForensicReportGenerator from '../ForensicReportGenerator';
-import FinancialTransactionMapper from '../../visualizations/FinancialTransactionMapper';
+import FinancialTransactionMapper from '@client/components/visualizations/FinancialTransactionMapper';
 import { CommunicationAnalysis } from '../CommunicationAnalysis';
 import styles from './MobileForensicView.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 type ForensicTab = 'documents' | 'correlation' | 'financial' | 'reports' | 'communication';
 

@@ -52,7 +52,7 @@ export async function buildVipDisplayLookup(): Promise<Map<string, string>> {
   const now = Date.now();
   if (vipLookupCache && vipLookupCache.expiresAt > now) return vipLookupCache.value;
 
-  let raw: Array<{ full_name?: string; mentions?: number; aliases?: string }> = [];
+  let raw: Array<{ full_name?: string; mentions?: number | null; aliases?: string }> = [];
   try {
     raw = await entitiesQueries.getVipEntities.run(undefined, getApiPool());
   } catch (error) {

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import crypto from 'crypto';
 import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { logAudit } from '../utils/auditLogger.js';
@@ -7,7 +7,7 @@ import { createUser, getUserById, listUsers, updateUser } from '../db/routesDb.j
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 
 const BCRYPT_COST = 12;
 

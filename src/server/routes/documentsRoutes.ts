@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import { documentsRepository } from '../db/documentsRepository.js';
 import { documentPagesRepository } from '../db/documentPagesRepository.js';
 import { documentAnnotationsRepository } from '../db/documentAnnotationsRepository.js';
@@ -17,7 +17,7 @@ import { createHash } from 'crypto';
 import { Readable } from 'stream';
 import type { ReadableStream as WebReadableStream } from 'stream/web';
 
-const router = Router();
+const router = express.Router();
 
 const documentsListQuerySchema = z.object({
   query: z.object({

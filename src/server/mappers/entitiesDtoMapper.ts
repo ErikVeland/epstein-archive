@@ -6,6 +6,7 @@ import {
   SubjectsListResponseDto,
   RiskLevel,
 } from '@shared/dto/entities';
+import { mapProvenanceFieldsDto } from './provenanceDtoMapper';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -159,6 +160,7 @@ export const mapEntityListItemDto = (
   entity: UnknownRecord,
   photosByEntity: Record<string, UnknownRecord[]> = {},
 ): EntityListItemDto => ({
+  ...mapProvenanceFieldsDto(entity),
   id: typeof entity.id === 'number' || typeof entity.id === 'string' ? entity.id : '',
   name: String(entity.full_name || entity.fullName || entity.name || 'Unknown'),
   fullName: String(entity.full_name || entity.fullName || entity.name || 'Unknown'),
@@ -239,6 +241,7 @@ export const mapEntityDetailDto = (entity: UnknownRecord): EntityDetailDto => {
   const bio = String(entity.bio || entity.summary || '');
 
   return {
+    ...mapProvenanceFieldsDto(entity),
     id: String(entity.id),
     name,
     fullName: name,

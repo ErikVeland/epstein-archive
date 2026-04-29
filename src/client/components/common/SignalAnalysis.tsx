@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Network, Eye, AlertTriangle } from 'lucide-react';
+import Icon from './Icon';
 import styles from './SignalAnalysis.module.css';
 
 interface SignalAnalysisProps {
@@ -14,28 +14,28 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
       exposure: {
         value: 0,
         label: 'Exposure',
-        icon: Eye,
+        icon: 'Eye' as const,
         color: styles.accent,
         barColor: styles.fillAccent,
       },
       network: {
         value: 0,
         label: 'Network',
-        icon: Network,
+        icon: 'Network' as const,
         color: styles.accentSecondary,
         barColor: styles.fillAccentSecondary,
       },
       evidence: {
         value: 0,
         label: 'Evidence',
-        icon: Shield,
+        icon: 'Shield' as const,
         color: styles.accent,
         barColor: styles.fillAccent,
       },
       risk: {
         value: rating * 20,
         label: 'Risk Index',
-        icon: AlertTriangle,
+        icon: 'AlertTriangle' as const,
         color: styles.danger,
         barColor: styles.fillDanger,
       },
@@ -71,7 +71,7 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
     <div className={styles.root}>
       <div className={styles.header}>
         <h3 className={styles.title}>
-          <Activity className={styles.titleIcon} />
+          <Icon name="Activity" className={styles.titleIcon} />
           Forensic Signal Analysis
         </h3>
         <div className={styles.rating}>
@@ -89,7 +89,7 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
           <div key={i} className={styles.signal}>
             <div className={styles.signalRow}>
               <div className={`${styles.signalLabel} ${signal.color}`}>
-                <signal.icon className={styles.signalIcon} />
+                <Icon name={signal.icon} className={styles.signalIcon} />
                 {signal.label}
               </div>
               <span className={styles.signalValue}>{Math.round(signal.value)}%</span>
@@ -112,20 +112,3 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
     </div>
   );
 };
-
-const Activity = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-  </svg>
-);

@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import express from 'express';
 import { intelligenceRepository } from '../db/intelligenceRepository.js';
 import { cacheResponse } from '../utils/perfCache.js';
 import { logger } from '../services/Logger.js';
 
-const router = Router();
+const router = express.Router();
 
 /**
  * GET /api/intelligence/review

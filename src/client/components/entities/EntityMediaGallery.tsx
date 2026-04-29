@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { ZoomIn, Play, Image as ImageIcon, Music, FileText } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../common/CloseButton';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Grid } from '../../design-system/components/layout/Grid';
-import { LqText } from '../../design-system/components/typography/Text';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Grid } from '@client/design-system/components/layout/Grid';
+import { LqText } from '@client/design-system/components/typography/Text';
 import styles from './EntityMediaGallery.module.css';
 
 interface MediaItem {
@@ -46,7 +46,7 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
   if (!media || media.length === 0) {
     return (
       <Surface variant="glass" className={styles.emptyState}>
-        <ImageIcon className={styles.emptyStateIcon} />
+        <Icon name="Image" className={styles.emptyStateIcon} />
         <LqText variant="small" color="muted">
           No media assets found for {entityName}
         </LqText>
@@ -112,19 +112,25 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
                 />
               ) : (
                 <Flex align="center" justify="center" className={styles.mediaPlaceholder}>
-                  {type === 'video' ? <Play /> : type === 'audio' ? <Music /> : <FileText />}
+                  {type === 'video' ? (
+                    <Icon name="Play" />
+                  ) : type === 'audio' ? (
+                    <Icon name="Music" />
+                  ) : (
+                    <Icon name="FileText" />
+                  )}
                 </Flex>
               )}
               <Flex align="center" justify="center" className={styles.mediaOverlay}>
-                <ZoomIn className={styles.zoomIcon} />
+                <Icon name="ZoomIn" className={styles.zoomIcon} />
               </Flex>
 
               {type !== 'image' && (
                 <Box className={styles.videoBadge}>
                   {type === 'audio' ? (
-                    <Music className={styles.videoIcon} />
+                    <Icon name="Music" className={styles.videoIcon} />
                   ) : (
-                    <Play className={styles.videoIcon} />
+                    <Icon name="Play" className={styles.videoIcon} />
                   )}
                 </Box>
               )}

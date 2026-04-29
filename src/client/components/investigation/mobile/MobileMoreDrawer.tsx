@@ -1,8 +1,7 @@
-import React from 'react';
-import { Calendar, Microscope, MessageSquare, Target, Download, ChevronRight } from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 import styles from './MobileMoreDrawer.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 export type MoreTool = 'timeline' | 'forensic' | 'communications' | 'hypotheses' | 'export';
 
@@ -10,29 +9,39 @@ interface ToolEntry {
   id: MoreTool;
   title: string;
   subtitle: string;
-  Icon: React.ElementType;
+  iconName: IconName;
 }
 
 const TOOLS: ToolEntry[] = [
-  { id: 'timeline', title: 'Event Chronology', subtitle: 'Timeline of events', Icon: Calendar },
+  {
+    id: 'timeline',
+    title: 'Event Chronology',
+    subtitle: 'Timeline of events',
+    iconName: 'Calendar',
+  },
   {
     id: 'forensic',
     title: 'Forensic Workbench',
     subtitle: 'Document analysis, network',
-    Icon: Microscope,
+    iconName: 'Microscope',
   },
   {
     id: 'communications',
     title: 'Communications',
     subtitle: 'Pattern analysis',
-    Icon: MessageSquare,
+    iconName: 'MessageSquare',
   },
-  { id: 'hypotheses', title: 'Hypotheses', subtitle: 'Test and refine theories', Icon: Target },
+  {
+    id: 'hypotheses',
+    title: 'Hypotheses',
+    subtitle: 'Test and refine theories',
+    iconName: 'Target',
+  },
   {
     id: 'export',
     title: 'Export & Report',
     subtitle: 'Reports, JSON packet, ZIP bundle',
-    Icon: Download,
+    iconName: 'Download',
   },
 ];
 
@@ -47,7 +56,7 @@ export function MobileMoreDrawer({ onSelectTool, onClose }: MobileMoreDrawerProp
       <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
         <div className={styles.dragHandle} />
         <div className={styles.title}>More Tools</div>
-        {TOOLS.map(({ id, title, subtitle, Icon }) => (
+        {TOOLS.map(({ id, title, subtitle, iconName }) => (
           <Button
             unstyled
             key={id}
@@ -59,13 +68,13 @@ export function MobileMoreDrawer({ onSelectTool, onClose }: MobileMoreDrawerProp
             }}
           >
             <div className={styles.iconBox}>
-              <Icon size={18} />
+              <Icon name={iconName} size="sm" />
             </div>
             <div className={styles.rowBody}>
               <span className={styles.rowTitle}>{title}</span>
               <span className={styles.rowSubtitle}>{subtitle}</span>
             </div>
-            <ChevronRight size={16} className={styles.chevron} />
+            <Icon name="ChevronRight" size="sm" className={styles.chevron} />
           </Button>
         ))}
       </div>

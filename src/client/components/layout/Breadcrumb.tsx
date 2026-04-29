@@ -1,8 +1,8 @@
 import React from 'react';
-import { ChevronRight, Home } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import s from './Breadcrumb.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface BreadcrumbItem {
   label: string;
@@ -21,8 +21,8 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
       <ol className={s.list}>
         {items.map((item, index) => (
           <li key={index} className={s.item}>
-            {index > 0 && <ChevronRight className={s.chevron} />}
-            {index === 0 && <Home className={s.homeIcon} />}
+            {index > 0 && <Icon name="ChevronRight" className={s.chevron} />}
+            {index === 0 && <Icon name="Home" className={s.homeIcon} />}
             {index === items.length - 1 ? (
               <span className={s.current}>{item.label}</span>
             ) : item.href ? (

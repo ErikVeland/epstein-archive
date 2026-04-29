@@ -1,0 +1,2 @@
+src/client/components/documents/ProvenancePanel.tsx(63,45): error TS2322: Type '"verified"' is not assignable to type 'ReviewState'.
+src/client/components/documents/ProvenancePanel.tsx(64,45): error TS2322: Type '"disputed"' is not assignable to type 'ReviewState'.

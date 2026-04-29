@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import express from 'express';
 import type { Request, Response } from 'express';
 import { getApiPool } from '../db/connection.js';
 
-const router = Router();
+const router = express.Router();
 
 const ORIGIN = 'https://epstein.academy';
 

@@ -220,6 +220,37 @@ ingest_runs` (or the closest existing table that records pipeline runs).
 8. Harden route-level loading/error/degraded states.
 9. **NEW**: Lint warning cleanup (see Packet 7).
 
+## Implementation Log
+
+### 2026-04-29 — Packet 2 Status
+
+Scope completed:
+
+- Canonical provenance DTO/schema added in `src/shared/dto/provenance.ts` and `src/shared/schemas/provenance.ts`.
+- Provenance mapper helper added in `src/server/mappers/provenanceDtoMapper.ts`.
+- Entity, document, and entity-evidence DTO/schema contracts now include optional provenance fields.
+- Document/entity/entity-evidence mappers now emit explicit provenance fields with `provenanceStatus` derived from source hash and extraction method.
+- Existing `ProvenanceBadge` aligned to canonical review states and extraction methods.
+- Document cards, document modal header/metadata rail, person/entity cards, evidence result cards, and AI claim rows now surface provenance status.
+- Entity cards can open the linked source document when `sourceDocumentId` is present; evidence snippets show source badges for linked context/passages.
+- Focused unit coverage added in `src/test/provenanceDtoMapper.test.ts` for provenance normalization plus document/entity/evidence mapper propagation.
+
+Verification:
+
+- Passed: `pnpm exec vitest run src/test/provenanceDtoMapper.test.ts` (5 tests).
+- Passed: `pnpm format:check`.
+- Passed: `pnpm lint`.
+- Passed: `pnpm type-check`.
+- Passed: `pnpm test:unit` (21 test files passed, 1 skipped; 74 tests passed, 16 skipped).
+- Partial: `pnpm build:prod` now completes prebuild gates and the Vite client build.
+- Blocked: `pnpm build:prod` fails in the final server compile step (`tsc -p tsconfig.server.json`) with 93 server type errors, mostly generated pgtyped repository contract mismatches plus a server-excluded `exif-parser` declaration.
+
+Next Packet 2 work:
+
+- Restore the server production-build baseline before browser release testing.
+- Add Playwright source-first smoke coverage once the broader type-check/build baseline is restored.
+- Audit any less-traveled claim-specific surfaces outside `ClaimsTab` or evidence results once route/UI sync coverage is available.
+
 ### Packet 7: Lint Warning Cleanup
 
 Goal: Achieve 0 lint warnings in production code.

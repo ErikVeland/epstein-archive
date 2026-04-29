@@ -1,19 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize2,
-  Minimize2,
-  Shield,
-  Share2,
-  Check,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { TranscriptSegment, Chapter } from './AudioPlayer';
 import { CloseButton } from '../common/CloseButton';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { Button, Input, SearchField, Surface } from '../../design-system/lib';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { Button, Input, SearchField, Surface } from '@client/design-system/lib';
 import { cn } from '@client/utils/cn';
 import styles from './VideoPlayer.module.css';
 
@@ -359,7 +349,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         <div className={styles.headerBar}>
           <div className={styles.headerInfo}>
             <div className={styles.headerIconBox}>
-              <Play size={16} />
+              <Icon name="Play" size="sm" />
             </div>
             <div className={styles.headerText}>
               <h3 className={styles.title} title={title}>
@@ -373,9 +363,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <div className={styles.headerActions}>
             <Button unstyled onClick={handleShare} className={styles.iconButton} title="Copy link">
               {showCopied ? (
-                <Check size={16} className={styles.successIcon} />
+                <Icon name="Check" size="sm" className={styles.successIcon} />
               ) : (
-                <Share2 size={16} />
+                <Icon name="Share2" size="sm" />
               )}
             </Button>
             <Button
@@ -444,7 +434,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           {!hasRevealed && (
             <div className={styles.warningOverlay}>
               <div className={styles.warningIconCircle}>
-                <Shield className={styles.warningIcon} />
+                <Icon name="Shield" className={styles.warningIcon} />
               </div>
               <h3 className={styles.warningTitle}>Graphic Content Warning</h3>
               <p className={styles.warningBody}>{warningText}</p>
@@ -517,9 +507,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 <div className={styles.transportCluster}>
                   <Button unstyled onClick={togglePlay} className={styles.transportButton}>
                     {isPlaying ? (
-                      <Pause size={24} fill="currentColor" />
+                      <Icon name="Pause" size="lg" fill="currentColor" />
                     ) : (
-                      <Play size={24} fill="currentColor" />
+                      <Icon name="Play" size="lg" fill="currentColor" />
                     )}
                   </Button>
 
@@ -532,7 +522,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       }}
                       className={styles.volumeButton}
                     >
-                      {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                      {isMuted ? (
+                        <Icon name="VolumeX" size="md" />
+                      ) : (
+                        <Icon name="Volume2" size="md" />
+                      )}
                     </Button>
                     <Input
                       type="range"
@@ -573,7 +567,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   </div>
 
                   <Button unstyled onClick={toggleFullscreen} className={styles.fullscreenButton}>
-                    {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                    {isFullscreen ? (
+                      <Icon name="Minimize2" size="md" />
+                    ) : (
+                      <Icon name="Maximize2" size="md" />
+                    )}
                   </Button>
                 </div>
               </div>
@@ -717,7 +715,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         {formatTime(chapter.startTime)}
                       </div>
                       <div className={styles.chapterButtonTitle}>{chapter.title}</div>
-                      <Play size={12} className={styles.chapterButtonIcon} />
+                      <Icon name="Play" size="xs" className={styles.chapterButtonIcon} />
                     </Button>
                   ))}
                 </div>

@@ -1,15 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Shield, Check, X, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiClient } from '../services/apiClient';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { LqText } from '../design-system/components/typography/Text';
-import type { SpaceValue } from '../design-system/lib/resolveSpace';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
+import { Surface, Flex, Box, LqText, Button } from '@client/design-system/lib';
+import type { SpaceValue } from '@client/design-system/lib/resolveSpace';
 import styles from './ReviewDashboard.module.css';
-
-import { Button } from '../design-system/lib';
 
 interface MentionQueueItem {
   id: number;
@@ -89,7 +84,7 @@ export function ReviewDashboard() {
         <Flex align="center" justify="between" className={styles.header}>
           <Box>
             <LqText as="h1" variant="h1" color="accent" className={styles.title}>
-              <Shield className={styles.titleIcon} strokeWidth={1} />
+              <Icon name="Shield" className={styles.titleIcon} />
               Active Learning Review
             </LqText>
             <LqText as="p" variant="body" color="muted" weight="light" className={styles.subtitle}>
@@ -149,7 +144,7 @@ export function ReviewDashboard() {
                       <Flex align="center" gap={1.5 as SpaceValue} className={styles.metaRow}>
                         Source: <span className={styles.metaValue}>{item.file_name}</span>
                         <Link to={`/evidence/${item.document_id}`} className={styles.sourceLink}>
-                          <ExternalLink className={styles.sourceLinkIcon} />
+                          <Icon name="ExternalLink" size="sm" className={styles.sourceLinkIcon} />
                         </Link>
                       </Flex>
                     </Box>
@@ -160,7 +155,7 @@ export function ReviewDashboard() {
                         className={`${styles.iconButton} ${styles.iconButtonApprove}`}
                         title="Verify"
                       >
-                        <Check className={styles.actionIcon} />
+                        <Icon name="Check" className={styles.actionIcon} />
                       </Button>
                       <Button
                         unstyled
@@ -168,7 +163,7 @@ export function ReviewDashboard() {
                         className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
-                        <X className={styles.actionIcon} />
+                        <Icon name="X" className={styles.actionIcon} />
                       </Button>
                     </Flex>
                   </Flex>
@@ -212,7 +207,7 @@ export function ReviewDashboard() {
                         className={`${styles.iconButton} ${styles.iconButtonApprove}`}
                         title="Verify"
                       >
-                        <Check className={styles.actionIcon} />
+                        <Icon name="Check" className={styles.actionIcon} />
                       </Button>
                       <Button
                         unstyled
@@ -220,7 +215,7 @@ export function ReviewDashboard() {
                         className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
-                        <X className={styles.actionIcon} />
+                        <Icon name="X" className={styles.actionIcon} />
                       </Button>
                     </Flex>
                   </Flex>
@@ -234,7 +229,7 @@ export function ReviewDashboard() {
                   className={styles.emptyState}
                 >
                   <Flex align="center" justify="center" className={styles.emptyBadge}>
-                    <Check className={styles.emptyBadgeIcon} />
+                    <Icon name="Check" className={styles.emptyBadgeIcon} />
                   </Flex>
                   <LqText as="h3" variant="h3" color="primary" className={styles.emptyTitle}>
                     Queue is Empty

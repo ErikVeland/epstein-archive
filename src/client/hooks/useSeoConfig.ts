@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import type { SeoConfig } from '../types/api';
+import type { SeoConfig } from '@client/types/api';
 
 export const useSeoConfig = (): SeoConfig => {
   const location = useLocation();

@@ -1,13 +1,13 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Newspaper, Image, Music, Film, User } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@client/contexts/AuthContext';
 import { SEO } from '../common/SEO';
 import { cn } from '@client/utils/cn';
 import styles from './MediaAndArticlesTab.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 // Lazy load the tabs to prevent crashes
 const ArticlesTab = React.lazy(() => import('./ArticlesTab'));
@@ -184,15 +184,15 @@ export const MediaAndArticlesTab: React.FC = () => {
       {/* Sub-tab Navigation */}
       <div className={styles.tabBar}>
         <Button unstyled onClick={() => navigateToTab('photos')} className={tabClassName('photos')}>
-          <Image className={styles.tabIcon} />
+          <Icon name="Image" className={styles.tabIcon} />
           <span className={styles.tabLabel}>Images</span>
         </Button>
         <Button unstyled onClick={() => navigateToTab('audio')} className={tabClassName('audio')}>
-          <Music className={styles.tabIcon} />
+          <Icon name="Music" className={styles.tabIcon} />
           <span className={styles.tabLabel}>Audio</span>
         </Button>
         <Button unstyled onClick={() => navigateToTab('video')} className={tabClassName('video')}>
-          <Film className={styles.tabIcon} />
+          <Icon name="Film" className={styles.tabIcon} />
           <span className={styles.tabLabel}>Video</span>
         </Button>
         <Button
@@ -200,12 +200,12 @@ export const MediaAndArticlesTab: React.FC = () => {
           onClick={() => navigateToTab('articles')}
           className={tabClassName('articles')}
         >
-          <Newspaper className={styles.tabIcon} />
+          <Icon name="Newspaper" className={styles.tabIcon} />
           <span className={styles.tabLabel}>Articles</span>
         </Button>
         {isAdmin && (
           <Button unstyled onClick={() => navigateToTab('faces')} className={tabClassName('faces')}>
-            <User className={styles.tabIcon} />
+            <Icon name="User" className={styles.tabIcon} />
             <span className={styles.tabLabel}>Faces (Admin)</span>
           </Button>
         )}

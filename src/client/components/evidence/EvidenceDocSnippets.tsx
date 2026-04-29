@@ -1,7 +1,7 @@
 import React from 'react';
 import DOMPurify from 'isomorphic-dompurify';
-import { FileText, File } from 'lucide-react';
-import { Surface, Flex, Box, Stack, LqText, Badge, Button } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Surface, Flex, Box, Stack, LqText, Badge, Button } from '@client/design-system/lib';
 import styles from './EvidenceDocSnippets.module.css';
 
 interface DocSnippet {
@@ -30,7 +30,7 @@ export const EvidenceDocSnippets: React.FC<EvidenceDocSnippetsProps> = ({
         <Flex justify="between" align="center">
           <Flex align="center" gap="md">
             <Box className={styles.headerIcon}>
-              <FileText size={20} />
+              <Icon name="FileText" size="md" />
             </Box>
             <Stack gap="0">
               <LqText variant="h3" weight="bold">
@@ -66,7 +66,7 @@ export const EvidenceDocSnippets: React.FC<EvidenceDocSnippetsProps> = ({
                       </LqText>
                     </Button>
                     <Flex align="center" gap="xs">
-                      <File size={12} className={styles.iconMuted} />
+                      <Icon name="File" size="xs" className={styles.iconMuted} />
                       <LqText variant="xs" color="muted">
                         {(doc.title || '').split('.').pop()?.toUpperCase() || 'FILE'}
                       </LqText>

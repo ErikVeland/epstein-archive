@@ -1,27 +1,15 @@
 import React from 'react';
-import {
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-  Activity,
-  AlertTriangle,
-  BookOpen,
-  ExternalLink,
-  Image as ImageIcon,
-  Play as PlayIcon,
-  Video as VideoIcon,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Skeleton } from '../Skeleton';
-import { SignalPanel } from '../../entities/cards/SignalPanel';
-import { DriverChips } from '../../entities/cards/DriverChips';
+import { SignalPanel } from '@client/components/entities/cards/SignalPanel';
+import { DriverChips } from '@client/components/entities/cards/DriverChips';
 import { EvidenceCard } from './EvidenceCard';
-import Icon from '../Icon';
-import { getRiskClass, isVisualMediaItem } from '../../../utils/evidenceUtils';
+import { getRiskClass, isVisualMediaItem } from '@client/utils/evidenceUtils';
 import { EntityPhoto } from '../EvidenceModal';
-import { SignalMetrics, DriverChip } from '../../../../utils/forensics';
+import { SignalMetrics, DriverChip } from '@client/utils/forensics';
 import s from './EvidenceOverviewTab.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface EvidenceEntity {
   id?: string | number;
@@ -105,13 +93,13 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
         <div className={s.metricsCard}>
           <div className={s.metricsBadges}>
             <span className={`${s.riskBadge} ${s[getRiskClass(entity.redFlagRating || 0)]}`}>
-              <ShieldAlert size={12} className={s.badgeIcon} />
+              <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
               Risk {(entity.redFlagRating || 0).toFixed(0)}/5
             </span>
             <span
               className={`${s.evidenceBadge} ${s[`evidence-${forensicData.ladder.level?.toLowerCase()}`]}`}
             >
-              <Sparkles size={12} className={s.badgeIcon} />
+              <Icon name="Sparkles" size="xs" className={s.badgeIcon} />
               {forensicData.ladder.level === 'L1'
                 ? 'Direct Evidence'
                 : forensicData.ladder.level === 'L2'
@@ -121,7 +109,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                     : 'Evidence Unspecified'}
             </span>
             <span className={s.provenanceBadge}>
-              <ShieldCheck size={12} className={s.badgeIcon} />
+              <Icon name="ShieldCheck" size="xs" className={s.badgeIcon} />
               EXO-PROVENANCE v2
             </span>
           </div>
@@ -153,7 +141,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
 
           <div className={s.driversSection}>
             <h4 className={s.sectionHeader}>
-              <Activity size={12} className={s.headerIcon} /> Key Drivers
+              <Icon name="Activity" size="xs" className={s.headerIcon} /> Key Drivers
             </h4>
             <DriverChips chips={forensicData.drivers} />
           </div>
@@ -177,7 +165,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
       {mediaItems.length > 0 && (
         <div className={s.mediaSection}>
           <h3 className={s.tabTitle}>
-            <ImageIcon size={16} className={s.mediaIcon} /> Verified Media
+            <Icon name="Image" size="sm" className={s.mediaIcon} /> Verified Media
           </h3>
           <div className={s.mediaGrid}>
             {mediaItems
@@ -199,13 +187,17 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                         />
                         {isVideo && (
                           <div className={s.videoOverlay}>
-                            <PlayIcon size={16} fill="currentColor" />
+                            <Icon name="Play" size="sm" />
                           </div>
                         )}
                       </div>
                     ) : (
                       <div className={s.mediaPlaceholder}>
-                        {isVideo ? <VideoIcon size={24} /> : <ImageIcon size={24} />}
+                        {isVideo ? (
+                          <Icon name="Video" size="md" />
+                        ) : (
+                          <Icon name="Image" size="md" />
+                        )}
                       </div>
                     )}
                     <div className={s.mediaMeta}>
@@ -226,7 +218,8 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
       {/* HIGH SIGNIFICANCE EVIDENCE */}
       <div className={s.evidenceSection}>
         <h3 className={s.tabTitle}>
-          <AlertTriangle size={16} className={s.criticalIcon} /> High Significance Evidence
+          <Icon name="AlertTriangle" size="sm" className={s.criticalIcon} /> High Significance
+          Evidence
         </h3>
         {overviewSignificantPassages.length > 0 ? (
           <div className={s.evidenceGrid}>
@@ -260,7 +253,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
         <div ref={blackBookSectionRef} className={s.blackbookCard}>
           <div className={s.blackbookHeader}>
             <h3 className={s.blackbookTitle}>
-              <BookOpen size={16} className={s.investigateIcon} /> Black Book Entry
+              <Icon name="BookOpen" size="sm" className={s.investigateIcon} /> Black Book Entry
             </h3>
             <Button
               unstyled
@@ -269,7 +262,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
               }
               className={s.viewFullLink}
             >
-              View in Black Book <ExternalLink size={12} />
+              View in Black Book <Icon name="ExternalLink" size="xs" />
             </Button>
           </div>
 

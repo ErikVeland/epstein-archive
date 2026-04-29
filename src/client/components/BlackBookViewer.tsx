@@ -1,14 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Phone, Mail, MapPin, User, Book, Eye, FileText, ExternalLink, Search } from 'lucide-react';
-import { extractCleanName, formatPhoneNumber } from '../utils/prettifyOCR';
+import Icon from '@client/components/common/Icon';
+import { extractCleanName, formatPhoneNumber } from '@client/utils/prettifyOCR';
 import { Link } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
 import { useNavigate } from 'react-router-dom';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
 import styles from './BlackBookViewer.module.css';
-import { Button, Input, SearchField, Surface } from '../design-system/lib';
+import { Button, Input, SearchField, Surface } from '@client/design-system/lib';
 interface BlackBookEntry {
   id: number;
   person_id: number | null;
@@ -177,7 +177,7 @@ export const BlackBookViewer: React.FC = () => {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleGroup}>
-          <Book className={styles.heroIcon} />
+          <Icon name="Book" className={styles.heroIcon} />
           <div>
             <h2 className={styles.title}>Jeffrey Epstein's Black Book</h2>
             <p className={styles.subtitle}>
@@ -194,7 +194,11 @@ export const BlackBookViewer: React.FC = () => {
           className={styles.toggleButton}
           title={showRaw ? 'Showing raw OCR text' : 'Showing cleaned text'}
         >
-          {showRaw ? <FileText className={styles.smIcon} /> : <Eye className={styles.smIcon} />}
+          {showRaw ? (
+            <Icon name="FileText" className={styles.smIcon} />
+          ) : (
+            <Icon name="Eye" className={styles.smIcon} />
+          )}
           <span className={styles.toggleText}>{showRaw ? 'Raw OCR' : 'Pretty'}</span>
         </Button>
       </div>
@@ -240,7 +244,7 @@ export const BlackBookViewer: React.FC = () => {
             onChange={(e) => setHasPhone(e.target.checked)}
           />
           <span>Has Phone</span>
-          <Phone className={styles.smIcon} />
+          <Icon name="Phone" className={styles.smIcon} />
         </label>
         <label className={styles.checkLabel}>
           <Input
@@ -249,7 +253,7 @@ export const BlackBookViewer: React.FC = () => {
             onChange={(e) => setHasEmail(e.target.checked)}
           />
           <span>Has Email</span>
-          <Mail className={styles.smIcon} />
+          <Icon name="Mail" className={styles.smIcon} />
         </label>
         <label className={styles.checkLabel}>
           <Input
@@ -258,7 +262,7 @@ export const BlackBookViewer: React.FC = () => {
             onChange={(e) => setHasAddress(e.target.checked)}
           />
           <span>Has Address</span>
-          <MapPin className={styles.smIcon} />
+          <Icon name="MapPin" className={styles.smIcon} />
         </label>
 
         <div className={styles.divider} />
@@ -333,7 +337,7 @@ export const BlackBookViewer: React.FC = () => {
                                   </div>
                                 ) : (
                                   <div className={styles.fallbackAvatar}>
-                                    <User className={styles.fallbackIcon} />
+                                    <Icon name="User" className={styles.fallbackIcon} />
                                   </div>
                                 )}
                                 <div className={styles.nameWrap}>
@@ -345,7 +349,7 @@ export const BlackBookViewer: React.FC = () => {
                                       title="Click to view entity profile"
                                     >
                                       <span className={styles.textClamp}>{displayName}</span>
-                                      <ExternalLink className={styles.tinyExternal} />
+                                      <Icon name="ExternalLink" className={styles.tinyExternal} />
                                     </Button>
                                   ) : (
                                     <>
@@ -357,7 +361,7 @@ export const BlackBookViewer: React.FC = () => {
                                         className={styles.searchEvidenceLink}
                                         title="Search evidence for this name"
                                       >
-                                        <Search className={styles.tinyExternal} />
+                                        <Icon name="Search" className={styles.tinyExternal} />
                                         Search Evidence
                                       </Link>
                                     </>
@@ -388,7 +392,7 @@ export const BlackBookViewer: React.FC = () => {
                                 {/* Phone Numbers */}
                                 {entry.phone_numbers.length > 0 && (
                                   <div className={styles.infoRow}>
-                                    <Phone className={styles.infoIcon} />
+                                    <Icon name="Phone" className={styles.infoIcon} />
                                     <div className={styles.infoBody}>
                                       {entry.phone_numbers.map((phone, idx) => (
                                         <div key={idx} className={styles.infoText}>
@@ -402,7 +406,7 @@ export const BlackBookViewer: React.FC = () => {
                                 {/* Emails */}
                                 {entry.email_addresses.length > 0 && (
                                   <div className={styles.infoRow}>
-                                    <Mail className={styles.infoIcon} />
+                                    <Icon name="Mail" className={styles.infoIcon} />
                                     <div className={styles.infoBody}>
                                       {entry.email_addresses.map((email, idx) => (
                                         <div key={idx} className={styles.emailRow}>
@@ -416,7 +420,10 @@ export const BlackBookViewer: React.FC = () => {
                                             to={`/emails?search=${encodeURIComponent(email)}`}
                                             className={styles.emailActions}
                                           >
-                                            <ExternalLink className={styles.tinyExternal} />
+                                            <Icon
+                                              name="ExternalLink"
+                                              className={styles.tinyExternal}
+                                            />
                                           </Link>
                                         </div>
                                       ))}
@@ -427,7 +434,7 @@ export const BlackBookViewer: React.FC = () => {
                                 {/* Addresses */}
                                 {entry.addresses.length > 0 && (
                                   <div className={styles.infoRow}>
-                                    <MapPin className={styles.infoIcon} />
+                                    <Icon name="MapPin" className={styles.infoIcon} />
                                     <div className={styles.infoBody}>
                                       {entry.addresses.slice(0, 2).map((address, idx) => (
                                         <div key={idx} className={styles.infoText}>
@@ -466,7 +473,7 @@ export const BlackBookViewer: React.FC = () => {
                                     to={`/documents/${encodeURIComponent(String(entry.document_id))}`}
                                     className={styles.documentLink}
                                   >
-                                    <FileText className={styles.tinyExternal} />
+                                    <Icon name="FileText" className={styles.tinyExternal} />
                                     Source Document
                                   </Link>
                                 )}
@@ -487,7 +494,7 @@ export const BlackBookViewer: React.FC = () => {
       {/* Empty State */}
       {filteredEntries.length === 0 && (
         <div className={styles.emptyState}>
-          <Book className={styles.emptyIcon} />
+          <Icon name="Book" className={styles.emptyIcon} />
           <p className={`${styles.emptyMessage} ${error ? styles.errorText : styles.mutedText}`}>
             {error ? 'Failed to load contacts' : 'No contacts found'}
           </p>

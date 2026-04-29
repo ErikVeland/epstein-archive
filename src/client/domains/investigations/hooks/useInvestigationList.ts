@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import type { Investigation, Investigator } from '../../../../types/investigation';
+import type { Investigation, Investigator } from '@client/types/investigation';
 import { investigationsApi } from '../investigations.api';
 import { mapApiInvestigation } from '../investigations.model';
 

@@ -1,3 +1,5 @@
+import type { ProvenanceFieldsDto } from './provenance';
+
 export type RiskLevel = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface SubjectCardStatsDto {
@@ -20,7 +22,7 @@ export interface SubjectCardForensicsDto {
   driverLabels: string[];
 }
 
-export interface SubjectCardTopPreviewDto {
+export interface SubjectCardTopPreviewDto extends ProvenanceFieldsDto {
   id: string;
   type: 'document' | 'flight_log' | 'black_book' | 'testimony';
   title: string;
@@ -45,7 +47,7 @@ export interface SubjectsListResponseDto {
   total: number;
 }
 
-export interface EntityListItemDto {
+export interface EntityListItemDto extends ProvenanceFieldsDto {
   id: number | string;
   name: string;
   fullName: string;
@@ -74,7 +76,7 @@ export interface EntityListResponseDto {
   pageSize: number;
   totalPages: number;
 }
-export interface EntityDetailDto {
+export interface EntityDetailDto extends ProvenanceFieldsDto {
   id: string;
   name: string;
   fullName: string;

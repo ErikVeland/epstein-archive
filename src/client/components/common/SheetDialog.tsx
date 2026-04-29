@@ -5,8 +5,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '../../design-system/lib';
-import { cn } from '../../utils/cn';
+} from '@client/design-system/lib';
+import { cn } from '@client/utils/cn';
 import { CloseButton } from './CloseButton';
 import styles from './SheetDialog.module.css';
 

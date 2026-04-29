@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import express from 'express';
 import { dataQualityRepository } from '../db/dataQualityRepository.js';
 import { authenticateRequest } from '../auth/middleware.js';
 
-const router = Router();
+const router = express.Router();
 
 /**
  * GET /api/data-quality/metrics

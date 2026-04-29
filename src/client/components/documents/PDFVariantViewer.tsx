@@ -1,20 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Document, Page } from 'react-pdf';
-import {
-  ZoomIn,
-  ZoomOut,
-  RotateCw,
-  ChevronLeft,
-  ChevronRight,
-  Fingerprint,
-  Info,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './PDFVariantViewer.module.css';
 
-import { Button, SearchField } from '../../design-system/lib';
-import { ensurePdfWorker } from '../../utils/ensurePdfWorker';
-import { LqText } from '../../design-system/components/typography/Text';
+import { Button, SearchField } from '@client/design-system/lib';
+import { ensurePdfWorker } from '@client/utils/ensurePdfWorker';
+import { LqText } from '@client/design-system/components/typography/Text';
 
 ensurePdfWorker();
 
@@ -146,15 +138,15 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
           <div className={styles.toolGroup}>
             <div className={styles.zoomControls}>
               <Button unstyled onClick={zoomOut} className={styles.toolButton} title="Zoom Out">
-                <ZoomOut size={16} />
+                <Icon name="ZoomOut" size="sm" />
               </Button>
               <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
               <Button unstyled onClick={zoomIn} className={styles.toolButton} title="Zoom In">
-                <ZoomIn size={16} />
+                <Icon name="ZoomIn" size="sm" />
               </Button>
             </div>
             <Button unstyled onClick={rotateClockwise} className={styles.toolButton} title="Rotate">
-              <RotateCw size={16} />
+              <Icon name="RotateCw" size="sm" />
             </Button>
           </div>
         </div>
@@ -170,8 +162,9 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
           </div>
         ) : error ? (
           <div className={styles.statusOverlay}>
-            <Fingerprint
-              size={48}
+            <Icon
+              name="Fingerprint"
+              size="xl"
               className={`${styles.errorText} ${styles.marginBottomMedium} ${styles.opacityStatic}`}
             />
             <LqText
@@ -191,7 +184,11 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
           </div>
         ) : !currentUrl ? (
           <div className={styles.statusOverlay}>
-            <Info size={48} className={`${styles.marginBottomMedium} ${styles.opacityLow}`} />
+            <Icon
+              name="Info"
+              size="xl"
+              className={`${styles.marginBottomMedium} ${styles.opacityLow}`}
+            />
             <LqText
               variant="h3"
               weight="bold"
@@ -215,7 +212,11 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
           </div>
         ) : assetType !== 'pdf' ? (
           <div className={styles.statusOverlay}>
-            <Info size={48} className={`${styles.marginBottomMedium} ${styles.opacityLow}`} />
+            <Icon
+              name="Info"
+              size="xl"
+              className={`${styles.marginBottomMedium} ${styles.opacityLow}`}
+            />
             <LqText
               variant="h3"
               weight="bold"
@@ -242,8 +243,9 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             }
             error={
               <div className={styles.statusOverlay}>
-                <Fingerprint
-                  size={40}
+                <Icon
+                  name="Fingerprint"
+                  size="xl"
                   className={`${styles.errorText} ${styles.marginBottomSmall} ${styles.opacityMedium}`}
                 />
                 <LqText variant="body" weight="bold" className={styles.errorText}>
@@ -281,7 +283,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             disabled={pageNumber <= 1}
             className={styles.navButton}
           >
-            <ChevronLeft size={16} />
+            <Icon name="ChevronLeft" size="sm" />
             Previous
           </Button>
 
@@ -305,7 +307,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             className={styles.navButton}
           >
             Next
-            <ChevronRight size={16} />
+            <Icon name="ChevronRight" size="sm" />
           </Button>
         </div>
       )}

@@ -5,11 +5,11 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Copy, Check, Download, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
-import { prettifyOCRText } from '../../utils/prettifyOCR';
+import Icon from '@client/components/common/Icon';
+import { prettifyOCRText } from '@client/utils/prettifyOCR';
 import { RedactionPlaceholder } from './RedactionPlaceholder';
 import { WikiLink } from '../common/WikiLink';
-import { Button, SearchField, Surface } from '../../design-system/lib';
+import { Button, SearchField, Surface } from '@client/design-system/lib';
 import styles from './DocumentViewer.module.css';
 
 interface DocumentViewerProps {
@@ -246,14 +246,14 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
                   onClick={() => navigateMatch('prev')}
                   className={styles.matchButton}
                 >
-                  <ChevronLeft className={styles.matchButtonIcon} />
+                  <Icon name="ChevronLeft" className={styles.matchButtonIcon} />
                 </Button>
                 <Button
                   unstyled
                   onClick={() => navigateMatch('next')}
                   className={styles.matchButton}
                 >
-                  <ChevronRight className={styles.matchButtonIcon} />
+                  <Icon name="ChevronRight" className={styles.matchButtonIcon} />
                 </Button>
               </div>
             </div>
@@ -297,9 +297,9 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
           <Button onClick={copyText} variant="secondary" size="sm" className={styles.copyButton}>
             {copied ? (
-              <Check className={`${styles.buttonIcon} ${styles.copiedIcon}`} />
+              <Icon name="Check" className={`${styles.buttonIcon} ${styles.copiedIcon}`} />
             ) : (
-              <Copy className={styles.buttonIcon} />
+              <Icon name="Copy" className={styles.buttonIcon} />
             )}
             {copied ? 'Copied' : 'Copy'}
           </Button>
@@ -313,7 +313,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
                 rel="noopener noreferrer"
                 title="Download Original"
               >
-                <Download className={styles.buttonIcon} />
+                <Icon name="Download" className={styles.buttonIcon} />
               </a>
             </Button>
           )}
@@ -341,7 +341,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
           {(evidence.metadata?.key_excerpts?.length ?? 0) > 0 && !showRaw && (
             <div className={styles.highlightsPanel}>
               <div className={styles.highlightsHeader}>
-                <Bookmark className={styles.highlightsIcon} />
+                <Icon name="Bookmark" className={styles.highlightsIcon} />
                 <span className={styles.highlightsLabel}>Forensic Highlights</span>
               </div>
               {evidence.metadata?.key_excerpts?.map((excerpt: string, i: number) => (

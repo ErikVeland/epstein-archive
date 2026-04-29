@@ -1,0 +1,27 @@
+
+> epstein-archive@19.9.0 lint /Volumes/Media/Epstein Files/epstein-archive
+> eslint . --ext .ts,.tsx
+
+
+/Volumes/Media/Epstein Files/epstein-archive/src/app.ts
+  455:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/App.tsx
+  321:75  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/types/api.ts
+  28:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/server/db/entityEvidenceRepository.ts
+   54:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  179:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 12 problems (0 errors, 12 warnings)
+

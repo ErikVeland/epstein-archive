@@ -3,7 +3,7 @@ import { UndoAction, UndoActionType, UndoContext, UndoState } from './undoContex
 import { CloseButton } from './common/CloseButton';
 import styles from './UndoManager.module.css';
 
-import { Button } from '../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 // Create reducer for undo state
 const undoReducer = (state: UndoState, action: UndoActionType): UndoState => {

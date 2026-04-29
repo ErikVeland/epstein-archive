@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { Grid } from '../design-system/components/layout/Grid';
-import { LqText } from '../design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Grid } from '@client/design-system/components/layout/Grid';
+import { LqText } from '@client/design-system/components/typography/Text';
 import styles from './TheEpsteinFilesPage.module.css';
 
 const css = <T,>(style: T) => style;

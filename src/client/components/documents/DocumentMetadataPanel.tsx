@@ -1,7 +1,7 @@
 import React from 'react';
-import { Database, Shield, AlertTriangle, Globe, Bot, Flag, Sparkles } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { format } from 'date-fns';
-import { semanticChartTokens } from '../../design-system/lib';
+import { semanticChartTokens } from '@client/design-system/lib';
 import styles from './DocumentMetadataPanel.module.css';
 
 interface DocumentMetadata {
@@ -88,10 +88,10 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       {metadata.ai_summary && (
         <section className={styles.aiCard}>
           <div className={styles.aiCardDecoration}>
-            <Bot size={64} color={semanticChartTokens.series.media} />
+            <Icon name="Bot" size="xl" style={{ color: semanticChartTokens.series.media }} />
           </div>
           <h3 className={styles.aiCardHeading}>
-            <Sparkles size={12} />
+            <Icon name="Sparkles" size="xs" />
             AI Intelligence Summary
           </h3>
           <div className={styles.aiCardBody}>
@@ -112,7 +112,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
             </div>
             {metadata.ai_error && (
               <div className={styles.aiError}>
-                <AlertTriangle size={16} />
+                <Icon name="AlertTriangle" size="sm" />
                 <span>{metadata.ai_error}</span>
               </div>
             )}
@@ -124,7 +124,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       {(document.extractedDate || metadata.temporal) && (
         <section className={styles.temporalSection}>
           <h3 className={styles.temporalHeading}>
-            <Database size={12} />
+            <Icon name="Database" size="xs" />
             Temporal Intelligence
           </h3>
           <div className={styles.temporalGrid}>
@@ -158,7 +158,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       <section className={styles.forensicsGrid}>
         <div className={styles.forensicIndexCard}>
           <div className={styles.forensicCardDecoration}>
-            <Flag size={48} />
+            <Icon name="Flag" size="xl" />
           </div>
           <div className={styles.forensicLabel}>Forensic Index</div>
           <div className={styles.forensicRatingRow}>
@@ -167,7 +167,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
           </div>
           <div className={styles.forensicChipWrapper}>
             <div className={`semantic-chip ${riskClass}`}>
-              <Shield size={12} />
+              <Icon name="Shield" size="xs" />
               <span className={styles.chipLabel}>
                 {riskRating >= 4
                   ? 'CRITICAL'
@@ -213,7 +213,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       {/* File Information - Stable List */}
       <section className={styles.verificationSection}>
         <h3 className={styles.sectionHeading}>
-          <Database size={12} />
+          <Icon name="Database" size="xs" />
           Forensic Verification (SHA-256)
         </h3>
         <dl className={styles.verificationGrid}>
@@ -245,7 +245,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       {/* Sources & Classification */}
       <section className={styles.originSection}>
         <h3 className={styles.sectionHeading}>
-          <Globe size={12} />
+          <Icon name="Globe" size="xs" />
           Data Origin
         </h3>
         <div className={styles.originFields}>

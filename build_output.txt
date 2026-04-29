@@ -1,0 +1,267 @@
+
+> epstein-archive@19.9.0 prebuild:prod /Volumes/Media/Epstein Files/epstein-archive
+> bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts
+
+[pg-nuclear] Guard: no SQLite remnants in src/
+[pg-nuclear] Guard: no legacy DB_DIALECT anywhere in runtime/deploy/CI configs
+[pg-nuclear] Guard: no raw SQL in route files (health route exception only)
+[pg-nuclear] Guard: no pgtyped/db namespace executor misuse in repositories
+[pg-nuclear] Guard: seed conflict policy
+[seed-conflict-policy] OK
+[pg-nuclear] Lint + typecheck
+
+> epstein-archive@19.9.0 lint /Volumes/Media/Epstein Files/epstein-archive
+> eslint . --ext .ts,.tsx
+
+
+/Volumes/Media/Epstein Files/epstein-archive/src/app.ts
+  455:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/App.tsx
+  194:1   error    Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  321:75  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/AddToInvestigationButton.tsx
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/ApiUnavailableScreen.tsx
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/SensitiveContent.tsx
+  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceCard.tsx
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceDocumentsTab.tsx
+   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  32:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceInvestigationsTab.tsx
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceMediaTab.tsx
+  13:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  14:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  17:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceModalHeader.tsx
+  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceNetworkTab.tsx
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceOverviewTab.tsx
+   4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  12:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/DocumentBrowser.tsx
+  9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentAnalysisTab.tsx
+   9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  10:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  12:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  14:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentAssetsTab.tsx
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentHeader.tsx
+   3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentMetadataRail.tsx
+   3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  10:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentPDFTab.tsx
+   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+   9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/FloatingReadingControls.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/EmailClient.tsx
+  14:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileEmailBottomNav.tsx
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileEmailFilterSheet.tsx
+  1:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileMailboxList.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileMessageView.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileThreadList.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/SubjectCardV2.tsx
+  20:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/cards/DriverChips.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/cards/EvidenceBadge.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/cards/SignalPanel.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/flights/FlightCard.tsx
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/InvestigationTasksPanel.tsx
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/InvestigationWorkspace.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/EvidenceCaptureSheet.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileBoardView.tsx
+  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileBottomNav.tsx
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileEvidenceList.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileForensicView.tsx
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileInvestigationShell.tsx
+  27:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileTimelineView.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileToolScreen.tsx
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/layout/Footer.tsx
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/layout/MobileMenu.tsx
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/AudioTab.tsx
+  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/MediaAndArticlesTab.tsx
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/MediaTab.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/MediaViewerModal.tsx
+  18:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/PhotoBrowser.tsx
+  28:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/VideoTab.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/pages/EnhancedAnalytics.tsx
+  10:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/pages/MemoryDashboard.tsx
+  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/shared/DegradedBanner.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/visualizations/DataVisualization.tsx
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/visualizations/Timeline.tsx
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/visualizations/TreeMap.tsx
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/Button.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/interactive/BottomSheet.tsx
+  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Box.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Flex.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Grid.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Responsive.tsx
+  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Stack.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/surfaces/Surface.tsx
+  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/types/api.ts
+  28:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  48:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/server/db/entityEvidenceRepository.ts
+   54:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   96:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   97:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   99:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  179:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 119 problems (107 errors, 12 warnings)
+
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.

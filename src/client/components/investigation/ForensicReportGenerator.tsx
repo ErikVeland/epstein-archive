@@ -1,16 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  FileText,
-  Printer,
-  FileJson,
-  Bot,
-  Sparkles,
-  Shield,
-  Zap,
-  FileType,
-  Loader2,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 
 // UI Library
 import {
@@ -24,7 +14,7 @@ import {
   Select,
   Stack,
   Surface,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './ForensicReportGenerator.module.css';
 
 const css = <T,>(style: T) => style;
@@ -234,7 +224,7 @@ export default function ForensicReportGenerator({
             <Flex justify="between" align="center">
               <Stack gap="none">
                 <Flex align="center" gap="md">
-                  <FileText size={24} className={styles.autoGen119} />
+                  <Icon name="FileText" size="lg" className={styles.autoGen119} />
                   <LqText variant="h1" weight="bold">
                     Intelligence Briefing Generator
                   </LqText>
@@ -250,10 +240,10 @@ export default function ForensicReportGenerator({
               </Stack>
               <Flex gap="md">
                 <Button variant="ghost" size="sm">
-                  <Shield size={14} className={styles.mr1} /> SECURE MODE
+                  <Icon name="Shield" size="sm" className={styles.mr1} /> SECURE MODE
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => window.print()}>
-                  <Printer size={14} />
+                  <Icon name="Printer" size="sm" />
                 </Button>
               </Flex>
             </Flex>
@@ -333,9 +323,9 @@ export default function ForensicReportGenerator({
                   </Flex>
                   <Button variant="secondary" onClick={generateReport} disabled={isGenerating}>
                     {isGenerating ? (
-                      <Loader2 className={`animate-spin ${styles.mr2}`} size={16} />
+                      <Icon name="Loader2" className={`animate-spin ${styles.mr2}`} size="sm" />
                     ) : (
-                      <Zap className={styles.mr2} size={16} />
+                      <Icon name="Zap" className={styles.mr2} size="sm" />
                     )}
                     {isGenerating
                       ? `Synthesizing Intelligence... ${generationProgress}%`
@@ -360,7 +350,7 @@ export default function ForensicReportGenerator({
         {!generatedReport && !isGenerating ? (
           <Surface variant="glass" p="xxxl" className={styles.autoGen125}>
             <Stack align="center" gap="lg">
-              <Bot size={64} className={styles.autoGen126} />
+              <Icon name="Bot" size="xl" className={styles.autoGen126} />
               <Stack gap="xs">
                 <LqText variant="small" weight="bold">
                   Intelligence Buffer Primed
@@ -384,7 +374,7 @@ export default function ForensicReportGenerator({
 
               <Flex gap="xl" align="start">
                 <Box className={styles.autoGen129}>
-                  <FileText size={40} />
+                  <Icon name="FileText" size="xl" />
                 </Box>
                 <Stack gap="md" style={css({ flex: 1 })}>
                   <Stack gap="none">
@@ -454,16 +444,16 @@ export default function ForensicReportGenerator({
 
                   <Flex gap="sm">
                     <Button variant="secondary" size="sm" onClick={() => exportReport('pdf')}>
-                      <FileType size={14} className={styles.mr1} /> EXPORT PDF
+                      <Icon name="FileType" size="sm" className={styles.mr1} /> EXPORT PDF
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => exportReport('docx')}>
-                      <FileType size={14} className={styles.mr1} /> DOCX
+                      <Icon name="FileType" size="sm" className={styles.mr1} /> DOCX
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => exportReport('json')}>
-                      <FileJson size={14} className={styles.mr1} /> SOURCE JSON
+                      <Icon name="FileJson" size="sm" className={styles.mr1} /> SOURCE JSON
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => window.print()}>
-                      <Printer size={14} className={styles.mr1} /> PRINT
+                      <Icon name="Printer" size="sm" className={styles.mr1} /> PRINT
                     </Button>
                   </Flex>
                 </Stack>
@@ -473,7 +463,7 @@ export default function ForensicReportGenerator({
             {/* Narrative Preview */}
             <Stack gap="lg">
               <Flex gap="sm" align="center">
-                <Sparkles size={16} className={styles.autoGen130} />
+                <Icon name="Sparkles" size="sm" className={styles.autoGen130} />
                 <LqText
                   variant="xs"
                   weight="bold"

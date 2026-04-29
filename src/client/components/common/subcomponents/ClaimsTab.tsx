@@ -1,8 +1,13 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, XCircle, Info, BrainCircuit } from 'lucide-react';
-import { apiClient } from '../../../services/apiClient';
-import { Box, LqText, Surface } from '../../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
+import { Box } from '@client/design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { ConfidenceBadge } from '@client/components/common/ConfidenceBadge';
+import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
+import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
 import styles from './ClaimsTab.module.css';
 
 interface ClaimTriple {
@@ -23,6 +28,11 @@ interface ClaimTriple {
   subjectName?: string;
   objectName?: string;
   documentTitle?: string;
+  sourceDocumentId?: number | null;
+  sourceHash?: string | null;
+  extractionMethod?: ExtractionMethod | null;
+  reviewState?: ReviewState;
+  provenanceStatus?: ProvenanceStatus;
 }
 
 interface ClaimsTabProps {
@@ -39,6 +49,19 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   onOpenDocument,
 }) => {
   const queryClient = useQueryClient();
+
+  const getClaimReviewState = (claim: ClaimTriple): ReviewState => {
+    if (claim.reviewState) return claim.reviewState;
+    if (claim.verified === 1) return 'accepted';
+    if (claim.verified === 2) return 'rejected';
+    return 'unreviewed';
+  };
+
+  const getClaimSourceDocumentId = (claim: ClaimTriple): number | null => {
+    if (typeof claim.sourceDocumentId === 'number') return claim.sourceDocumentId;
+    const parsed = Number(claim.documentId);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
 
   const {
     data: claims = [],
@@ -76,7 +99,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   if (isError) {
     return (
       <div className={styles.emptyState}>
-        <XCircle size={48} opacity={0.3} style={{ marginBottom: '1rem' }} />
+        <Icon name="XCircle" size="xl" style={{ marginBottom: '1rem', opacity: 0.3 }} />
         <LqText variant="h3" weight="bold">
           Claims could not be loaded
         </LqText>
@@ -90,7 +113,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   if (claims.length === 0) {
     return (
       <div className={styles.emptyState}>
-        <BrainCircuit size={48} opacity={0.3} style={{ marginBottom: '1rem' }} />
+        <Icon name="BrainCircuit" size="xl" style={{ marginBottom: '1rem', opacity: 0.3 }} />
         <LqText variant="h3" weight="bold">
           No AI Claims Found
         </LqText>
@@ -101,12 +124,6 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
       </div>
     );
   }
-
-  const getConfidenceColor = (conf: number) => {
-    if (conf >= 0.8) return '#10b981';
-    if (conf >= 0.5) return '#f59e0b';
-    return '#ef4444';
-  };
 
   return (
     <div className={styles.container}>
@@ -120,7 +137,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
           </LqText>
         </div>
         <Surface variant="glass-highlight" className={styles.verifiedBadge}>
-          <Info size={14} />
+          <Icon name="Info" size="sm" />
           <span>Requires Human Verification</span>
         </Surface>
       </div>
@@ -129,25 +146,37 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
         {claims.map((claim) => (
           <Surface key={claim.id} variant="glass-strong" className={styles.claimCard}>
             <div className={styles.claimHeader}>
-              <span
-                className={styles.confidenceBadge}
-                style={{
-                  backgroundColor: `${getConfidenceColor(claim.confidence)}20`,
-                  color: getConfidenceColor(claim.confidence),
-                }}
-              >
-                {Math.round(claim.confidence * 100)}% Confidence
-              </span>
+              <div className={styles.claimStatusGroup}>
+                <ConfidenceBadge
+                  confidence={claim.confidence}
+                  showPercentage={true}
+                  showIcon={true}
+                />
+                <ProvenanceBadge
+                  sourceDocumentId={getClaimSourceDocumentId(claim)}
+                  sourceHash={claim.sourceHash}
+                  extractionMethod={claim.extractionMethod || 'agentic'}
+                  confidence={claim.confidence}
+                  reviewState={getClaimReviewState(claim)}
+                  provenanceStatus={
+                    claim.provenanceStatus ||
+                    (claim.sourceHash || getClaimSourceDocumentId(claim) != null
+                      ? 'partial'
+                      : 'missing')
+                  }
+                  showLabel={false}
+                />
+              </div>
 
               {claim.verified === 1 && (
                 <div className={styles.verifiedBadge}>
-                  <CheckCircle2 size={14} />
+                  <Icon name="CheckCircle2" size="sm" />
                   <span>Verified by {claim.verifiedBy}</span>
                 </div>
               )}
               {claim.verified === 2 && (
                 <div className={styles.rejectedBadge}>
-                  <XCircle size={14} />
+                  <Icon name="XCircle" size="sm" />
                   <span>Rejected: {claim.rejectionReason}</span>
                 </div>
               )}

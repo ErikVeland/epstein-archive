@@ -1,18 +1,18 @@
 import React from 'react';
-import { EnhancedAnalytics } from '../components/pages/EnhancedAnalytics';
+import { EnhancedAnalytics } from '@client/components/pages/EnhancedAnalytics';
 import {
   DataVisualization,
   type AnalyticsData,
-} from '../components/visualizations/DataVisualization';
-import ScopedErrorBoundary from '../components/common/ScopedErrorBoundary';
-import { useAbortableRequest } from '../hooks/useAbortableRequest';
-import { DegradedBanner } from '../components/shared/DegradedBanner';
-import { Person } from '../types';
+} from '@client/components/visualizations/DataVisualization';
+import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
+import { useAbortableRequest } from '@client/hooks/useAbortableRequest';
+import { DegradedBanner } from '@client/components/shared/DegradedBanner';
+import { Person } from '@client/types';
 import { AnalyticsProvider } from '../contexts/AnalyticsContext';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { LqText } from '../design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Box } from '@client/design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
 import styles from './AnalyticsPage.module.css';
 
 interface AnalyticsPageProps {

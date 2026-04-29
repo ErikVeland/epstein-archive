@@ -5,7 +5,7 @@ import {
   buildExportIntegrityMeta,
   buildTimelineExportJson,
   prependMarkdownMetadata,
-} from '../utils/investigationExportIntegrity';
+} from '../client/utils/investigationExportIntegrity';
 import type { EvidenceItem, TimelineEvent } from '../types/investigation';
 
 describe('investigation export integrity', () => {

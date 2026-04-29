@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { X, Network, Save } from 'lucide-react';
-import { apiClient } from '../../services/apiClient';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
 import FormField from '../common/FormField';
 import { useToasts } from '../common/useToasts';
-import { Person } from '../../types';
+import { Person } from '@client/types';
 import { CloseButton } from '../common/CloseButton';
 import styles from './CreateRelationshipModal.module.css';
 
@@ -18,7 +18,7 @@ import {
   SearchField,
   Select,
   Textarea,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 
 interface CreateRelationshipModalProps {
   onClose: () => void;
@@ -149,7 +149,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
           <DialogHeader className={styles.header}>
             <div className={styles.headerTitleGroup}>
               <div className={styles.headerIconWrap}>
-                <Network className={styles.headerIcon} />
+                <Icon name="Network" className={styles.headerIcon} />
               </div>
               <DialogTitle className={styles.headerTitle}>Create Connection</DialogTitle>
             </div>
@@ -181,7 +181,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
                     iconOnly
                     className={styles.iconButton}
                   >
-                    <X className={styles.smallIcon} />
+                    <Icon name="X" className={styles.smallIcon} />
                   </Button>
                 </div>
               ) : (
@@ -239,7 +239,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
                     iconOnly
                     className={styles.iconButton}
                   >
-                    <X className={styles.smallIcon} />
+                    <Icon name="X" className={styles.smallIcon} />
                   </Button>
                 </div>
               ) : (
@@ -351,7 +351,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
                 'Creating...'
               ) : (
                 <>
-                  <Save className={styles.smallIcon} />
+                  <Icon name="Save" className={styles.smallIcon} />
                   Create Connection
                 </>
               )}

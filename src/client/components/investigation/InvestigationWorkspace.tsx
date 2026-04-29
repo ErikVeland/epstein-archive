@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '@client/contexts/AuthContext';
 import {
   Investigation,
   EvidenceItem,
@@ -8,35 +8,8 @@ import {
   Annotation,
   Investigator,
   Hypothesis,
-} from '../../types/investigation';
-import {
-  Calendar,
-  Cpu,
-  User,
-  ArrowRight,
-  Search,
-  Download,
-  Plus,
-  Users,
-  Target,
-  FileText,
-  BarChart3,
-  Share2,
-  Microscope,
-  DollarSign,
-  MessageSquare,
-  LayoutDashboard,
-  Activity,
-  FolderOpen,
-  Flag,
-  Upload,
-  Crosshair,
-  Loader2,
-  XCircle,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-} from 'lucide-react';
+} from '@client/types/investigation';
+import Icon from '@client/components/common/Icon';
 
 // Specialized Analytical Views
 import FinancialTransactionMapper from '../visualizations/FinancialTransactionMapper';
@@ -67,15 +40,15 @@ import { EvidenceModal } from '../common/EvidenceModal';
 
 // Hooks & Services
 import { useToasts } from '../common/useToasts';
-import { useInvestigationOnboarding } from '../../hooks/useInvestigationOnboarding';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useInvestigationOnboarding } from '@client/hooks/useInvestigationOnboarding';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { MobileInvestigationShell } from './mobile/MobileInvestigationShell';
 import { InvestigationOnboarding } from './InvestigationOnboarding';
 import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 
 import { CreateRelationshipModal as _CreateRelationshipModal2 } from '../entities/CreateRelationshipModal';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import {
   investigationActions,
   investigationsApi,
@@ -83,9 +56,9 @@ import {
   useCaseFolder,
   useEvidenceNavigation,
   useInvestigationList,
-} from '../../domains/investigations';
+} from '@client/domains/investigations';
 import type { InvestigationCaseEvidenceItemDto } from '@shared/dto/investigations';
-import { PerformanceMonitor } from '../../utils/performanceMonitor';
+import { PerformanceMonitor } from '@client/utils/performanceMonitor';
 
 // UI Library
 import {
@@ -100,7 +73,7 @@ import {
   Surface,
   TextArea,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './InvestigationWorkspace.module.css';
 import { CloseButton as _CloseButton } from '../common/CloseButton';
 
@@ -630,9 +603,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           {readinessChecks.map((check) => (
             <Flex key={check.label} gap="sm" align="start" className={styles.readinessCheck}>
               {check.ready ? (
-                <CheckCircle2 size={16} className={styles.iconSuccess} />
+                <Icon name="CheckCircle2" size="sm" className={styles.iconSuccess} />
               ) : (
-                <AlertTriangle size={16} className={styles.iconWarning} />
+                <Icon name="AlertTriangle" size="sm" className={styles.iconWarning} />
               )}
               <Stack gap="none">
                 <LqText variant="xs" weight="bold">
@@ -667,7 +640,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   if (isLoading) {
     return (
       <Flex align="center" justify="center" fullHeight>
-        <Loader2 className={cn('animate-spin', styles.iconAccent)} size={48} />
+        <Icon name="Loader2" className={cn('animate-spin', styles.iconAccent)} size="xl" />
       </Flex>
     );
   }
@@ -686,7 +659,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             >
               Home
             </LqText>
-            <ArrowRight size={10} className={styles.iconMuted} />
+            <Icon name="ArrowRight" size="xs" className={styles.iconMuted} />
             <LqText variant="xs" color="muted" weight="bold">
               Investigations
             </LqText>
@@ -724,16 +697,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   </Button>
                 </Surface>
                 <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
-                  <Flag size={16} className={styles.iconWarning} /> Tasks
+                  <Icon name="Flag" size="sm" className={styles.iconWarning} /> Tasks
                 </Button>
                 <Button variant="glass" size="sm" onClick={() => setShowLeadsPanel(true)}>
-                  <Crosshair size={16} className={styles.iconWarning} /> Leads
+                  <Icon name="Crosshair" size="sm" className={styles.iconWarning} /> Leads
                 </Button>
                 <Button variant="glass" size="sm" onClick={() => setShowDossierPanel(true)}>
-                  <User size={16} className={styles.iconAccent} /> Subject
+                  <Icon name="User" size="sm" className={styles.iconAccent} /> Subject
                 </Button>
                 <Button variant="primary" size="sm" onClick={() => setShowImportModal(true)}>
-                  <Upload size={16} /> Import Report
+                  <Icon name="Upload" size="sm" /> Import Report
                 </Button>
               </Flex>
             </Flex>
@@ -765,7 +738,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   size="md"
                   onClick={() => setShowNewInvestigationModal(true)}
                 >
-                  <Plus size={20} /> New Investigation
+                  <Icon name="Plus" size="md" /> New Investigation
                 </Button>
               </Flex>
             </Flex>
@@ -795,7 +768,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               >
                 <Stack p="xl" align="center" textAlign="center" gap="md">
                   <Box className={styles.actionIconBox}>
-                    <Plus size={32} />
+                    <Icon name="Plus" size="xl" />
                   </Box>
                   <Stack gap="xs">
                     <LqText
@@ -815,7 +788,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               <Surface variant="glass" className={cn(styles.actionCard, styles.statsCombinedCard)}>
                 <Stack p="xl" align="center" textAlign="center" gap="md">
                   <Box className={styles.actionIconBox}>
-                    <Target size={32} />
+                    <Icon name="Target" size="xl" />
                   </Box>
                   <Stack gap="xs">
                     <LqText
@@ -836,7 +809,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
             <Stack gap="lg" className={styles.recentSection}>
               <Flex align="center" gap="md">
-                <Microscope size={24} className={styles.iconAccent} />
+                <Icon name="Microscope" size="lg" className={styles.iconAccent} />
                 <LqText variant="h3" weight="bold" className={styles.recentSectionTitle}>
                   Recent Analytical Records
                 </LqText>
@@ -850,7 +823,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     gap="lg"
                     style={css({ textAlign: 'center' })}
                   >
-                    <Activity size={48} className={styles.iconMuted} />
+                    <Icon name="Activity" size="xl" className={styles.iconMuted} />
                     <Stack gap="xs" align="center">
                       <LqText variant="h3" weight="bold">
                         Start with a focused question
@@ -862,10 +835,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     </Stack>
                     <Flex gap="sm" wrap="wrap" justify="center">
                       <Button variant="primary" onClick={() => setShowNewInvestigationModal(true)}>
-                        <Plus size={16} /> New Investigation
+                        <Icon name="Plus" size="sm" /> New Investigation
                       </Button>
                       <Button variant="secondary" onClick={() => navigate('/documents')}>
-                        <Search size={16} /> Browse Documents
+                        <Icon name="Search" size="sm" /> Browse Documents
                       </Button>
                     </Flex>
                   </Flex>
@@ -896,7 +869,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                                   }
                                 }}
                               >
-                                <XCircle size={14} />
+                                <Icon name="XCircle" size="sm" />
                               </Button>
                             )}
                           </Flex>
@@ -912,13 +885,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                         <Surface variant="glass-highlight" mt="auto">
                           <Flex justify="between" p="md">
                             <Flex align="center" gap="xs">
-                              <User size={12} className={styles.iconAccent} />
+                              <Icon name="User" size="xs" className={styles.iconAccent} />
                               <LqText variant="xs" weight="bold">
                                 {inv.leadInvestigator}
                               </LqText>
                             </Flex>
                             <Flex align="center" gap="xs">
-                              <Calendar size={12} className={styles.iconMuted} />
+                              <Icon name="Calendar" size="xs" className={styles.iconMuted} />
                               <LqText variant="xs" color="muted">
                                 {new Date(inv.createdAt).toLocaleDateString()}
                               </LqText>
@@ -959,7 +932,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   onClick={() => setSelectedInvestigation(null)}
                   className={styles.backButton}
                 >
-                  <ArrowRight className="rotate-180" size={16} /> Back to Dashboard
+                  <Icon name="ArrowRight" className="rotate-180" size="sm" /> Back to Dashboard
                 </Button>
 
                 <Stack gap="md" className={styles.sidebarInvInfo}>
@@ -972,7 +945,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     onClick={copyShareUrl}
                     className={styles.shareButton}
                   >
-                    <Share2 size={14} />{' '}
+                    <Icon name="Share2" size="sm" />{' '}
                     {shareCopied ? 'Access Token Copied' : 'Share Investigation'}
                   </Button>
                 </Stack>
@@ -981,21 +954,21 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
                 <Stack gap="xs" className={styles.nav}>
                   {[
-                    { id: 'board', label: 'Investigation Board', icon: LayoutDashboard },
-                    { id: 'intelligence', label: 'Discovery Intelligence', icon: Cpu },
-                    { id: 'overview', label: 'Intelligence Overview', icon: Search },
-                    { id: 'activity', label: 'Activity Log', icon: Activity },
-                    { id: 'casefolder', label: 'Primary Evidence Folder', icon: FolderOpen },
-                    { id: 'evidence', label: 'Evidence Matrix', icon: FileText },
-                    { id: 'hypotheses', label: 'Hypothesis Framework', icon: Target },
-                    { id: 'notebook', label: 'Analyst Notebook', icon: FileText },
-                    { id: 'financial', label: 'Financial Correlator', icon: DollarSign },
-                    { id: 'timeline', label: 'Event Chronology', icon: Calendar },
-                    { id: 'communications', label: 'Comms Analysis', icon: MessageSquare },
-                    { id: 'forensic', label: 'Forensic Workbench', icon: Microscope },
-                    { id: 'team', label: 'Asset Management', icon: Users },
-                    { id: 'analytics', label: 'Signal Intelligence', icon: BarChart3 },
-                    { id: 'export', label: 'Final Report / Export', icon: Download },
+                    { id: 'board', label: 'Investigation Board', iconName: 'LayoutDashboard' },
+                    { id: 'intelligence', label: 'Discovery Intelligence', iconName: 'Cpu' },
+                    { id: 'overview', label: 'Intelligence Overview', iconName: 'Search' },
+                    { id: 'activity', label: 'Activity Log', iconName: 'Activity' },
+                    { id: 'casefolder', label: 'Primary Evidence Folder', iconName: 'FolderOpen' },
+                    { id: 'evidence', label: 'Evidence Matrix', iconName: 'FileText' },
+                    { id: 'hypotheses', label: 'Hypothesis Framework', iconName: 'Target' },
+                    { id: 'notebook', label: 'Analyst Notebook', iconName: 'FileText' },
+                    { id: 'financial', label: 'Financial Correlator', iconName: 'DollarSign' },
+                    { id: 'timeline', label: 'Event Chronology', iconName: 'Calendar' },
+                    { id: 'communications', label: 'Comms Analysis', iconName: 'MessageSquare' },
+                    { id: 'forensic', label: 'Forensic Workbench', iconName: 'Microscope' },
+                    { id: 'team', label: 'Asset Management', iconName: 'Users' },
+                    { id: 'analytics', label: 'Signal Intelligence', iconName: 'BarChart3' },
+                    { id: 'export', label: 'Final Report / Export', iconName: 'Download' },
                   ].map((t) => (
                     <Button
                       key={t.id}
@@ -1007,7 +980,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       )}
                     >
                       <Flex align="center" gap="md" grow>
-                        <t.icon size={18} className={styles.navIcon} />
+                        <Icon name={t.iconName} size="sm" className={styles.navIcon} />
                         <LqText
                           variant="small"
                           className={styles.navLabel}
@@ -1035,8 +1008,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               {activeTab === 'overview' && (
                 <Stack gap="xl">
                   <LqText variant="h3" weight="bold" className={styles.tabTitle}>
-                    <Search
-                      size={20}
+                    <Icon
+                      name="Search"
+                      size="md"
                       className={styles.iconAccent}
                       style={css({ marginRight: '0.75rem', verticalAlign: 'middle' })}
                     />
@@ -1074,7 +1048,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                         </Flex>
                         {selectedInvestigation.dueDate && (
                           <Flex align="center" gap="sm" mt="xs">
-                            <Clock size={14} className={styles.iconMuted} />
+                            <Icon name="Clock" size="sm" className={styles.iconMuted} />
                             <LqText variant="xs" color="muted">
                               Target Completion:{' '}
                               {new Date(selectedInvestigation.dueDate).toLocaleDateString()}
@@ -1200,7 +1174,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <Box fullHeight style={css({ minHeight: '600px' })}>
                   {isNetworkLoading ? (
                     <Flex align="center" justify="center" h="100%">
-                      <Loader2 className="animate-spin text-primary" size={48} />
+                      <Icon name="Loader2" className="animate-spin text-primary" size="xl" />
                     </Flex>
                   ) : (
                     <NetworkVisualization nodes={networkNodes} edges={networkEdges} height={700} />

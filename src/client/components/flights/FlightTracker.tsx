@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
-import { Button, Input, NativeSelect } from '../../design-system/lib';
+import { Button, Input, NativeSelect } from '@client/design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { MobileToolScreen } from '../investigation/mobile/MobileToolScreen';
-import { useIsTouch } from '../../hooks/useIsTouch';
+import { useIsTouch } from '@client/hooks/useIsTouch';
 
 import '../FlightTracker.css';
 import styles from './FlightTracker.module.css';

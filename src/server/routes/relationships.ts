@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import express from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { relationshipsRepository } from '../db/relationshipsRepository.js';
 
-const router = Router();
+const router = express.Router();
 
 // Schemas
 const getRelationshipsSchema = z.object({

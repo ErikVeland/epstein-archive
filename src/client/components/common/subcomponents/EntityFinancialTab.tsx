@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DollarSign, ArrowDownLeft, ArrowUpRight, FileText } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import s from './EntityFinancialTab.module.css';
 
 interface Transaction {
@@ -65,7 +65,7 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
     <div className={s.tabContainer} data-testid="entity-modal-tab-financial">
       <div className={s.header}>
         <h3 className={s.headerTitle}>
-          <DollarSign size={16} className={s.financialIcon} />
+          <Icon name="DollarSign" size="sm" className={s.financialIcon} />
           Financial Transactions
         </h3>
         <div className={s.countBadge}>
@@ -86,7 +86,7 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
 
         {!isLoading && isError && (
           <div className={s.emptyState}>
-            <DollarSign size={48} className={s.emptyIcon} />
+            <Icon name="DollarSign" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>Financial records could not be loaded</h4>
             <p className={s.emptyText}>The financial endpoint returned an error.</p>
           </div>
@@ -94,7 +94,7 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
 
         {!isLoading && !isError && transactions.length === 0 && (
           <div className={s.emptyState}>
-            <DollarSign size={48} className={s.emptyIcon} />
+            <Icon name="DollarSign" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Financial Records</h4>
             <p className={s.emptyText}>
               No transactions are linked to {resolvedName || 'this entity'} in the financial corpus.
@@ -113,7 +113,11 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
                 <div className={s.cardTop}>
                   <div className={s.direction}>
                     <span className={`${s.directionLabel} ${isIncoming ? s.incoming : s.outgoing}`}>
-                      {isIncoming ? <ArrowDownLeft size={10} /> : <ArrowUpRight size={10} />}
+                      {isIncoming ? (
+                        <Icon name="ArrowDownLeft" size="xs" />
+                      ) : (
+                        <Icon name="ArrowUpRight" size="xs" />
+                      )}
                       {isIncoming ? ' In' : ' Out'}
                     </span>
                     <span className={s.entityName}>{counterparty}</span>
@@ -137,7 +141,7 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
                     href={`/documents?id=${encodeURIComponent(tx.source_document_id)}`}
                     className={s.sourceLink}
                   >
-                    <FileText size={11} /> View Source Document
+                    <Icon name="FileText" size="xs" /> View Source Document
                   </a>
                 )}
               </div>

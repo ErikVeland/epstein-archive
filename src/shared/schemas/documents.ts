@@ -1,23 +1,26 @@
 import { z } from 'zod';
+import { provenanceSchema } from './provenance';
 
-const documentListItemCanonicalSchema = z.object({
-  id: z.string(),
-  fileName: z.string(),
-  title: z.string(),
-  fileType: z.string(),
-  fileSize: z.number(),
-  dateCreated: z.string().nullable(),
-  evidenceType: z.string(),
-  metadata: z.record(z.unknown()),
-  redFlagRating: z.number(),
-  wordCount: z.number(),
-  entitiesCount: z.number(),
-  keyEntities: z.array(z.object({ id: z.string(), name: z.string() })),
-  sourceType: z.string(),
-  previewText: z.string(),
-  previewKind: z.string(),
-  whyFlagged: z.string(),
-});
+const documentListItemCanonicalSchema = z
+  .object({
+    id: z.string(),
+    fileName: z.string(),
+    title: z.string(),
+    fileType: z.string(),
+    fileSize: z.number(),
+    dateCreated: z.string().nullable(),
+    evidenceType: z.string(),
+    metadata: z.record(z.unknown()),
+    redFlagRating: z.number(),
+    wordCount: z.number(),
+    entitiesCount: z.number(),
+    keyEntities: z.array(z.object({ id: z.string(), name: z.string() })),
+    sourceType: z.string(),
+    previewText: z.string(),
+    previewKind: z.string(),
+    whyFlagged: z.string(),
+  })
+  .merge(provenanceSchema);
 
 export const documentListItemSchema = z.preprocess((input) => {
   if (!input || typeof input !== 'object') return input;
@@ -51,32 +54,34 @@ export const documentsListResponseSchema = z.object({
 });
 
 // Schema for GET /api/documents/:id and GET /api/evidence/:id — single document/evidence detail
-export const documentDetailSchema = z.object({
-  id: z.string(),
-  fileName: z.string(),
-  filePath: z.string().nullable(),
-  fileType: z.string(),
-  fileSize: z.number(),
-  dateCreated: z.string().nullable(),
-  title: z.string(),
-  content: z.string(),
-  contentRefined: z.string().nullable(),
-  contentPreview: z.string().nullable(),
-  metadata: z.record(z.unknown()),
-  evidenceType: z.string(),
-  redFlagRating: z.number(),
-  sourceCollection: z.string().nullable(),
-  fileUrl: z.string().nullable(),
-  originalFileUrl: z.string().nullable(),
-  // Entities joined by documentsRepository.getDocumentById
-  entities: z
-    .array(
-      z.object({
-        id: z.union([z.string(), z.number()]),
-        name: z.string(),
-        mentions: z.number(),
-        contexts: z.array(z.string()),
-      }),
-    )
-    .optional(),
-});
+export const documentDetailSchema = z
+  .object({
+    id: z.string(),
+    fileName: z.string(),
+    filePath: z.string().nullable(),
+    fileType: z.string(),
+    fileSize: z.number(),
+    dateCreated: z.string().nullable(),
+    title: z.string(),
+    content: z.string(),
+    contentRefined: z.string().nullable(),
+    contentPreview: z.string().nullable(),
+    metadata: z.record(z.unknown()),
+    evidenceType: z.string(),
+    redFlagRating: z.number(),
+    sourceCollection: z.string().nullable(),
+    fileUrl: z.string().nullable(),
+    originalFileUrl: z.string().nullable(),
+    // Entities joined by documentsRepository.getDocumentById
+    entities: z
+      .array(
+        z.object({
+          id: z.union([z.string(), z.number()]),
+          name: z.string(),
+          mentions: z.number(),
+          contexts: z.array(z.string()),
+        }),
+      )
+      .optional(),
+  })
+  .merge(provenanceSchema);

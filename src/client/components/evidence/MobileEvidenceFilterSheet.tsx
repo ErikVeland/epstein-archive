@@ -1,5 +1,5 @@
-import { Flag } from 'lucide-react';
-import { Button, Flex, LqText, Select, Stack } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Button, Flex, LqText, Select, Stack } from '@client/design-system/lib';
 import { SheetDialog } from '../common/SheetDialog';
 import styles from './EvidenceFilters.module.css';
 
@@ -109,7 +109,7 @@ export function MobileEvidenceFilterSheet({
             onClick={() => onShowRedFlagOnlyChange(!showRedFlagOnly)}
             className={styles.fullWidthBtn}
           >
-            <Flag size={14} />
+            <Icon name="Flag" size="sm" />
             {showRedFlagOnly ? 'Flagged Intelligence Only' : 'Include All Observations'}
           </Button>
         </Stack>

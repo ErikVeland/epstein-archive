@@ -1,7 +1,7 @@
 import type {
   Investigation,
   EvidenceItem as WorkspaceEvidenceItem,
-} from '../../../types/investigation';
+} from '@client/types/investigation';
 import type {
   InvestigationCaseEvidenceItemDto,
   InvestigationEvidenceByTypeResponseDto,

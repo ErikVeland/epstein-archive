@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import s from './MobileMenu.module.css';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
-import { useAuth } from '../../contexts/AuthContext';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
+import { useAuth } from '@client/contexts/AuthContext';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
 
-import { Button, SearchField } from '../../design-system/lib';
+import { Button, SearchField } from '@client/design-system/lib';
 
 interface MobileMenuProps {
   open: boolean;

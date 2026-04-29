@@ -1,11 +1,11 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { useModalFocusTrap } from '../hooks/useModalFocusTrap';
-import { useScrollLock } from '../hooks/useScrollLock';
+import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { CloseButton } from './common/CloseButton';
 import styles from './KeyboardShortcutsModal.module.css';
 
-import { Button } from '../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;

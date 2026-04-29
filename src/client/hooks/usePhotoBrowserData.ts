@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../services/apiClient';
-import { Album, MediaImage, MediaStats, MediaTag } from '../types/media.types';
+import { apiClient } from '@client/services/apiClient';
+import { Album, MediaImage, MediaStats, MediaTag } from '@client/types/media.types';
 
 export type PhotoSortField = 'date_added' | 'date_taken' | 'filename' | 'file_size' | 'title';
 export type PhotoSortOrder = 'asc' | 'desc';

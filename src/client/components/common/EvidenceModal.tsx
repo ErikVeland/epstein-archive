@@ -5,12 +5,12 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { apiClient } from '../../services/apiClient';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
+import { apiClient } from '@client/services/apiClient';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
 import { TabItem } from './Tabs';
 import { LiquidSheet } from './LiquidSheet';
-import { useIsMobile } from '../../hooks/useResponsive';
+import { useIsMobile } from '@client/hooks/useResponsive';
 
 // Subcomponents
 import { EvidenceModalHeader } from './subcomponents/EvidenceModalHeader';
@@ -35,13 +35,13 @@ import {
   isVisualMediaItem,
   normalizeEvidenceDocument,
   normalizeEntityMediaItem,
-} from '../../utils/evidenceUtils';
+} from '@client/utils/evidenceUtils';
 import {
   calculateEvidenceLadder,
   calculateSignalMetrics,
   generateDriverChips,
   type PersonAdapter,
-} from '../../utils/forensics';
+} from '@client/utils/forensics';
 
 // Styles
 import s from './EvidenceModal.module.css';

@@ -1,20 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-  Plus,
-  Search,
-  FileSearch,
-  User,
-  Calendar,
-  ExternalLink,
-  BarChart3,
-  MessageSquare,
-  Trash2,
-  Shield,
-  LayoutList,
-  Activity,
-  Database,
-  Layers,
-} from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 
 // UI Library
 import {
@@ -29,12 +14,12 @@ import {
   Skeleton,
   Stack,
   Surface,
-} from '../../design-system/lib';
-import { ENTITY_CATEGORY_ICONS, EntityCategory } from '../../../config/entityIcons';
+} from '@client/design-system/lib';
+import { ENTITY_CATEGORY_ICONS, EntityCategory } from '@client/config/entityIcons';
 import { EvidenceAnnotationPanel, EvidenceAnnotation } from '../documents/EvidenceAnnotation';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import styles from './InvestigationEvidencePanel.module.css';
 
 const css = <T,>(style: T) => style;
@@ -234,7 +219,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
         <Flex justify="between" align="start">
           <Stack gap="sm" style={css({ flex: 1 })}>
             <Flex align="center" gap="md">
-              <FileSearch size={16} className={styles.autoGen194} />
+              <Icon name="FileSearch" size="sm" className={styles.autoGen194} />
               <LqText variant="small" weight="bold">
                 {item.title || 'Signal Object'}
               </LqText>
@@ -257,8 +242,9 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             {(entityByEvidence[String(item.id)] || []).length > 0 && (
               <Flex gap="xs" wrap="wrap" mt="xs">
                 {(entityByEvidence[String(item.id)] || []).slice(0, 4).map((ref) => {
-                  const EntityIcon =
-                    ENTITY_CATEGORY_ICONS[ref.entityCategory as EntityCategory]?.icon || User;
+                  const entityIconName =
+                    (ENTITY_CATEGORY_ICONS[ref.entityCategory as EntityCategory]
+                      ?.icon as IconName) || 'User';
                   return (
                     <Badge
                       key={ref.entityId}
@@ -270,7 +256,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                         setPivotEntityName(ref.fullName);
                       }}
                     >
-                      <EntityIcon size={10} className={styles.mr1} /> {ref.fullName}
+                      <Icon name={entityIconName} size="xs" className={styles.mr1} /> {ref.fullName}
                     </Badge>
                   );
                 })}
@@ -301,7 +287,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             />
             {(evidenceAnnotations[item.id]?.length || 0) > 0 && (
               <Flex align="center" gap="xs">
-                <MessageSquare size={10} className={styles.autoGen196} />
+                <Icon name="MessageSquare" size="xs" className={styles.autoGen196} />
                 <LqText variant="xs" weight="bold">
                   {evidenceAnnotations[item.id].length}
                 </LqText>
@@ -311,18 +297,18 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
 
           <Flex gap="xs">
             <Button variant="ghost" size="sm" onClick={() => setAnnotatingEvidence(item)}>
-              <MessageSquare size={14} />
+              <Icon name="MessageSquare" size="sm" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => window.open(`/evidence/${encodeURIComponent(item.id)}`, '_blank')}
             >
-              <ExternalLink size={14} />
+              <Icon name="ExternalLink" size="sm" />
             </Button>
             {onChainOfCustody && (
               <Button variant="ghost" size="sm" onClick={() => onChainOfCustody(String(item.id))}>
-                <Shield size={14} />
+                <Icon name="Shield" size="sm" />
               </Button>
             )}
             <Button
@@ -331,7 +317,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
               className={styles.autoGen197}
               onClick={() => handleDeleteEvidence(item.id)}
             >
-              <Trash2 size={14} />
+              <Icon name="Trash2" size="sm" />
             </Button>
           </Flex>
         </Flex>
@@ -346,7 +332,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
         <Flex justify="between" align="start">
           <Stack gap="none">
             <Flex align="center" gap="md">
-              <Database size={24} className={styles.autoGen199} />
+              <Icon name="Database" size="lg" className={styles.autoGen199} />
               <LqText variant="h1" weight="bold">
                 Evidence Inventory
               </LqText>
@@ -366,18 +352,18 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
 
         <Grid cols={3} gap="lg" mt="xl">
           {[
-            { label: 'Total Volume', val: evidence.length, color: 'accent', icon: Layers },
+            { label: 'Total Volume', val: evidence.length, color: 'accent', icon: 'Layers' },
             {
               label: 'Entity Intersection',
               val: entityCoverage.length,
               color: 'success',
-              icon: User,
+              icon: 'User',
             },
             {
               label: 'Signal Modalities',
               val: Object.keys(typeBreakdown).length,
               color: 'warning',
-              icon: Activity,
+              icon: 'Activity',
             },
           ].map((s) => (
             <Surface key={s.label} variant="glass-highlight" p="lg" className={styles.autoGen200}>
@@ -403,7 +389,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                     {loading ? <Skeleton width={40} height={32} /> : s.val}
                   </LqText>
                 </Stack>
-                <s.icon size={24} className="opacity-20" />
+                <Icon name={s.icon as IconName} size="lg" className="opacity-20" />
               </Flex>
             </Surface>
           ))}
@@ -417,7 +403,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             {/* Modal Distribution */}
             <Stack gap="md">
               <Flex align="center" gap="sm">
-                <BarChart3 size={14} className={styles.autoGen203} />
+                <Icon name="BarChart3" size="sm" className={styles.autoGen203} />
                 <LqText
                   variant="xs"
                   weight="bold"
@@ -464,7 +450,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             {/* Top Entities */}
             <Stack gap="md" py="xl" className={styles.autoGen206}>
               <Flex align="center" gap="sm">
-                <User size={14} className={styles.autoGen207} />
+                <Icon name="User" size="sm" className={styles.autoGen207} />
                 <LqText
                   variant="xs"
                   weight="bold"
@@ -515,7 +501,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                   />
                 </Box>
                 <Button variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
-                  <Plus size={14} className={styles.mr2} /> Link Signal
+                  <Icon name="Plus" size="sm" className={styles.mr2} /> Link Signal
                 </Button>
               </Flex>
 
@@ -552,21 +538,21 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                     size="sm"
                     onClick={() => setClusterMode('none')}
                   >
-                    <LayoutList size={12} />
+                    <Icon name="LayoutList" size="xs" />
                   </Button>
                   <Button
                     variant={clusterMode === 'entity' ? 'primary' : 'ghost'}
                     size="sm"
                     onClick={() => setClusterMode('entity')}
                   >
-                    <User size={12} />
+                    <Icon name="User" size="xs" />
                   </Button>
                   <Button
                     variant={clusterMode === 'date' ? 'primary' : 'ghost'}
                     size="sm"
                     onClick={() => setClusterMode('date')}
                   >
-                    <Calendar size={12} />
+                    <Icon name="Calendar" size="xs" />
                   </Button>
                 </Flex>
               </Flex>
@@ -627,7 +613,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
 
             {!loading && filteredEvidence.length === 0 && (
               <Stack align="center" justify="center" p="xxxl" gap="md">
-                <Search size={48} className={styles.autoGen215} />
+                <Icon name="Search" size="xl" className={styles.autoGen215} />
                 <LqText variant="small" weight="bold" color="muted">
                   No Evidence Intersections Found
                 </LqText>

@@ -1,6 +1,6 @@
 import React from 'react';
 import s from './FormField.module.css';
-import { cn } from '../../utils/cn';
+import { cn } from '@client/utils/cn';
 
 interface FormFieldProps {
   label: React.ReactNode;

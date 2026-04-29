@@ -4,11 +4,11 @@ import { DocumentAnnotationSystem } from '../DocumentAnnotationSystem';
 import styles from './DocumentPDFTab.module.css';
 
 // Design System
-import { LqText } from '../../../design-system/components/typography/Text';
-import { Surface } from '../../../design-system/components/surfaces/Surface';
-import { Box } from '../../../design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface DocumentPDFTabProps {
   documentId: string;

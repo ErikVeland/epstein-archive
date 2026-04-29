@@ -1,18 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Target,
-  Plus,
-  Trash2,
-  Link,
-  CheckCircle2,
-  XCircle,
-  Zap,
-  RefreshCw,
-  TrendingUp,
-  History,
-} from 'lucide-react';
-import { EvidenceItem } from '../../types/investigation';
+import Icon from '@client/components/common/Icon';
+import { EvidenceItem } from '@client/types/investigation';
 
 // UI Library
 import styles from './HypothesisTestingFramework.module.css';
@@ -29,7 +18,7 @@ import {
   Surface,
   Textarea,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 const css = <T,>(style: T) => style;
 
 // Extended Hypothesis type with additional fields for testing
@@ -257,7 +246,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
           <Flex justify="between" align="center">
             <Stack gap="none">
               <Flex align="center" gap="md">
-                <Target size={24} className={styles.autoGen133} />
+                <Icon name="Target" size="lg" className={styles.autoGen133} />
                 <LqText variant="h1" weight="bold">
                   Hypothesis Testing Workbench
                 </LqText>
@@ -267,7 +256,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
               </LqText>
             </Stack>
             <Button variant="secondary" size="sm" onClick={() => setShowNewForm(true)}>
-              <Plus size={16} />{' '}
+              <Icon name="Plus" size="sm" />{' '}
               <span style={css({ marginLeft: '0.5rem' })}>Initialize Theory</span>
             </Button>
           </Flex>
@@ -332,7 +321,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
           {hypotheses.length === 0 ? (
             <Surface variant="glass" p="xxxl">
               <Stack align="center" gap="lg">
-                <Zap size={48} className={styles.autoGen135} />
+                <Icon name="Zap" size="xl" className={styles.autoGen135} />
                 <LqText
                   variant="xs"
                   color="muted"
@@ -381,8 +370,9 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                         </Stack>
                         <Stack align="end" gap="xs">
                           <Flex align="center" gap="xs">
-                            <TrendingUp
-                              size={12}
+                            <Icon
+                              name="TrendingUp"
+                              size="xs"
                               className={cn(
                                 (h.confidence ?? 0) > 70
                                   ? 'text-[var(--lq-success)]'
@@ -407,7 +397,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                         <Stack gap="xl" mt="lg" pt="xl" className={styles.autoGen138}>
                           <Flex justify="between" align="center">
                             <Flex align="center" gap="sm">
-                              <Link size={14} className={styles.autoGen139} />
+                              <Icon name="Link" size="sm" className={styles.autoGen139} />
                               <LqText
                                 variant="xs"
                                 weight="bold"
@@ -427,7 +417,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                 })
                               }
                             >
-                              <Plus size={10} className={styles.mr1} /> Link Signal
+                              <Icon name="Plus" size="xs" className={styles.mr1} /> Link Signal
                             </Button>
                           </Flex>
 
@@ -582,7 +572,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                           className={styles.autoGen142}
                                           onClick={() => {}}
                                         >
-                                          <Trash2 size={10} />
+                                          <Icon name="Trash2" size="xs" />
                                         </Button>
                                       </Flex>
                                     </Surface>
@@ -596,7 +586,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                           {h.revisions.length > 0 && (
                             <Stack gap="sm" mt="sm">
                               <Flex align="center" gap="sm">
-                                <History size={14} className={styles.autoGen143} />
+                                <Icon name="History" size="sm" className={styles.autoGen143} />
                                 <LqText
                                   variant="xs"
                                   weight="bold"
@@ -631,7 +621,8 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                               onClick={() => updateStatus(h.id, 'supported')}
                               className="hover:text-[var(--lq-success)]"
                             >
-                              <CheckCircle2 size={14} className={styles.mr2} /> Mark Supported
+                              <Icon name="CheckCircle2" size="sm" className={styles.mr2} /> Mark
+                              Supported
                             </Button>
                             <Button
                               variant="ghost"
@@ -639,14 +630,15 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                               onClick={() => updateStatus(h.id, 'refuted')}
                               className="hover:text-[var(--lq-error)]"
                             >
-                              <XCircle size={14} className={styles.mr2} /> Mark Refuted
+                              <Icon name="XCircle" size="sm" className={styles.mr2} /> Mark Refuted
                             </Button>
                             <Button
                               variant="ghost"
                               grow
                               onClick={() => updateStatus(h.id, 'testing')}
                             >
-                              <RefreshCw size={14} className={styles.mr2} /> Reset Status
+                              <Icon name="RefreshCw" size="sm" className={styles.mr2} /> Reset
+                              Status
                             </Button>
                           </Flex>
                         </Stack>

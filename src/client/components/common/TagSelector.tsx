@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tag, Plus, X, Check } from 'lucide-react';
-import { Button, SearchField, TextInput } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Button, SearchField, TextInput } from '@client/design-system/lib';
 import s from './TagSelector.module.css';
 
 const TAG_PRESET_COLORS = [
@@ -154,7 +154,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 size="sm"
                 className={s.tagRemove}
               >
-                <X size={12} />
+                <Icon name="X" size="xs" />
               </Button>
             )}
           </span>
@@ -169,7 +169,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         size="sm"
         className={s.addBtn}
       >
-        <Tag size={14} />
+        <Icon name="Tag" size="sm" />
         Add Tag
       </Button>
 
@@ -208,7 +208,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                   />
                   <span className={s.tagName}>{tag.name}</span>
                 </span>
-                {isTagSelected(tag.id) && <Check className={s.tagCheck} />}
+                {isTagSelected(tag.id) && <Icon name="Check" className={s.tagCheck} />}
               </Button>
             ))}
             {filteredTags.length === 0 && <p className={s.emptyMsg}>No tags found</p>}
@@ -270,7 +270,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                   size="sm"
                   className={s.createTrigger}
                 >
-                  <Plus size={16} />
+                  <Icon name="Plus" size="sm" />
                   Create new tag
                 </Button>
               )}

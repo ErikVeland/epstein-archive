@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plane, ArrowRight, MapPin, Shield } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
 import s from './EntityFlightsTab.module.css';
 
@@ -56,7 +56,7 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
     <div className={s.tabContainer} data-testid="entity-modal-tab-flights">
       <div className={s.header}>
         <h3 className={s.headerTitle}>
-          <Plane size={16} className={s.flightIcon} />
+          <Icon name="Plane" size="sm" className={s.flightIcon} />
           Flight Log
         </h3>
         <div className={s.countBadge}>
@@ -75,7 +75,7 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
 
         {!isLoading && isError && (
           <div className={s.emptyState}>
-            <Plane size={48} className={s.emptyIcon} />
+            <Icon name="Plane" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>Flight records could not be loaded</h4>
             <p className={s.emptyText}>The flight log endpoint returned an error.</p>
           </div>
@@ -83,7 +83,7 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
 
         {!isLoading && !isError && flights.length === 0 && (
           <div className={s.emptyState}>
-            <Plane size={48} className={s.emptyIcon} />
+            <Icon name="Plane" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Flight Records</h4>
             <p className={s.emptyText}>
               No flights are linked to this entity in the flight log corpus.
@@ -98,7 +98,7 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
               <div className={s.cardTop}>
                 <div className={s.route}>
                   <span>{formatCity(flight.departure_city, flight.departure_airport)}</span>
-                  <ArrowRight size={14} className={s.arrow} />
+                  <Icon name="ArrowRight" size="sm" className={s.arrow} />
                   <span>{formatCity(flight.arrival_city, flight.arrival_airport)}</span>
                 </div>
                 <Link to={`/flights/${flight.id}`} className={s.viewLink}>
@@ -109,11 +109,11 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
               <div className={s.meta}>
                 <span className={s.dateBadge}>{formatDate(flight.date)}</span>
                 <span className={s.metaItem}>
-                  <MapPin size={11} />
+                  <Icon name="MapPin" size="xs" />
                   {flight.departure_airport} → {flight.arrival_airport}
                 </span>
                 <span className={s.metaItem}>
-                  <Shield size={11} />
+                  <Icon name="Shield" size="xs" />
                   {flight.aircraft_tail}
                 </span>
               </div>

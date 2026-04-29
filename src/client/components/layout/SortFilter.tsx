@@ -6,7 +6,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import s from './SortFilter.module.css';
 
 interface SortOption {

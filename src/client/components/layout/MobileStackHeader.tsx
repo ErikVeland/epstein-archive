@@ -1,6 +1,6 @@
 import React from 'react';
-import { ChevronLeft, X } from 'lucide-react';
-import { Flex, Button, LqText, Surface } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Flex, Button, LqText, Surface } from '@client/design-system/lib';
 import styles from './MobileStackHeader.module.css';
 
 interface BreadcrumbItem {
@@ -44,7 +44,7 @@ export const MobileStackHeader: React.FC<MobileStackHeaderProps> = ({
             className={styles.backButton}
             aria-label="Go back"
           >
-            <ChevronLeft size={20} />
+            <Icon name="ChevronLeft" size="md" />
           </Button>
           <div className={styles.titleStack}>
             {breadcrumbItems && breadcrumbItems.length > 0 ? (
@@ -96,7 +96,7 @@ export const MobileStackHeader: React.FC<MobileStackHeaderProps> = ({
               className={styles.closeButton}
               aria-label="Close"
             >
-              <X size={20} />
+              <Icon name="X" size="md" />
             </Button>
           )}
         </Flex>

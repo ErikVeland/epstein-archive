@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import type {
   ForensicAnalysis,
   ForensicCaseContext,
-} from '../components/investigation/ForensicDocumentAnalyzer';
+} from '@client/components/investigation/ForensicDocumentAnalyzer';
 
-import { ForensicMetricRecord, ForensicSummary } from '../types/forensics';
+import { ForensicMetricRecord, ForensicSummary } from '@client/types/forensics';
 
 type DocumentMeta = {
   source_collection?: string;

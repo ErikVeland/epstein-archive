@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { LqText } from '../design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Box } from '@client/design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
 import styles from './LoginPage.module.css';
 
-import { Button, Input } from '../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');

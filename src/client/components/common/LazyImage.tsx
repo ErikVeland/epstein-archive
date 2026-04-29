@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useSharedIntersectionObserver } from '../../hooks/useSharedIntersectionObserver';
+import { useSharedIntersectionObserver } from '@client/hooks/useSharedIntersectionObserver';
 import s from './LazyImage.module.css';
 
 // Global cache to track which images have been loaded this session

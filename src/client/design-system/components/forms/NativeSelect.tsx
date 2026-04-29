@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { ChevronDown } from 'lucide-react';
-import { cn } from '../../../utils/cn';
+import Icon from '@client/components/common/Icon';
+import { cn } from '@client/utils/cn';
 import './Select.css';
 
 export interface NativeSelectProps extends Omit<
@@ -30,7 +30,7 @@ export const NativeSelect = React.forwardRef<HTMLSelectElement, NativeSelectProp
           >
             {children}
           </select>
-          <ChevronDown aria-hidden="true" className="ds-selectIcon" size={16} />
+          <Icon name="ChevronDown" aria-hidden="true" className="ds-selectIcon" size="sm" />
         </div>
       </div>
     );

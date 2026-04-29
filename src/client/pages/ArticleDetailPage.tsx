@@ -1,11 +1,11 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ExternalLink } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import DOMPurify from 'isomorphic-dompurify';
-import { MobileStackHeader } from '../components/layout/MobileStackHeader';
-import { AddToInvestigationButton } from '../components/common/AddToInvestigationButton';
-import panelStyles from '../components/media/ArticleViewerModal.module.css';
+import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
+import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
+import panelStyles from '@client/components/media/ArticleViewerModal.module.css';
 import styles from './ArticleDetailPage.module.css';
 
 interface ArticleDetail {
@@ -155,7 +155,7 @@ export const ArticleDetailPage: React.FC = () => {
                 className={panelStyles.sourceLink}
               >
                 Read Original Source
-                <ExternalLink size={16} className={panelStyles.sourceLinkIcon} />
+                <Icon name="ExternalLink" size="sm" className={panelStyles.sourceLinkIcon} />
               </a>
             )}
           </div>

@@ -1,22 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { Investigation, EvidenceItem } from '../../types/investigation';
-import { apiClient } from '../../services/apiClient';
-import {
-  Activity,
-  Clock,
-  Users,
-  MessageSquare,
-  TrendingUp,
-  AlertTriangle,
-  Filter,
-  ArrowRight,
-  XCircle,
-  ExternalLink,
-} from 'lucide-react';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { Investigation, EvidenceItem } from '@client/types/investigation';
+import { apiClient } from '@client/services/apiClient';
+import Icon from '@client/components/common/Icon';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 
 // UI Library
-import { Surface, Button, Flex, Box, Stack, LqText, Grid, Badge } from '../../design-system/lib';
+import { Surface, Button, Flex, Box, Stack, LqText, Grid, Badge } from '@client/design-system/lib';
 import styles from './CommunicationAnalysis.module.css';
 
 interface CommunicationAnalysisProps {
@@ -248,18 +237,18 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
     if (onCommunicationPatternDetected) onCommunicationPatternDetected(patterns);
   };
 
-  const getPatternIcon = (type: string) => {
+  const getPatternIcon = (type: string): string => {
     switch (type) {
       case 'frequency':
-        return TrendingUp;
+        return 'TrendingUp';
       case 'timing':
-        return Clock;
+        return 'Clock';
       case 'network':
-        return Users;
+        return 'Users';
       case 'anomaly':
-        return AlertTriangle;
+        return 'AlertTriangle';
       default:
-        return MessageSquare;
+        return 'MessageSquare';
     }
   };
 
@@ -302,7 +291,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
               </Flex>
             </Stack>
             <Button variant="primary" onClick={analyzeCommunications} disabled={isAnalyzing}>
-              <Activity className={isAnalyzing ? 'animate-spin-slow' : ''} size={18} />
+              <Icon name="Activity" className={isAnalyzing ? 'animate-spin-slow' : ''} size="md" />
               {isAnalyzing ? 'Analyzing Network...' : 'Initiate Communication Scan'}
             </Button>
           </Flex>
@@ -332,7 +321,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
           <Stack gap="xl">
             <Surface variant="glass" p="sm">
               <Flex gap="sm" align="center">
-                <Filter size={14} className={styles.autoGen34} />
+                <Icon name="Filter" size="sm" className={styles.autoGen34} />
                 <Box mr="sm">
                   <LqText variant="xs" weight="bold" color="muted">
                     FILTER SIGMA:
@@ -357,7 +346,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
               {communicationPatterns
                 .filter((p) => filterType === 'all' || p.type === filterType)
                 .map((p) => {
-                  const IconComp = getPatternIcon(p.type);
+                  const iconName = getPatternIcon(p.type);
                   return (
                     <Surface
                       key={p.id}
@@ -369,7 +358,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                       <Stack gap="md">
                         <Flex justify="between" align="start">
                           <Box p="xs" className={styles.autoGen36}>
-                            <IconComp size={18} className={styles.autoGen37} />
+                            <Icon name={iconName} size="sm" className={styles.autoGen37} />
                           </Box>
                           <Badge tone={getSeverityVariant(p.severity)}>
                             {p.severity.toUpperCase()}
@@ -401,7 +390,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                                 openScopedEmailView(p);
                               }}
                             >
-                              <ExternalLink size={10} /> Inspect
+                              <Icon name="ExternalLink" size="xs" /> Inspect
                             </Button>
                           </Flex>
                         </Flex>
@@ -416,7 +405,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
         {!isAnalyzing && communicationPatterns.length === 0 && (
           <Surface variant="glass" p="lg">
             <Stack align="center" gap="lg">
-              <MessageSquare size={48} className={styles.autoGen39} />
+              <Icon name="MessageSquare" size="xl" className={styles.autoGen39} />
               <Stack gap="xs">
                 <LqText variant="h3" weight="bold">
                   No Latent Patterns Detected
@@ -460,7 +449,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                   >{`${selectedPattern.severity.toUpperCase()} PRIORITY`}</Badge>
                 </Stack>
                 <Button variant="ghost" size="sm" onClick={() => setSelectedPattern(null)}>
-                  <XCircle size={18} />
+                  <Icon name="XCircle" size="md" />
                 </Button>
               </Flex>
 
@@ -499,7 +488,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                   <ul className={styles.recommendationsList}>
                     {selectedPattern.recommendations.map((r, i) => (
                       <li key={i} className={styles.autoGen42}>
-                        <ArrowRight size={10} className={styles.autoGen43} />
+                        <Icon name="ArrowRight" size="xs" className={styles.autoGen43} />
                         <LqText variant="xs">{r}</LqText>
                       </li>
                     ))}

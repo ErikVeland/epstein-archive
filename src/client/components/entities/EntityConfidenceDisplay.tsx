@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import Icon from '../common/Icon';
-import { apiClient } from '../../services/apiClient';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
 import styles from './EntityConfidenceDisplay.module.css';
+import { ConfidenceBadge } from '@client/components/common/ConfidenceBadge';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface EntityConfidence {
   entityId: string | number;
@@ -75,7 +76,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
     lg: styles.sizeLg,
   };
 
-  // Simple badge
+  // Simple badge using reusable ConfidenceBadge
   if (!expanded) {
     return (
       <Button
@@ -84,9 +85,11 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
         className={`${styles.badge} ${getColor(confidence.confidenceLevel)} ${sizeClasses[size]}`}
         title={`Data confidence: ${confidence.confidenceScore}% based on ${confidence.totalMentions} mentions`}
       >
-        <Icon name={getIcon(confidence.confidenceLevel)} />
-        <span>{confidence.confidenceLevel}</span>
-        <span className={styles.expandedScore}>({confidence.confidenceScore}%)</span>
+        <ConfidenceBadge
+          confidence={confidence.confidenceScore / 100}
+          showPercentage={true}
+          showIcon={true}
+        />
       </Button>
     );
   }

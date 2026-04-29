@@ -6,13 +6,13 @@
 
 import { useState, useEffect } from 'react';
 import { Document, Page } from 'react-pdf';
-import { Download, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import styles from './PDFViewer.module.css';
 
-import { Button } from '../../design-system/lib';
-import { ensurePdfWorker } from '../../utils/ensurePdfWorker';
+import { Button } from '@client/design-system/lib';
+import { ensurePdfWorker } from '@client/utils/ensurePdfWorker';
 
 // Set up worker for PDF.js
 ensurePdfWorker();
@@ -134,7 +134,7 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
 
         <div className={styles.toolbarGroup}>
           <Button unstyled onClick={downloadPDF} className={styles.iconButton} title="Download PDF">
-            <Download className={styles.icon} />
+            <Icon name="Download" className={styles.icon} />
           </Button>
 
           <div className={styles.divider} />
@@ -146,7 +146,7 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
             disabled={scale <= 0.5}
             title="Zoom Out"
           >
-            <ZoomOut className={styles.icon} />
+            <Icon name="ZoomOut" className={styles.icon} />
           </Button>
 
           <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
@@ -158,13 +158,13 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
             disabled={scale >= 3}
             title="Zoom In"
           >
-            <ZoomIn className={styles.icon} />
+            <Icon name="ZoomIn" className={styles.icon} />
           </Button>
 
           <div className={styles.divider} />
 
           <Button unstyled onClick={rotate} className={styles.iconButton} title="Rotate">
-            <RotateCw className={styles.icon} />
+            <Icon name="RotateCw" className={styles.icon} />
           </Button>
         </div>
       </div>
@@ -180,7 +180,7 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
             className={`${styles.iconButton} ${pageNumber <= 1 ? styles.iconButtonDisabled : ''}`}
             title="Previous Page"
           >
-            <ChevronLeft className={styles.icon} />
+            <Icon name="ChevronLeft" className={styles.icon} />
           </Button>
 
           <span className={styles.pageLabel}>
@@ -194,7 +194,7 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
             className={`${styles.iconButton} ${!numPages || pageNumber >= numPages ? styles.iconButtonDisabled : ''}`}
             title="Next Page"
           >
-            <ChevronRight className={styles.icon} />
+            <Icon name="ChevronRight" className={styles.icon} />
           </Button>
         </div>
 

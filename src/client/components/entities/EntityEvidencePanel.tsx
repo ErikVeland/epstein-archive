@@ -1,27 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import {
-  FileText,
-  AlertTriangle,
-  Calendar,
-  Tag,
-  ExternalLink,
-  User,
-  BarChart3,
-  Network,
-  Mail,
-  MessageCircle,
-  Clock3,
-  Fingerprint,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Link, useNavigate } from 'react-router-dom';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import { EvidenceLadder } from '../evidence/EvidenceLadder';
 
 import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './EntityEvidencePanel.module.css';
 
-import { Button, Input, NativeSelect } from '../../design-system/lib';
+import { Button, Input, NativeSelect } from '@client/design-system/lib';
 
 interface Evidence {
   id: string | number;
@@ -212,7 +199,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
   if (!stats || evidence.length === 0) {
     return (
       <div className={styles.emptyState}>
-        <FileText className={styles.emptyIcon} />
+        <Icon name="FileText" className={styles.emptyIcon} />
         <h3 className={styles.emptyTitle}>No Evidence Found</h3>
         <p className={styles.emptySubtext}>No evidence has been linked to {entityName} yet.</p>
       </div>
@@ -251,7 +238,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       <div className="surface-panel">
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <BarChart3 className={styles.sectionIcon} />
+            <Icon name="BarChart3" className={styles.sectionIcon} />
             <h3 className={styles.sectionTitle}>Evidence Type Distribution</h3>
           </div>
           <div className={styles.innerList}>
@@ -278,7 +265,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
         <div className="surface-panel">
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <User className={styles.sectionIcon} />
+              <Icon name="User" className={styles.sectionIcon} />
               <h3 className={styles.sectionTitle}>Role Distribution</h3>
             </div>
             <div className={styles.roleList}>
@@ -301,7 +288,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
           <div className={styles.section}>
             <div className={styles.relatedHeader}>
               <div className={styles.sectionHeader} style={{ marginBottom: 0 }}>
-                <Network className={styles.sectionIcon} />
+                <Icon name="Network" className={styles.sectionIcon} />
                 <h3 className={styles.sectionTitle}>Frequently Co-appears With</h3>
               </div>
               <div className={styles.viewToggle}>
@@ -390,7 +377,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
         <div className="surface-panel">
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <Mail className={styles.sectionIcon} />
+              <Icon name="Mail" className={styles.sectionIcon} />
               <h3 className={styles.sectionTitle}>Email Communications</h3>
             </div>
             <p className={styles.commsIntro}>
@@ -404,7 +391,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   <div className={styles.commTopRow}>
                     <div>
                       <div className={styles.commSubjectRow}>
-                        <MessageCircle className={styles.commIcon} />
+                        <Icon name="MessageCircle" className={styles.commIcon} />
                         <span className={styles.commSubject}>{c.subject || 'No subject'}</span>
                       </div>
                       <div className={styles.commMeta}>
@@ -418,12 +405,12 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     <div className={styles.commRight}>
                       {c.date && (
                         <div className={styles.commDate}>
-                          <Clock3 className={styles.commDateIcon} />
+                          <Icon name="Clock3" className={styles.commDateIcon} />
                           <span>{c.date}</span>
                         </div>
                       )}
                       <span className={styles.commTopicBadge}>
-                        <Tag className={styles.commTopicIcon} />
+                        <Icon name="Tag" className={styles.commTopicIcon} />
                         {c.topic.replace('_', ' ')}
                       </span>
                       <div className={styles.commActions}>
@@ -432,7 +419,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                           className={styles.commActionLink}
                           title="View Thread"
                         >
-                          <ExternalLink className={styles.commActionIcon} />
+                          <Icon name="ExternalLink" className={styles.commActionIcon} />
                         </Link>
                         <AddToInvestigationButton
                           item={{
@@ -465,7 +452,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       {relationEdges.length > 0 && (
         <div className={`surface-panel ${styles.sectionCard}`}>
           <div className={styles.sectionHeader}>
-            <Network className={styles.sectionIcon} />
+            <Icon name="Network" className={styles.sectionIcon} />
             <h3 className={styles.sectionTitle}>Relation Evidence</h3>
           </div>
           <div className={styles.relationList}>
@@ -551,7 +538,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                 <div className={styles.evidenceCardHeader}>
                   <div className={styles.evidenceCardMain}>
                     <div className={styles.evidenceTitleRow}>
-                      <FileText className={styles.evidenceTitleIcon} />
+                      <Icon name="FileText" className={styles.evidenceTitleIcon} />
                       <h4 className={styles.evidenceTitle}>{item.title || 'Untitled'}</h4>
                     </div>
                     {item.description && (
@@ -571,13 +558,13 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     )}
                     {item.redFlagRating > 0 && (
                       <div className={styles.redFlagBadge}>
-                        <AlertTriangle className={styles.redFlagIcon} />
+                        <Icon name="AlertTriangle" className={styles.redFlagIcon} />
                         <span className={styles.redFlagValue}>{item.redFlagRating}</span>
                       </div>
                     )}
                     {item.wasAgentic && (
                       <div className={styles.agenticBadge}>
-                        <Fingerprint size={10} />
+                        <Icon name="Fingerprint" size="xs" />
                         Agentic
                       </div>
                     )}
@@ -605,18 +592,18 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                 <div className={styles.evidenceFooter}>
                   <div className={styles.evidenceFooterMeta}>
                     <span className={styles.evidenceFooterItem}>
-                      <Tag className={styles.evidenceFooterIcon} />
+                      <Icon name="Tag" className={styles.evidenceFooterIcon} />
                       <span>{getEvidenceTypeLabel(item.evidenceType)}</span>
                     </span>
                     <span className={styles.evidenceFooterItem}>
-                      <Calendar className={styles.evidenceFooterIcon} />
+                      <Icon name="Calendar" className={styles.evidenceFooterIcon} />
                       <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                     </span>
                   </div>
                   {documentId ? (
                     <Link to={`/documents?id=${documentId}`} className={styles.viewLink}>
                       <span>View</span>
-                      <ExternalLink className={styles.viewLinkIcon} />
+                      <Icon name="ExternalLink" className={styles.viewLinkIcon} />
                     </Link>
                   ) : (
                     <span className={styles.noDocumentLink}>No document link</span>

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { EvidenceItem, Hypothesis } from '../../../../types/investigation';
+import type { EvidenceItem, Hypothesis } from '@client/types/investigation';
 import { investigationsApi } from '../investigations.api';
 import { normalizeEvidencePage } from '../investigations.model';
-import { PerformanceMonitor } from '../../../../utils/performanceMonitor';
+import { PerformanceMonitor } from '@client/utils/performanceMonitor';
 
 const PAGE_SIZE = 120;
 const ensureArray = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);

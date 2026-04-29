@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, Profiler } from 'react';
-import ScopedErrorBoundary from '../components/common/ScopedErrorBoundary';
-import Icon from '../components/common/Icon';
-import { StatsDisplay } from '../components/pages/StatsDisplay';
-import StatsSkeleton from '../components/pages/StatsSkeleton';
-import EntityTypeFilter from '../components/entities/EntityTypeFilter';
-import SortFilter from '../components/layout/SortFilter';
-import SubjectCardV2 from '../components/entities/SubjectCardV2';
-import PersonCardSkeleton from '../components/entities/PersonCardSkeleton';
-import { Person, SubjectCardDTO } from '../types';
-import { useSubjectsQuery } from '../hooks/useSubjectsQuery';
+import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
+import Icon from '@client/components/common/Icon';
+import { StatsDisplay } from '@client/components/pages/StatsDisplay';
+import StatsSkeleton from '@client/components/pages/StatsSkeleton';
+import EntityTypeFilter from '@client/components/entities/EntityTypeFilter';
+import SortFilter from '@client/components/layout/SortFilter';
+import SubjectCardV2 from '@client/components/entities/SubjectCardV2';
+import PersonCardSkeleton from '@client/components/entities/PersonCardSkeleton';
+import { Person, SubjectCardDTO } from '@client/types';
+import { useSubjectsQuery } from '@client/hooks/useSubjectsQuery';
 import {
   Badge,
   Button,
@@ -18,7 +18,7 @@ import {
   Pagination,
   Stack,
   Surface,
-} from '../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './PeoplePage.module.css';
 
 interface DataStats {
@@ -114,7 +114,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
   const onRenderCallback = useCallback(
     (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
       if (typeof window !== 'undefined' && actualDuration > 16) {
-        import('../utils/performanceMonitor.js')
+        import('@client/utils/performanceMonitor.js')
           .then(({ PerformanceMonitor }) => {
             PerformanceMonitor.logRender(
               `PeoplePage-${id}`,

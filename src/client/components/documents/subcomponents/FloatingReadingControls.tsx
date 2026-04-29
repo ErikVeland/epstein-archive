@@ -1,7 +1,7 @@
 import React from 'react';
-import { FileText, Type, ScanText } from 'lucide-react';
-import { Button } from '../../../design-system/lib';
-import { cn } from '../../../utils/cn';
+import Icon from '@client/components/common/Icon';
+import { Button } from '@client/design-system/lib';
+import { cn } from '@client/utils/cn';
 import styles from './FloatingReadingControls.module.css';
 
 interface FloatingReadingControlsProps {
@@ -27,7 +27,7 @@ export const FloatingReadingControls: React.FC<FloatingReadingControlsProps> = (
           className={cn(styles.pillButton, activeMode === 'pdf' && styles.active)}
           onClick={() => onChange('pdf')}
         >
-          <FileText size={16} />
+          <Icon name="FileText" size="sm" />
           <span>PDF</span>
         </Button>
         <div className={styles.divider} />
@@ -36,7 +36,7 @@ export const FloatingReadingControls: React.FC<FloatingReadingControlsProps> = (
           className={cn(styles.pillButton, activeMode === 'clean' && styles.active)}
           onClick={() => onChange('clean')}
         >
-          <Type size={16} />
+          <Icon name="Type" size="sm" />
           <span>Clean</span>
         </Button>
         <div className={styles.divider} />
@@ -45,7 +45,7 @@ export const FloatingReadingControls: React.FC<FloatingReadingControlsProps> = (
           className={cn(styles.pillButton, activeMode === 'ocr' && styles.active)}
           onClick={() => onChange('ocr')}
         >
-          <ScanText size={16} />
+          <Icon name="ScanText" size="sm" />
           <span>Raw</span>
         </Button>
       </div>

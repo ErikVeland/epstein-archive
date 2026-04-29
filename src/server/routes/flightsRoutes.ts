@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import express from 'express';
 import { z } from 'zod';
 import { flightsRepository } from '../db/flightsRepository.js';
 import { validate, flightsQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 
 const coOccurrenceQuerySchema = z.object({
   query: z.object({

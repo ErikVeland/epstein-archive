@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 import styles from './SunburstChart.module.css';
 
 interface SunburstChartProps {

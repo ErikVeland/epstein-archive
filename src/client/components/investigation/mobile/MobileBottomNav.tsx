@@ -1,7 +1,7 @@
-import { LayoutDashboard, FileText, Plus, Activity, MoreHorizontal } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './MobileBottomNav.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 type ActiveDest = 'board' | 'evidence' | 'activity';
 
@@ -26,7 +26,7 @@ export function MobileBottomNav({
         onClick={() => onSetActiveDest('board')}
         aria-label="Board"
       >
-        <LayoutDashboard size={20} />
+        <Icon name="LayoutDashboard" size="md" />
         <span className={styles.label}>Board</span>
       </Button>
 
@@ -36,13 +36,13 @@ export function MobileBottomNav({
         onClick={() => onSetActiveDest('evidence')}
         aria-label="Evidence"
       >
-        <FileText size={20} />
+        <Icon name="FileText" size="md" />
         <span className={styles.label}>Evidence</span>
       </Button>
 
       <div className={styles.fabSlot}>
         <Button unstyled className={styles.fab} onClick={onCapture} aria-label="Capture evidence">
-          <Plus size={24} />
+          <Icon name="Plus" size="lg" />
         </Button>
       </div>
 
@@ -52,12 +52,12 @@ export function MobileBottomNav({
         onClick={() => onSetActiveDest('activity')}
         aria-label="Activity"
       >
-        <Activity size={20} />
+        <Icon name="Activity" size="md" />
         <span className={styles.label}>Activity</span>
       </Button>
 
       <Button unstyled className={styles.slot} onClick={onMore} aria-label="More tools">
-        <MoreHorizontal size={20} />
+        <Icon name="MoreHorizontal" size="md" />
         <span className={styles.label}>More</span>
       </Button>
     </nav>

@@ -1,4 +1,4 @@
-import { Person } from '../types';
+import { Person } from '@client/types';
 import { apiClient } from './apiClient';
 
 interface EntityStatsCache {

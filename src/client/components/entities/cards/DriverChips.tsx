@@ -1,6 +1,6 @@
 import React from 'react';
-import { DriverChip } from '../../../utils/forensics';
-import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../../design-system/lib';
+import { DriverChip } from '@client/utils/forensics';
+import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '@client/design-system/lib';
 import styles from './DriverChips.module.css';
 
 interface DriverChipsProps {

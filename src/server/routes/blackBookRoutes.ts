@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import express from 'express';
 import { blackBookRepository } from '../db/blackBookRepository.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate, blackBookQuerySchema, blackBookReviewSchema } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 
 function parseJsonArray(value: unknown): string[] {
   if (Array.isArray(value)) return value.map((v) => String(v));

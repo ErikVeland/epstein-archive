@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
+import { Surface, Flex, Box, Stack, LqText, Button, cn } from '@client/design-system/lib';
 import type { Flight, AirportCoords, FlightStats } from './types';
 import styles from './FlightTracker.module.css';
 

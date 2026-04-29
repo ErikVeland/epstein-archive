@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Search, Brain, ChevronRight, Database, Fingerprint } from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 import styles from './EvidenceLadder.module.css';
 
 export interface EvidenceLadderProps {
@@ -19,26 +19,26 @@ const LEVEL_CONFIG: Record<
     variant: LevelVariant;
     name: string;
     description: string;
-    icon: React.ElementType;
+    icon: IconName;
   }
 > = {
   1: {
     variant: 'primary',
     name: 'Primary Source',
     description: 'Direct mention in original evidentiary document.',
-    icon: Search,
+    icon: 'Search',
   },
   2: {
     variant: 'derived',
     name: 'Derived Link',
     description: 'Established via proximity or co-occurrence analysis.',
-    icon: Shield,
+    icon: 'Shield',
   },
   3: {
     variant: 'agentic',
     name: 'Agentic Inference',
     description: 'Derived using LLM-assisted context reconciliation.',
-    icon: Brain,
+    icon: 'Activity', // Brain is not in our Icon component, using Activity as fallback
   },
 };
 
@@ -51,14 +51,14 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
   className = '',
 }) => {
   const config = LEVEL_CONFIG[level] ?? LEVEL_CONFIG[1];
-  const { variant, name, description, icon: Icon } = config;
+  const { variant, name, description, icon: iconName } = config;
 
   return (
     <div className={`${styles.container} ${className}`}>
       {/* Active Level Badge */}
       <div className={`${styles.activeBadge} ${styles[`activeBadge--${variant}`]}`}>
         <div className={`${styles.iconBox} ${styles[`iconBox--${variant}`]}`}>
-          <Icon size={20} className={styles[`iconColor--${variant}`]} />
+          <Icon name={iconName} size="md" className={styles[`iconColor--${variant}`]} />
         </div>
         <div className={styles.badgeContent}>
           <div className={styles.badgeHeader}>
@@ -85,7 +85,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
         <div className={styles.provenanceGrid}>
           {ingestRunId && (
             <div className={styles.provenanceItem}>
-              <Database size={14} className={styles.provenanceIcon} />
+              <Icon name="Database" size="sm" className={styles.provenanceIcon} />
               <div className={styles.provenanceBody}>
                 <span className={styles.provenanceTitle}>Ingest Run</span>
                 <span className={styles.provenanceValue}>{ingestRunId}</span>
@@ -94,7 +94,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
           )}
           {wasAgentic && (
             <div className={styles.provenanceItemAgentic}>
-              <Fingerprint size={14} className={styles.provenanceIconAgentic} />
+              <Icon name="Fingerprint" size="sm" className={styles.provenanceIconAgentic} />
               <div className={styles.provenanceBodyFull}>
                 <span className={styles.provenanceTitleAgentic}>Agentic Stamp</span>
                 <span className={styles.provenanceValueAgentic}>LLM-Processed</span>
@@ -108,7 +108,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
       {evidencePack && (
         <div className={styles.evidencePack}>
           <div className={styles.evidencePackHeader}>
-            <ChevronRight size={12} />
+            <Icon name="ChevronRight" size="xs" />
             Structural Context
           </div>
           <div className={styles.evidencePackTags}>

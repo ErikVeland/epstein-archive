@@ -1,6 +1,6 @@
 import React from 'react';
-import PropertyBrowser from '../components/PropertyBrowser';
-import ScopedErrorBoundary from '../components/common/ScopedErrorBoundary';
+import PropertyBrowser from '@client/components/PropertyBrowser';
+import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
 import styles from './PropertyPage.module.css';
 
 export const PropertyPage: React.FC = () => {

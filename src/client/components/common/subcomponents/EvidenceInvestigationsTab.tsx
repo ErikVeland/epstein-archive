@@ -1,10 +1,10 @@
 import React from 'react';
-import { Briefcase, ExternalLink, Clock } from 'lucide-react';
-import { formatMetaDate } from '../../../utils/evidenceUtils';
-import { cn } from '../../../utils/cn';
+import Icon from '@client/components/common/Icon';
+import { formatMetaDate } from '@client/utils/evidenceUtils';
+import { cn } from '@client/utils/cn';
 import s from './EvidenceInvestigationsTab.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface InvestigationEntity {
   id?: string | number;
@@ -33,7 +33,7 @@ export const EvidenceInvestigationsTab: React.FC<EvidenceInvestigationsTabProps>
     <div className={s.tabContainer} data-testid="entity-modal-tab-investigations">
       <div className={s.header}>
         <h3 className={s.headerTitle}>
-          <Briefcase size={16} className={s.investigateIcon} />
+          <Icon name="Briefcase" size="sm" className={s.investigateIcon} />
           Linked Investigations
         </h3>
         <div className={s.countBadge}>
@@ -59,7 +59,7 @@ export const EvidenceInvestigationsTab: React.FC<EvidenceInvestigationsTabProps>
 
         {!isInvestigationsLoading && investigationsInitialized && investigations.length === 0 && (
           <div className={s.emptyState}>
-            <Briefcase size={48} className={s.emptyIcon} />
+            <Icon name="Briefcase" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Active Investigations</h4>
             <p className={s.emptyText}>
               This entity is not currently linked as primary evidence in any open investigation
@@ -85,7 +85,7 @@ export const EvidenceInvestigationsTab: React.FC<EvidenceInvestigationsTabProps>
                     className={s.openBtn}
                   >
                     Open Case
-                    <ExternalLink size={14} />
+                    <Icon name="ExternalLink" size="sm" />
                   </Button>
                 </div>
 
@@ -102,7 +102,7 @@ export const EvidenceInvestigationsTab: React.FC<EvidenceInvestigationsTabProps>
                     <span className={s.fallbackBadge}>{inv._fallbackReason}</span>
                   )}
                   <span className={s.metaDate}>
-                    <Clock size={12} className={s.dateIcon} />
+                    <Icon name="Clock" size="xs" className={s.dateIcon} />
                     Updated {formatMetaDate(inv.updated_at)}
                   </span>
                 </div>

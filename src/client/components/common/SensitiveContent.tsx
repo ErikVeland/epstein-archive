@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
-import { EyeOff } from 'lucide-react';
-import { Button } from '../../design-system/lib';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
+import Icon from '@client/components/common/Icon';
+import { Button } from '@client/design-system/lib';
 import styles from './SensitiveContent.module.css';
 
 interface SensitiveContentProps {
@@ -241,7 +241,7 @@ export function SensitiveContent({
           {/* Icon and label */}
           <div className={styles.overlayInner}>
             <div className={styles.iconWrap}>
-              <EyeOff size={28} className={styles.icon} />
+              <Icon name="EyeOff" size="xl" className={styles.icon} />
             </div>
             <div className={styles.labelGroup}>
               <span className={styles.label}>{label}</span>

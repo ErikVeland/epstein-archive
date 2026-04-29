@@ -132,13 +132,13 @@ const UNRESOLVED_WRAPPER_ENTITY_PATTERN =
 import {
   ENTITY_BLACKLIST_PATTERNS,
   ENTITY_PARTIAL_BLOCKLIST,
-} from '../src/config/entityBlacklist.js';
+} from '../src/client/config/entityBlacklist.js';
 import { isJunkEntity } from './filters/entityFilters.js';
 import { resolveVip } from './filters/vipRules.js';
 
 function isBlacklisted(name: string): boolean {
   const lower = name.toLowerCase();
-  if (ENTITY_PARTIAL_BLOCKLIST.some((p) => lower.includes(p.toLowerCase()))) {
+  if (ENTITY_PARTIAL_BLOCKLIST.some((p: string) => lower.includes(p.toLowerCase()))) {
     return true;
   }
   return ENTITY_BLACKLIST_PATTERNS.includes(name);

@@ -1,7 +1,7 @@
 import React from 'react';
-import { X } from 'lucide-react';
-import { Button, type ButtonProps } from '../../design-system/lib';
-import { cn } from '../../utils/cn';
+import Icon from '@client/components/common/Icon';
+import { Button, type ButtonProps } from '@client/design-system/lib';
+import { cn } from '@client/utils/cn';
 
 type CloseButtonSize = 'sm' | 'md' | 'lg';
 
@@ -10,10 +10,10 @@ interface CloseButtonProps extends Omit<ButtonProps, 'size'> {
   label?: string;
 }
 
-const iconSizes: Record<CloseButtonSize, number> = {
-  sm: 16,
-  md: 20,
-  lg: 24,
+const iconSizes: Record<CloseButtonSize, 'sm' | 'md' | 'lg'> = {
+  sm: 'sm',
+  md: 'md',
+  lg: 'lg',
 };
 
 export const CloseButton: React.FC<CloseButtonProps> = ({
@@ -33,7 +33,7 @@ export const CloseButton: React.FC<CloseButtonProps> = ({
     className={cn('rounded-full', className)}
     {...rest}
   >
-    <X size={iconSizes[size]} aria-hidden="true" />
+    <Icon name="X" size={iconSizes[size]} ariaHidden />
   </Button>
 );
 

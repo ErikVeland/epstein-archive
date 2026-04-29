@@ -1,5 +1,5 @@
 import React, { useState, useCallback, ReactNode } from 'react';
-import { Surface } from '../../design-system/lib';
+import { Surface } from '@client/design-system/lib';
 import { LoadingContext, LoadingTask } from './loadingContext';
 import s from './LoadingPill.module.css';
 

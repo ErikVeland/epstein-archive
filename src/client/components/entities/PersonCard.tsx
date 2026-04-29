@@ -1,15 +1,16 @@
 import React from 'react';
-import { Person } from '../../types';
-import { formatNumber } from '../../utils/search';
+import { Person } from '@client/types';
+import { formatNumber } from '@client/utils/search';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import { ProvenanceBadge } from '../common/ProvenanceBadge';
 import Icon from '../common/Icon';
-import { getEntityTypeIcon } from '../../utils/entityTypeIcons';
+import { getEntityTypeIcon } from '@client/utils/entityTypeIcons';
 import {
   calculateEvidenceLadder,
   calculateSignalMetrics,
   generateDriverChips,
-} from '../../utils/forensics';
-import { Button } from '../../design-system/lib';
+} from '@client/utils/forensics';
+import { Button } from '@client/design-system/lib';
 import { SignalPanel } from './cards/SignalPanel';
 import { EvidenceBadge } from './cards/EvidenceBadge';
 import { DriverChips } from './cards/DriverChips';
@@ -22,7 +23,12 @@ interface PersonCardProps {
   searchTerm?: string;
 }
 
-const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) => {
+const PersonCard: React.FC<PersonCardProps> = ({
+  person,
+  onClick,
+  onDocumentClick,
+  searchTerm,
+}) => {
   const rating = Number(person.redFlagRating ?? 0);
 
   // Forensic Calculations
@@ -131,6 +137,20 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
           <DriverChips chips={driverChips} />
         </div>
 
+        <div className={styles.provenanceRow}>
+          <ProvenanceBadge
+            sourceDocumentId={person.sourceDocumentId}
+            sourceHash={person.sourceHash}
+            reviewState={person.reviewState}
+            confidence={person.confidence}
+            extractionMethod={person.extractionMethod}
+            showLabel={false}
+          />
+          {person.provenanceStatus === 'missing' && (
+            <span className={styles.missingSource}>Source missing</span>
+          )}
+        </div>
+
         {/* 3. CORE METRICS (Compact) */}
         <div className={styles.metricsGrid}>
           <div className={styles.metricCell}>
@@ -165,6 +185,27 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
           />
           {person.bio && (
             <span className={styles.bioSnippet}>&ldquo;{person.bio.slice(0, 30)}...&rdquo;</span>
+          )}
+          {person.sourceDocumentId != null && onDocumentClick && (
+            <Button
+              unstyled
+              type="button"
+              className={styles.sourceButton}
+              onClick={(event) => {
+                event.stopPropagation();
+                onDocumentClick(
+                  {
+                    id: person.sourceDocumentId,
+                    title: `Source document ${person.sourceDocumentId}`,
+                    sourceDocumentId: person.sourceDocumentId,
+                  },
+                  searchTerm,
+                );
+              }}
+            >
+              <Icon name="FileText" size="sm" />
+              Source
+            </Button>
           )}
         </div>
         <Button variant="glass" size="sm" onClick={onClick} className={styles.profileLink}>

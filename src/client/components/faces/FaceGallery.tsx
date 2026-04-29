@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import { useToasts } from '../common/useToasts';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import styles from './FaceGallery.module.css';
 
-import { Button, Input } from '../../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 interface FaceCluster {
   id: string;

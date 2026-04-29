@@ -1,6 +1,6 @@
 import React from 'react';
-import { X, FileText, ArrowRight, ShieldAlert } from 'lucide-react';
-import { Button } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Button } from '@client/design-system/lib';
 import styles from './EvidenceDrawer.module.css';
 
 export interface Evidence {
@@ -56,7 +56,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
           <h3 className={styles.headerLabel}>Connection Evidence</h3>
           <div className={styles.headerTitle}>
             <span className={styles.headerEntity}>{sourceLabel}</span>
-            <ArrowRight className={styles.headerArrow} />
+            <Icon name="ArrowRight" className={styles.headerArrow} />
             <span className={styles.headerEntity}>{targetLabel}</span>
           </div>
           {relationshipType && (
@@ -64,7 +64,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
           )}
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} className={styles.closeButton}>
-          <X className={styles.closeIcon} />
+          <Icon name="X" className={styles.closeIcon} />
         </Button>
       </div>
 
@@ -77,7 +77,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
           </div>
         ) : documents.length === 0 ? (
           <div className={styles.emptyState}>
-            <ShieldAlert className={styles.emptyIcon} />
+            <Icon name="ShieldAlert" className={styles.emptyIcon} />
             <p className={styles.emptyTitle}>No direct co-occurrence documents found.</p>
             <p className={styles.emptyText}>
               Link may be inferred from metadata or secondary connections.
@@ -97,7 +97,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
               >
                 <div className={styles.documentRow}>
                   <div className={getDocumentIconClassName(doc.risk || 0)}>
-                    <FileText className={styles.documentIcon} />
+                    <Icon name="FileText" className={styles.documentIcon} />
                   </div>
                   <div className={styles.documentBody}>
                     <h4 className={styles.documentTitle}>{doc.title}</h4>

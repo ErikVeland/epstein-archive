@@ -1,6 +1,6 @@
 import React from 'react';
-import { SignalMetrics } from '../../../utils/forensics';
-import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../../design-system/lib';
+import { SignalMetrics } from '@client/utils/forensics';
+import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '@client/design-system/lib';
 import styles from './SignalPanel.module.css';
 
 interface SignalPanelProps {

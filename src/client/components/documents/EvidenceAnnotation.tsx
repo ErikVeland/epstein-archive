@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  X,
-  MessageSquare,
-  Tag,
-  Highlighter,
-  FolderOpen,
-  Plus,
-  Save,
-  Trash2,
-  Edit3,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
-  Flag,
-} from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 
 // Design System
-import { LqText } from '../../design-system/components/typography/Text';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
 import { CloseButton } from '../common/CloseButton';
 import { Tabs } from '../common/Tabs';
 import styles from './EvidenceAnnotation.module.css';
 
-import { Button, Input, TextArea } from '../../design-system/lib';
+import { Button, Input, TextArea } from '@client/design-system/lib';
 
 export interface EvidenceAnnotation {
   id: string;
@@ -57,17 +43,22 @@ const HIGHLIGHT_COLORS = [
   { name: 'Orange', value: 'var(--highlight-orange)' },
 ];
 
-const CLASSIFICATION_OPTIONS = [
-  { label: 'Direct Evidence', value: 'direct', icon: CheckCircle, color: 'emerald' as const },
+const CLASSIFICATION_OPTIONS: Array<{
+  label: string;
+  value: string;
+  icon: IconName;
+  color: 'emerald' | 'amber' | 'cyan' | 'rose' | 'purple';
+}> = [
+  { label: 'Direct Evidence', value: 'direct', icon: 'CheckCircle', color: 'emerald' },
   {
     label: 'Circumstantial',
     value: 'circumstantial',
-    icon: AlertTriangle,
-    color: 'amber' as const,
+    icon: 'AlertTriangle',
+    color: 'amber',
   },
-  { label: 'Corroborating', value: 'corroborating', icon: Flag, color: 'cyan' as const },
-  { label: 'Contradicting', value: 'contradicting', icon: X, color: 'rose' as const },
-  { label: 'Needs Review', value: 'needs_review', icon: Clock, color: 'purple' as const },
+  { label: 'Corroborating', value: 'corroborating', icon: 'Flag', color: 'cyan' },
+  { label: 'Contradicting', value: 'contradicting', icon: 'X', color: 'rose' },
+  { label: 'Needs Review', value: 'needs_review', icon: 'Clock', color: 'purple' },
 ];
 
 const COMMON_TAGS = [
@@ -370,25 +361,25 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               {
                 key: 'notes',
                 label: 'Notes',
-                icon: <MessageSquare className={styles.iconTiny} />,
+                icon: <Icon name="MessageSquare" className={styles.iconTiny} />,
                 count: noteAnnotations.length,
               },
               {
                 key: 'highlights',
                 label: 'Highlights',
-                icon: <Highlighter className={styles.iconTiny} />,
+                icon: <Icon name="Highlighter" className={styles.iconTiny} />,
                 count: highlightAnnotations.length,
               },
               {
                 key: 'tags',
                 label: 'Tags',
-                icon: <Tag className={styles.iconTiny} />,
+                icon: <Icon name="Tag" className={styles.iconTiny} />,
                 count: selectedTags.length,
               },
               {
                 key: 'classification',
                 label: 'Classification',
-                icon: <FolderOpen className={styles.iconTiny} />,
+                icon: <Icon name="FolderOpen" className={styles.iconTiny} />,
                 count: classificationAnnotation ? 1 : 0,
               },
             ]}
@@ -431,7 +422,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     disabled={!newNote.trim() || saving}
                     className={styles.addButton}
                   >
-                    <Plus className={styles.iconMicro} />
+                    <Icon name="Plus" className={styles.iconMicro} />
                     Add Note
                   </Button>
                 </Flex>
@@ -467,7 +458,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                               onClick={handleUpdateNoteEdit}
                               className={styles.saveButton}
                             >
-                              <Save className={styles.iconMicro} />
+                              <Icon name="Save" className={styles.iconMicro} />
                               Save
                             </Button>
                           </Box>
@@ -479,7 +470,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                           </LqText>
                           <Flex align="center" justify="between" className={styles.listItemFooter}>
                             <LqText variant="xs" color="muted">
-                              <Clock className={styles.timestampIcon} />
+                              <Icon name="Clock" className={styles.timestampIcon} />
                               {new Date(note.createdAt).toLocaleString()}
                             </LqText>
                             <Flex gap="xs" className={styles.itemActions}>
@@ -492,7 +483,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                                 className={styles.actionIcon}
                                 title="Edit"
                               >
-                                <Edit3 className={styles.iconTiny} />
+                                <Icon name="Edit3" className={styles.iconTiny} />
                               </Button>
                               <Button
                                 unstyled
@@ -500,7 +491,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                                 className={`${styles.actionIcon} ${styles.deleteIcon}`}
                                 title="Delete"
                               >
-                                <Trash2 className={styles.iconTiny} />
+                                <Icon name="Trash2" className={styles.iconTiny} />
                               </Button>
                             </Flex>
                           </Flex>
@@ -554,7 +545,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     disabled={!newHighlight.text.trim() || saving}
                     className={styles.addButton}
                   >
-                    <Highlighter className={styles.iconMicro} />
+                    <Icon name="Highlighter" className={styles.iconMicro} />
                     Add Highlight
                   </Button>
                 </Flex>
@@ -593,7 +584,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                               className={`${styles.actionIcon} ${styles.deleteIcon}`}
                               title="Delete"
                             >
-                              <Trash2 className={styles.iconTiny} />
+                              <Icon name="Trash2" className={styles.iconTiny} />
                             </Button>
                           </Box>
                         </Box>
@@ -679,7 +670,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                   <Box className={styles.tagList}>
                     {selectedTags.map((tag) => (
                       <Surface key={tag} variant="glass-highlight" className={styles.appliedTag}>
-                        <Tag className={styles.appliedTagIcon} />
+                        <Icon name="Tag" className={styles.appliedTagIcon} />
                         <LqText
                           variant="xs"
                           weight="medium"
@@ -694,7 +685,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                           className={styles.tagRemove}
                           aria-label={`Remove tag ${tag}`}
                         >
-                          <X className={styles.iconMicro} />
+                          <Icon name="X" className={styles.iconMicro} />
                         </Button>
                       </Surface>
                     ))}
@@ -730,12 +721,12 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                           : styles.classificationOption
                       }
                     >
-                      <option.icon className={styles.classificationIcon} />
+                      <Icon name={option.icon} className={styles.classificationIcon} />
                       <LqText variant="small" weight="medium" className={styles.flex1}>
                         {option.label}
                       </LqText>
                       {classification === option.value && (
-                        <CheckCircle className={styles.classificationIcon} />
+                        <Icon name="CheckCircle" className={styles.classificationIcon} />
                       )}
                     </Surface>
                   ))}
@@ -775,7 +766,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                       disabled={saving}
                       className={styles.addButton}
                     >
-                      <Save className={styles.iconTiny} />
+                      <Icon name="Save" className={styles.iconTiny} />
                       Save Rationale
                     </Button>
                   </Flex>
@@ -786,7 +777,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               {classificationAnnotation && (
                 <Surface variant="glass-strong" className={styles.listItem}>
                   <Flex align="center" gap="sm" className={styles.headerMain}>
-                    <FolderOpen className={styles.appliedTagIcon} />
+                    <Icon name="FolderOpen" className={styles.appliedTagIcon} />
                     <LqText variant="xs" weight="bold" className={styles.stateLabel}>
                       Active State
                     </LqText>

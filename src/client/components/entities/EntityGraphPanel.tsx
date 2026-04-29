@@ -1,13 +1,13 @@
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import EntityRelationshipMapper, { Entity, Relationship } from './EntityRelationshipMapper';
-import { type GraphNode, type GraphEdge } from '../../services/GraphService';
-import { apiClient } from '../../services/apiClient';
+import { type GraphNode, type GraphEdge } from '@client/services/GraphService';
+import { apiClient } from '@client/services/apiClient';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { LqText } from '../../design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { LqText } from '@client/design-system/components/typography/Text';
 
 import styles from './EntityGraphPanel.module.css';
 

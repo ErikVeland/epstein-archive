@@ -1,8 +1,8 @@
-import { Router } from 'express';
+import express from 'express';
 import { timelineRepository } from '../db/timelineRepository.js';
 import { validate, numericIdParamSchema, timelineQuerySchema } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 
 // Public investigation timeline feed used by /timeline page.
 router.get('/:id/support', validate(numericIdParamSchema), async (req, res, next) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, FileText, User, Activity, CornerDownRight } from 'lucide-react';
-import { Stack, Flex, Text, Box, cn } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Stack, Flex, Text, Box, cn } from '@client/design-system/lib';
 import styles from './ProvenancePanel.module.css';
 
 interface ProvenanceSignal {
@@ -37,7 +37,7 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({
       <Box className={styles.header}>
         <Flex align="center" justify="between">
           <Flex align="center" gap="sm">
-            <Shield size={16} className={styles.textAccent} />
+            <Icon name="Shield" size="sm" className={styles.textAccent} />
             <Text
               variant="xs"
               weight="black"
@@ -75,10 +75,14 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({
               <Flex align="center" justify="between">
                 <Flex align="center" gap="xs">
                   {signal.sourceType === 'document' ? (
-                    <FileText size={12} className="text-muted" />
+                    <Icon name="FileText" size="xs" className="text-muted" />
                   ) : null}
-                  {signal.sourceType === 'flight' && <Activity size={12} className="text-muted" />}
-                  {signal.sourceType === 'media' && <User size={12} className="text-muted" />}
+                  {signal.sourceType === 'flight' && (
+                    <Icon name="Activity" size="xs" className="text-muted" />
+                  )}
+                  {signal.sourceType === 'media' && (
+                    <Icon name="User" size="xs" className="text-muted" />
+                  )}
                   <Text variant="xs" weight="bold" color="primary">
                     {signal.type.replace(/_/g, ' ')}
                   </Text>
@@ -95,7 +99,7 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({
               {signal.evidenceSnippet && (
                 <Box className={styles.evidenceSnippet}>
                   <Flex gap="xs" align="start">
-                    <CornerDownRight size={10} style={{ marginTop: '0.25rem' }} />
+                    <Icon name="CornerDownRight" size="xs" style={{ marginTop: '0.25rem' }} />
                     <span>{signal.evidenceSnippet}</span>
                   </Flex>
                 </Box>

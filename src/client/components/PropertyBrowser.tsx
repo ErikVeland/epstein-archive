@@ -7,7 +7,7 @@ import { PropertyAnalyticsView } from './properties/PropertyAnalyticsView';
 import { PropertyStatsHeader } from './properties/PropertyStatsHeader';
 import { PropertyDetailPanel } from './properties/PropertyDetailPanel';
 import { cn } from '@client/utils/cn';
-import { Button, EmptyState } from '../design-system/lib';
+import { Button, EmptyState } from '@client/design-system/lib';
 import type { Property, PropertyStats, ValueDistribution, TopOwner } from './properties/types';
 import styles from './PropertyBrowser.module.css';
 

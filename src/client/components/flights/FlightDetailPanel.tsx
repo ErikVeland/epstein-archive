@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, ArrowDownRight, Globe, Users, Plane, Shield, X, MapPin } from 'lucide-react';
-import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Surface, Flex, Box, Stack, LqText, Button, cn } from '@client/design-system/lib';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { RouteMap } from '../visualizations/RouteMap';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import type { Flight, AirportCoords } from './types';
 import styles from './FlightDetailPanel.module.css';
@@ -59,7 +59,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
             <Surface variant="panel" className={styles.infoCard}>
               <Stack gap="xs">
                 <Flex align="center" gap="xs">
-                  <ArrowUpRight size={14} className={styles.iconDeparture} />
+                  <Icon name="ArrowUpRight" size="sm" className={styles.iconDeparture} />
                   <LqText
                     variant="xs"
                     weight="bold"
@@ -81,7 +81,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
             <Surface variant="panel" className={styles.infoCard}>
               <Stack gap="xs">
                 <Flex align="center" gap="xs">
-                  <ArrowDownRight size={14} className={styles.iconArrival} />
+                  <Icon name="ArrowDownRight" size="sm" className={styles.iconArrival} />
                   <LqText
                     variant="xs"
                     weight="bold"
@@ -104,7 +104,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
           {(departureCoords || arrivalCoords) && (
             <Surface variant="panel" className={styles.mapSection}>
               <Flex align="center" gap="sm" className={styles.sectionHeader}>
-                <Globe size={16} color="var(--accent)" />
+                <Icon name="Globe" size="sm" color="accent" />
                 <LqText variant="small" weight="bold">
                   Route Visualization
                 </LqText>
@@ -133,7 +133,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                     gap="md"
                     className={styles.mapUnavailable}
                   >
-                    <MapPin size={32} color="var(--text-muted)" />
+                    <Icon name="MapPin" size="xl" color="gray" />
                     <LqText variant="xs" color="muted" align="center">
                       Complete route coordinates unavailable for visualization
                     </LqText>
@@ -146,7 +146,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
           <Surface variant="panel" className={styles.manifestSection}>
             <Flex align="center" justify="between" className={styles.sectionHeader}>
               <Flex align="center" gap="sm">
-                <Users size={16} color="var(--accent)" />
+                <Icon name="Users" size="sm" color="accent" />
                 <LqText variant="small" weight="bold">
                   Passenger Manifest
                 </LqText>
@@ -180,7 +180,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                                 styles[(p.role || 'personnel').toLowerCase()],
                               )}
                             >
-                              <Shield size={12} />
+                              <Icon name="Shield" size="xs" />
                             </Surface>
                             {p.entity_id ? (
                               <Link to={`/entity/${p.entity_id}`} className={styles.passengerLink}>
@@ -203,7 +203,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
 
           <Surface variant="panel" className={styles.aircraftSection}>
             <Flex align="center" gap="sm" className={styles.sectionHeader}>
-              <Plane size={16} color="var(--accent)" />
+              <Icon name="Plane" size="sm" color="accent" />
               <LqText variant="small" weight="bold">
                 Aircraft Intelligence
               </LqText>
@@ -282,7 +282,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
             </LqText>
           </Stack>
           <Button variant="ghost" size="sm" onClick={onClose} className={styles.closeBtn}>
-            <X size={18} />
+            <Icon name="X" size="md" />
           </Button>
         </Flex>
 
@@ -291,7 +291,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
             <Surface variant="panel" className={styles.infoCard}>
               <Stack gap="xs">
                 <Flex align="center" gap="xs">
-                  <ArrowUpRight size={14} className={styles.iconDeparture} />
+                  <Icon name="ArrowUpRight" size="sm" className={styles.iconDeparture} />
                   <LqText
                     variant="xs"
                     weight="bold"
@@ -313,7 +313,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
             <Surface variant="panel" className={styles.infoCard}>
               <Stack gap="xs">
                 <Flex align="center" gap="xs">
-                  <ArrowDownRight size={14} className={styles.iconArrival} />
+                  <Icon name="ArrowDownRight" size="sm" className={styles.iconArrival} />
                   <LqText
                     variant="xs"
                     weight="bold"
@@ -336,7 +336,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
           {(departureCoords || arrivalCoords) && (
             <Surface variant="panel" className={styles.mapSection}>
               <Flex align="center" gap="sm" className={styles.sectionHeader}>
-                <Globe size={16} color="var(--accent)" />
+                <Icon name="Globe" size="sm" color="accent" />
                 <LqText variant="small" weight="bold">
                   Route Visualization
                 </LqText>
@@ -365,7 +365,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                     gap="md"
                     className={styles.mapUnavailable}
                   >
-                    <MapPin size={32} color="var(--text-muted)" />
+                    <Icon name="MapPin" size="xl" color="gray" />
                     <LqText variant="xs" color="muted" align="center">
                       Complete route coordinates unavailable for visualization
                     </LqText>
@@ -378,7 +378,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
           <Surface variant="panel" className={styles.manifestSection}>
             <Flex align="center" justify="between" className={styles.sectionHeader}>
               <Flex align="center" gap="sm">
-                <Users size={16} color="var(--accent)" />
+                <Icon name="Users" size="sm" color="accent" />
                 <LqText variant="small" weight="bold">
                   Passenger Manifest
                 </LqText>
@@ -412,7 +412,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                                 styles[(p.role || 'personnel').toLowerCase()],
                               )}
                             >
-                              <Shield size={12} />
+                              <Icon name="Shield" size="xs" />
                             </Surface>
                             {p.entity_id ? (
                               <Link to={`/entity/${p.entity_id}`} className={styles.passengerLink}>
@@ -435,7 +435,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
 
           <Surface variant="panel" className={styles.aircraftSection}>
             <Flex align="center" gap="sm" className={styles.sectionHeader}>
-              <Plane size={16} color="var(--accent)" />
+              <Icon name="Plane" size="sm" color="accent" />
               <LqText variant="small" weight="bold">
                 Aircraft Intelligence
               </LqText>

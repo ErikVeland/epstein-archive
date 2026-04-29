@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BrowseFilters, Document } from '../types/documents';
-import { apiClient, type SearchMode } from '../services/apiClient';
+import { BrowseFilters, Document } from '@client/types/documents';
+import { apiClient, type SearchMode } from '@client/services/apiClient';
 
 const str = (v: unknown, fallback = ''): string =>
   typeof v === 'string' ? v : v != null ? String(v) : fallback;

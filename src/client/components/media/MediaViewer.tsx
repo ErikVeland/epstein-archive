@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Download, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../common/CloseButton';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { cn } from '@client/utils/cn';
-import { Button, Surface } from '../../design-system/lib';
+import { Button, Surface } from '@client/design-system/lib';
 import styles from './MediaViewer.module.css';
 
 interface MediaViewerProps {
@@ -126,7 +126,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
         </div>
         {!inline && (
           <a href={filePath} download={fileName} className={styles.downloadLink}>
-            <Download className={styles.buttonIcon} />
+            <Icon name="Download" className={styles.buttonIcon} />
             Download File
           </a>
         )}
@@ -204,7 +204,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
                 disabled={zoom <= 0.5}
                 title="Zoom Out"
               >
-                <ZoomOut className={styles.controlIcon} />
+                <Icon name="ZoomOut" className={styles.controlIcon} />
               </Button>
               <span className={styles.zoomValue}>{Math.round(zoom * 100)}%</span>
               <Button
@@ -216,7 +216,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
                 disabled={zoom >= 3}
                 title="Zoom In"
               >
-                <ZoomIn className={styles.controlIcon} />
+                <Icon name="ZoomIn" className={styles.controlIcon} />
               </Button>
               <Button
                 type="button"
@@ -226,7 +226,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
                 size="sm"
                 title="Rotate"
               >
-                <RotateCw className={styles.controlIcon} />
+                <Icon name="RotateCw" className={styles.controlIcon} />
               </Button>
             </>
           )}
@@ -240,7 +240,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
                 size="sm"
                 title="Download"
               >
-                <Download className={styles.controlIcon} />
+                <Icon name="Download" className={styles.controlIcon} />
               </Button>
               <CloseButton
                 onClick={onClose}

@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import { useToasts } from '../common/useToasts';
-import { BookOpen, Loader2, Search, Star, Trash2, Clock, Sparkles, Send } from 'lucide-react';
-import type { MemoryEntry } from '../../types/memory';
+import Icon from '@client/components/common/Icon';
+import type { MemoryEntry } from '@client/types/memory';
 import { CloseButton } from '../common/CloseButton';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 
 // UI Library
 import {
@@ -16,7 +16,7 @@ import {
   Surface,
   TextInput,
   Textarea,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './InvestigationMemoryPanel.module.css';
 
 interface InvestigationMemoryPanelProps {
@@ -113,7 +113,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
           <div className={styles.header}>
             <div>
               <div className={styles.title}>
-                <BookOpen className={styles.titleIcon} />
+                <Icon name="BookOpen" className={styles.titleIcon} />
                 Neural Repository
               </div>
               <div className={styles.subtitle}>
@@ -132,7 +132,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
             }}
           >
             <div className={styles.searchFieldWrap}>
-              <Search className={styles.searchIcon} />
+              <Icon name="Search" className={styles.searchIcon} />
               <TextInput
                 className={styles.searchInput}
                 placeholder="Search memory stream…"
@@ -148,12 +148,12 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
           <Box grow className={styles.entryList}>
             {isLoading ? (
               <div className={styles.loadingState}>
-                <Loader2 className={styles.loadingIcon} />
+                <Icon name="Loader2" className={styles.loadingIcon} />
                 Loading memory stream
               </div>
             ) : sortedEntries.length === 0 ? (
               <div className={styles.emptyState}>
-                <Sparkles size={48} className={styles.emptyIcon} />
+                <Icon name="Sparkles" size="xl" className={styles.emptyIcon} />
                 <div className={styles.emptyText}>Neural Buffer Clear</div>
                 <div className={styles.emptySubtext}>
                   No persistent context blocks found. Initialize an entry to prime the investigation
@@ -168,7 +168,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
                       <div className={styles.entryRow}>
                         <div>
                           <div className={styles.entryMeta}>
-                            <Clock size={12} />
+                            <Icon name="Clock" size="xs" />
                             {new Date(entry.createdAt).toLocaleDateString()}{' '}
                             {new Date(entry.createdAt).toLocaleTimeString([], {
                               hour: '2-digit',
@@ -179,7 +179,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
                         </div>
                         <div className={styles.entryActions}>
                           <div className={styles.importanceBadge}>
-                            <Star size={10} className={styles.badgeIcon} />
+                            <Icon name="Star" size="xs" className={styles.badgeIcon} />
                             {Math.round((entry.importanceScore ?? 0) * 100)}% PRIORITY
                           </div>
                           <Button
@@ -188,7 +188,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
                             className={styles.deleteButton}
                             onClick={() => handleDeleteEntry(entry.id)}
                           >
-                            <Trash2 size={12} className={styles.deleteIcon} />
+                            <Icon name="Trash2" size="xs" className={styles.deleteIcon} />
                           </Button>
                         </div>
                       </div>
@@ -214,7 +214,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
               <Stack gap="lg">
                 <div className={styles.footerHeader}>
                   <div className={styles.footerTitle}>
-                    <Sparkles size={16} className={styles.footerTitleIcon} />
+                    <Icon name="Sparkles" size="sm" className={styles.footerTitleIcon} />
                     Formulate Neural Context
                   </div>
                 </div>
@@ -248,7 +248,11 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
                     type="submit"
                     disabled={!newContent.trim() || isSaving}
                   >
-                    {isSaving ? <Loader2 className={styles.savingIcon} /> : <Send size={14} />}
+                    {isSaving ? (
+                      <Icon name="Loader2" className={styles.savingIcon} />
+                    ) : (
+                      <Icon name="Send" size="sm" />
+                    )}
                     Commit to Memory
                   </Button>
                 </Grid>

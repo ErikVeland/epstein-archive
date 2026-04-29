@@ -1,31 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Investigation, EvidenceItem, TimelineEvent } from '../../types/investigation';
-import {
-  FileSearch,
-  Network,
-  DollarSign,
-  Link,
-  BarChart3,
-  Download,
-  Settings,
-  ArrowRight,
-  Info,
-  ChevronLeft,
-  Activity,
-  Cpu,
-  RefreshCw,
-  XCircle,
-  ShieldCheck,
-} from 'lucide-react';
+import { Investigation, EvidenceItem, TimelineEvent } from '@client/types/investigation';
+import Icon, { IconName } from '@client/components/common/Icon';
 import { useToasts } from '../common/useToasts';
 import { ForensicDocumentAnalyzer } from './ForensicDocumentAnalyzer';
 import EntityRelationshipMapper from '../entities/EntityRelationshipMapper';
 import FinancialTransactionMapper from '../visualizations/FinancialTransactionMapper';
 import MultiSourceCorrelationEngine from './MultiSourceCorrelationEngine';
 import ForensicReportGenerator from './ForensicReportGenerator';
-import { transformToNetwork } from '../../utils/networkDataUtils';
-import { computeForensicConfidence, type ConfidenceResult } from '../../utils/forensicConfidence';
+import { transformToNetwork } from '@client/utils/networkDataUtils';
+import { computeForensicConfidence, type ConfidenceResult } from '@client/utils/forensicConfidence';
 
 // UI Library
 import {
@@ -39,7 +23,7 @@ import {
   Stack,
   Surface,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './ForensicAnalysisWorkspace.module.css';
 
@@ -97,40 +81,46 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
     return transformToNetwork(people, documents);
   }, [evidence]);
 
-  const forensicTools = [
+  const forensicTools: Array<{
+    id: string;
+    name: string;
+    description: string;
+    icon: IconName;
+    enabled: boolean;
+  }> = [
     {
       id: 'documents',
       name: 'Document Analysis',
       description: 'Forensic authentication and analysis',
-      icon: FileSearch,
+      icon: 'FileSearch',
       enabled: enabledTools.documents,
     },
     {
       id: 'entities',
       name: 'Entity Mapping',
       description: 'Network visualization and relationships',
-      icon: Network,
+      icon: 'Network',
       enabled: enabledTools.entities,
     },
     {
       id: 'financial',
       name: 'Financial Analysis',
       description: 'Transaction flow and laundering detection',
-      icon: DollarSign,
+      icon: 'DollarSign',
       enabled: enabledTools.financial,
     },
     {
       id: 'correlation',
       name: 'Multi-Source Correlation',
       description: 'Cross-reference and pattern detection',
-      icon: Link,
+      icon: 'Link',
       enabled: enabledTools.correlation,
     },
     {
       id: 'reports',
       name: 'Report Generation',
       description: 'Automated forensic report creation',
-      icon: BarChart3,
+      icon: 'BarChart3',
       enabled: enabledTools.reports,
     },
   ];
@@ -331,7 +321,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
           <Flex align="center" gap="xl">
             <Stack gap="none">
               <Flex align="center" gap="md">
-                <Cpu size={24} className={styles.autoGen73} />
+                <Icon name="Cpu" size="lg" className={styles.autoGen73} />
                 <LqText variant="h1" weight="bold">
                   Forensic Workspace
                 </LqText>
@@ -348,7 +338,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
 
             <Box className={styles.autoGen74}>
               <Flex gap="md" align="center" className={styles.autoGen75}>
-                <Activity size={14} className={styles.autoGen76} />
+                <Icon name="Activity" size="sm" className={styles.autoGen76} />
                 <LqText variant="small" weight="bold">
                   System Integrity: Nominal
                 </LqText>
@@ -366,10 +356,11 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
               size="sm"
               onClick={() => setShowToolSettings(!showToolSettings)}
             >
-              <Settings size={16} /> <span className={styles.autoGen78}>Modules</span>
+              <Icon name="Settings" size="sm" /> <span className={styles.autoGen78}>Modules</span>
             </Button>
             <Button variant="secondary" size="sm" onClick={downloadBriefing}>
-              <Download size={16} /> <span className={styles.autoGen79}>Export Intelligence</span>
+              <Icon name="Download" size="sm" />{' '}
+              <span className={styles.autoGen79}>Export Intelligence</span>
             </Button>
           </Flex>
         </Flex>
@@ -382,8 +373,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
             onClick={() => setShowReliabilityInfo(!showReliabilityInfo)}
             style={css({ paddingLeft: 0, paddingRight: 0 })}
           >
-            <Info size={12} style={css({ marginRight: '0.25rem' })} /> Understanding Forensic
-            Confidence
+            <Icon name="Info" size="xs" style={css({ marginRight: '0.25rem' })} /> Understanding
+            Forensic Confidence
           </Button>
           {showReliabilityInfo && (
             <Surface
@@ -463,7 +454,11 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                   size="sm"
                   onClick={() => setToolsCollapsed(!toolsCollapsed)}
                 >
-                  {toolsCollapsed ? <ArrowRight size={16} /> : <ChevronLeft size={16} />}
+                  {toolsCollapsed ? (
+                    <Icon name="ArrowRight" size="sm" />
+                  ) : (
+                    <Icon name="ChevronLeft" size="sm" />
+                  )}
                 </Button>
               </Flex>
 
@@ -495,7 +490,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                                 : 'bg-[var(--lq-surface-3)] text-[var(--lq-text-muted)]',
                             )}
                           >
-                            <tool.icon size={20} />
+                            <Icon name={tool.icon} size="sm" />
                           </Box>
                           {!toolsCollapsed && (
                             <Stack gap="none" className={styles.autoGen86}>
@@ -550,13 +545,18 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                                 }}
                               >
                                 {toolRunState[tool.id] === 'running' ? (
-                                  <RefreshCw
+                                  <Icon
+                                    name="RefreshCw"
                                     style={css({ marginRight: '0.25rem' })}
                                     className={styles.spin}
-                                    size={10}
+                                    size="xs"
                                   />
                                 ) : (
-                                  <Activity size={10} style={css({ marginRight: '0.25rem' })} />
+                                  <Icon
+                                    name="Activity"
+                                    size="xs"
+                                    style={css({ marginRight: '0.25rem' })}
+                                  />
                                 )}
                                 Process Signal
                               </Button>
@@ -647,7 +647,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
               )}
               onClick={() => setActiveTool(tool.id as typeof activeTool)}
             >
-              <tool.icon size={20} />
+              <Icon name={tool.icon} size="sm" />
               <span className={styles.mobileToolLabel}>{tool.name.split(' ')[0]}</span>
             </button>
           ))}
@@ -743,7 +743,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                     </LqText>
                   </Stack>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedConfidenceTool(null)}>
-                    <XCircle size={18} />
+                    <Icon name="XCircle" size="md" />
                   </Button>
                 </Flex>
                 {selectedConfidenceDetails && (
@@ -801,7 +801,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                       size="sm"
                       onClick={() => console.log(selectedConfidenceDetails.factorInputs)}
                     >
-                      <ShieldCheck size={14} style={css({ marginRight: '0.25rem' })} />
+                      <Icon name="ShieldCheck" size="sm" style={css({ marginRight: '0.25rem' })} />
                       Log Raw Factor Inputs to Console
                     </Button>
                   </Stack>

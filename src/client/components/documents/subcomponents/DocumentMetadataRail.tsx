@@ -1,13 +1,15 @@
 import React from 'react';
-import { Calendar, ChevronDown, FileText, X } from 'lucide-react';
-import { AddToInvestigationButton } from '../../common/AddToInvestigationButton';
+import Icon from '@client/components/common/Icon';
+import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
+import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
+import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
 import styles from './DocumentMetadataRail.module.css';
 
-import { Surface } from '../../../design-system/components/surfaces/Surface';
-import { Box } from '../../../design-system/components/layout/Box';
-import { LqText } from '../../../design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface DocRecord {
   id?: string | number;
@@ -18,6 +20,13 @@ interface DocRecord {
   ingestRunId?: string | null;
   ingest_run_id?: string | null;
   metadata?: Record<string, unknown>;
+  sourceDocumentId?: number | null;
+  sourceHash?: string | null;
+  extractionMethod?: ExtractionMethod | null;
+  confidence?: number | null;
+  reviewState?: ReviewState;
+  lastVerifiedAt?: string | null;
+  provenanceStatus?: ProvenanceStatus;
 }
 
 interface EntityRecord {
@@ -70,7 +79,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
         className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'metadata' ? styles.sectionActive : ''}`}
       >
         <h3 className={styles.sectionHeading}>
-          <FileText size={16} className={styles.iconAccent} />
+          <Icon name="FileText" size="sm" className={styles.iconAccent} />
           Core Metadata
         </h3>
         <Box className={styles.metaFieldsStack}>
@@ -85,10 +94,39 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           <Box className={styles.metaGrid}>
             <Box className={styles.metaField}>
               <LqText variant="xs" className={styles.metaLabel}>
+                Provenance State
+              </LqText>
+              <ProvenanceBadge
+                sourceDocumentId={doc.sourceDocumentId}
+                sourceHash={doc.sourceHash}
+                reviewState={doc.reviewState}
+                confidence={doc.confidence}
+                extractionMethod={doc.extractionMethod}
+                provenanceStatus={doc.provenanceStatus}
+              />
+            </Box>
+            <Box className={styles.metaField}>
+              <LqText variant="xs" className={styles.metaLabel}>
                 Origin Collection
               </LqText>
               <LqText variant="xs" weight="medium" className={styles.metaValue}>
                 {(doc.metadata?.source_collection as string | undefined) || 'Classified / Internal'}
+              </LqText>
+            </Box>
+            <Box className={styles.metaField}>
+              <LqText variant="xs" className={styles.metaLabel}>
+                Source Hash
+              </LqText>
+              <LqText variant="xs" weight="medium" className={styles.metaValueMono}>
+                {doc.sourceHash || 'Source missing'}
+              </LqText>
+            </Box>
+            <Box className={styles.metaField}>
+              <LqText variant="xs" className={styles.metaLabel}>
+                Last Verified
+              </LqText>
+              <LqText variant="xs" weight="medium" className={styles.metaValue}>
+                {doc.lastVerifiedAt || 'Never verified'}
               </LqText>
             </Box>
             <Box className={styles.metaField}>
@@ -115,8 +153,9 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           className={styles.entitiesToggle}
         >
           <h3 className={styles.entitiesHeading}>Live Entities ({entities.length})</h3>
-          <ChevronDown
-            size={16}
+          <Icon
+            name="ChevronDown"
+            size="sm"
             className={`${styles.chevronIcon} ${expandedEntities ? styles.chevronRotated : ''}`}
           />
         </Button>
@@ -159,7 +198,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
                 className={styles.clearButton}
                 aria-label="Clear active focus"
               >
-                <X size={16} />
+                <Icon name="X" size="sm" />
               </Button>
             </Box>
             <LqText variant="body" weight="semibold" className={styles.selectedEntityName}>
@@ -205,7 +244,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
         className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'timeline' ? styles.sectionActive : ''}`}
       >
         <h3 className={styles.sectionHeading}>
-          <Calendar size={16} className={styles.iconMuted} />
+          <Icon name="Calendar" size="sm" className={styles.iconMuted} />
           Timeline Hook
         </h3>
         {timelineReferences.length === 0 ? (

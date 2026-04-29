@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import { graphRateLimiter } from '../middleware/rateLimit.js';
 import { logger } from '../services/Logger.js';
 import { validate, graphGlobalQuerySchema } from '../middleware/validate.js';
@@ -13,7 +13,7 @@ import {
   getGraphPathNodes,
 } from '../db/routesDb.js';
 
-const router = Router();
+const router = express.Router();
 
 interface GraphNodeRaw {
   id: unknown;

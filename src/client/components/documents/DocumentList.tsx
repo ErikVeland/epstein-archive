@@ -1,6 +1,6 @@
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { FileText, ArrowRight } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import {
   Box,
   Button,
@@ -10,8 +10,8 @@ import {
   LqText,
   Pagination,
   Surface,
-} from '../../design-system/lib';
-import { Document } from '../../types/documents';
+} from '@client/design-system/lib';
+import { Document } from '@client/types/documents';
 import { DocumentCard } from './DocumentCard';
 import DocumentSkeleton from './DocumentSkeleton';
 import styles from './DocumentList.module.css';
@@ -71,7 +71,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         className={styles.emptyState}
         icon={
           <Box className={styles.emptyIconBox}>
-            <FileText className={styles.emptyIcon} color="var(--danger)" />
+            <Icon name="FileText" className={styles.emptyIcon} color="danger" />
           </Box>
         }
         title="Error Loading Documents"
@@ -90,7 +90,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         className={styles.emptyState}
         icon={
           <Box className={styles.emptyIconBox}>
-            <FileText className={styles.emptyIcon} />
+            <Icon name="FileText" className={styles.emptyIcon} />
           </Box>
         }
         title="No documents found"
@@ -152,7 +152,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               className={styles.jumpToBtn}
               title="Go to page"
             >
-              <ArrowRight className={styles.actionIcon} strokeWidth={2.75} />
+              <Icon name="ArrowRight" size="sm" className={styles.actionIcon} />
             </Button>
           </div>
         </Flex>

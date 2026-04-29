@@ -5,10 +5,10 @@
  */
 
 import { useState } from 'react';
-import { Scale, Search } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './DepositionViewer.module.css';
 
-import { Input } from '../../design-system/lib';
+import { Input } from '@client/design-system/lib';
 
 interface DepositionViewerProps {
   evidence: {
@@ -54,7 +54,7 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
       {/* Deposition Header */}
       <div className={styles.depositionHeader}>
         <div className={styles.headerRow}>
-          <Scale size={32} className={styles.scaleIcon} />
+          <Icon name="Scale" size="xl" className={styles.scaleIcon} />
           <div className={styles.headerContent}>
             <h2 className={styles.depositionTitle}>
               Deposition of {metadata.deponent || 'Unknown'}
@@ -82,7 +82,7 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
       {/* Search */}
       <div className={styles.searchSection}>
         <div className={styles.searchWrapper}>
-          <Search size={20} className={styles.searchIcon} />
+          <Icon name="Search" size="md" className={styles.searchIcon} />
           <Input
             type="text"
             placeholder="Search deposition..."

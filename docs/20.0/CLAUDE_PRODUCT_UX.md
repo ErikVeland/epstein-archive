@@ -113,6 +113,8 @@ Acceptance criteria:
 Define the experience for high-velocity investigative work:
 
 - **Global Command Palette (`Cmd+K`)**: A fast-action bar to jump between investigations, entities, search, and documents without leaving the current context.
+  - **Implemented**: `src/client/components/common/CommandPalette.tsx`, `src/client/hooks/useCommandPalette.ts`
+  - **Integrated**: `src/client/App.tsx` (renders palette, handles Cmd+K toggle)
   - **Command inventory** (exhaustive — do not invent new commands at implementation time):
     - `Go to investigation: <title>` — jump to a named investigation workspace
     - `New investigation` — open create-investigation dialog
@@ -127,13 +129,13 @@ Define the experience for high-velocity investigative work:
     - `Export evidence packet` — open export dialog for active investigation (only shown when inside an investigation)
     - `Copy investigation link` — copy shareable deep link (only shown when inside an investigation)
     - `Toggle sensitive content` — toggle sensitive content visibility
-- **Shareable Deep Links**: All major surface state is encoded in the URL so links can be copied and shared. Deep links are the primary persistence mechanism — not `localStorage`. Specifically:
+  - **Shareable Deep Links**: All major surface state is encoded in the URL so links can be copied and shared. Deep links are the primary persistence mechanism — not `localStorage`. Specifically:
   - Investigation workspace: active tab and selected evidence item ID are in `?tab=` and `?evidenceId=` query params.
   - Entity dossier: active tab is in `?tab=` on `/entity/:id`.
   - Document modal: document ID and PDF page are in `?docId=` and `?page=`.
   - Search: query, type, sort, order, and risk filters are in query params.
   - `localStorage` is used only for ephemeral UI preferences (sidebar collapsed state, theme), never for investigative state that a user might want to share or bookmark.
-- **Archive Freshness Indicator**: A clear, non-intrusive status showing the last data ingestion timestamp and archive sync state.
+  - **Archive Freshness Indicator**: A clear, non-intrusive status showing the last data ingestion timestamp and archive sync state.
 
 Acceptance criteria:
 
@@ -177,5 +179,35 @@ Claude should maintain:
 - Review queue language.
 - Export warning language.
 - Acceptance criteria for each user-facing workflow.
+
+### Completed Work (2026-04-29)
+
+**Components Built:**
+
+- `src/client/components/common/ProvenanceBadge.tsx` — Reusable provenance badge (unreviewed/verified/rejected/deferred/insufficient)
+- `src/client/components/common/ConfidenceBadge.tsx` — Reusable confidence badge (high/medium/low/very-low)
+- `src/client/components/admin/ReviewQueuePanel.tsx` — Updated with review queue UI (status transitions, priority labels, audit log)
+
+**Integrated Into:**
+
+- `src/client/components/entities/EntityConfidenceDisplay.tsx` — Uses `ConfidenceBadge`
+- `src/client/components/common/subcomponents/ClaimsTab.tsx` — Uses `ConfidenceBadge`
+- `src/client/components/documents/ProvenancePanel.tsx` — Uses `ProvenanceBadge`
+
+**Copy Specs (Ready for Implementation):**
+
+- `docs/20.0/CLAUDE_INVESTIGATION_COPY.md` — Investigation Command Center
+- `docs/20.0/CLAUDE_EVIDENCE_COPY.md` — Source-First Evidence UX
+- `docs/20.0/CLAUDE_REVIEW_QUEUE_COPY.md` — Review/Ambiguity Queue
+- `docs/20.0/CLAUDE_ACCESSIBILITY_COPY.md` — Accessibility & Mobile Polish
+
+**Security/Type Fixes:**
+
+- `src/app.ts` — Applied `apiRateLimiter` to `/search` and `/admin` routes, fixed lint warnings
+- `src/server/auth/middleware.ts` — JWT hardening (prod exit if secret missing)
+- `src/server/middleware/rateLimit.ts` — Created `apiRateLimiter`
+- `src/client/contexts/InvestigationsContext.tsx` — Fixed syntax errors
+- `src/client/domains/investigations/investigations.api.ts` — Added `ownerId` to create type
+- `src/client/services/apiClient.ts` — Added `ownerId` to createInvestigation type
 
 Claude should not edit implementation files, migrations, CI scripts, or test code.

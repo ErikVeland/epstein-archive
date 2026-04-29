@@ -1,21 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useToasts } from '../common/useToasts';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { apiClient } from '../../services/apiClient';
-import {
-  AlertCircle,
-  CheckCircle2,
-  Circle,
-  Flag,
-  Loader2,
-  PlusCircle,
-  Trash2,
-  XCircle,
-  Zap,
-  Target,
-  ArrowRight,
-  Filter,
-} from 'lucide-react';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { apiClient } from '@client/services/apiClient';
+import Icon, { IconName } from '@client/components/common/Icon';
 
 // UI Library
 import {
@@ -28,7 +15,7 @@ import {
   Surface,
   TextInput,
   Textarea,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './InvestigationLeadsPanel.module.css';
 
 type LeadStatus = 'open' | 'pursued' | 'dead_end' | 'resolved';
@@ -60,15 +47,15 @@ const STATUS_MAP: Record<
   LeadStatus,
   {
     label: string;
-    Icon: React.ComponentType<{ size?: string | number; className?: string }>;
+    icon: IconName;
     variant: 'glass' | 'accent' | 'success';
     next: LeadStatus;
   }
 > = {
-  open: { label: 'Open Signal', Icon: Circle, variant: 'glass', next: 'pursued' },
-  pursued: { label: 'Active Pursuit', Icon: AlertCircle, variant: 'accent', next: 'resolved' },
-  dead_end: { label: 'Inert / Terminated', Icon: XCircle, variant: 'glass', next: 'open' },
-  resolved: { label: 'Resolved / Logged', Icon: CheckCircle2, variant: 'success', next: 'open' },
+  open: { label: 'Open Signal', icon: 'Circle', variant: 'glass', next: 'pursued' },
+  pursued: { label: 'Active Pursuit', icon: 'AlertCircle', variant: 'accent', next: 'resolved' },
+  dead_end: { label: 'Inert / Terminated', icon: 'XCircle', variant: 'glass', next: 'open' },
+  resolved: { label: 'Resolved / Logged', icon: 'CheckCircle2', variant: 'success', next: 'open' },
 };
 
 export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = ({
@@ -160,13 +147,13 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
           <div className={styles.header}>
             <div className={styles.headerGroup}>
               <div className={styles.headerTitle}>
-                <Flag size={20} className={styles.iconAmber} />
+                <Icon name="Flag" size="md" className={styles.iconAmber} />
                 Investigation Leads
               </div>
               <div className={styles.headerSubtitle}>Operational Tracking • Signal Analysis</div>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
-              <XCircle size={18} />
+              <Icon name="XCircle" size="md" />
             </Button>
           </div>
 
@@ -187,7 +174,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
 
           <div className={styles.controlsBar}>
             <Box grow className={styles.filterSelectWrap}>
-              <Filter className={styles.filterIcon} size={12} />
+              <Icon name="Filter" className={styles.filterIcon} size="xs" />
               <NativeSelect
                 className={styles.select}
                 value={statusFilter}
@@ -205,7 +192,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
               className={styles.addButton}
               onClick={() => setShowNewForm(!showNewForm)}
             >
-              <PlusCircle size={14} /> New Lead
+              <Icon name="PlusCircle" size="sm" /> New Lead
             </Button>
           </div>
 
@@ -262,7 +249,11 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                     onClick={handleCreate}
                     disabled={!newLead.title.trim() || creating}
                   >
-                    {creating ? <Loader2 className={styles.spin} size={14} /> : 'Establish Lead'}
+                    {creating ? (
+                      <Icon name="Loader2" className={styles.spin} size="sm" />
+                    ) : (
+                      'Establish Lead'
+                    )}
                   </Button>
                 </Flex>
               </Stack>
@@ -272,11 +263,11 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
           <Box grow className={styles.leadsList}>
             {loading ? (
               <div className={styles.loaderCentered}>
-                <Loader2 className={styles.spin} />
+                <Icon name="Loader2" className={styles.spin} />
               </div>
             ) : leads.length === 0 ? (
               <div className={styles.emptyState}>
-                <Target size={48} className={styles.emptyIcon} />
+                <Icon name="Target" size="xl" className={styles.emptyIcon} />
                 <LqText variant="xs" color="muted" weight="bold">
                   No Leads Identified
                 </LqText>
@@ -315,7 +306,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                               className={styles.actionButton}
                               onClick={() => handleStatusCycle(lead)}
                             >
-                              <cfg.Icon size={18} className={styles.iconMd} />
+                              <Icon name={cfg.icon} size="sm" className={styles.iconMd} />
                             </Button>
                           </div>
                           <div className={styles.leadBody}>
@@ -336,7 +327,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                                 }).then(() => loadLeads());
                             }}
                           >
-                            <Trash2 size={12} />
+                            <Icon name="Trash2" size="xs" />
                           </Button>
                         </div>
 
@@ -360,7 +351,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                               className={`${styles.actionButton} ${styles.actionButtonAccent}`}
                               onClick={() => onConvertToTask(lead)}
                             >
-                              <ArrowRight size={10} /> Task
+                              <Icon name="ArrowRight" size="xs" /> Task
                             </Button>
                           )}
                           {onConvertToHypothesis && (
@@ -370,7 +361,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                               className={`${styles.actionButton} ${styles.actionButtonAccent}`}
                               onClick={() => onConvertToHypothesis(lead)}
                             >
-                              <Zap size={10} /> Hypo
+                              <Icon name="Zap" size="xs" /> Hypo
                             </Button>
                           )}
                         </div>

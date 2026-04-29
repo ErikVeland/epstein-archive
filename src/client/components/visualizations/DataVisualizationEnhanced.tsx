@@ -16,7 +16,7 @@ import {
   Treemap,
   type TooltipProps,
 } from 'recharts';
-import { Person } from '../../types';
+import { Person } from '@client/types';
 import styles from './DataVisualizationEnhanced.module.css';
 
 interface DataVisualizationProps {

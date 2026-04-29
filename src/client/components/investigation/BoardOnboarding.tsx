@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { ArrowRight, Target, BookOpen, CheckCircle, Layers, Activity } from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from '../common/CloseButton';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 
 // UI Library
-import { Surface, Button, Flex, Box, Stack, LqText } from '../../design-system/lib';
+import { Surface, Button, Flex, Box, Stack, LqText } from '@client/design-system/lib';
 import styles from './BoardOnboarding.module.css';
 
 interface BoardOnboardingProps {
@@ -32,7 +32,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       title: 'Define Strategic Hypotheses',
       description:
         'Initialize theoretical "buckets" on the left. These act as the analytical anchor points for your mission stream.',
-      icon: Target,
+      icon: 'Target' as IconName,
       tone: 'accent',
     },
     {
@@ -40,7 +40,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       title: 'Gather & Correlate Signals',
       description:
         'Assigned evidence appears in the central matrix. Drag signals onto hypotheses to establish supporting or contradicting links.',
-      icon: Layers,
+      icon: 'Layers' as IconName,
       tone: 'error',
     },
     {
@@ -48,13 +48,12 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       title: 'Sequencing the Narrative',
       description:
         'Finalize the mission by dragging proven points into the Strategic Workspace on the right to construct a sequential chain of proof.',
-      icon: BookOpen,
+      icon: 'BookOpen' as IconName,
       tone: 'success',
     },
   ];
 
   const currentStep = steps[step - 1];
-  const Icon = currentStep.icon;
 
   const toneStyle = (tone: string) => ({
     backgroundColor:
@@ -95,7 +94,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
             {/* Header */}
             <Flex justify="between" align="center" p="lg" className={styles.autoGen6}>
               <Flex gap="md" align="center">
-                <Activity size={18} className={styles.autoGen7} />
+                <Icon name="Activity" size="md" className={styles.autoGen7} />
                 <LqText
                   variant="small"
                   weight="bold"
@@ -120,7 +119,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
                 >
                   <Stack align="center" gap="xl" className={styles.autoGen8}>
                     <Box className={styles.stepIconBox} style={toneStyle(currentStep.tone)}>
-                      <Icon size={48} />
+                      <Icon name={currentStep.icon} size="xl" />
                     </Box>
                     <Stack gap="md">
                       <LqText variant="h2" weight="bold">
@@ -141,9 +140,9 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
                 <Button variant="secondary" size="sm" onClick={handleNext}>
                   {step === totalSteps ? 'Initialize Investigation' : 'Proceed to Next Phase'}
                   {step === totalSteps ? (
-                    <CheckCircle size={18} className={styles.iconAfter} />
+                    <Icon name="CheckCircle" size="md" className={styles.iconAfter} />
                   ) : (
-                    <ArrowRight size={18} className={styles.iconAfter} />
+                    <Icon name="ArrowRight" size="md" className={styles.iconAfter} />
                   )}
                 </Button>
 

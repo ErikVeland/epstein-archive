@@ -1,20 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Investigation, Investigator } from '../../types/investigation';
-import {
-  Users,
-  UserPlus,
-  Crown,
-  Eye,
-  Trash2,
-  Download,
-  Upload,
-  HardDrive,
-  ShieldCheck,
-  Briefcase,
-  Settings,
-} from 'lucide-react';
+import { Investigation, Investigator } from '@client/types/investigation';
+import Icon, { IconName } from '@client/components/common/Icon';
 import { useToasts } from '../common/useToasts';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 // UI Library
 import styles from './InvestigationTeamManagement.module.css';
@@ -31,7 +19,7 @@ import {
   Stack,
   Surface,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 const css = <T,>(style: T) => style;
 
 interface InvestigationTeamManagementProps {
@@ -184,11 +172,11 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
     addToast({ text: 'Asset de-authorized.', type: 'warning' });
   };
 
-  const getRoleIcon = (role: TeamRole) => {
-    if (role === 'lead') return Crown;
-    if (role === 'analyst') return ShieldCheck;
-    if (role === 'reviewer') return Eye;
-    return Users;
+  const getRoleIcon = (role: TeamRole): IconName => {
+    if (role === 'lead') return 'Crown';
+    if (role === 'analyst') return 'ShieldCheck';
+    if (role === 'reviewer') return 'Eye';
+    return 'Users';
   };
 
   return (
@@ -198,7 +186,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
         <Flex justify="between" align="center">
           <Stack gap="none">
             <Flex align="center" gap="md">
-              <Users size={24} className={styles.autoGen278} />
+              <Icon name="Users" size="lg" className={styles.autoGen278} />
               <LqText variant="h1" weight="bold">
                 Operational Unit Controls
               </LqText>
@@ -215,14 +203,14 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
           </Stack>
           <Flex gap="md">
             <Button variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
-              <UserPlus size={14} className={styles.mr2} /> Add Agent
+              <Icon name="UserPlus" size="sm" className={styles.mr2} /> Add Agent
             </Button>
             <Button variant="ghost" onClick={() => {}} className={styles.autoGen279}>
-              <Download size={14} className={styles.mr2} /> Export JSON
+              <Icon name="Download" size="sm" className={styles.mr2} /> Export JSON
             </Button>
             <label className={styles.autoGen280}>
               <Button variant="ghost" className={styles.autoGen281}>
-                <Upload size={14} className={styles.mr2} /> Import JSON
+                <Icon name="Upload" size="sm" className={styles.mr2} /> Import JSON
               </Button>
               <FileInput className={styles.autoGen282} />
             </label>
@@ -235,7 +223,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
           {/* Storage Alert */}
           <Surface variant="glass-highlight" p="lg" className={styles.autoGen283}>
             <Flex gap="md" align="center">
-              <HardDrive size={32} className={styles.autoGen284} />
+              <Icon name="HardDrive" size="xl" className={styles.autoGen284} />
               <Stack gap="xxs">
                 <LqText variant="small" weight="bold">
                   Local Persistence Cluster
@@ -284,7 +272,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
           {/* Agent Roster */}
           <Stack gap="md">
             <Flex align="center" gap="md">
-              <Briefcase size={16} className={styles.autoGen286} />
+              <Icon name="Briefcase" size="sm" className={styles.autoGen286} />
               <LqText
                 variant="xs"
                 weight="bold"
@@ -297,7 +285,6 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
             </Flex>
 
             {team.map((member) => {
-              const RoleIcon = getRoleIcon(member.role as TeamRole);
               return (
                 <Surface
                   key={member.id}
@@ -316,7 +303,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                             : 'bg-[var(--lq-surface-2)] text-[var(--lq-text-dim)]',
                         )}
                       >
-                        <RoleIcon size={20} />
+                        <Icon name={getRoleIcon(member.role as TeamRole)} size="sm" />
                       </Box>
                       <Stack gap="xs">
                         <Flex align="center" gap="md">
@@ -358,12 +345,12 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                             className={styles.autoGen289}
                             onClick={() => removeMember(member.id)}
                           >
-                            <Trash2 size={14} />
+                            <Icon name="Trash2" size="sm" />
                           </Button>
                         </Flex>
                       ) : (
                         <Flex align="center" gap="sm" className={styles.autoGen290}>
-                          <Settings size={12} className={styles.autoGen291} />
+                          <Icon name="Settings" size="xs" className={styles.autoGen291} />
                           <LqText variant="xs" color="muted" weight="bold">
                             ROOT PROFILE PROTECTED
                           </LqText>

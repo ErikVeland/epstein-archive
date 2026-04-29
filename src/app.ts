@@ -23,6 +23,7 @@ import { validateStartup } from './server/utils/startupValidation.js';
 import { runMigrations } from './server/db/migrator.js';
 import { initRevisionManager } from './server/revisionManager.js';
 import { getEntityAndDocumentCounts } from './server/db/routesDb.js';
+import type { SortOption } from './types';
 
 // Route imports
 import authRoutes from './server/auth/routes.js';
@@ -424,26 +425,57 @@ export class App {
   private initializeRoutes() {
     const router = express.Router();
 
+    interface SubjectsQuery {
+      page?: string;
+      limit?: string;
+      search?: string;
+      role?: string;
+      entityType?: string;
+      likelihoodScore?: string | string[];
+      sortOrder?: string;
+      sortBy?: string;
+    }
+
     router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
       try {
-        const query = req.query as any;
+        const query = req.query as unknown as SubjectsQuery;
         const page = Number(query.page || 1);
         const limit = Number(query.limit || 24);
         const likelihoodRaw = query.likelihoodScore;
         const likelihoodScore = Array.isArray(likelihoodRaw)
-          ? (likelihoodRaw as any)
+          ? (likelihoodRaw as string[])
           : typeof likelihoodRaw === 'string' && likelihoodRaw.length > 0
             ? [likelihoodRaw]
             : undefined;
+        const allowedLikelihoodScores = ['HIGH', 'MEDIUM', 'LOW'] as const;
+        const normalizedLikelihoodScores = likelihoodScore
+          ?.filter((v): v is (typeof allowedLikelihoodScores)[number] =>
+            allowedLikelihoodScores.includes(v as (typeof allowedLikelihoodScores)[number]),
+          )
+          .filter((v, i, arr) => arr.indexOf(v) === i);
 
-        const filters: any = {
+        const filters = {
           searchTerm: typeof query.search === 'string' ? query.search : undefined,
           role: typeof query.role === 'string' ? query.role : undefined,
           entityType: typeof query.entityType === 'string' ? query.entityType : undefined,
-          likelihoodScore,
-          sortOrder: String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc',
+          likelihoodScore: normalizedLikelihoodScores,
+          sortOrder: (String(query.sortOrder || 'desc').toLowerCase() === 'asc'
+            ? 'asc'
+            : 'desc') as 'asc' | 'desc',
         };
-        const sortBy: any = typeof query.sortBy === 'string' ? query.sortBy : 'risk';
+        const rawSortBy = typeof query.sortBy === 'string' ? query.sortBy : 'risk';
+        const sortBy: SortOption =
+          rawSortBy === 'name' ||
+          rawSortBy === 'mentions' ||
+          rawSortBy === 'red_flag' ||
+          rawSortBy === 'recent' ||
+          rawSortBy === 'risk' ||
+          rawSortBy === 'date-desc' ||
+          rawSortBy === 'date-asc' ||
+          rawSortBy === 'relevance' ||
+          rawSortBy === 'document-count'
+            ? rawSortBy
+            : 'risk';
         const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
 
         res.json(mapSubjectsListResponseDto(result));

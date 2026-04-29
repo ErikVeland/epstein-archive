@@ -1,7 +1,6 @@
-import { Router } from 'express';
+import express from 'express';
 import { statsRepository } from '../db/statsRepository.js';
 import { getMigrationMetrics } from '../db/runtime.js';
-import { config } from '../../config/index.js';
 import {
   getCriticalTableCounts,
   getCurrentDatabaseSizeBytes,
@@ -18,7 +17,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 
-const router = Router();
+const router = express.Router();
 const execFileAsync = promisify(execFile);
 const READINESS_TIMEOUT_MS = Math.max(
   100,
@@ -74,7 +73,7 @@ router.get('/health', async (_req, res) => {
     database: dbStatus,
     data: stats,
     memory: process.memoryUsage(),
-    environment: config.nodeEnv,
+    environment: process.env.NODE_ENV || 'development',
   };
 
   res.status(healthCheck.status === 'healthy' ? 200 : 503).json(healthCheck);
@@ -299,7 +298,7 @@ router.get('/health/deep', async (_req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     totalCheckDuration: `${totalDuration}ms`,
-    environment: config.nodeEnv,
+    environment: process.env.NODE_ENV || 'development',
     version: process.env.npm_package_version || 'unknown',
     checks,
   };

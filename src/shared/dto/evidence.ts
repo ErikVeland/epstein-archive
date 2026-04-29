@@ -1,4 +1,6 @@
-export interface EntityMentionEvidenceDto {
+import type { ProvenanceDto } from './provenance';
+
+export interface EntityMentionEvidenceDto extends ProvenanceDto {
   id: string | number | null;
   documentId: string | number | null;
   evidenceType: string;
@@ -38,7 +40,7 @@ export interface EntityEvidenceResponseDto {
   };
 }
 
-export interface EntityRelationEvidenceDto {
+export interface EntityRelationEvidenceDto extends ProvenanceDto {
   id: string | number;
   sourceId: string | number;
   targetId: string | number;
@@ -49,4 +51,10 @@ export interface EntityRelationEvidenceDto {
   lastSeen: string | null;
   sourceName?: string;
   targetName?: string;
+  document_id?: string | number | null;
+  span_id?: string | number | null;
+  quote_text?: string | null;
+  mention_ids?: unknown;
+  document_title?: string | null;
+  document_path?: string | null;
 }

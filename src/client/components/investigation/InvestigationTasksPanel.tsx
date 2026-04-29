@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import { useToasts } from '../common/useToasts';
-import { CheckCircle2, Clock, Loader2, Plus, XCircle, BarChart3 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import Icon from '@client/components/common/Icon';
+import { useAuth } from '@client/contexts/AuthContext';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 
 // UI Library
 import {
@@ -19,7 +19,7 @@ import {
   Stack,
   Surface,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './InvestigationTasksPanel.module.css';
 const css = <T,>(style: T) => style;
 
@@ -151,7 +151,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
             <Flex justify="between" align="center">
               <Stack gap="none">
                 <Flex align="center" gap="sm">
-                  <BarChart3 size={20} />
+                  <Icon name="BarChart3" size="md" />
                   <LqText variant="h3" weight="bold">
                     Mission Control
                   </LqText>
@@ -166,7 +166,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                 </LqText>
               </Stack>
               <Button variant="ghost" size="sm" onClick={onClose}>
-                <XCircle size={18} />
+                <Icon name="XCircle" size="md" />
               </Button>
             </Flex>
           </Surface>
@@ -259,7 +259,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                 </Stack>
               ) : filteredTasks.length === 0 ? (
                 <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
-                  <CheckCircle2 size={48} />
+                  <Icon name="CheckCircle2" size="xl" />
                   <LqText
                     variant="xs"
                     color="muted"
@@ -281,8 +281,9 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                               size="sm"
                               onClick={() => handleToggleComplete(task)}
                             >
-                              <CheckCircle2
-                                size={18}
+                              <Icon
+                                name="CheckCircle2"
+                                size="md"
                                 className={cn(
                                   task.status === 'completed'
                                     ? 'text-[var(--lq-success)]'
@@ -324,7 +325,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                         <Stack gap="xs">
                           <Flex justify="between" align="center">
                             <Flex align="center" gap="xs">
-                              <Clock size={10} />
+                              <Icon name="Clock" size="xs" />
                               <LqText variant="xs" color="muted">
                                 Due:{' '}
                                 {task.dueDate
@@ -356,7 +357,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
             <form onSubmit={handleCreateTask}>
               <Stack gap="md">
                 <Flex align="center" gap="sm">
-                  <Plus size={14} />
+                  <Icon name="Plus" size="sm" />
                   <LqText
                     variant="xs"
                     weight="bold"
@@ -425,7 +426,11 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   onClick={handleCreateTask}
                   disabled={!newTask.title.trim() || isCreating}
                 >
-                  {isCreating ? <Loader2 className="animate-spin" size={14} /> : 'Initialize Task'}
+                  {isCreating ? (
+                    <Icon name="Loader2" className="animate-spin" size="sm" />
+                  ) : (
+                    'Initialize Task'
+                  )}
                 </Button>
               </Stack>
             </form>

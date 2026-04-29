@@ -1,8 +1,8 @@
 import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
-import { useCountUp } from '../../hooks/useCountUp';
-import { riskToneFromRating } from '../../utils/riskSemantics';
-import { Surface, Stack, Text as LqText, cn } from '../../design-system/lib';
+import { useCountUp } from '@client/hooks/useCountUp';
+import { riskToneFromRating } from '@client/utils/riskSemantics';
+import { Surface, Stack, Text as LqText, cn } from '@client/design-system/lib';
 import s from './StatsDisplay.module.css';
 
 interface StatsDisplayProps {

@@ -1,51 +1,40 @@
-export interface ForensicTechnicalMetrics {
-  producer?: string;
-  creator?: string;
-  creationDate?: string;
-  modificationDate?: string;
-  pageCount?: number;
-}
-
-export interface ForensicStructuralMetrics {
-  containsJavascript?: boolean;
-  fontCount?: number;
-  pdfVersion?: string;
-  jsObjectIds?: string[];
-}
-
-export interface ForensicLinguisticMetrics {
-  readabilityFKGL?: number;
-  sentiment?: 'positive' | 'negative' | 'neutral';
-  typeTokenRatio?: number;
-}
-
-export interface ForensicTemporalMetrics {
-  businessHours?: boolean;
-  dayOfWeek?: string;
-}
-
-export interface ForensicNetworkMetrics {
-  entityDensityPer1000Words?: number;
-  riskScore?: number;
-}
-
 export interface ForensicMetricRecord {
-  id?: string | number;
+  id: string;
   fileName?: string;
+  title?: string;
+  evidenceType?: string;
   score?: number;
-  technical?: ForensicTechnicalMetrics;
-  structural?: ForensicStructuralMetrics;
-  linguistic?: ForensicLinguisticMetrics;
-  temporal?: ForensicTemporalMetrics;
-  network?: ForensicNetworkMetrics;
-  [key: string]: unknown;
+  riskScore?: number;
+  jsRiskScore?: number;
+  densityScore?: number;
+  anomalyScore?: number;
+  technical?: {
+    producer?: string;
+    creator?: string;
+    creationDate?: string;
+    pageCount?: number;
+  };
+  structural?: Record<string, unknown>;
+  linguistic?: {
+    readabilityFKGL?: number;
+    sentiment?: string;
+    typeTokenRatio?: number;
+  };
+  network?: {
+    riskScore?: number;
+  };
+  metadata?: Record<string, unknown>;
 }
 
 export interface ForensicSummary {
-  readabilityBuckets?: Array<{ range: string; count: number }>;
+  totalDocuments: number;
+  totalSignals?: number;
+  avgRiskScore?: number;
+  distributions?: Record<string, unknown>;
+  topRiskDocuments?: ForensicMetricRecord[];
   sentimentCounts?: {
-    positive?: number;
-    neutral?: number;
-    negative?: number;
+    positive: number;
+    neutral: number;
+    negative: number;
   };
 }

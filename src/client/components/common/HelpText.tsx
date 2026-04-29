@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../design-system/lib';
+import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '@client/design-system/lib';
 import s from './HelpText.module.css';
 
 interface HelpTextProps {

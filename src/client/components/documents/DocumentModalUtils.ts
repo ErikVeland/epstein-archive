@@ -1,4 +1,4 @@
-import { isVisualMediaItem } from '../../utils/evidenceUtils';
+import { isVisualMediaItem } from '@client/utils/evidenceUtils';
 
 export const normalizeList = (candidate: unknown): string[] => {
   if (!candidate) return [];

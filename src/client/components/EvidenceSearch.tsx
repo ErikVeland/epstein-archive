@@ -1,16 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
-import { optimizedDataService } from '../services/OptimizedDataService';
-import type { SearchFilters } from '../services/optimizedDataLoader';
-import { Person } from '../types';
-import { useNavigation } from '../services/NavigationContext';
+import { optimizedDataService } from '@client/services/OptimizedDataService';
+import type { SearchFilters } from '@client/services/optimizedDataLoader';
+import { Person } from '@client/types';
+import { useNavigation } from '@client/services/NavigationContext';
 import { useUndo } from './useUndo';
 import { EvidenceFilters } from './evidence/EvidenceFilters';
 import { EvidenceResultCard } from './evidence/EvidenceResultCard';
 import { EvidenceDocSnippets } from './evidence/EvidenceDocSnippets';
-import { Surface, Flex, Stack, LqText, Grid } from '../design-system/lib';
+import { Surface, Flex, Stack, LqText, Grid } from '@client/design-system/lib';
 import styles from './EvidenceSearch.module.css';
 
 interface EvidenceSearchProps {
@@ -269,7 +269,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
             {searchResults.length === 0 && docSnippets.length === 0 && searchTerm.trim() && (
               <Surface variant="glass" className={styles.emptyState} p="xl">
                 <Flex direction="column" align="center" gap="md">
-                  <Search size={48} className={styles.emptyIcon} />
+                  <Icon name="Search" size="xl" className={styles.emptyIcon} />
                   <Stack align="center" gap="xs">
                     <LqText variant="h3" color="muted">
                       No signals found for &quot;{searchTerm}&quot;
@@ -285,7 +285,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
             {!loading && searchResults.length === 0 && !searchTerm.trim() && !showRedFlagOnly && (
               <Surface variant="glass" className={styles.emptyState} p="xl">
                 <Flex direction="column" align="center" gap="md">
-                  <Search size={48} className={styles.emptyIcon} />
+                  <Icon name="Search" size="xl" className={styles.emptyIcon} />
                   <Stack align="center" gap="xs">
                     <LqText variant="h3" color="muted">
                       Initialize Forensic Search

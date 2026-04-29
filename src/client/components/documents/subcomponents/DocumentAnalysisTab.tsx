@@ -1,17 +1,17 @@
 import React from 'react';
-import { FileText, Sparkles } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { InvestigationTextRenderer } from '../InvestigationTextRenderer';
 import { DocumentDiffView } from '../DocumentDiffView';
 import { DocumentAnnotationSystem } from '../DocumentAnnotationSystem';
 import { formatDate } from '../DocumentModalUtils';
 import styles from './DocumentAnalysisTab.module.css';
 
-import { Surface } from '../../../design-system/components/surfaces/Surface';
-import { Box } from '../../../design-system/components/layout/Box';
-import { Flex } from '../../../design-system/components/layout/Flex';
-import { LqText } from '../../../design-system/components/typography/Text';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { LqText } from '@client/design-system/components/typography/Text';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
@@ -91,7 +91,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
       {textSubview === 'clean' && (
         <Surface variant="glass-highlight" className={styles.insightsCard}>
           <Flex align="center" gap="sm" className={styles.insightsTitle}>
-            <Sparkles className={styles.sparklesIcon} />
+            <Icon name="Sparkles" className={styles.sparklesIcon} />
             <LqText variant="h3" weight="semibold">
               Key Insights
             </LqText>
@@ -133,7 +133,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
       {!hasAnyText ? (
         <Box className={styles.emptyStateWrap}>
           <Surface variant="glass-highlight" className={styles.emptyState}>
-            <FileText className={styles.emptyIcon} />
+            <Icon name="FileText" className={styles.emptyIcon} />
             <LqText color="muted" className={styles.emptyText}>
               Text extraction is pending for this record. Open the Original Document tab for the
               source asset.

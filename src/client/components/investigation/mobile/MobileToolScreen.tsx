@@ -1,8 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './MobileToolScreen.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 const SWIPE_DISMISS_THRESHOLD = 80;
 const HINT_KEY = 'mobile-tool-hint-seen';
@@ -69,7 +69,7 @@ export function MobileToolScreen({
     >
       <div className={styles.header}>
         <Button unstyled className={styles.backBtn} onClick={onBack} type="button">
-          <ChevronLeft size={20} />
+          <Icon name="ChevronLeft" size="md" />
           Back
         </Button>
         <span className={styles.breadcrumb}>

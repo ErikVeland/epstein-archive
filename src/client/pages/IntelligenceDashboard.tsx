@@ -1,20 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  AlertTriangle,
-  BookOpen,
-  ExternalLink,
-  Eye,
-  FileQuestion,
-  SearchX,
-  ShieldAlert,
-  Zap,
-} from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { apiClient } from '../services/apiClient';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { LqText } from '../design-system/components/typography/Text';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
+import { Surface, Flex, Box, LqText } from '@client/design-system/lib';
 import styles from './IntelligenceDashboard.module.css';
 
 // ── API shape mirrors intelligenceRepository return types ────────────────────
@@ -145,7 +133,7 @@ function WeakProvenanceQueue({ items }: { items: WeakProvenanceDoc[] }) {
             className={styles.queueRowLink}
             title="Open in Document Browser"
           >
-            <ExternalLink className={styles.linkIcon} />
+            <Icon name="ExternalLink" size="sm" className={styles.linkIcon} />
           </Link>
         </div>
       ))}
@@ -175,7 +163,7 @@ function LowOcrQueue({ items }: { items: LowOcrDoc[] }) {
             className={styles.queueRowLink}
             title="Open in Document Browser"
           >
-            <ExternalLink className={styles.linkIcon} />
+            <Icon name="ExternalLink" size="sm" className={styles.linkIcon} />
           </Link>
         </div>
       ))}
@@ -203,7 +191,7 @@ function FuzzyAliasQueue({ items }: { items: FuzzyEntityAlias[] }) {
             className={styles.queueRowLink}
             title="Open entity"
           >
-            <ExternalLink className={styles.linkIcon} />
+            <Icon name="ExternalLink" size="sm" className={styles.linkIcon} />
           </Link>
         </div>
       ))}
@@ -229,7 +217,7 @@ function ThinHighRiskQueue({ items }: { items: ThinHighRiskEntity[] }) {
             className={styles.queueRowLink}
             title="Open entity"
           >
-            <ExternalLink className={styles.linkIcon} />
+            <Icon name="ExternalLink" size="sm" className={styles.linkIcon} />
           </Link>
         </div>
       ))}
@@ -276,7 +264,7 @@ function FinancialReviewQueue({ items }: { items: ReviewableFinancialItem[] }) {
             </div>
           </div>
           <Link to="/financial" className={styles.queueRowLink} title="Open Financial page">
-            <ExternalLink className={styles.linkIcon} />
+            <Icon name="ExternalLink" size="sm" className={styles.linkIcon} />
           </Link>
         </div>
       ))}
@@ -349,7 +337,7 @@ export function IntelligenceDashboard() {
       <Box className={styles.pageInner}>
         <Box className={styles.header}>
           <h1 className={styles.title}>
-            <Eye className={styles.titleIcon} />
+            <Icon name="Eye" size="lg" className={styles.titleIcon} />
             Intelligence Review
           </h1>
           <LqText className={styles.subtitle}>
@@ -407,7 +395,7 @@ export function IntelligenceDashboard() {
         {error && (
           <Surface className={styles.readinessTile}>
             <Flex align="center" gap="3">
-              <AlertTriangle size={16} />
+              <Icon name="AlertTriangle" size="sm" color="danger" />
               <LqText>{error}</LqText>
             </Flex>
           </Surface>
@@ -417,7 +405,7 @@ export function IntelligenceDashboard() {
           <div className={styles.queuesGrid}>
             <QueueCard
               title="Weak Provenance"
-              icon={<FileQuestion className={styles.queueCardIcon} />}
+              icon={<Icon name="FileQuestion" size="sm" className={styles.queueCardIcon} />}
               count={review.counts.weakProvenanceDocs}
             >
               <WeakProvenanceQueue items={review.weakProvenanceDocs} />
@@ -425,7 +413,7 @@ export function IntelligenceDashboard() {
 
             <QueueCard
               title="Low OCR Quality"
-              icon={<SearchX className={styles.queueCardIcon} />}
+              icon={<Icon name="SearchX" size="sm" className={styles.queueCardIcon} />}
               count={review.counts.lowOcrDocs}
             >
               <LowOcrQueue items={review.lowOcrDocs} />
@@ -433,7 +421,7 @@ export function IntelligenceDashboard() {
 
             <QueueCard
               title="Fuzzy Entity Aliases"
-              icon={<BookOpen className={styles.queueCardIcon} />}
+              icon={<Icon name="BookOpen" size="sm" className={styles.queueCardIcon} />}
               count={review.counts.fuzzyEntityAliases}
             >
               <FuzzyAliasQueue items={review.fuzzyEntityAliases} />
@@ -441,7 +429,7 @@ export function IntelligenceDashboard() {
 
             <QueueCard
               title="Thin High-Risk Entities"
-              icon={<ShieldAlert className={styles.queueCardIcon} />}
+              icon={<Icon name="ShieldAlert" size="sm" className={styles.queueCardIcon} />}
               count={review.counts.thinHighRiskEntities}
             >
               <ThinHighRiskQueue items={review.thinHighRiskEntities} />
@@ -449,7 +437,14 @@ export function IntelligenceDashboard() {
 
             <QueueCard
               title="Unlinked Claims"
-              icon={<AlertTriangle className={styles.queueCardIcon} />}
+              icon={
+                <Icon
+                  name="AlertTriangle"
+                  size="sm"
+                  color="danger"
+                  className={styles.queueCardIcon}
+                />
+              }
               count={review.counts.unlinkedClaims}
             >
               <UnlinkedClaimsQueue items={review.unlinkedClaims} />
@@ -457,7 +452,7 @@ export function IntelligenceDashboard() {
 
             <QueueCard
               title="Financial Items for Review"
-              icon={<Zap className={styles.queueCardIcon} />}
+              icon={<Icon name="Zap" size="sm" color="warning" className={styles.queueCardIcon} />}
               count={review.counts.reviewableFinancialItems}
             >
               <FinancialReviewQueue items={review.reviewableFinancialItems} />

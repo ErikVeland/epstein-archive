@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button, Flex, Box, LqText, Stack, Badge, cn } from '../../design-system/lib';
-import type { MediaAlbum } from '../../hooks/useMediaBrowser';
+import { Button, Flex, Box, LqText, Stack, Badge, cn } from '@client/design-system/lib';
+import type { MediaAlbum } from '@client/hooks/useMediaBrowser';
 import styles from './AlbumSidebar.module.css';
 
 interface AlbumSidebarProps {

@@ -1,6 +1,6 @@
 import React from 'react';
-import { AlertTriangle, WifiOff, Database, FileText, RefreshCw, Home } from 'lucide-react';
-import { Surface, Stack, Flex, LqText, Button, Box } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Surface, Stack, Flex, LqText, Button, Box } from '@client/design-system/lib';
 import styles from './TailoredErrorFallback.module.css';
 
 interface TailoredErrorFallbackProps {
@@ -18,7 +18,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
     switch (errorType) {
       case 'network':
         return {
-          icon: <WifiOff size={32} color="var(--accent-warning)" />,
+          icon: <Icon name="WifiOff" size="xl" color="accent" />,
           title: 'Network Connection Lost',
           message: 'Unable to connect to the server. Please check your internet connection.',
           nextSteps: 'Verify your network connection and try again.',
@@ -27,7 +27,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
         };
       case 'database':
         return {
-          icon: <Database size={32} color="var(--accent-danger)" />,
+          icon: <Icon name="Database" size="xl" color="accent" />,
           title: 'Database Unavailable',
           message: 'The database is temporarily unavailable. Our team has been notified.',
           nextSteps: 'Please try again in a few minutes.',
@@ -36,7 +36,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
         };
       case 'document':
         return {
-          icon: <FileText size={32} color="var(--accent)" />,
+          icon: <Icon name="FileText" size="xl" color="accent" />,
           title: 'Document Not Found',
           message: 'The requested document could not be found or is unavailable.',
           nextSteps: 'Try selecting a different document or check back later.',
@@ -45,7 +45,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
         };
       default:
         return {
-          icon: <AlertTriangle size={32} color="var(--accent-warning)" />,
+          icon: <Icon name="AlertTriangle" size="xl" color="accent" />,
           title: 'Something Went Wrong',
           message: 'An unexpected error occurred while loading this content.',
           nextSteps: 'Please try again or return to the home page.',
@@ -88,7 +88,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
             {showRetry && onRetry && (
               <Button onClick={onRetry} variant="glass">
                 <Flex gap="sm" align="center">
-                  <RefreshCw size={16} />
+                  <Icon name="RefreshCw" size="sm" />
                   <span>Try Again</span>
                 </Flex>
               </Button>
@@ -97,7 +97,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
             {showHome && onGoHome && (
               <Button onClick={onGoHome} variant="primary">
                 <Flex gap="sm" align="center">
-                  <Home size={16} />
+                  <Icon name="Home" size="sm" />
                   <span>Home</span>
                 </Flex>
               </Button>

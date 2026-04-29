@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AudioBrowser } from './AudioBrowser';
-import styles from '../../App.module.css';
+import styles from '@client/App.module.css';
 
 const AudioTab: React.FC = () => {
   const location = useLocation();

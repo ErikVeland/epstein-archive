@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { Search } from 'lucide-react';
-import { cn } from '../../../utils/cn';
+import Icon from '@client/components/common/Icon';
+import { cn } from '@client/utils/cn';
 import './TextInput.css';
 
 type Density = 'compact' | 'default' | 'comfortable';
@@ -124,7 +124,7 @@ export const SearchField = React.forwardRef<HTMLInputElement, SearchFieldProps>(
       labelClassName={labelClassName}
     >
       <div className="ds-inputSearchShell">
-        <Search aria-hidden="true" className="ds-inputSearchIcon" size={16} />
+        <Icon name="Search" aria-hidden="true" className="ds-inputSearchIcon" size="sm" />
         <input
           ref={ref}
           id={id}

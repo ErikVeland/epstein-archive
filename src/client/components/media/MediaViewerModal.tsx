@@ -1,23 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import {
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Info,
-  Camera,
-  Tag,
-  FileImage,
-  Maximize2,
-  Minimize2,
-  Edit2,
-  Check,
-  Save,
-  RotateCw,
-  Share2,
-  MapPin,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import {
   Box,
   Button,
@@ -29,13 +13,13 @@ import {
   Surface,
   TextArea,
   cn,
-} from '../../design-system/lib';
-import { MediaImage } from '../../types/media.types';
-import { useAuth } from '../../contexts/AuthContext';
+} from '@client/design-system/lib';
+import { MediaImage } from '@client/types/media.types';
+import { useAuth } from '@client/contexts/AuthContext';
 import LocationMap from '../visualizations/LocationMap';
 import TagSelector, { TagData } from '../common/TagSelector';
 import PeopleSelector, { PersonData } from '../entities/PeopleSelector';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import styles from './MediaViewerModal.module.css';
 
 interface MediaViewerModalProps {
@@ -270,7 +254,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         <Flex justify="between" align="center" className={styles.toolbar}>
           <Flex align="center" gap="md">
             <Button variant="glass" size="sm" onClick={onClose} title="Close Resolution Viewer">
-              <X size={20} />
+              <Icon name="X" size="md" />
             </Button>
             <Stack gap="0">
               <LqText variant="small" weight="bold" color="foreground">
@@ -290,13 +274,13 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           <Flex align="center" gap="sm">
             <Button variant="glass" size="sm" onClick={handleShare}>
               {showCopied ? (
-                <Check size={18} className={styles.successIcon} />
+                <Icon name="Check" size="md" className={styles.successIcon} />
               ) : (
-                <Share2 size={18} />
+                <Icon name="Share2" size="md" />
               )}
             </Button>
             <Button variant="glass" size="sm" onClick={() => setIsZoomed(!isZoomed)}>
-              {isZoomed ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              {isZoomed ? <Icon name="Minimize2" size="md" /> : <Icon name="Maximize2" size="md" />}
             </Button>
             {isAdmin && (
               <Button
@@ -305,7 +289,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 onClick={() => handleRotate('right')}
                 title="Rotate 90° CW"
               >
-                <RotateCw size={18} />
+                <Icon name="RotateCw" size="md" />
               </Button>
             )}
             <Button
@@ -313,7 +297,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               size="sm"
               onClick={() => setShowSidebar(!showSidebar)}
             >
-              <Info size={18} />
+              <Icon name="Info" size="md" />
             </Button>
           </Flex>
         </Flex>
@@ -324,7 +308,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             className={cn(styles.navButton, styles.navButtonLeft)}
             onClick={handlePrev}
           >
-            <ChevronLeft size={48} />
+            <Icon name="ChevronLeft" size="xl" />
           </Button>
         )}
         {currentIndex < images.length - 1 && (
@@ -333,7 +317,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             className={cn(styles.navButton, styles.navButtonRight)}
             onClick={handleNext}
           >
-            <ChevronRight size={48} />
+            <Icon name="ChevronRight" size="xl" />
           </Button>
         )}
 
@@ -398,11 +382,11 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               <Flex gap="xs">
                 {isAdmin && !isEditing && (
                   <Button variant="glass" size="sm" onClick={() => setIsEditing(true)}>
-                    <Edit2 size={14} />
+                    <Icon name="Edit2" size="sm" />
                   </Button>
                 )}
                 <Button variant="glass" size="sm" onClick={() => setShowSidebar(false)}>
-                  <X size={14} />
+                  <Icon name="X" size="sm" />
                 </Button>
               </Flex>
             </Flex>
@@ -410,11 +394,11 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             {isEditing && (
               <Flex gap="sm">
                 <Button variant="secondary" size="sm" onClick={handleSave}>
-                  <Save size={14} />
+                  <Icon name="Save" size="sm" />
                   <span>Save Intelligence</span>
                 </Button>
                 <Button variant="glass" size="sm" onClick={() => setIsEditing(false)}>
-                  <X size={14} />
+                  <Icon name="X" size="sm" />
                 </Button>
               </Flex>
             )}
@@ -423,7 +407,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           <Stack gap="md">
             <Flex align="center" gap="sm">
               <Box className={styles.sectionIcon}>
-                <FileImage size={14} />
+                <Icon name="FileImage" size="sm" />
               </Box>
               <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
                 File Matrix
@@ -495,7 +479,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             <Stack gap="md">
               <Flex align="center" gap="sm">
                 <Box className={styles.sectionIcon}>
-                  <Info size={14} />
+                  <Icon name="Info" size="sm" />
                 </Box>
                 <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
                   Archival Provenance
@@ -515,7 +499,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                     }
                     className={styles.provenanceLink}
                   >
-                    <FileImage size={14} />
+                    <Icon name="FileImage" size="sm" />
                     <span
                       style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                     >
@@ -537,7 +521,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           <Stack gap="md">
             <Flex align="center" gap="sm">
               <Box className={styles.sectionIcon}>
-                <Info size={14} />
+                <Icon name="Info" size="sm" />
               </Box>
               <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
                 Forensic Description
@@ -560,7 +544,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           <Stack gap="md">
             <Flex align="center" gap="sm">
               <Box className={styles.sectionIcon}>
-                <Camera size={14} />
+                <Icon name="Camera" size="sm" />
               </Box>
               <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
                 EXIF Intelligence
@@ -600,7 +584,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             <Stack gap="md">
               <Flex align="center" gap="sm">
                 <Box className={styles.sectionIcon}>
-                  <MapPin size={14} />
+                  <Icon name="MapPin" size="sm" />
                 </Box>
                 <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
                   Spatial Provenance
@@ -619,7 +603,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           <Stack gap="md">
             <Flex align="center" gap="sm">
               <Box className={styles.sectionIcon}>
-                <Tag size={14} />
+                <Icon name="Tag" size="sm" />
               </Box>
               <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
                 Forensic Tags

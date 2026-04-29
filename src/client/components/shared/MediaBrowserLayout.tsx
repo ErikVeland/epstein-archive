@@ -3,7 +3,7 @@ import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
 import s from './MediaBrowserLayout.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface MediaBrowserLayoutProps {
   /** Page title (e.g., "Audio Recordings", "Video Recordings") */

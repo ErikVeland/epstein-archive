@@ -5,11 +5,11 @@
  */
 
 import React, { useMemo } from 'react';
-import { Download, Info } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { FixedSizeList as List } from 'react-window';
 import styles from './TableViewer.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface TableViewerProps {
   evidence: {
@@ -72,14 +72,14 @@ export function TableViewer({ evidence }: TableViewerProps) {
         </div>
 
         <Button unstyled onClick={downloadCSV} className={styles.downloadButton}>
-          <Download className={styles.downloadIcon} />
+          <Icon name="Download" className={styles.downloadIcon} />
           Download CSV
         </Button>
       </div>
 
       {rows.length > 100 && (
         <div className={styles.notice}>
-          <Info className={styles.noticeIcon} />
+          <Icon name="Info" className={styles.noticeIcon} />
           <p className={styles.noticeText}>
             Showing all {rows.length.toLocaleString()} rows using virtual scrolling for performance.
           </p>

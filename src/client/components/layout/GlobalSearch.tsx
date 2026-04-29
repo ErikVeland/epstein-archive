@@ -3,24 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'isomorphic-dompurify';
-import {
-  Search,
-  Filter,
-  Calendar,
-  Eye,
-  Download,
-  ChevronDown,
-  User,
-  Building,
-  ShieldAlert,
-  AlertCircle,
-  X,
-  RotateCcw,
-} from 'lucide-react';
-import { Box, Button, SearchField, Select, TextInput } from '../../design-system/lib';
-import { apiClient } from '../../services/apiClient';
-import { Person } from '../../types';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import Icon from '@client/components/common/Icon';
+import { Box, Button, SearchField, Select, TextInput } from '@client/design-system/lib';
+import { apiClient } from '@client/services/apiClient';
+import { Person } from '@client/types';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 import { MobileStackHeader } from './MobileStackHeader';
 import s from './GlobalSearch.module.css';
@@ -267,7 +254,7 @@ const GlobalSearch: React.FC = () => {
       <div className={s.header}>
         <div className={s.headerTop}>
           <h2 className={s.title}>
-            <Search size={24} className={s.accentIcon} />
+            <Icon name="Search" size="lg" className={s.accentIcon} />
             <span>Global Evidence Search</span>
           </h2>
           <Button
@@ -277,10 +264,11 @@ const GlobalSearch: React.FC = () => {
             size="sm"
             className={s.filterToggle}
           >
-            <Filter size={16} />
+            <Icon name="Filter" size="sm" />
             <span>Filters</span>
-            <ChevronDown
-              size={16}
+            <Icon
+              name="ChevronDown"
+              size="sm"
               className={showFilters ? `${s.chevronIcon} ${s.chevronIconOpen}` : s.chevronIcon}
             />
           </Button>
@@ -306,13 +294,13 @@ const GlobalSearch: React.FC = () => {
               aria-label="Clear search"
               title="Clear search"
             >
-              <X size={16} />
+              <Icon name="X" size="sm" />
             </Button>
           )}
           {loading && (
             <div className={s.loadingSpinner}>
               <div className={`${s.spin} ${s.spinnerWrapper}`}>
-                <RotateCcw size={20} className={s.accentIcon} />
+                <Icon name="RotateCcw" size="md" className={s.accentIcon} />
               </div>
             </div>
           )}
@@ -422,7 +410,7 @@ const GlobalSearch: React.FC = () => {
       {/* Error Banner */}
       {searchError && (
         <div role="alert" className={s.errorBanner}>
-          <AlertCircle size={20} className={s.errorIcon} />
+          <Icon name="AlertCircle" size="md" className={s.errorIcon} />
           <div>
             <p className={s.errorTitle}>Search failed</p>
             <p className={s.errorDesc}>{searchError}</p>
@@ -435,7 +423,7 @@ const GlobalSearch: React.FC = () => {
             className={`${s.clearButton} ${s.errorDismissButton}`}
             aria-label="Dismiss error"
           >
-            <X size={16} />
+            <Icon name="X" size="sm" />
           </Button>
         </div>
       )}
@@ -444,7 +432,7 @@ const GlobalSearch: React.FC = () => {
       {entityResults.length > 0 && (
         <div className={s.entitySection}>
           <h3 className={s.sectionTitle}>
-            <User size={20} className={s.accentIcon} />
+            <Icon name="User" size="md" className={s.accentIcon} />
             Matched Entities
           </h3>
           <div className={s.entityGrid}>
@@ -459,17 +447,17 @@ const GlobalSearch: React.FC = () => {
                     className={s.riskBadge}
                     data-risk={(entity.redFlagRating || 0) > 3 ? 'high' : 'low'}
                   >
-                    <ShieldAlert size={12} />
+                    <Icon name="ShieldAlert" size="xs" />
                     <span>{entity.redFlagRating || 0}</span>
                   </div>
                 </div>
                 <div className={s.entityStats}>
                   <span className={s.statItem}>
-                    <Eye size={12} />
+                    <Icon name="Eye" size="xs" />
                     {entity.files || 0} docs
                   </span>
                   <span className={s.statItem}>
-                    <Building size={12} />
+                    <Icon name="Building" size="xs" />
                     {entity.mentions || 0} mentions
                   </span>
                 </div>
@@ -662,7 +650,7 @@ const GlobalSearch: React.FC = () => {
                     aria-label={`View document: ${result.filename}`}
                     title="View document"
                   >
-                    <Eye size={16} />
+                    <Icon name="Eye" size="sm" />
                   </Button>
                   <Button
                     type="button"
@@ -674,7 +662,7 @@ const GlobalSearch: React.FC = () => {
                     aria-label={`Download document: ${result.filename}`}
                     title="Download document"
                   >
-                    <Download size={16} />
+                    <Icon name="Download" size="sm" />
                   </Button>
                 </div>
               </div>
@@ -689,7 +677,7 @@ const GlobalSearch: React.FC = () => {
           mediaResults.length === 0 &&
           searchTerm && (
             <div className={s.emptyState}>
-              <Search size={48} className={s.emptyIcon} />
+              <Icon name="Search" size="xl" className={s.emptyIcon} />
               <h4 className={`${s.sectionTitle} ${s.sectionTitleCentered}`}>No results found</h4>
               <p className={s.helperText}>Try adjusting your search terms or filters</p>
             </div>
@@ -697,7 +685,7 @@ const GlobalSearch: React.FC = () => {
 
         {!searchTerm && (
           <div className={s.emptyState}>
-            <Search size={48} className={s.emptyIcon} />
+            <Icon name="Search" size="xl" className={s.emptyIcon} />
             <h4 className={`${s.sectionTitle} ${s.sectionTitleCentered}`}>
               Start your investigation
             </h4>
@@ -759,7 +747,7 @@ const GlobalSearch: React.FC = () => {
                     <div className={s.modalChipList}>
                       {selectedResult.dates.map((date, idx) => (
                         <span key={idx} className={`${s.modalChip} ${s.modalDateChip}`}>
-                          <Calendar className={s.modalDateIcon} />
+                          <Icon name="Calendar" className={s.modalDateIcon} />
                           <span>{date}</span>
                         </span>
                       ))}
@@ -801,7 +789,7 @@ const GlobalSearch: React.FC = () => {
                   size="sm"
                   className={s.mobileModalPrimaryButton}
                 >
-                  <Eye className={s.modalButtonIcon} />
+                  <Icon name="Eye" className={s.modalButtonIcon} />
                   <span>View Details</span>
                 </Button>
               </div>
@@ -869,7 +857,7 @@ const GlobalSearch: React.FC = () => {
                       <div className={s.modalChipList}>
                         {selectedResult.dates.map((date, idx) => (
                           <span key={idx} className={`${s.modalChip} ${s.modalDateChip}`}>
-                            <Calendar className={s.modalDateIcon} />
+                            <Icon name="Calendar" className={s.modalDateIcon} />
                             <span>{date}</span>
                           </span>
                         ))}
@@ -922,7 +910,7 @@ const GlobalSearch: React.FC = () => {
                     size="sm"
                     className={s.modalPrimaryButton}
                   >
-                    <Eye className={s.modalButtonIcon} />
+                    <Icon name="Eye" className={s.modalButtonIcon} />
                     <span>View Details</span>
                   </Button>
                 </div>

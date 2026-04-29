@@ -5,10 +5,10 @@
  */
 
 import { useState } from 'react';
-import { ZoomIn, ZoomOut, Maximize2, Download } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './ImageViewer.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface ImageViewerProps {
   evidence: {
@@ -36,13 +36,13 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
       <div className={styles.toolbar}>
         <div className={styles.toolbarGroup}>
           <Button unstyled onClick={zoomOut} className={styles.iconButton} title="Zoom out">
-            <ZoomOut className={styles.icon} />
+            <Icon name="ZoomOut" className={styles.icon} />
           </Button>
 
           <span className={styles.zoomBadge}>{zoom}%</span>
 
           <Button unstyled onClick={zoomIn} className={styles.iconButton} title="Zoom in">
-            <ZoomIn className={styles.icon} />
+            <Icon name="ZoomIn" className={styles.icon} />
           </Button>
 
           <Button
@@ -51,12 +51,12 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
             className={styles.iconButton}
             title="Fullscreen"
           >
-            <Maximize2 className={styles.icon} />
+            <Icon name="Maximize2" className={styles.icon} />
           </Button>
         </div>
 
         <Button unstyled className={styles.downloadButton}>
-          <Download className={styles.downloadIcon} />
+          <Icon name="Download" className={styles.downloadIcon} />
           Download Image
         </Button>
       </div>

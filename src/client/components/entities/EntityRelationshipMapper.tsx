@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as d3Selection from 'd3-selection';
 import * as d3Quadtree from 'd3-quadtree';
 
-import { EntityType } from '../../services/GraphService';
-import { Button, runtimeTokens, semanticChartTokens } from '../../design-system/lib';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { EntityType } from '@client/services/GraphService';
+import { Button, runtimeTokens, semanticChartTokens } from '@client/design-system/lib';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EntityRelationshipMapper.module.css';
 

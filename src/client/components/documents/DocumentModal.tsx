@@ -3,12 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Sparkles, Users, Link2, Calendar, X } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../services/apiClient';
-import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { apiClient } from '@client/services/apiClient';
+import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
 import { ViewerShell } from '../viewer/ViewerShell';
@@ -16,14 +16,14 @@ import { ProvenancePanel } from './ProvenancePanel';
 import { LiquidSheet } from '../common/LiquidSheet';
 import { Tabs } from '../common/Tabs';
 import { FloatingReadingControls } from './subcomponents/FloatingReadingControls';
-import { useScrollDirection } from '../../hooks/useScrollDirection';
+import { useScrollDirection } from '@client/hooks/useScrollDirection';
 import styles from './DocumentModal.module.css';
 
 // Design System
-import { LqText } from '../../design-system/components/typography/Text';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
 
 // Sub-components
 import { DocumentHeader } from './subcomponents/DocumentHeader';
@@ -33,9 +33,9 @@ import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
 import { DocumentAssetsTab } from './subcomponents/DocumentAssetsTab';
 import { ClaimsTab } from '../common/subcomponents/ClaimsTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
-import { isVisualMediaItem } from '../../utils/evidenceUtils';
+import { isVisualMediaItem } from '@client/utils/evidenceUtils';
 
-import { Button, cn } from '../../design-system/lib';
+import { Button, cn } from '@client/design-system/lib';
 
 export interface DocEntityRecord {
   id?: string | number;
@@ -580,7 +580,7 @@ export const DocumentModal: React.FC<Props> = ({
                 activeRailSection === 'metadata' && styles.bottomBarItemActive,
               )}
             >
-              <Sparkles size={20} />
+              <Icon name="Sparkles" size="md" />
               <span>Metadata</span>
             </Button>
             <Button
@@ -594,7 +594,7 @@ export const DocumentModal: React.FC<Props> = ({
                 activeRailSection === 'entities' && styles.bottomBarItemActive,
               )}
             >
-              <Users size={20} />
+              <Icon name="Users" size="md" />
               <span>Entities</span>
             </Button>
             <Button
@@ -608,7 +608,7 @@ export const DocumentModal: React.FC<Props> = ({
                 activeRailSection === 'case' && styles.bottomBarItemActive,
               )}
             >
-              <Link2 size={20} />
+              <Icon name="Link2" size="md" />
               <span>Case</span>
             </Button>
             <Button
@@ -622,7 +622,7 @@ export const DocumentModal: React.FC<Props> = ({
                 activeRailSection === 'timeline' && styles.bottomBarItemActive,
               )}
             >
-              <Calendar size={20} />
+              <Icon name="Calendar" size="md" />
               <span>Timeline</span>
             </Button>
           </div>
@@ -645,7 +645,7 @@ export const DocumentModal: React.FC<Props> = ({
                   onClick={() => setRightPaneCollapsed(true)}
                   className={styles.overlayClose}
                 >
-                  <X size={20} />
+                  <Icon name="X" size="md" />
                 </Button>
               </div>
               <div className={styles.overlayContent}>
@@ -769,7 +769,7 @@ export const DocumentModal: React.FC<Props> = ({
                     className={styles.railIconPrimary}
                     title="Core metadata"
                   >
-                    <Sparkles className={styles.railIconGlyph} />
+                    <Icon name="Sparkles" className={styles.railIconGlyph} />
                   </Button>
                   <Box className={styles.railDivider} />
                   <Button
@@ -782,7 +782,7 @@ export const DocumentModal: React.FC<Props> = ({
                     className={styles.railIcon}
                     aria-label="Live entities"
                   >
-                    <Users className={styles.railIconGlyph} />
+                    <Icon name="Users" className={styles.railIconGlyph} />
                     <Surface variant="glass-strong" className={styles.railTooltip}>
                       <LqText variant="xs" weight="bold" className={styles.railTooltipLabel}>
                         Live Entities
@@ -799,7 +799,7 @@ export const DocumentModal: React.FC<Props> = ({
                     className={styles.railIcon}
                     aria-label="Case references"
                   >
-                    <Link2 className={styles.railIconGlyph} />
+                    <Icon name="Link2" className={styles.railIconGlyph} />
                     <Surface variant="glass-strong" className={styles.railTooltip}>
                       <LqText variant="xs" weight="bold" className={styles.railTooltipLabel}>
                         Case References
@@ -816,7 +816,7 @@ export const DocumentModal: React.FC<Props> = ({
                     className={styles.railIcon}
                     aria-label="Timeline hooks"
                   >
-                    <Calendar className={styles.railIconGlyph} />
+                    <Icon name="Calendar" className={styles.railIconGlyph} />
                     <Surface variant="glass-strong" className={styles.railTooltip}>
                       <LqText variant="xs" weight="bold" className={styles.railTooltipLabel}>
                         Timeline Hooks

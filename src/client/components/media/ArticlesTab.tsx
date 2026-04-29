@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Newspaper, ChevronDown, ChevronUp, Clock, Filter, Calendar } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Article } from './ArticleCard';
 import {
   Badge,
@@ -13,7 +13,7 @@ import {
   Select,
   Stack,
   Surface,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './ArticlesTab.module.css';
 
@@ -167,7 +167,7 @@ export const ArticlesTab: React.FC = () => {
         <Flex justify="between" align="center" gap="md" fullWidth>
           <Flex align="center" gap="md">
             <Box className={styles.iconBox}>
-              <Newspaper size={24} />
+              <Icon name="Newspaper" size="lg" />
             </Box>
             <Stack gap="none">
               <LqText variant="h2" weight="bold">
@@ -211,12 +211,16 @@ export const ArticlesTab: React.FC = () => {
           >
             <Flex justify="between" align="center" grow>
               <Flex align="center" gap="sm">
-                <Filter size={16} />
+                <Icon name="Filter" size="sm" />
                 <LqText variant="small" weight="bold">
                   {selectedPublication || 'All Publications'}
                 </LqText>
               </Flex>
-              {showPublicationDropdown ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              {showPublicationDropdown ? (
+                <Icon name="ChevronUp" size="sm" />
+              ) : (
+                <Icon name="ChevronDown" size="sm" />
+              )}
             </Flex>
           </Button>
           {showPublicationDropdown && (
@@ -340,7 +344,7 @@ export const ArticlesTab: React.FC = () => {
                           <img src={article.imageUrl} alt="" className={styles.heroImage} />
                         ) : (
                           <Flex align="center" justify="center" className={styles.heroFallback}>
-                            <Newspaper size={40} className={styles.iconMuted} />
+                            <Icon name="Newspaper" size="xl" className={styles.iconMuted} />
                           </Flex>
                         )}
                         <Box className={styles.heroOverlay} />
@@ -382,7 +386,7 @@ export const ArticlesTab: React.FC = () => {
                                 {article.author || 'Unknown'}
                               </LqText>
                               <Flex align="center" gap="xs">
-                                <Calendar size={10} className={styles.iconMuted} />
+                                <Icon name="Calendar" size="xs" className={styles.iconMuted} />
                                 <LqText variant="xs" color="muted">
                                   {formatDate(article.published_date)}
                                 </LqText>
@@ -391,7 +395,7 @@ export const ArticlesTab: React.FC = () => {
                           </Flex>
                           {article.reading_time && (
                             <Flex align="center" gap="xs">
-                              <Clock size={12} className={styles.iconMuted} />
+                              <Icon name="Clock" size="xs" className={styles.iconMuted} />
                               <LqText variant="xs" color="muted">
                                 {article.reading_time}
                               </LqText>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Share2 } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { useNavigate } from 'react-router-dom';
-import { NetworkGraph } from '../../visualizations/NetworkGraph';
-import { useIsTouch } from '../../../hooks/useIsTouch';
+import { NetworkGraph } from '@client/components/visualizations/NetworkGraph';
+import { useIsTouch } from '@client/hooks/useIsTouch';
 import s from './EvidenceNetworkTab.module.css';
 
 export interface GraphNode {
@@ -63,7 +63,7 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
     return (
       <div className={s.container} data-testid="entity-modal-tab-network">
         <div className={s.loadingState}>
-          <Search size={32} className={s.loadingIcon} />
+          <Icon name="Search" size="xl" className={s.loadingIcon} />
           <p>Loading network graph...</p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
     return (
       <div className={s.container} data-testid="entity-modal-tab-network">
         <div className={s.emptyState}>
-          <Search size={32} className={s.emptyIcon} />
+          <Icon name="Search" size="xl" className={s.emptyIcon} />
           <p>No connections found.</p>
         </div>
       </div>
@@ -94,7 +94,7 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
             onClick={() => setShowGraph(true)}
             aria-label="View network graph"
           >
-            <Share2 size={14} />
+            <Icon name="Share2" size="sm" />
             View Graph
           </button>
         </div>

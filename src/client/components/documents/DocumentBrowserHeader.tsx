@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, LayoutGrid, List as ListIcon, Filter, ChevronDown, ChevronRight } from 'lucide-react';
-import { Box, Button, Flex, LqText, SearchField, Select } from '../../design-system/lib';
-import type { SearchMode } from '../../services/apiClient';
+import Icon from '@client/components/common/Icon';
+import { Box, Button, Flex, LqText, SearchField, Select } from '@client/design-system/lib';
+import type { SearchMode } from '@client/services/apiClient';
 import type { DocumentsListResponseDto } from '@shared/dto/documents';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import styles from './DocumentBrowserHeader.module.css';
@@ -109,7 +109,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               className={styles.clearBtn}
               title="Clear search"
             >
-              <X className={styles.actionIcon} />
+              <Icon name="X" className={styles.actionIcon} />
             </Button>
           )}
         </Box>
@@ -225,9 +225,9 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
           >
             {viewMode === 'grid' ? (
-              <LayoutGrid className={styles.actionIcon} />
+              <Icon name="LayoutGrid" className={styles.actionIcon} />
             ) : (
-              <ListIcon className={styles.actionIcon} />
+              <Icon name="List" className={styles.actionIcon} />
             )}
             <LqText variant="xs" weight="semibold" className={styles.viewToggleLabel}>
               {viewMode === 'grid' ? 'List' : 'Grid'}
@@ -240,12 +240,12 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             variant="secondary"
             size="sm"
           >
-            <Filter className={styles.actionIcon} />
+            <Icon name="Filter" className={styles.actionIcon} />
             Filters
             {showFilters ? (
-              <ChevronDown className={styles.smallIcon} />
+              <Icon name="ChevronDown" className={styles.smallIcon} />
             ) : (
-              <ChevronRight className={styles.smallIcon} />
+              <Icon name="ChevronRight" className={styles.smallIcon} />
             )}
           </Button>
         </Flex>

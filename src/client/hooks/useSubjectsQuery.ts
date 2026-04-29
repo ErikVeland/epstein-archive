@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../services/apiClient';
-import type { SubjectsListResponseDto } from '../../shared/dto/entities';
+import { apiClient } from '@client/services/apiClient';
+import type { SubjectsListResponseDto } from '@shared/dto/entities';
 
 interface SubjectsQueryInput {
   page: number;

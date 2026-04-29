@@ -1,32 +1,20 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Search,
-  FileText,
-  ShieldAlert,
-  Sparkles,
-  Calendar,
-  Image as ImageIcon,
-  Play,
-  Music,
-  Maximize2,
-  X,
-  Loader2,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import {
   formatMetaDate,
   isVisualMediaItem,
   getRiskClass,
   naturalSortMedia,
-} from '../../../utils/evidenceUtils';
-import { cn } from '../../../utils/cn';
+} from '@client/utils/evidenceUtils';
+import { cn } from '@client/utils/cn';
 import { EntityPhoto } from '../EvidenceModal';
 import { EntityMentionPill } from '../EntityMentionPill';
-import { AudioPlayer } from '../../media/AudioPlayer';
-import { VideoPlayer } from '../../media/VideoPlayer';
+import { AudioPlayer } from '@client/components/media/AudioPlayer';
+import { VideoPlayer } from '@client/components/media/VideoPlayer';
 import s from './EvidenceMediaTab.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface EvidenceEntity {
   photos?: EntityPhoto[];
@@ -116,10 +104,10 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   const finalSelectedItem = enrichedItem || selectedItem;
 
   const categories: { id: MediaCategory; label: string; icon: React.ReactNode }[] = [
-    { id: 'all', label: 'All Media', icon: <Search size={14} /> },
-    { id: 'photos', label: 'Photos', icon: <ImageIcon size={14} /> },
-    { id: 'videos', label: 'Videos', icon: <Play size={14} /> },
-    { id: 'audio', label: 'Audio', icon: <Music size={14} /> },
+    { id: 'all', label: 'All Media', icon: <Icon name="Search" size="sm" /> },
+    { id: 'photos', label: 'Photos', icon: <Icon name="Image" size="sm" /> },
+    { id: 'videos', label: 'Videos', icon: <Icon name="Play" size="sm" /> },
+    { id: 'audio', label: 'Audio', icon: <Icon name="Music" size="sm" /> },
   ];
 
   return (
@@ -141,12 +129,12 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
 
       {isMediaLoading ? (
         <div className={s.loadingState}>
-          <Search size={48} className={s.loadingIcon} />
+          <Icon name="Search" size="xl" className={s.loadingIcon} />
           <p>Loading linked media…</p>
         </div>
       ) : isMediaError ? (
         <div className={s.emptyState}>
-          <X size={48} className={s.emptyIcon} />
+          <Icon name="X" size="xl" className={s.emptyIcon} />
           <h4 className={s.emptyTitle}>Media could not be loaded</h4>
           <p className={s.emptyText}>The media endpoint returned an error.</p>
         </div>
@@ -189,11 +177,11 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                     <div className={s.mediaPlaceholder}>
                       <div className={s.placeholderContent}>
                         {category === 'audio' ? (
-                          <Music size={32} />
+                          <Icon name="Music" size="xl" />
                         ) : category === 'videos' ? (
-                          <Play size={32} />
+                          <Icon name="Play" size="xl" />
                         ) : (
-                          <FileText size={28} />
+                          <Icon name="FileText" size="xl" />
                         )}
                         <span className={s.sourceLabel}>{sourceType}</span>
                       </div>
@@ -222,7 +210,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                         <div className={s.sensitiveOverlay}>
                           <div className={s.sensitiveIndicator}>
                             <div className={s.sensitiveIconBadge}>
-                              <ShieldAlert size={24} />
+                              <Icon name="ShieldAlert" size="lg" />
                             </div>
                             <div className={s.sensitiveTextGroup}>
                               <span className={s.sensitiveTitle}>Sensitive Content</span>
@@ -235,9 +223,9 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                       {/* Category Icon Badge */}
                       <div className={s.categoryBadge}>
                         {category === 'videos' ? (
-                          <Play size={10} fill="currentColor" />
+                          <Icon name="Play" size="xs" />
                         ) : (
-                          <ImageIcon size={10} />
+                          <Icon name="Image" size="xs" />
                         )}
                       </div>
                     </div>
@@ -249,13 +237,13 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                     <div className={s.badges}>
                       {riskRating > 0 && (
                         <span className={`${s.riskBadge} ${s[getRiskClass(riskRating)]}`}>
-                          <ShieldAlert size={12} className={s.badgeIcon} />
+                          <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
                           {riskRating.toFixed(0)}/5
                         </span>
                       )}
                       {hasDirectSignal && (
                         <span className={s.directBadge}>
-                          <Sparkles size={12} className={s.badgeIcon} />
+                          <Icon name="Sparkles" size="xs" className={s.badgeIcon} />
                           Direct
                         </span>
                       )}
@@ -264,16 +252,16 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
 
                   <div className={s.metaRow}>
                     <span className={s.metaItem}>
-                      <Calendar size={12} />
+                      <Icon name="Calendar" size="xs" />
                       {date}
                     </span>
                     <span className={s.metaItem}>
                       {category === 'audio' ? (
-                        <Music size={12} />
+                        <Icon name="Music" size="xs" />
                       ) : category === 'videos' ? (
-                        <Play size={12} />
+                        <Icon name="Play" size="xs" />
                       ) : (
-                        <ImageIcon size={12} />
+                        <Icon name="Image" size="xs" />
                       )}
                       {sourceType}
                     </span>
@@ -305,7 +293,8 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                       className={s.openBtn}
                       aria-label={`Open media item ${title}`}
                     >
-                      {category === 'photos' ? 'Inspect' : 'Play'} <Maximize2 size={12} />
+                      {category === 'photos' ? 'Inspect' : 'Play'}{' '}
+                      <Icon name="Maximize2" size="xs" />
                     </Button>
                   </div>
                 </div>
@@ -315,7 +304,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
         </div>
       ) : (
         <div className={s.emptyState}>
-          <Search size={48} className={s.emptyIcon} />
+          <Icon name="Search" size="xl" className={s.emptyIcon} />
           <p>No {activeCategory === 'all' ? 'media' : activeCategory} found for this entity.</p>
         </div>
       )}
@@ -327,7 +316,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
           <div className={s.playerContent}>
             {isEnriching ? (
               <div className={s.playerLoader}>
-                <Loader2 size={48} className={s.spin} />
+                <Icon name="Loader2" size="xl" className={s.spin} />
                 <p>Initializing Forensic Stream…</p>
               </div>
             ) : selectedCategory === 'audio' ? (
@@ -369,7 +358,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                     className={s.closeViewer}
                     onClick={() => setSelectedItemId(null)}
                   >
-                    <X size={20} />
+                    <Icon name="X" size="md" />
                   </Button>
                 </div>
                 <div className={s.imageViewerMain}>

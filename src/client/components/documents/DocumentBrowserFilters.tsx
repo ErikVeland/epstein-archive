@@ -1,6 +1,6 @@
 import React from 'react';
-import { Folder, Scale, Mail, ScrollText, Image as ImageIcon, Landmark } from 'lucide-react';
-import { BrowseFilters } from '../../types/documents';
+import Icon from '@client/components/common/Icon';
+import { BrowseFilters } from '@client/types/documents';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import styles from './DocumentBrowserFilters.module.css';
 import {
@@ -12,7 +12,7 @@ import {
   NativeSelect,
   Surface,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 interface DocumentBrowserFiltersProps {
   localFilters: BrowseFilters;
   handleFilterChange: (key: keyof BrowseFilters, value: BrowseFilters[keyof BrowseFilters]) => void;
@@ -50,12 +50,16 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
           <Flex align="center" className={styles.categoryStrip}>
             {/* Category tabs */}
             {[
-              { type: 'all', label: 'All', icon: <Folder size={14} /> },
-              { type: 'legal', label: 'Legal', icon: <Scale size={14} /> },
-              { type: 'email', label: 'Email', icon: <Mail size={14} /> },
-              { type: 'deposition', label: 'Deposition', icon: <ScrollText size={14} /> },
-              { type: 'photo', label: 'Photo', icon: <ImageIcon size={14} /> },
-              { type: 'financial', label: 'Financial', icon: <Landmark size={14} /> },
+              { type: 'all', label: 'All', icon: <Icon name="Folder" size="sm" /> },
+              { type: 'legal', label: 'Legal', icon: <Icon name="Scale" size="sm" /> },
+              { type: 'email', label: 'Email', icon: <Icon name="Mail" size="sm" /> },
+              {
+                type: 'deposition',
+                label: 'Deposition',
+                icon: <Icon name="ScrollText" size="sm" />,
+              },
+              { type: 'photo', label: 'Photo', icon: <Icon name="Image" size="sm" /> },
+              { type: 'financial', label: 'Financial', icon: <Icon name="Landmark" size="sm" /> },
             ].map(({ type, label, icon }) => {
               const isActive =
                 (type === 'all' &&

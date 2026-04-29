@@ -1,12 +1,12 @@
 import { createPortal } from 'react-dom';
-import { ExternalLink } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import DOMPurify from 'isomorphic-dompurify';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { CloseButton } from '../common/CloseButton';
 import { LiquidSheet } from '../common/LiquidSheet';
-import { cn } from '../../design-system/lib';
+import { cn } from '@client/design-system/lib';
 import styles from './ArticleViewerModal.module.css';
 
 interface ArticleContent {
@@ -137,7 +137,7 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
               className={styles.sourceLink}
             >
               Read Original Source
-              <ExternalLink size={16} className={styles.sourceLinkIcon} />
+              <Icon name="ExternalLink" size="sm" className={styles.sourceLinkIcon} />
             </a>
           )}
         </div>

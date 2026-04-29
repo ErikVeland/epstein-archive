@@ -1,24 +1,10 @@
 import { entityEvidenceQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
-
-interface MentionEvidenceRow {
-  evidence_id?: string | number | null;
-  document_id?: string | number | null;
-  evidence_type?: string | null;
-  title?: string | null;
-  file_path?: string | null;
-  red_flag_rating?: number | null;
-  date_created?: string | null;
-  score?: number | null;
-  mention_context?: string | null;
-  flag_type?: string | null;
-  severity?: string | null;
-}
-
-interface RelatedEntityRow {
-  shared_evidence_count?: string | number | null;
-  [key: string]: unknown;
-}
+import {
+  mapEntityMentionEvidenceDto,
+  mapEntityEvidenceResponseDto,
+  mapEntityRelationEvidenceDto,
+} from '../mappers/entityEvidenceDtoMapper';
 
 interface RelationEvidenceRow {
   relation_id: string;
@@ -27,8 +13,8 @@ interface RelationEvidenceRow {
   predicate: string;
   direction: string;
   weight: number;
-  first_seen_at: string;
-  last_seen_at: string;
+  first_seen_at: string | Date;
+  last_seen_at: string | Date;
   relation_evidence_id?: string | number | null;
   document_id?: string | number | null;
   span_id?: string | number | null;
@@ -65,39 +51,13 @@ export const entityEvidenceRepository = {
       getApiPool(),
     );
 
-    // Normalize evidence shape to match EntityEvidencePanel expectations (camelCase)
-    const evidence = (evidenceRows as MentionEvidenceRow[]).map((row) => ({
-      id: row.evidence_id,
-      documentId: row.document_id,
-      document_id: row.document_id, // Add snake_case for FE compatibility
-      evidenceType: row.evidence_type || 'document_context',
-      evidence_type: row.evidence_type || 'document_context',
-      title: row.title || `Document ${row.document_id}`,
-      description: '',
-      sourcePath: row.file_path || '',
-      source_path: row.file_path || '',
-      contentPreview: row.mention_context || '', // Canonical FE name
-      context_snippet: row.mention_context || '', // Used in some FE parts
-      cleanedPath: null,
-      redFlagRating: row.red_flag_rating ?? 0,
-      createdAt: row.date_created || null,
-      role: 'mentioned',
-      confidence: typeof row.score === 'number' ? row.score : 0.0,
-      contextSnippet: row.mention_context || '',
-      flags: row.flag_type
-        ? [
-            {
-              type: row.flag_type,
-              severity: row.severity,
-            },
-          ]
-        : [],
-    }));
+    type MentionEvidenceRowInput = Parameters<typeof mapEntityMentionEvidenceDto>[0];
+    const evidence = (evidenceRows as unknown as MentionEvidenceRowInput[]).map(
+      mapEntityMentionEvidenceDto,
+    );
 
     // Stats
     const totalEvidence = evidence.length;
-
-    // Type breakdown by evidenceType
     const typeMap = new Map<string, number>();
     for (const e of evidence) {
       const key = e.evidenceType || 'unknown';
@@ -108,7 +68,6 @@ export const entityEvidenceRepository = {
       count,
     }));
 
-    // Role breakdown
     const roleMap = new Map<string, number>();
     for (const e of evidence) {
       const key = e.role || 'mentioned';
@@ -119,43 +78,38 @@ export const entityEvidenceRepository = {
       count,
     }));
 
-    // Related entities via relations graph
     const relatedEntitiesRaw = await entityEvidenceQueries.getRelatedEntitiesByRelations.run(
       { entityId: eid, limit: BigInt(20) },
       getApiPool(),
     );
-    const relatedEntities = (relatedEntitiesRaw as RelatedEntityRow[]).map((r) => ({
-      id: Number((r as Record<string, unknown>).id),
-      fullName: String((r as Record<string, unknown>).full_name || ''),
-      entityCategory: String((r as Record<string, unknown>).entity_category || ''),
-      sharedEvidenceCount: Number(r.shared_evidence_count),
-    }));
 
     const highRiskCount = evidence.filter((e) => (e.redFlagRating || 0) >= 4).length;
     const averageConfidence =
       evidence.reduce((sum: number, e) => sum + (e.confidence || 0), 0) / (evidence.length || 1);
 
-    return {
+    // Use the standardized mapper
+    const entityRec = entity as unknown as Record<string, unknown>;
+    return mapEntityEvidenceResponseDto({
       entity: {
         id: String(entity.id),
-        fullName: entity.full_name || '',
-        primaryRole: entity.primary_role || '',
-        entityCategory: entity.entity_category || '',
-        riskLevel: entity.risk_level || 'LOW',
-        redFlagRating: Number(entity.red_flag_rating || 0),
-        birthDate: ((entity as Record<string, unknown>).birth_date as string | null) || null,
-        deathDate: ((entity as Record<string, unknown>).death_date as string | null) || null,
+        fullName: entity.full_name,
+        primaryRole: entity.primary_role,
+        entityCategory: entity.entity_category,
+        riskLevel: entity.risk_level,
+        redFlagRating: Number(entity.red_flag_rating),
+        birthDate: entityRec['birth_date'],
+        deathDate: entityRec['death_date'],
       },
-      evidence,
+      evidence: evidenceRows as unknown as MentionEvidenceRowInput[],
       stats: {
         totalEvidence,
         typeBreakdown,
         roleBreakdown,
-        relatedEntities,
+        relatedEntities: relatedEntitiesRaw as unknown[],
         highRiskCount,
         averageConfidence,
       },
-    };
+    });
   },
 
   async getRelationEvidenceForEntity(entityId: string | number) {
@@ -197,8 +151,14 @@ export const entityEvidenceRepository = {
           predicate: row.predicate,
           direction: row.direction,
           weight: row.weight,
-          first_seen_at: row.first_seen_at,
-          last_seen_at: row.last_seen_at,
+          first_seen_at:
+            row.first_seen_at instanceof Date
+              ? row.first_seen_at.toISOString()
+              : String(row.first_seen_at),
+          last_seen_at:
+            row.last_seen_at instanceof Date
+              ? row.last_seen_at.toISOString()
+              : String(row.last_seen_at),
           evidence: [],
         };
         byRelation.set(row.relation_id, rel);
@@ -216,8 +176,13 @@ export const entityEvidenceRepository = {
     }
 
     return {
-      relations: Array.from(byRelation.values()),
-      evidence: rows,
+      relations: Array.from(byRelation.values()).map((rel) => ({
+        ...rel,
+        evidence: rel.evidence.map((e) =>
+          mapEntityRelationEvidenceDto(e as Parameters<typeof mapEntityRelationEvidenceDto>[0]),
+        ),
+      })),
+      evidence: rows as unknown[],
     };
   },
 

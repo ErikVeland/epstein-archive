@@ -1,10 +1,10 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ExternalLink, Github, Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
+import Icon from '@client/components/common/Icon';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
 import { Link } from 'react-router-dom';
-import { apiClient } from '../../services/apiClient';
-import { Button, Surface } from '../../design-system/lib';
+import { apiClient } from '@client/services/apiClient';
+import { Button, Surface } from '@client/design-system/lib';
 import s from './Footer.module.css';
 
 interface FooterProps {
@@ -109,7 +109,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               <li>
                 <Link to="/about" className={s.navLink}>
                   <span className={s.navLinkText}>Transparency Vow</span>
-                  <ArrowRight size={12} className={s.navLinkIcon} />
+                  <Icon name="ArrowRight" size="xs" className={s.navLinkIcon} />
                 </Link>
               </li>
               <li>
@@ -147,7 +147,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   className={s.navLink}
                 >
                   <span className={s.navLinkText}>Support the Investigation</span>
-                  <ExternalLink size={12} className={s.navLinkIcon} />
+                  <Icon name="ExternalLink" size="xs" className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
@@ -158,7 +158,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   className={s.navLink}
                 >
                   <span className={s.navLinkText}>GoFundMe Campaign</span>
-                  <ExternalLink size={12} className={s.navLinkIcon} />
+                  <Icon name="ExternalLink" size="xs" className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
@@ -180,9 +180,9 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   rel="noopener noreferrer"
                   className={s.navLink}
                 >
-                  <Github size={16} className={s.githubIcon} />
+                  <Icon name="Github" size="sm" className={s.githubIcon} />
                   <span className={s.navLinkText}>GitHub Repository</span>
-                  <ExternalLink size={12} className={s.navLinkIcon} />
+                  <Icon name="ExternalLink" size="xs" className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
@@ -193,7 +193,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   className={s.navLink}
                 >
                   <span className={s.navLinkText}>Glass Academy</span>
-                  <ExternalLink size={12} className={s.navLinkIcon} />
+                  <Icon name="ExternalLink" size="xs" className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
@@ -204,7 +204,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   className={s.navLink}
                 >
                   <span className={s.navLinkText}>The End Times (Substack)</span>
-                  <ExternalLink size={12} className={s.navLinkIcon} />
+                  <Icon name="ExternalLink" size="xs" className={s.navLinkIcon} />
                 </a>
               </li>
             </ul>
@@ -238,7 +238,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   : 'Show all sensitive content'
               }
             >
-              {showAllSensitive ? <Eye size={14} /> : <EyeOff size={14} />}
+              {showAllSensitive ? <Icon name="Eye" size="sm" /> : <Icon name="EyeOff" size="sm" />}
               <span className={s.sensitiveBtnLabel}>
                 {showAllSensitive ? 'Sensitive Content Visible' : 'Sensitive Content'}
               </span>

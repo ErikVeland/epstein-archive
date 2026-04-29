@@ -1,8 +1,8 @@
 import React from 'react';
-import { ShieldCheck, ShieldAlert, BadgeCheck, HelpCircle } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './ClaimsList.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface Claim {
   id: number;
@@ -53,26 +53,26 @@ export function ClaimsList({ claims }: ClaimsListProps) {
       case 'documented':
         return (
           <span title="High Reliability">
-            <ShieldCheck className={`${styles.iconSm} ${styles.iconGreen}`} />
+            <Icon name="ShieldCheck" className={`${styles.iconSm} ${styles.iconGreen}`} />
           </span>
         );
       case 'alleged':
       case 'denied':
         return (
           <span title="Disputed/Alleged">
-            <ShieldAlert className={`${styles.iconSm} ${styles.iconOrange}`} />
+            <Icon name="ShieldAlert" className={`${styles.iconSm} ${styles.iconOrange}`} />
           </span>
         );
       case 'inferred':
         return (
           <span title="Inferred by System">
-            <HelpCircle className={`${styles.iconSm} ${styles.iconAccent}`} />
+            <Icon name="HelpCircle" className={`${styles.iconSm} ${styles.iconAccent}`} />
           </span>
         );
       default:
         return (
           <span title="Fact">
-            <BadgeCheck className={`${styles.iconSm} ${styles.iconMuted}`} />
+            <Icon name="BadgeCheck" className={`${styles.iconSm} ${styles.iconMuted}`} />
           </span>
         );
     }
@@ -97,7 +97,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
     <div className={styles.container}>
       <div className={styles.header}>
         <h3 className={styles.headerTitle}>
-          <BadgeCheck className={`${styles.iconMd} ${styles.iconAccent}`} />
+          <Icon name="BadgeCheck" className={`${styles.iconMd} ${styles.iconAccent}`} />
           Extracted Facts &amp; Claims
         </h3>
         <span className={styles.headerCount}>{claims.length} items</span>
@@ -151,7 +151,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                       className={`${styles.feedbackBtn} ${styles.feedbackBtnVerify}`}
                       title="Verify this fact"
                     >
-                      <BadgeCheck className={styles.iconMd} />
+                      <Icon name="BadgeCheck" className={styles.iconMd} />
                     </Button>
                     <Button
                       unstyled
@@ -159,7 +159,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                       className={`${styles.feedbackBtn} ${styles.feedbackBtnReject}`}
                       title="Reject this fact"
                     >
-                      <ShieldAlert className={styles.iconMd} />
+                      <Icon name="ShieldAlert" className={styles.iconMd} />
                     </Button>
                   </div>
                 )}

@@ -4,8 +4,7 @@
  * Provides consistent icon mapping for different entity types across the application.
  */
 
-import Icon from '../client/components/common/Icon';
-import type { IconName } from '../client/components/common/Icon';
+import Icon, { IconName } from '@client/components/common/Icon';
 
 // Define the entity types
 export type EntityType =

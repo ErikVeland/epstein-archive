@@ -1,17 +1,4 @@
-import {
-  ArrowLeft,
-  BookOpen,
-  Zap,
-  Layout,
-  Database,
-  Share2,
-  PlusCircle,
-  Target,
-  Network,
-  Layers,
-  ChevronRight,
-  Info,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
 import s from './GuidePage.module.css';
 
@@ -24,13 +11,13 @@ const GuidePage = () => {
         {/* Header */}
         <header className={s.header}>
           <Link to="/investigations" className={s.backLink}>
-            <ArrowLeft size={16} />
+            <Icon name="ArrowLeft" size="sm" />
             Back to Investigations
           </Link>
 
           <div className={s.hero}>
             <div className={s.eyebrow}>
-              <BookOpen size={14} />
+              <Icon name="BookOpen" size="sm" />
               System Manual
             </div>
             <h1 className={s.title}>Investigation Guide</h1>
@@ -45,7 +32,7 @@ const GuidePage = () => {
           {/* Overview Section */}
           <section className={s.section}>
             <h2 className={s.sectionTitle}>
-              <Layers size={20} className={s.accentIcon} />
+              <Icon name="Layers" size="md" className={s.accentIcon} />
               Platform Overview
             </h2>
             <div className={s.prose}>
@@ -60,13 +47,13 @@ const GuidePage = () => {
           {/* Quick Start Section */}
           <section className={s.section}>
             <h2 className={s.sectionTitle}>
-              <Zap size={20} className={s.accentIcon} />
+              <Icon name="Zap" size="md" className={s.accentIcon} />
               Quick Start Workflow
             </h2>
             <div className={s.cardGrid}>
               <div className={s.stepCard}>
                 <span className={s.stepNumber}>STEP 01</span>
-                <PlusCircle size={24} color="var(--accent)" />
+                <Icon name="PlusCircle" size="lg" color="accent" />
                 <h3 className={s.stepTitle}>Initiate</h3>
                 <p className={s.stepDesc}>
                   Create a "New Investigation" and define your initial research hypothesis.
@@ -74,7 +61,7 @@ const GuidePage = () => {
               </div>
               <div className={s.stepCard}>
                 <span className={s.stepNumber}>STEP 02</span>
-                <Database size={24} color="var(--accent)" />
+                <Icon name="Database" size="lg" color="accent" />
                 <h3 className={s.stepTitle}>Collect</h3>
                 <p className={s.stepDesc}>
                   Browse the archive. Use "Add to Investigation" on any Person, Document, or Flight.
@@ -82,7 +69,7 @@ const GuidePage = () => {
               </div>
               <div className={s.stepCard}>
                 <span className={s.stepNumber}>STEP 03</span>
-                <Target size={24} color="var(--accent)" />
+                <Icon name="Target" size="lg" color="accent" />
                 <h3 className={s.stepTitle}>Analyze</h3>
                 <p className={s.stepDesc}>
                   Organize items on the visual Board, build Timelines, and record your findings.
@@ -94,7 +81,7 @@ const GuidePage = () => {
           {/* Key Components Section */}
           <section className={s.section}>
             <h2 className={s.sectionTitle}>
-              <Layout size={20} className={s.accentIcon} />
+              <Icon name="Layout" size="md" className={s.accentIcon} />
               Primary Workspaces
             </h2>
             <div className={s.prose}>
@@ -122,7 +109,7 @@ const GuidePage = () => {
           {/* Architecture/Visual Section */}
           <section className={s.section}>
             <h2 className={s.sectionTitle}>
-              <Network size={20} className={s.accentIcon} />
+              <Icon name="Network" size="md" className={s.accentIcon} />
               System Architecture
             </h2>
             <div className={s.diagramPlaceholder}>
@@ -148,7 +135,7 @@ const GuidePage = () => {
                   Researcher Interface
                 </div>
                 <div style={css({ color: 'var(--text-muted)' })}>
-                  <Layers size={24} />
+                  <Icon name="Layers" size="lg" />
                 </div>
                 <div style={css({ display: 'flex', gap: '2rem' })}>
                   <div
@@ -186,7 +173,7 @@ const GuidePage = () => {
                   </div>
                 </div>
                 <div style={css({ color: 'var(--text-muted)' })}>
-                  <ChevronRight size={24} style={css({ transform: 'rotate(90deg)' })} />
+                  <Icon name="ChevronRight" size="lg" style={css({ transform: 'rotate(90deg)' })} />
                 </div>
                 <div
                   style={css({
@@ -207,7 +194,7 @@ const GuidePage = () => {
           {/* Sync Section */}
           <section className={s.section}>
             <h2 className={s.sectionTitle}>
-              <Share2 size={20} className={s.accentIcon} />
+              <Icon name="Share2" size="md" className={s.accentIcon} />
               Data Persistence
             </h2>
             <div className={s.prose}>
@@ -218,7 +205,7 @@ const GuidePage = () => {
               </p>
             </div>
             <div className={s.technicalNote}>
-              <Info size={16} />
+              <Icon name="Info" size="sm" />
               <span>
                 Technical Note: The system uses a specialized Context Provider to manage
                 cross-component state synchronization.

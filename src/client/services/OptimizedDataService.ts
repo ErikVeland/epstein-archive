@@ -1,4 +1,4 @@
-import { Person } from '../types';
+import { Person } from '@client/types';
 import { SearchFilters, PaginatedResponse } from './optimizedDataLoader';
 export type { SearchFilters, PaginatedResponse } from './optimizedDataLoader';
 import { apiClient } from './apiClient';

@@ -10,7 +10,7 @@ import {
   LinguisticMetadata,
   TemporalMetadata,
   NetworkMetadata,
-} from '../types/documents';
+} from '@client/types/documents';
 import { EntityNameService } from './EntityNameService';
 
 export class DocumentProcessor {

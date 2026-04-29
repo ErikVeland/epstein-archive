@@ -3,7 +3,7 @@ import { ToastCtx, Toast } from './toastContext';
 import { CloseButton } from './CloseButton';
 import s from './ToastProvider.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);

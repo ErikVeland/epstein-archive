@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ArrowRight, Filter, Search, Flag, Plus } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { CloseButton } from './common/CloseButton';
-import { useScrollLock } from '../hooks/useScrollLock';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import styles from './FirstRunOnboarding.module.css';
 
-import { Button } from '../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface FirstRunOnboardingProps {
   onComplete: () => void;
@@ -35,28 +35,28 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
           title: 'Welcome to the Epstein Archive',
           description:
             'Discover a powerful tool for investigating complex networks and uncovering hidden connections through advanced search and analysis capabilities.',
-          icon: <Search className={styles.stepIconBase} />,
+          icon: <Icon name="Search" className={styles.stepIconBase} />,
         };
       case 2:
         return {
           title: 'Filter by Red Flag Index',
           description:
             'Use the Red Flag Index to cut through noise and focus on the most significant entities and documents in your investigation. Higher ratings indicate stronger evidence connections.',
-          icon: <Flag className={styles.stepIconBase} />,
+          icon: <Icon name="Flag" className={styles.stepIconBase} />,
         };
       case 3:
         return {
           title: 'Build Investigations with Evidence',
           description:
             'Add people, documents, and connections to investigations to build comprehensive case files. Everything you add is traceable back to source documents.',
-          icon: <Plus className={styles.stepIconBase} />,
+          icon: <Icon name="Plus" className={styles.stepIconBase} />,
         };
       case 4:
         return {
           title: 'Unlock Advanced Features',
           description:
             'Explore powerful features like network visualization, advanced filtering, and collaborative investigations to deepen your research.',
-          icon: <Filter className={styles.stepIconBase} />,
+          icon: <Icon name="Filter" className={styles.stepIconBase} />,
         };
       default:
         return {
@@ -132,7 +132,9 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
             )}
             <Button unstyled onClick={handleNext} className={styles.primaryButton}>
               {step === totalSteps ? 'Get Started' : 'Next'}
-              {step !== totalSteps && <ArrowRight className={styles.primaryButtonIcon} />}
+              {step !== totalSteps && (
+                <Icon name="ArrowRight" className={styles.primaryButtonIcon} />
+              )}
             </Button>
           </div>
         </div>

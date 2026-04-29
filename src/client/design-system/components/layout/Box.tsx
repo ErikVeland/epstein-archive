@@ -1,6 +1,10 @@
 import React, { forwardRef } from 'react';
-import { cn } from '../../../utils/cn';
-import { buildSpacingStyles, type SpacingProps, type SizingProps } from '../../lib/resolveSpace';
+import { cn } from '@client/utils/cn';
+import {
+  buildSpacingStyles,
+  type SpacingProps,
+  type SizingProps,
+} from '@client/design-system/lib/resolveSpace';
 import './Box.css';
 
 export interface BoxProps extends React.HTMLAttributes<HTMLElement>, SpacingProps, SizingProps {

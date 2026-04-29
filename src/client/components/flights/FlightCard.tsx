@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users } from 'lucide-react';
-import { Surface, Flex, Box, LqText, cn } from '../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { Surface, Flex, Box, LqText, cn } from '@client/design-system/lib';
 import { CardActionSheet } from '../common/CardActionSheet';
-import { useLongPress } from '../../hooks/useLongPress';
-import { useInvestigations } from '../../contexts/InvestigationsContext';
+import { useLongPress } from '@client/hooks/useLongPress';
+import { useInvestigations } from '@client/contexts/InvestigationsContext';
 import type { Flight } from './types';
 import styles from './FlightCard.module.css';
 
@@ -65,7 +65,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
             </LqText>
           </Flex>
           <Flex align="center" gap="xs" className={styles.passengerCount}>
-            <Users size={12} className={styles.mutedIcon} />
+            <Icon name="Users" size="xs" className={styles.mutedIcon} />
             <LqText variant="xs" weight="bold" color="muted">
               {flight.passengers?.length || 0}
             </LqText>

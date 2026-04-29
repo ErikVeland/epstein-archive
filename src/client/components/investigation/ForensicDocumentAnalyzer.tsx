@@ -1,34 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ensurePdfWorker } from '../../utils/ensurePdfWorker';
-import {
-  FileText,
-  Fingerprint,
-  Clock,
-  User,
-  MapPin,
-  Phone,
-  Mail,
-  DollarSign,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  ChevronDown,
-  ChevronUp,
-  Activity,
-  Zap,
-  ShieldAlert,
-  BarChart3,
-  Download,
-  Loader2,
-} from 'lucide-react';
+import { ensurePdfWorker } from '@client/utils/ensurePdfWorker';
+import Icon, { IconName } from '@client/components/common/Icon';
 import { PDFVariantViewer } from '../documents/PDFVariantViewer';
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DocumentMetadataPanel } from '../documents/DocumentMetadataPanel';
 import { Tabs } from '../common/Tabs';
-import { useForensicDocumentData } from '../../hooks/useForensicDocumentData';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import { useForensicDocumentData } from '@client/hooks/useForensicDocumentData';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 // UI Library
 import styles from './ForensicDocumentAnalyzer.module.css';
@@ -42,7 +22,7 @@ import {
   Grid,
   Badge,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 
 // Set up PDF.js worker
 ensurePdfWorker();
@@ -196,28 +176,28 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   };
 
-  const getEntityIcon = (type: DetectedEntity['type']) => {
+  const getEntityIcon = (type: DetectedEntity['type']): IconName => {
     switch (type) {
       case 'person':
-        return User;
+        return 'User';
       case 'organization':
-        return FileText;
+        return 'FileText';
       case 'location':
-        return MapPin;
+        return 'MapPin';
       case 'date':
-        return Clock;
+        return 'Clock';
       case 'phone':
-        return Phone;
+        return 'Phone';
       case 'email':
-        return Mail;
+        return 'Mail';
       case 'money':
-        return DollarSign;
+        return 'DollarSign';
       case 'address':
-        return MapPin;
+        return 'MapPin';
       case 'url':
-        return FileText;
+        return 'FileText';
       default:
-        return FileText;
+        return 'FileText';
     }
   };
 
@@ -248,7 +228,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                 onClick={() => setMobileTab('analysis')}
                 className={styles.analysisToggleFab}
               >
-                <Activity size={16} /> Analysis Pane
+                <Icon name="Activity" size="sm" /> Analysis Pane
               </Button>
             </div>
           )}
@@ -271,7 +251,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
             >
               {!analysis && !isAnalyzing ? (
                 <Stack align="center" p="xxl" gap="xl" style={{ height: '100%' }}>
-                  <Fingerprint size={64} className={styles.autoGen101} />
+                  <Icon name="Fingerprint" size="xl" className={styles.autoGen101} />
                   <Stack gap="sm">
                     <LqText variant="display" weight="bold">
                       Forensic Verification Required
@@ -286,12 +266,12 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     onClick={startForensicAnalysis}
                     disabled={!documentId}
                   >
-                    <Zap size={18} /> Initiate Analysis
+                    <Icon name="Zap" size="md" /> Initiate Analysis
                   </Button>
                 </Stack>
               ) : isAnalyzing ? (
                 <Stack align="center" p="xxl" gap="xl" style={{ height: '100%' }}>
-                  <Loader2 size={64} className={styles.autoGen102} />
+                  <Icon name="Loader2" size="xl" className={styles.autoGen102} />
                   <Stack gap="sm">
                     <LqText variant="display" weight="bold">
                       Analyzing Forensic Signals...
@@ -312,13 +292,13 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </LqText>
                         <Flex align="center" gap="sm">
                           {analysis!.authenticity.verdict === 'authentic' && (
-                            <CheckCircle className={styles.autoGen104} size={18} />
+                            <Icon name="CheckCircle" className={styles.autoGen104} size="md" />
                           )}
                           {analysis!.authenticity.verdict === 'suspicious' && (
-                            <AlertTriangle className={styles.autoGen105} size={18} />
+                            <Icon name="AlertTriangle" className={styles.autoGen105} size="md" />
                           )}
                           {analysis!.authenticity.verdict === 'forged' && (
-                            <XCircle className={styles.autoGen106} size={18} />
+                            <Icon name="XCircle" className={styles.autoGen106} size="md" />
                           )}
                           <LqText
                             variant="h2"
@@ -349,9 +329,9 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </LqText>
                         <Button variant="ghost" size="sm" onClick={() => toggleSection('factors')}>
                           {expandedSections.factors ? (
-                            <ChevronUp size={12} />
+                            <Icon name="ChevronUp" size="xs" />
                           ) : (
-                            <ChevronDown size={12} />
+                            <Icon name="ChevronDown" size="xs" />
                           )}
                           {expandedSections.factors ? 'Hide' : 'View'} Factors
                         </Button>
@@ -383,26 +363,34 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                   <Tabs
                     tabs={[
-                      { key: 'dashboard', label: 'Dashboard', icon: <BarChart3 size={16} /> },
+                      {
+                        key: 'dashboard',
+                        label: 'Dashboard',
+                        icon: <Icon name="BarChart3" size="sm" />,
+                      },
                       {
                         key: 'entities',
                         label: 'Entities',
-                        icon: <User size={16} />,
+                        icon: <Icon name="User" size="sm" />,
                         count: analysis!.entities.length,
                       },
                       {
                         key: 'patterns',
                         label: 'Patterns',
-                        icon: <Activity size={16} />,
+                        icon: <Icon name="Activity" size="sm" />,
                         count: analysis!.patterns.length,
                       },
                       {
                         key: 'anomalies',
                         label: 'Anomalies',
-                        icon: <ShieldAlert size={16} />,
+                        icon: <Icon name="ShieldAlert" size="sm" />,
                         count: analysis!.anomalies.length,
                       },
-                      { key: 'metadata', label: 'Metadata', icon: <FileText size={16} /> },
+                      {
+                        key: 'metadata',
+                        label: 'Metadata',
+                        icon: <Icon name="FileText" size="sm" />,
+                      },
                     ]}
                     activeTab={activeTab}
                     onChange={(k) =>
@@ -457,7 +445,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 </Flex>
                               </Stack>
                               <Button variant="secondary" size="sm" onClick={() => {}}>
-                                <Download size={10} /> Export Signal Data
+                                <Icon name="Download" size="xs" /> Export Signal Data
                               </Button>
                             </Stack>
                           </Surface>
@@ -580,7 +568,6 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     {activeTab === 'entities' && (
                       <Stack gap="sm">
                         {analysis!.entities.map((e: DetectedEntity, i: number) => {
-                          const IconComp = getEntityIcon(e.type);
                           return (
                             <Surface
                               key={i}
@@ -591,7 +578,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                             >
                               <Flex gap="md" align="center">
                                 <Box p="xs" className={styles.autoGen112}>
-                                  <IconComp size={16} className={styles.autoGen113} />
+                                  <Icon
+                                    name={getEntityIcon(e.type)}
+                                    size="sm"
+                                    className={styles.autoGen113}
+                                  />
                                 </Box>
                                 <Stack gap="none" style={{ flex: 1 }}>
                                   <Flex justify="between" align="center">
@@ -679,7 +670,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               </LqText>
                               {a.requiresInvestigation && (
                                 <Flex align="center" gap="xs" mt="xs" className={styles.autoGen114}>
-                                  <AlertTriangle size={12} />
+                                  <Icon name="AlertTriangle" size="xs" />
                                   <LqText variant="xs" weight="bold">
                                     REQUIRES IMMEDIATE INVESTIGATION
                                   </LqText>
@@ -797,7 +788,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     </LqText>
                   </Stack>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedEntity(null)}>
-                    <XCircle size={18} />
+                    <Icon name="XCircle" size="md" />
                   </Button>
                 </Flex>
 

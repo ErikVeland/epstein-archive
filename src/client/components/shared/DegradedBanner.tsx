@@ -1,6 +1,6 @@
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { useDegradedMode } from '../../contexts/useDegradedMode';
+import Icon from '@client/components/common/Icon';
+import { useDegradedMode } from '@client/contexts/useDegradedMode';
 import s from './DegradedBanner.module.css';
 
 export const DegradedBanner: React.FC = () => {
@@ -9,7 +9,7 @@ export const DegradedBanner: React.FC = () => {
 
   return (
     <div className={s.banner}>
-      <AlertTriangle className={s.icon} size={20} />
+      <Icon name="AlertTriangle" className={s.icon} size="md" />
       <div className={s.text}>
         <strong className={s.strong}>System under heavy load</strong>
         <span className={s.detail}>

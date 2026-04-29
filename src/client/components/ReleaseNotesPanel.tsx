@@ -1,14 +1,14 @@
 import React from 'react';
-import { Calendar, BookOpen, Circle } from 'lucide-react';
-import { useScrollLock } from '../hooks/useScrollLock';
-import { useModalFocusTrap } from '../hooks/useModalFocusTrap';
+import Icon from '@client/components/common/Icon';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
 import { CloseButton } from './common/CloseButton';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { LqText } from '../design-system/components/typography/Text';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Box } from '@client/design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
 import styles from './ReleaseNotesPanel.module.css';
 
-import { Button } from '../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface ReleaseNote {
   version: string;
@@ -80,7 +80,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
             color="primary"
             className={styles.headerTitle}
           >
-            <BookOpen className={styles.headerIcon} />
+            <Icon name="BookOpen" className={styles.headerIcon} />
             What's New
           </LqText>
           <CloseButton
@@ -120,7 +120,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
                     justify="center"
                     className={`${styles.timelineDot} ${index === 0 ? styles.timelineDotActive : styles.timelineDotInactive}`}
                   >
-                    <Circle className={styles.timelineDotIcon} />
+                    <Icon name="Circle" className={styles.timelineDotIcon} />
                   </Flex>
 
                   <Box className={styles.releaseHeader}>
@@ -131,7 +131,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
                         {release.version}
                       </span>
                       <span className={styles.dateChip}>
-                        <Calendar className={styles.dateChipIcon} />
+                        <Icon name="Calendar" className={styles.dateChipIcon} />
                         {release.date}
                       </span>
                     </Flex>
@@ -165,7 +165,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
                       return (
                         <Flex key={noteIndex} align="start" gap={3}>
                           <span className={styles.noteBullet}>
-                            <Circle className={styles.noteBulletIcon} />
+                            <Icon name="Circle" className={styles.noteBulletIcon} />
                           </span>
                           <Box className={styles.noteText}>
                             {note.split(/(\*\*.*?\*\*)/).map((part, i) =>

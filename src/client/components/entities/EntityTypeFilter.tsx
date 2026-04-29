@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '../common/Icon';
-import { getEntityTypeIcon } from '../../utils/entityTypeIcons';
+import { getEntityTypeIcon } from '@client/utils/entityTypeIcons';
 import {
   Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './EntityTypeFilter.module.css';
 
 interface EntityTypeOption {

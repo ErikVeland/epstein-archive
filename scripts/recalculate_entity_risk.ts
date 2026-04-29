@@ -7,7 +7,7 @@ import {
   computeEntityRisk,
   EntityRiskAggregate,
   isTopRiskBaselineEntity,
-} from '../src/utils/entityRisk.js';
+} from '../src/client/utils/entityRisk.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

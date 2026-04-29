@@ -1,17 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Plane, User, Camera, ShieldAlert, X } from 'lucide-react';
-import { Box, Flex, LqText, Surface, Button } from '../../design-system/lib';
-import type { Document } from '../../types/documents';
+import Icon from '@client/components/common/Icon';
+import { Box, Flex, LqText, Surface, Button } from '@client/design-system/lib';
+import type { Document } from '@client/types/documents';
 import {
   formatDate,
   getRenderTypeIcon,
   getSafePreviewText,
   getSourceLabel,
-} from '../../utils/documentUtils';
-import { useIsMobile } from '../../hooks/useResponsive';
-import { cn } from '../../utils/cn';
+} from '@client/utils/documentUtils';
+import { useIsMobile } from '@client/hooks/useResponsive';
+import { cn } from '@client/utils/cn';
 import styles from './DocumentHoverPreview.module.css';
 
 interface DocumentHoverPreviewProps {
@@ -52,10 +52,10 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({
 
   const getSignalIcon = (signalType: string) => {
     const t = signalType.toLowerCase();
-    if (t.includes('travel') || t.includes('flight')) return <Plane size={14} />;
-    if (t.includes('presence')) return <Camera size={14} />;
-    if (t.includes('identity') || t.includes('fusion')) return <User size={14} />;
-    return <AlertTriangle size={14} />;
+    if (t.includes('travel') || t.includes('flight')) return <Icon name="Plane" size="sm" />;
+    if (t.includes('presence')) return <Icon name="Camera" size="sm" />;
+    if (t.includes('identity') || t.includes('fusion')) return <Icon name="User" size="sm" />;
+    return <Icon name="AlertTriangle" size="sm" />;
   };
 
   return (
@@ -106,7 +106,7 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({
                     maxRisk > 0.9 ? styles.riskBadgeCritical : styles.riskBadgeHigh
                   }`}
                 >
-                  <ShieldAlert size={12} />
+                  <Icon name="ShieldAlert" size="xs" />
                   <span>Risk Alert</span>
                 </div>
               )}
@@ -117,7 +117,7 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({
                   className={styles.mobileClose}
                   aria-label="Close Forensic Brief"
                 >
-                  <X size={18} />
+                  <Icon name="X" size="md" />
                 </Button>
               )}
             </Flex>

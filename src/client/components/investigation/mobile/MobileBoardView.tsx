@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useInvestigationBoard } from '../../../domains/investigations';
-import { apiClient } from '../../../services/apiClient';
-import type { Hypothesis, EvidenceItem } from '../../../../types/investigation';
-import { Button, TextInput } from '../../../design-system/lib';
-import { SheetDialog } from '../../common/SheetDialog';
+import { useInvestigationBoard } from '@client/domains/investigations';
+import { apiClient } from '@client/services/apiClient';
+import type { Hypothesis, EvidenceItem } from '@client/types/investigation';
+import { Button, TextInput } from '@client/design-system/lib';
+import { SheetDialog } from '@client/components/common/SheetDialog';
 import styles from './MobileBoardView.module.css';
 
 type Column = 'hypotheses' | 'evidence' | 'narrative';
@@ -246,7 +246,7 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
       {addSheet !== null && (
         <SheetDialog
           open
-          onOpenChange={(open) => {
+          onOpenChange={(open: boolean) => {
             if (!open) {
               setAddSheet(null);
               setAddTitle('');
@@ -279,7 +279,7 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
       {moveSheet !== null && (
         <SheetDialog
           open
-          onOpenChange={(open) => {
+          onOpenChange={(open: boolean) => {
             if (!open) setMoveSheet(null);
           }}
           title="Move Card"

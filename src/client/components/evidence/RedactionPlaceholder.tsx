@@ -1,15 +1,5 @@
 import { useState } from 'react';
-import {
-  Shield,
-  // HelpCircle,
-  User,
-  Briefcase,
-  Building,
-  MapPin,
-  Mail,
-  Calendar,
-  Hash,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './RedactionPlaceholder.module.css';
 
 interface RedactionPlaceholderProps {
@@ -26,21 +16,21 @@ export function RedactionPlaceholder({ type, role, confidence, kind }: Redaction
   const getIcon = () => {
     switch (type) {
       case 'person':
-        return <User className={styles.icon} />;
+        return <Icon name="User" className={styles.icon} />;
       case 'lawyer':
-        return <Briefcase className={styles.icon} />;
+        return <Icon name="Briefcase" className={styles.icon} />;
       case 'org':
-        return <Building className={styles.icon} />;
+        return <Icon name="Building" className={styles.icon} />;
       case 'location':
-        return <MapPin className={styles.icon} />;
+        return <Icon name="MapPin" className={styles.icon} />;
       case 'contact':
-        return <Mail className={styles.icon} />;
+        return <Icon name="Mail" className={styles.icon} />;
       case 'date':
-        return <Calendar className={styles.icon} />;
+        return <Icon name="Calendar" className={styles.icon} />;
       case 'id_number':
-        return <Hash className={styles.icon} />;
+        return <Icon name="Hash" className={styles.icon} />;
       default:
-        return <Shield className={styles.icon} />;
+        return <Icon name="Shield" className={styles.icon} />;
     }
   };
 

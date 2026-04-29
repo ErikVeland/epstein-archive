@@ -1,28 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-  Info,
-  Users,
-  Shield,
-  Database,
-  Activity,
-  FileText,
-  TrendingUp,
-  Share2,
-  RotateCcw,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import s from './EnhancedAnalytics.module.css';
 import { SunburstChart } from '../visualizations/SunburstChart';
 import { DocumentBarChart } from '../visualizations/DocumentBarChart';
 import { NetworkGraph } from '../visualizations/NetworkGraph';
 import { EvidenceDrawer } from '../visualizations/EvidenceDrawer';
-import { filterPeopleOnly } from '../../utils/entityFilters';
+import { filterPeopleOnly } from '@client/utils/entityFilters';
 import { InteractiveEntityMap } from '../visualizations/InteractiveEntityMap';
-import { useFilters } from '../../contexts/useFilters';
-import { useAnalytics } from '../../contexts/AnalyticsContextState';
-import { apiClient } from '../../services/apiClient';
+import { useFilters } from '@client/contexts/useFilters';
+import { useAnalytics } from '@client/contexts/AnalyticsContextState';
+import { apiClient } from '@client/services/apiClient';
 import type { Evidence } from '../visualizations/EvidenceDrawer';
-import type { Person } from '../../../types';
-import { Button, Input, Surface } from '../../design-system/lib';
+import type { Person } from '@client/types';
+import { Button, Input, Surface } from '@client/design-system/lib';
 /** Raw node shape returned by /graph/global and /graph/global?mode=path */
 interface GraphApiNode {
   id: string | number;
@@ -566,11 +556,11 @@ export const EnhancedAnalytics: React.FC = () => {
         {data && (
           <div className={s.archiveBadgeWrap}>
             <div className={s.archiveBadge} data-status={unclassifiedCount > 0 ? 'warn' : 'ok'}>
-              <Database size={12} className={s.archiveBadgeDatabaseIcon} />
+              <Icon name="Database" size="xs" className={s.archiveBadgeDatabaseIcon} />
               <span>Archive Integrity: {archiveIntegrityPct}% Classified</span>
               {unclassifiedCount > 0 && (
                 <div className={s.tooltipGroup}>
-                  <Info size={12} className={s.archiveBadgeIcon} />
+                  <Icon name="Info" size="xs" className={s.archiveBadgeIcon} />
                   <div className={s.tooltip}>
                     <p className={s.tooltipTitle}>Reconciliation Report</p>
                     <ul className={s.tooltipList}>
@@ -603,7 +593,7 @@ export const EnhancedAnalytics: React.FC = () => {
 
         <div className={s.networkToolbar}>
           <h3 className={s.networkTitle}>
-            <Users size={20} className={s.iconSuccess} />
+            <Icon name="Users" size="md" className={s.iconSuccess} />
             <span className={s.networkTitleText}>Entity Connection Network</span>
           </h3>
 
@@ -624,7 +614,7 @@ export const EnhancedAnalytics: React.FC = () => {
 
           {/* Timeline Slider */}
           <div className={s.timelineControl}>
-            <TrendingUp size={16} className={s.iconDocs} />
+            <Icon name="TrendingUp" size="sm" className={s.iconDocs} />
             <div className={s.timelineYears}>
               <div className={s.timelineYearRow}>
                 <span>{filters.timeRange[0]?.split('-')[0] || '1990'}</span>
@@ -659,13 +649,13 @@ export const EnhancedAnalytics: React.FC = () => {
             data-active={String(pathMode)}
             title="Find Shortest Path"
           >
-            <Share2 size={16} />
+            <Icon name="Share2" size="sm" />
             <span className={s.pathModeLabel}>{pathMode ? 'Select Nodes...' : 'Find Path'}</span>
           </Button>
         </div>
 
         <div className={s.infoHint}>
-          <Info size={16} className={s.infoHintIconEmerald} />
+          <Icon name="Info" size="sm" className={s.infoHintIconEmerald} />
           <span>
             Interactive network showing entity relationships. Node size = connections. Colors
             indicate risk level. Click to view entity details. Grouped by entity type.
@@ -695,7 +685,7 @@ export const EnhancedAnalytics: React.FC = () => {
                   className={`${s.nodeActionButton} ${s.nodeActionButtonAmber}`}
                   title="Reconcile Junk Entities"
                 >
-                  <Database size={16} />
+                  <Icon name="Database" size="sm" />
                   <span className={s.nodeActionTooltip}>Reconcile Junk Entities</span>
                 </Button>
                 <Button
@@ -704,7 +694,7 @@ export const EnhancedAnalytics: React.FC = () => {
                   className={`${s.nodeActionButton} ${s.nodeActionButtonRed}`}
                   title="Reset Junk Flags"
                 >
-                  <RotateCcw size={16} />
+                  <Icon name="RotateCcw" size="sm" />
                   <span className={s.nodeActionTooltip}>Reset Junk Flags</span>
                 </Button>
               </>
@@ -748,7 +738,7 @@ export const EnhancedAnalytics: React.FC = () => {
             if (shownEntities < totalEntities && shownEntities > 0) {
               return (
                 <div className={`${s.biasIndicator} ${s.fadeIn} ${s.slideInUp}`}>
-                  <Shield size={12} className={s.biasIndicatorIcon} />
+                  <Icon name="Shield" size="xs" className={s.biasIndicatorIcon} />
                   <span>
                     Showing {shownEntities.toLocaleString()} of {totalEntities.toLocaleString()}{' '}
                     entities
@@ -808,23 +798,23 @@ export const EnhancedAnalytics: React.FC = () => {
       {/* Hero Stats Row */}
       <div className={s.heroStatsGrid}>
         <StatCard
-          icon={<FileText size={20} className={s.iconAccent} />}
+          icon={<Icon name="FileText" size="md" className={s.iconAccent} />}
           value={data.totalCounts?.documents || redactionStats?.totalDocuments || 0}
           label="Total Documents"
         />
         <StatCard
-          icon={<Shield size={20} className={s.iconWarning} />}
+          icon={<Icon name="Shield" size="md" className={s.iconWarning} />}
           value={`${(redactionStats?.redactionPercentage || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}%`}
           label="Redacted"
           sublabel={`${(redactionStats?.redactedDocuments || 0).toLocaleString()} docs`}
         />
         <StatCard
-          icon={<Users size={20} className={s.iconDocs} />}
+          icon={<Icon name="Users" size="md" className={s.iconDocs} />}
           value={topConnectedEntities?.length || 0}
           label="Connected Entities"
         />
         <StatCard
-          icon={<Activity size={20} className={s.iconSuccess} />}
+          icon={<Icon name="Activity" size="md" className={s.iconSuccess} />}
           value={topRelationships?.length || 0}
           label="Relationships"
         />
@@ -835,16 +825,16 @@ export const EnhancedAnalytics: React.FC = () => {
         {/* Document Types Sunburst */}
         <div className={`surface-panel ${s.vizPanel}`}>
           <div className={s.vizPanelIconDecor}>
-            <Database size={96} className={s.iconAccent} />
+            <Icon name="Database" size="xl" className={s.iconAccent} />
           </div>
 
           <h3 className={s.vizPanelTitle}>
-            <FileText size={20} className={s.iconAccent} />
+            <Icon name="FileText" size="md" className={s.iconAccent} />
             <span className={s.neonTextCyan}>Document Types</span>
           </h3>
 
           <div className={s.vizPanelInfoHint}>
-            <Info size={16} className={s.vizPanelInfoIcon} />
+            <Icon name="Info" size="sm" className={s.vizPanelInfoIcon} />
             <span>
               Breakdown of evidence by category. Click segments to filter. Hover for redaction
               stats.
@@ -862,18 +852,18 @@ export const EnhancedAnalytics: React.FC = () => {
         {/* Timeline */}
         <div className={`surface-panel ${s.vizPanel}`}>
           <div className={s.vizPanelIconDecor}>
-            <TrendingUp size={96} className={s.vizPanelIconPurple} />
+            <Icon name="TrendingUp" size="xl" className={s.vizPanelIconPurple} />
           </div>
 
           <h3 className={s.vizPanelTitle}>
-            <TrendingUp size={20} className={s.iconDocs} />
+            <Icon name="TrendingUp" size="md" className={s.iconDocs} />
             <span className={s.vizPanelTitlePurplePink}>
               Document Distribution &amp; Gap Analysis
             </span>
           </h3>
 
           <div className={s.vizPanelInfoHint}>
-            <Info size={16} className={s.vizPanelInfoIconDocs} />
+            <Icon name="Info" size="sm" className={s.vizPanelInfoIconDocs} />
             <span>
               Historical document distribution plotted by original creation date. The red zone
               highlights the 2001 period where significant data gaps have been identified.

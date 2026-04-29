@@ -1,7 +1,7 @@
 import React from 'react';
-import { Calendar, AlertTriangle, TrendingUp, FileText, Clock, User } from 'lucide-react';
-import { Person } from '../../types';
-import { TimelineVisualizationEvent } from '../../types/visualizations';
+import Icon from '@client/components/common/Icon';
+import { Person } from '@client/types';
+import { TimelineVisualizationEvent } from '@client/types/visualizations';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import styles from './TimelineVisualization.module.css';
 
@@ -136,21 +136,21 @@ const timelineEvents: TimelineVisualizationEvent[] = [
 const getTypeIcon = (type: string) => {
   switch (type) {
     case 'flight':
-      return <TrendingUp className={styles.eventTypeIcon} />;
+      return <Icon name="TrendingUp" className={styles.eventTypeIcon} />;
     case 'arrest':
-      return <AlertTriangle className={styles.eventTypeIcon} />;
+      return <Icon name="AlertTriangle" className={styles.eventTypeIcon} />;
     case 'conviction':
-      return <FileText className={styles.eventTypeIcon} />;
+      return <Icon name="FileText" className={styles.eventTypeIcon} />;
     case 'death':
-      return <Clock className={styles.eventTypeIcon} />;
+      return <Icon name="Clock" className={styles.eventTypeIcon} />;
     case 'document':
-      return <FileText className={styles.eventTypeIcon} />;
+      return <Icon name="FileText" className={styles.eventTypeIcon} />;
     case 'testimony':
-      return <User className={styles.eventTypeIcon} />;
+      return <Icon name="User" className={styles.eventTypeIcon} />;
     case 'meeting':
-      return <Calendar className={styles.eventTypeIcon} />;
+      return <Icon name="Calendar" className={styles.eventTypeIcon} />;
     default:
-      return <Calendar className={styles.eventTypeIcon} />;
+      return <Icon name="Calendar" className={styles.eventTypeIcon} />;
   }
 };
 
@@ -265,9 +265,7 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
                         <div>
                           <h4 className={styles.eventTitle}>{event.title}</h4>
                           <p className={styles.eventDate}>
-                            {event.date instanceof Date
-                              ? event.date.toISOString().split('T')[0]
-                              : event.date}
+                            {typeof event.date === 'string' ? event.date : String(event.date)}
                           </p>
                         </div>
                       </div>

@@ -1,20 +1,20 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
-import { Document, BrowseFilters, DocumentCollection } from '../../types/documents';
-import { useNavigation } from '../../services/NavigationContext';
-import { useHighlightNavigation } from '../../hooks/useHighlightNavigation';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Document, BrowseFilters, DocumentCollection } from '@client/types/documents';
+import { useNavigation } from '@client/services/NavigationContext';
+import { useHighlightNavigation } from '@client/hooks/useHighlightNavigation';
 import { HighlightNavigationControls } from './HighlightNavigationControls';
-import { useFilters } from '../../contexts/useFilters';
+import { useFilters } from '@client/contexts/useFilters';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import { DocumentBrowserHeader } from './DocumentBrowserHeader';
 import { DocumentBrowserFilters } from './DocumentBrowserFilters';
 import { DocumentList } from './DocumentList';
 import { DocumentHoverPreview } from './DocumentHoverPreview';
-import { useDocumentBrowserData } from '../../hooks/useDocumentBrowserData';
+import { useDocumentBrowserData } from '@client/hooks/useDocumentBrowserData';
 import { useNavigate } from 'react-router-dom';
-import type { SearchMode } from '../../services/apiClient';
+import type { SearchMode } from '@client/services/apiClient';
 import styles from './DocumentBrowser.module.css';
 
 interface DocumentBrowserProps {

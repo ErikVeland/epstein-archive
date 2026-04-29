@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import { analyticsQueries } from '@epstein/db';
 import { analyticsRepository } from '../db/analyticsRepository.js';
 import { entitiesRepository } from '../db/entitiesRepository.js';
@@ -9,7 +9,7 @@ import { cacheResponse } from '../utils/perfCache.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
 
-const router = Router();
+const router = express.Router();
 
 const TOP_CONNECTED_JUNK_PATTERNS: RegExp[] = [
   /\b(see attachment|attachment|attachmert)\b/i,
@@ -98,11 +98,13 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
     const topConnectedIds = new Set(
       topConnectedRows.map((row: Record<string, unknown>) => Number(row.id)),
     );
-    const filteredTopRelationshipsRows = (topRelationshipsRows || []).filter(
-      (rel: Record<string, unknown>) =>
-        topConnectedIds.has(Number(rel?.sourceId || rel?.source_id)) &&
-        topConnectedIds.has(Number(rel?.targetId || rel?.target_id)),
-    );
+    const filteredTopRelationshipsRows = (topRelationshipsRows || []).filter((rel: unknown) => {
+      const r = rel as Record<string, unknown>;
+      return (
+        topConnectedIds.has(Number(r?.sourceId || r?.source_id)) &&
+        topConnectedIds.has(Number(r?.targetId || r?.target_id))
+      );
+    });
 
     const tc = totalCountsRows[0];
     const rc = reconciliationRows[0];

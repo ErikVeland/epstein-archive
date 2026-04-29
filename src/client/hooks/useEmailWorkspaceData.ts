@@ -6,7 +6,7 @@ import {
   EmailMessageBodyDTO,
   EmailThreadDTO,
   EmailThreadDetailsDTO,
-} from '../services/apiClient';
+} from '@client/services/apiClient';
 
 const THREAD_PAGE_SIZE = 50;
 

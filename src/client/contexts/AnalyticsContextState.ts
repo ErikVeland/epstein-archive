@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
-import type { Person } from '../types';
-import type { AnalyticsData as GlobalAnalyticsData } from '../components/visualizations/DataVisualization';
+import type { Person } from '@client/types';
+import type { AnalyticsData as GlobalAnalyticsData } from '@client/components/visualizations/DataVisualization';
 
 export interface AnalyticsContextValue {
   filteredPeople: Person[];

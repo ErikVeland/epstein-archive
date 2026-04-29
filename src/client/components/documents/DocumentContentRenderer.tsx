@@ -1,25 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-  Bot,
-  Calendar,
-  FileImage,
-  FileSpreadsheet,
-  Landmark,
-  Mail,
-  Newspaper,
-  Scale,
-  ScrollText,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import DOMPurify from 'isomorphic-dompurify';
 import { DocumentAnnotationSystem } from './DocumentAnnotationSystem';
-import { prettifyOCRText } from '../../utils/prettifyOCR';
-import { LqText } from '../../design-system/components/typography/Text';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
+import { prettifyOCRText } from '@client/utils/prettifyOCR';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
 import styles from './DocumentContentRenderer.module.css';
 
-import { Button, Input } from '../../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 interface EntityRecord {
   id?: string | number;
@@ -368,7 +358,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
       <Box className={cx(styles.stackMd, styles.section)}>
         <Surface variant="glass-strong" className={styles.surfaceHidden}>
           <Flex align="center" gap="sm" className={styles.headerBar}>
-            <Mail className={styles.typeIcon} />
+            <Icon name="Mail" className={styles.typeIcon} />
             <LqText variant="xs" weight="bold" color="secondary" className={styles.headerCaption}>
               Email Message
             </LqText>
@@ -459,7 +449,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         <Surface variant="glass-strong" className={styles.legalCard}>
           <Box className={styles.legalHeader}>
             <Flex align="start" gap="md">
-              <Scale className={styles.iconLarge} />
+              <Icon name="Scale" className={styles.iconLarge} />
               <Box>
                 <LqText variant="h3" weight="bold" className={styles.legalTitle}>
                   {courtMatch?.[0]?.trim() || 'Legal Document'}
@@ -569,7 +559,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         <Surface variant="glass-strong" className={styles.depositionCard}>
           <Box className={styles.depositionHeader}>
             <Flex align="center" gap="md">
-              <ScrollText className={styles.iconLarge} />
+              <Icon name="ScrollText" className={styles.iconLarge} />
               <Box>
                 <LqText variant="h3" weight="bold" className={styles.depositionTitle}>
                   {witnessMatch
@@ -588,7 +578,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           {dateMatch && (
             <Box className={styles.depositionDateBar}>
               <Flex align="center" gap="xs">
-                <Calendar className={styles.purpleDateIcon} />
+                <Icon name="Calendar" className={styles.purpleDateIcon} />
                 <LqText variant="xs" weight="bold" color="muted">
                   {dateMatch[1]}
                 </LqText>
@@ -657,7 +647,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         <Surface variant="glass-strong" className={styles.articleCard}>
           <Box className={styles.articleHeader}>
             <Flex align="center" gap="md">
-              <Newspaper className={styles.iconMedium} />
+              <Icon name="Newspaper" className={styles.iconMedium} />
               <Flex align="center" gap="md">
                 {sourceMatch && (
                   <LqText variant="small" weight="bold" className={styles.articleSource}>
@@ -733,7 +723,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           <details>
             <summary className={styles.detailsSummary}>
               <Flex align="center" gap="sm">
-                <Bot className={styles.typeIcon} />
+                <Icon name="Bot" className={styles.typeIcon} />
                 <LqText variant="small" weight="bold">
                   OCR EXTRACTED TEXT
                 </LqText>
@@ -762,7 +752,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
       <Box className={styles.tableWrap}>
         <Surface variant="glass" className={styles.tableHeader}>
           <Flex align="center" gap="sm">
-            <Landmark className={styles.typeIcon} />
+            <Icon name="Landmark" className={styles.typeIcon} />
             <LqText variant="xs" weight="bold" color="muted" className={styles.tableTitle}>
               Financial Data / Spreadsheet
             </LqText>
@@ -932,17 +922,17 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         <Flex align="center" gap="md">
           <Flex align="center" gap="sm" className={styles.toolbarMeta}>
             {doc.evidenceType === 'email' ? (
-              <Mail className={styles.typeIcon} />
+              <Icon name="Mail" className={styles.typeIcon} />
             ) : doc.evidenceType === 'legal' ? (
-              <Scale className={styles.typeIcon} />
+              <Icon name="Scale" className={styles.typeIcon} />
             ) : doc.evidenceType === 'deposition' ? (
-              <ScrollText className={styles.typeIcon} />
+              <Icon name="ScrollText" className={styles.typeIcon} />
             ) : doc.evidenceType === 'financial' ? (
-              <Landmark className={styles.typeIcon} />
+              <Icon name="Landmark" className={styles.typeIcon} />
             ) : doc.fileType?.match(/jpe?g|png|gif|bmp|webp/i) ? (
-              <FileImage className={styles.typeIcon} />
+              <Icon name="FileImage" className={styles.typeIcon} />
             ) : doc.fileType?.match(/csv|xls/i) ? (
-              <FileSpreadsheet className={styles.typeIcon} />
+              <Icon name="FileSpreadsheet" className={styles.typeIcon} />
             ) : null}
             <LqText variant="small" color="muted" weight="medium">
               {doc.evidenceType === 'email'
@@ -962,7 +952,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           </Flex>
           {doc.contentRefined && !showRaw && (
             <Box className={styles.refinedBadge}>
-              <Bot className={styles.iconSmall} />
+              <Icon name="Bot" className={styles.iconSmall} />
               <span>AI Refined</span>
             </Box>
           )}

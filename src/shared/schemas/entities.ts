@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { provenanceSchema } from './provenance';
 
 export const subjectCardStatsSchema = z.object({
   mentions: z.number(),
@@ -29,6 +30,7 @@ export const subjectCardTopPreviewSchema = z
     confidence: z.number(),
     year: z.number().optional(),
   })
+  .merge(provenanceSchema)
   .optional();
 
 export const subjectCardListItemSchema = z.object({
@@ -47,27 +49,29 @@ export const subjectsListResponseSchema = z.object({
   total: z.number(),
 });
 
-export const entityListItemSchema = z.object({
-  id: z.union([z.string(), z.number()]),
-  name: z.string(),
-  fullName: z.string(),
-  bio: z.string().optional(),
-  entityType: z.string(),
-  primaryRole: z.string(),
-  secondaryRoles: z.array(z.string()),
-  mentions: z.number(),
-  files: z.number(),
-  contexts: z.array(z.record(z.unknown())),
-  evidenceTypes: z.array(z.string()),
-  photos: z.array(z.record(z.unknown())),
-  significantPassages: z.array(z.record(z.unknown())),
-  likelihoodScore: z.enum(['HIGH', 'MEDIUM', 'LOW']),
-  redFlagScore: z.number(),
-  redFlagRating: z.number(),
-  redFlagPeppers: z.string(),
-  redFlagDescription: z.string(),
-  connectionsToEpstein: z.string(),
-});
+export const entityListItemSchema = z
+  .object({
+    id: z.union([z.string(), z.number()]),
+    name: z.string(),
+    fullName: z.string(),
+    bio: z.string().optional(),
+    entityType: z.string(),
+    primaryRole: z.string(),
+    secondaryRoles: z.array(z.string()),
+    mentions: z.number(),
+    files: z.number(),
+    contexts: z.array(z.record(z.unknown())),
+    evidenceTypes: z.array(z.string()),
+    photos: z.array(z.record(z.unknown())),
+    significantPassages: z.array(z.record(z.unknown())),
+    likelihoodScore: z.enum(['HIGH', 'MEDIUM', 'LOW']),
+    redFlagScore: z.number(),
+    redFlagRating: z.number(),
+    redFlagPeppers: z.string(),
+    redFlagDescription: z.string(),
+    connectionsToEpstein: z.string(),
+  })
+  .merge(provenanceSchema);
 
 export const entityListResponseSchema = z.object({
   data: z.array(entityListItemSchema),
@@ -95,18 +99,20 @@ export const entitySearchResponseSchema = z.object({
 });
 
 // Schema for GET /api/entities/:id/evidence
-const entityEvidenceItemSchema = z.object({
-  id: z.union([z.string(), z.number()]).nullable(),
-  documentId: z.union([z.string(), z.number()]).nullable(),
-  evidenceType: z.string(),
-  title: z.string(),
-  sourcePath: z.string(),
-  contentPreview: z.string(),
-  redFlagRating: z.number(),
-  confidence: z.number(),
-  role: z.string(),
-  flags: z.array(z.object({ type: z.string(), severity: z.string().nullable() })),
-});
+const entityEvidenceItemSchema = z
+  .object({
+    id: z.union([z.string(), z.number()]).nullable(),
+    documentId: z.union([z.string(), z.number()]).nullable(),
+    evidenceType: z.string(),
+    title: z.string(),
+    sourcePath: z.string(),
+    contentPreview: z.string(),
+    redFlagRating: z.number(),
+    confidence: z.number(),
+    role: z.string(),
+    flags: z.array(z.object({ type: z.string(), severity: z.string().nullable() })),
+  })
+  .merge(provenanceSchema);
 
 export const entityEvidenceResponseSchema = z
   .object({
@@ -140,31 +146,33 @@ export const entityEvidenceResponseSchema = z
   .nullable();
 
 // Schema for GET /api/entities/:id — single entity detail
-export const entityDetailSchema = z.object({
-  id: z.union([z.string(), z.number()]),
-  name: z.string(),
-  fullName: z.string(),
-  entityType: z.string(),
-  primaryRole: z.string(),
-  secondaryRoles: z.array(z.string()),
-  mentions: z.number(),
-  files: z.number(),
-  contexts: z.array(z.unknown()),
-  evidenceTypes: z.array(z.string()),
-  likelihoodScore: z.string(),
-  redFlagScore: z.number(),
-  redFlagRating: z.number(),
-  redFlagPeppers: z.string(),
-  redFlagDescription: z.string(),
-  connectionsToEpstein: z.string(),
-  fileReferences: z.array(z.unknown()),
-  timelineEvents: z.array(z.unknown()),
-  networkConnections: z.array(z.unknown()),
-  blackBookEntries: z.array(z.unknown()),
-  bio: z.string(),
-  description: z.string(),
-  photos: z.array(z.unknown()),
-  significantPassages: z.array(z.unknown()),
-  birthDate: z.string().nullable(),
-  deathDate: z.string().nullable(),
-});
+export const entityDetailSchema = z
+  .object({
+    id: z.union([z.string(), z.number()]),
+    name: z.string(),
+    fullName: z.string(),
+    entityType: z.string(),
+    primaryRole: z.string(),
+    secondaryRoles: z.array(z.string()),
+    mentions: z.number(),
+    files: z.number(),
+    contexts: z.array(z.unknown()),
+    evidenceTypes: z.array(z.string()),
+    likelihoodScore: z.string(),
+    redFlagScore: z.number(),
+    redFlagRating: z.number(),
+    redFlagPeppers: z.string(),
+    redFlagDescription: z.string(),
+    connectionsToEpstein: z.string(),
+    fileReferences: z.array(z.unknown()),
+    timelineEvents: z.array(z.unknown()),
+    networkConnections: z.array(z.unknown()),
+    blackBookEntries: z.array(z.unknown()),
+    bio: z.string(),
+    description: z.string(),
+    photos: z.array(z.unknown()),
+    significantPassages: z.array(z.unknown()),
+    birthDate: z.string().nullable(),
+    deathDate: z.string().nullable(),
+  })
+  .merge(provenanceSchema);

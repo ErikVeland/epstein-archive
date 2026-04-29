@@ -1,18 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Shield,
-  Database,
-  Search,
-  TrendingUp,
-  Camera,
-  FileText,
-  Users,
-  Target,
-  Activity,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 
-import { optimizedDataService } from '../../services/OptimizedDataService';
+import { optimizedDataService } from '@client/services/OptimizedDataService';
 import s from './About.module.css';
 
 interface AboutStats {
@@ -86,7 +76,7 @@ export const About: React.FC = () => {
       {/* Ingestion Progress Section */}
       <div className={s.panel}>
         <h2 className={s.sectionTitle}>
-          <Database size={24} className={s.iconPurple} />
+          <Icon name="Database" size="lg" className={s.iconPurple} />
           DOJ Disclosure Ingestion Status
         </h2>
         <div className={s.datasetsStack}>
@@ -141,7 +131,7 @@ export const About: React.FC = () => {
       {/* Mission Statement */}
       <div className={s.panelGradient}>
         <h2 className={s.sectionTitleNoGap}>
-          <Target size={24} className={s.iconRose} />
+          <Icon name="Target" size="lg" className={s.iconRose} />
           Mission
         </h2>
         <p className={s.missionText}>
@@ -156,7 +146,7 @@ export const About: React.FC = () => {
       {/* System Analysis & Improvements */}
       <div className={s.panel}>
         <h2 className={s.sectionTitle}>
-          <Shield size={24} className={s.iconEmerald} />
+          <Icon name="Shield" size="lg" className={s.iconEmerald} />
           System Analysis &amp; Improvements
         </h2>
         <p className={s.sectionBody}>
@@ -211,7 +201,7 @@ export const About: React.FC = () => {
 
       <div className={s.panel}>
         <h2 className={s.sectionTitle}>
-          <FileText size={24} className={s.accentIcon} />
+          <Icon name="FileText" size="lg" className={s.accentIcon} />
           How We Process Data
         </h2>
         <div className={s.processGrid}>
@@ -262,7 +252,7 @@ export const About: React.FC = () => {
       <div className={s.featuresGrid}>
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <Database size={32} className={s.accentIcon} />
+            <Icon name="Database" size="xl" className={s.accentIcon} />
             <h3 className={s.featureCardTitle}>Evidence Pipeline</h3>
           </div>
           <ul className={s.featureList}>
@@ -276,7 +266,7 @@ export const About: React.FC = () => {
 
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <Users size={32} className={s.iconPurple} />
+            <Icon name="Users" size="xl" className={s.iconPurple} />
             <h3 className={s.featureCardTitle}>Entity Network</h3>
           </div>
           <ul className={s.featureList}>
@@ -290,7 +280,7 @@ export const About: React.FC = () => {
 
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <Search size={32} className={s.iconGreen} />
+            <Icon name="Search" size="xl" className={s.iconGreen} />
             <h3 className={s.featureCardTitle}>Advanced Search</h3>
           </div>
           <ul className={s.featureList}>
@@ -304,7 +294,7 @@ export const About: React.FC = () => {
 
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <Camera size={32} className={s.iconRose} />
+            <Icon name="Camera" size="xl" className={s.iconRose} />
             <h3 className={s.featureCardTitle}>Media Browser</h3>
           </div>
           <ul className={s.featureList}>
@@ -318,7 +308,7 @@ export const About: React.FC = () => {
 
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <FileText size={32} className={s.iconAmber} />
+            <Icon name="FileText" size="xl" className={s.iconAmber} />
             <h3 className={s.featureCardTitle}>Document Analysis</h3>
           </div>
           <ul className={s.featureList}>
@@ -332,7 +322,7 @@ export const About: React.FC = () => {
 
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <TrendingUp size={32} className={s.accentIcon} />
+            <Icon name="TrendingUp" size="xl" className={s.accentIcon} />
             <h3 className={s.featureCardTitle}>Analytics Dashboard</h3>
           </div>
           <ul className={s.featureList}>
@@ -348,7 +338,7 @@ export const About: React.FC = () => {
       {/* Technical Stack */}
       <div className={s.panelGradient}>
         <h2 className={s.sectionTitle}>
-          <Shield size={24} className={s.accentIcon} />
+          <Icon name="Shield" size="lg" className={s.accentIcon} />
           Technical Architecture
         </h2>
         <div className={s.techGrid}>
@@ -397,7 +387,7 @@ export const About: React.FC = () => {
           <a href="/blackbook" className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Unredacted Black Book
-              <Search size={16} className={s.searchLinkIcon} />
+              <Icon name="Search" size="sm" className={s.searchLinkIcon} />
             </h3>
             <p className={s.sourceCardDesc}>
               1,101 contacts from Epstein's original 1990s address book.
@@ -407,7 +397,7 @@ export const About: React.FC = () => {
           <a href="/documents?q=Flight%20Log" className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Epstein Flight Logs
-              <Search size={16} className={s.searchLinkIcon} />
+              <Icon name="Search" size="sm" className={s.searchLinkIcon} />
             </h3>
             <p className={s.sourceCardDesc}>
               Pilot logs documenting travel on Epstein's private aircraft ("Lolita Express").
@@ -464,7 +454,7 @@ export const About: React.FC = () => {
           <a href="/documents?q=Indictment" className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Legal Indictments
-              <Search size={16} className={s.searchLinkIcon} />
+              <Icon name="Search" size="sm" className={s.searchLinkIcon} />
             </h3>
             <p className={s.sourceCardDesc}>
               2019 SDNY Sex Trafficking Indictment and related federal filings.
@@ -474,7 +464,7 @@ export const About: React.FC = () => {
           <a href="/documents?q=FBI" className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               FBI Investigation Files
-              <Search size={16} className={s.searchLinkIcon} />
+              <Icon name="Search" size="sm" className={s.searchLinkIcon} />
             </h3>
             <p className={s.sourceCardDesc}>
               Bureau 'Phase 1' release files regarding Epstein's activities.
@@ -502,7 +492,7 @@ export const About: React.FC = () => {
           <a href="/documents?q=Deposition" className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Civil Depositions
-              <Search size={16} className={s.searchLinkIcon} />
+              <Icon name="Search" size="sm" className={s.searchLinkIcon} />
             </h3>
             <p className={s.sourceCardDesc}>
               Testimony from Maxwell, Giuffre, Sjoberg, and others (2016).
@@ -512,7 +502,7 @@ export const About: React.FC = () => {
           <a href="/documents?q=Katie%20Johnson" className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Katie Johnson Lawsuit
-              <Search size={16} className={s.searchLinkIcon} />
+              <Icon name="Search" size="sm" className={s.searchLinkIcon} />
             </h3>
             <p className={s.sourceCardDesc}>
               Federal complaint alleging abuse by Epstein and Trump.
@@ -522,7 +512,7 @@ export const About: React.FC = () => {
           <a href="/documents?q=Birthday%20Book" className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               The Birthday Book
-              <Search size={16} className={s.searchLinkIcon} />
+              <Icon name="Search" size="sm" className={s.searchLinkIcon} />
             </h3>
             <p className={s.sourceCardDesc}>
               Photo book and messages given to Epstein for his 50th birthday.
@@ -534,7 +524,7 @@ export const About: React.FC = () => {
       {/* Community Acknowledgments */}
       <div className={s.panelGradientAlt}>
         <h2 className={s.sectionTitle}>
-          <Users size={24} className={s.iconPurple400} />
+          <Icon name="Users" size="lg" className={s.iconPurple400} />
           Community Acknowledgments
         </h2>
         <div className={s.ackBody}>
@@ -604,7 +594,7 @@ export const About: React.FC = () => {
       {/* Version History */}
       <div className={s.panel}>
         <h2 className={s.sectionTitle}>
-          <Activity size={24} className={s.accentIcon} />
+          <Icon name="Activity" size="lg" className={s.accentIcon} />
           Version History
         </h2>
         <div className={s.versionStack}>

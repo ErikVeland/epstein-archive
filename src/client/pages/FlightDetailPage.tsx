@@ -1,16 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowUpRight, ArrowDownRight, Globe, Users, Plane, Shield, MapPin } from 'lucide-react';
-import { Surface, Flex, Box, Stack, LqText, cn, Button } from '../design-system/lib';
-import { AddToInvestigationButton } from '../components/common/AddToInvestigationButton';
-import { MobileStackHeader } from '../components/layout/MobileStackHeader';
-import { useIsTouch } from '../hooks/useIsTouch';
+import Icon from '@client/components/common/Icon';
+import { Surface, Flex, Box, Stack, LqText, cn, Button } from '@client/design-system/lib';
+import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
+import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
+import { useIsTouch } from '@client/hooks/useIsTouch';
 const RouteMap = React.lazy(() =>
-  import('../components/visualizations/RouteMap').then((m) => ({ default: m.RouteMap })),
+  import('@client/components/visualizations/RouteMap').then((m) => ({ default: m.RouteMap })),
 );
-import type { Flight, AirportCoords } from '../components/flights/types';
-import panelStyles from '../components/flights/FlightDetailPanel.module.css';
+import type { Flight, AirportCoords } from '@client/components/flights/types';
+import panelStyles from '@client/components/flights/FlightDetailPanel.module.css';
 import styles from './FlightDetailPage.module.css';
 
 const formatDate = (dateStr: string): string =>
@@ -104,7 +104,7 @@ export const FlightDetailPage: React.FC = () => {
             <Surface variant="panel" className={panelStyles.infoCard}>
               <Stack gap="xs">
                 <Flex align="center" gap="xs">
-                  <ArrowUpRight size={14} className={panelStyles.iconDeparture} />
+                  <Icon name="ArrowUpRight" size="xs" className={panelStyles.iconDeparture} />
                   <LqText
                     variant="xs"
                     weight="bold"
@@ -126,7 +126,7 @@ export const FlightDetailPage: React.FC = () => {
             <Surface variant="panel" className={panelStyles.infoCard}>
               <Stack gap="xs">
                 <Flex align="center" gap="xs">
-                  <ArrowDownRight size={14} className={panelStyles.iconArrival} />
+                  <Icon name="ArrowDownRight" size="xs" className={panelStyles.iconArrival} />
                   <LqText
                     variant="xs"
                     weight="bold"
@@ -150,14 +150,14 @@ export const FlightDetailPage: React.FC = () => {
             <Surface variant="panel" className={panelStyles.mapSection}>
               <Flex align="center" justify="between" gap="sm" className={panelStyles.sectionHeader}>
                 <Flex align="center" gap="sm">
-                  <Globe size={16} color="var(--accent)" />
+                  <Icon name="Globe" size="sm" color="accent" />
                   <LqText variant="small" weight="bold">
                     Route Visualization
                   </LqText>
                 </Flex>
                 {isTouch && !showMap && departureCoords && arrivalCoords && (
                   <Button variant="glass" size="sm" onClick={() => setShowMap(true)}>
-                    <MapPin size={14} />
+                    <Icon name="MapPin" size="xs" />
                     Load Map
                   </Button>
                 )}
@@ -239,7 +239,7 @@ export const FlightDetailPage: React.FC = () => {
                       gap="md"
                       className={panelStyles.mapUnavailable}
                     >
-                      <MapPin size={32} color="var(--text-muted)" />
+                      <Icon name="MapPin" size="lg" color="gray" />
                       <LqText variant="xs" color="muted" align="center">
                         Complete route coordinates unavailable for visualization
                       </LqText>
@@ -253,7 +253,7 @@ export const FlightDetailPage: React.FC = () => {
           <Surface variant="panel" className={panelStyles.manifestSection}>
             <Flex align="center" justify="between" className={panelStyles.sectionHeader}>
               <Flex align="center" gap="sm">
-                <Users size={16} color="var(--accent)" />
+                <Icon name="Users" size="sm" color="accent" />
                 <LqText variant="small" weight="bold">
                   Passenger Manifest
                 </LqText>
@@ -284,7 +284,7 @@ export const FlightDetailPage: React.FC = () => {
                               panelStyles[(p.role || 'personnel').toLowerCase()],
                             )}
                           >
-                            <Shield size={12} />
+                            <Icon name="Shield" size="xs" />
                           </Surface>
                           {p.entity_id ? (
                             <Link
@@ -309,7 +309,7 @@ export const FlightDetailPage: React.FC = () => {
 
           <Surface variant="panel" className={panelStyles.aircraftSection}>
             <Flex align="center" gap="sm" className={panelStyles.sectionHeader}>
-              <Plane size={16} color="var(--accent)" />
+              <Icon name="Plane" size="sm" color="accent" />
               <LqText variant="small" weight="bold">
                 Aircraft Intelligence
               </LqText>

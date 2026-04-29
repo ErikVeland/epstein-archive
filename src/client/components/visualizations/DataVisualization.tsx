@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import { Info, Users, AlertTriangle, Activity, ShieldAlert } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { Person } from '../../types';
+import { Person } from '@client/types';
 import { TreeMap } from './TreeMap';
-import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
-import { useAnalytics } from '../../contexts/AnalyticsContextState';
-import { Button } from '../../design-system/lib';
+import { filterPeopleOnly, isJunkEntity } from '@client/utils/entityFilters';
+import { useAnalytics } from '@client/contexts/AnalyticsContextState';
+import { Button } from '@client/design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import styles from './DataVisualization.module.css';
 
@@ -265,7 +265,7 @@ export const DataVisualization: React.FC = () => {
   if (error) {
     return (
       <div className={`${styles.errorState} ${styles.glassPanel}`}>
-        <AlertTriangle className={styles.errorIcon} />
+        <Icon name="AlertTriangle" className={styles.errorIcon} />
         <p className={styles.errorText}>{error}</p>
         <Button variant="secondary" size="sm" onClick={onRetry} className={styles.retryButton}>
           Retry Analysis
@@ -281,17 +281,20 @@ export const DataVisualization: React.FC = () => {
         {/* Top Entities Bar Chart - Enhanced */}
         <div className={`${styles.glassCard} surface-panel`}>
           <div className={styles.overlayIcon}>
-            <Activity className={`${styles.overlayIconGraphic} ${styles.overlayAccent}`} />
+            <Icon
+              name="Activity"
+              className={`${styles.overlayIconGraphic} ${styles.overlayAccent}`}
+            />
           </div>
 
           <h3 className={styles.cardTitle}>
-            <Users className={`${styles.titleIcon} ${styles.titleAccent}`} />
+            <Icon name="Users" className={`${styles.titleIcon} ${styles.titleAccent}`} />
             <span className={styles.titleAccent}>Top Mentioned Individuals</span>
           </h3>
 
           {/* Microcopy for Top Entities Chart */}
           <div className={styles.microcopy}>
-            <Info className={`${styles.microcopyIcon} ${styles.titleAccent}`} />
+            <Icon name="Info" className={`${styles.microcopyIcon} ${styles.titleAccent}`} />
             <span>
               Individuals with the highest frequency of appearances across all analyzed documents.
               Colors indicate risk level. Click to view details.
@@ -366,16 +369,19 @@ export const DataVisualization: React.FC = () => {
         {/* Risk Distribution Pie Chart */}
         <div className={`${styles.glassCard} surface-panel`}>
           <div className={styles.overlayIcon}>
-            <ShieldAlert className={`${styles.overlayIconGraphic} ${styles.overlayWarning}`} />
+            <Icon
+              name="ShieldAlert"
+              className={`${styles.overlayIconGraphic} ${styles.overlayWarning}`}
+            />
           </div>
 
           <h3 className={styles.cardTitle}>
-            <AlertTriangle className={`${styles.titleIcon} ${styles.titleWarning}`} />
+            <Icon name="AlertTriangle" className={`${styles.titleIcon} ${styles.titleWarning}`} />
             <span>Risk Level Distribution</span>
           </h3>
           {/* Microcopy for Risk Distribution Chart */}
           <div className={styles.microcopy}>
-            <Info className={`${styles.microcopyIcon} ${styles.titleWarning}`} />
+            <Icon name="Info" className={`${styles.microcopyIcon} ${styles.titleWarning}`} />
             <span>
               Breakdown of entities by Red Flag Index score (0-5), indicating the density of
               connection to illicit activities.
@@ -423,7 +429,7 @@ export const DataVisualization: React.FC = () => {
       <div className={`${styles.glassCard} surface-panel`}>
         <div className={styles.treeHeader}>
           <h3 className={styles.cardTitle}>
-            <Activity className={`${styles.titleIcon} ${styles.titlePurple}`} />
+            <Icon name="Activity" className={`${styles.titleIcon} ${styles.titlePurple}`} />
             <span className={styles.titleGradient}>Interactive Entity Map</span>
           </h3>
           <span className={styles.treeBadge}>Top 50 by Mentions</span>
@@ -431,7 +437,7 @@ export const DataVisualization: React.FC = () => {
 
         {/* Microcopy for Tree Map */}
         <div className={styles.microcopy}>
-          <Info className={`${styles.microcopyIcon} ${styles.titlePurple}`} />
+          <Icon name="Info" className={`${styles.microcopyIcon} ${styles.titlePurple}`} />
           <span>
             Visual representation of entity prominence. Box size correlates to mention frequency.
             Click any box to view detailed evidence.
@@ -443,7 +449,7 @@ export const DataVisualization: React.FC = () => {
             fallback={
               <div className={styles.treeFallback}>
                 <div>
-                  <AlertTriangle className={styles.treeFallbackIcon} />
+                  <Icon name="AlertTriangle" className={styles.treeFallbackIcon} />
                   <p className={styles.treeFallbackTitle}>TreeMap Rendering Failed</p>
                   <p className={styles.treeFallbackText}>
                     The entity data could not be visualized.

@@ -1,6 +1,6 @@
 import React from 'react';
 import { VideoBrowser } from './VideoBrowser';
-import styles from '../../App.module.css';
+import styles from '@client/App.module.css';
 
 const VideoTab: React.FC = () => {
   return (

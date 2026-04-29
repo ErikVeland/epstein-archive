@@ -1,24 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Bold,
-  Italic,
-  Link2,
-  List,
-  ListChecks,
-  Quote,
-  Eye,
-  Edit3,
-  Save,
-  Loader2,
-  Download,
-  Sparkles,
-  MessageSquare,
-  Activity,
-  Database,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { format } from 'date-fns';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 
 // UI Library
 import {
@@ -31,7 +15,7 @@ import {
   Grid,
   Badge,
   Textarea,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './EvidenceNotebook.module.css';
 
 interface EvidenceRecord {
@@ -380,7 +364,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             size="sm"
             onClick={() => window.open(`/api/investigations/${investigationId}/briefing`, '_blank')}
           >
-            <Download size={14} className={styles.mr2} /> Publish Intelligence Briefing
+            <Icon name="Download" size="sm" className={styles.mr2} /> Publish Intelligence Briefing
           </Button>
         </Flex>
       </Surface>
@@ -397,23 +381,23 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     size="sm"
                     onClick={() => setPreviewMode(false)}
                   >
-                    <Edit3 size={12} className={styles.mr1} /> EDITOR
+                    <Icon name="Edit3" size="xs" className={styles.mr1} /> EDITOR
                   </Button>
                   <Button
                     variant={previewMode ? 'primary' : 'ghost'}
                     size="sm"
                     onClick={() => setPreviewMode(true)}
                   >
-                    <Eye size={12} className={styles.mr1} /> PREVIEW
+                    <Icon name="Eye" size="xs" className={styles.mr1} /> PREVIEW
                   </Button>
                 </Flex>
 
                 <Flex align="center" gap="md">
                   <Flex align="center" gap="xs">
                     {saveState === 'saving' ? (
-                      <Loader2 size={12} className={styles.autoGen50} />
+                      <Icon name="Loader2" size="xs" className={styles.autoGen50} />
                     ) : (
-                      <Save size={12} className={styles.autoGen51} />
+                      <Icon name="Save" size="xs" className={styles.autoGen51} />
                     )}
                     <LqText variant="xs" color="muted" weight="bold">
                       {saveState === 'saving'
@@ -439,12 +423,12 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               {!previewMode && (
                 <Flex gap="xs" p="sm" className={styles.autoGen53}>
                   {[
-                    { i: Bold, t: 'Bold', p: '**', s: '**', ph: 'text' },
-                    { i: Italic, t: 'Italic', p: '*', s: '*', ph: 'text' },
-                    { i: Quote, t: 'Quote', p: '> ', s: '', ph: 'quote' },
-                    { i: List, t: 'List', p: '- ', s: '', ph: 'item' },
-                    { i: ListChecks, t: 'Checklist', p: '- [ ] ', s: '', ph: 'task' },
-                    { i: Link2, t: 'Link', p: '[', s: '](https://)', ph: 'url' },
+                    { iconName: 'Bold', t: 'Bold', p: '**', s: '**', ph: 'text' },
+                    { iconName: 'Italic', t: 'Italic', p: '*', s: '*', ph: 'text' },
+                    { iconName: 'Quote', t: 'Quote', p: '> ', s: '', ph: 'quote' },
+                    { iconName: 'List', t: 'List', p: '- ', s: '', ph: 'item' },
+                    { iconName: 'ListChecks', t: 'Checklist', p: '- [ ] ', s: '', ph: 'task' },
+                    { iconName: 'Link2', t: 'Link', p: '[', s: '](https://)', ph: 'url' },
                   ].map((b) => (
                     <Button
                       key={b.t}
@@ -453,7 +437,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                       onClick={() => insertToken(b.p, b.s, b.ph)}
                       title={b.t}
                     >
-                      <b.i size={12} />
+                      <Icon name={b.iconName} size="xs" />
                     </Button>
                   ))}
                   <Box className={styles.autoGen54} />
@@ -493,7 +477,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             <Surface variant="glass" p="lg" className={styles.autoGen56}>
               <Stack gap="md">
                 <Flex align="center" gap="md">
-                  <Database size={16} className={styles.autoGen57} />
+                  <Icon name="Database" size="sm" className={styles.autoGen57} />
                   <LqText
                     variant="small"
                     weight="bold"
@@ -538,7 +522,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             <Surface variant="glass" p="lg" className={styles.autoGen58}>
               <Stack gap="md">
                 <Flex align="center" gap="md">
-                  <Activity size={16} className={styles.autoGen59} />
+                  <Icon name="Activity" size="sm" className={styles.autoGen59} />
                   <LqText
                     variant="small"
                     weight="bold"
@@ -562,7 +546,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
           {/* Annotation Stream */}
           <Stack gap="md">
             <Flex align="center" gap="md">
-              <MessageSquare size={16} className={styles.autoGen60} />
+              <Icon name="MessageSquare" size="sm" className={styles.autoGen60} />
               <LqText
                 variant="small"
                 weight="bold"
@@ -576,7 +560,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
 
             {annotations.filter((a) => a.source === 'evidence').length === 0 ? (
               <Surface variant="glass" p="xxxl" className={styles.autoGen62}>
-                <Sparkles size={32} className={styles.autoGen63} />
+                <Icon name="Sparkles" size="xl" className={styles.autoGen63} />
                 <LqText variant="small" color="muted">
                   No evidence signals correlated. Annotate signals in the evidence suite to populate
                   this stream.
@@ -596,7 +580,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                       <Flex justify="between" align="start">
                         <Stack gap="sm" className={styles.autoGen65}>
                           <Flex align="center" gap="sm">
-                            <Activity size={12} className={styles.autoGen66} />
+                            <Icon name="Activity" size="xs" className={styles.autoGen66} />
                             <LqText variant="small" weight="bold" color="muted">
                               EVIDENCE SIGNAL #{a.evidenceId}
                             </LqText>

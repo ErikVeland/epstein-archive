@@ -7,21 +7,7 @@ import {
   ListChildComponentProps,
   areEqual,
 } from 'react-window';
-import {
-  Image as ImageIcon,
-  Share2,
-  Check,
-  Users,
-  ArrowUp,
-  ArrowDown,
-  LayoutGrid,
-  List as ListIcon,
-  CheckSquare,
-  X,
-  AlertTriangle,
-  Clock,
-  HardDrive,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import {
   Surface,
   Flex,
@@ -32,21 +18,24 @@ import {
   SearchField,
   Select,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import AutoSizer from '../common/AutoSizer';
-import { MediaImage } from '../../types/media.types';
+import { MediaImage } from '@client/types/media.types';
 import MediaViewerModal from './MediaViewerModal';
 import BatchToolbar from '../common/BatchToolbar';
 import LazyImage from '../common/LazyImage';
 import { SensitiveContent } from '../common/SensitiveContent';
-import { useAuth } from '../../contexts/AuthContext';
-import { Person } from '../../types';
-import { PhotoSortField as SortField, usePhotoBrowserData } from '../../hooks/usePhotoBrowserData';
+import { useAuth } from '@client/contexts/AuthContext';
+import { Person } from '@client/types';
+import {
+  PhotoSortField as SortField,
+  usePhotoBrowserData,
+} from '@client/hooks/usePhotoBrowserData';
 import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { SEO } from '../common/SEO';
 import { EmptyCorpus } from '../common/EmptyCorpus';
-import { useListScrollRestoration } from '../../hooks/useListScrollRestoration';
+import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
 import styles from './PhotoBrowser.module.css';
 
 const css = <T,>(style: T) => style;
@@ -109,7 +98,7 @@ const GridCell = React.memo(
           {isBatchMode && (
             <Surface variant="solid" className={styles.selectionBadge}>
               <LqText variant="xs" weight="bold" color="primary">
-                {isSelected ? <Check size={10} /> : index + 1}
+                {isSelected ? <Icon name="Check" size="xs" /> : index + 1}
               </LqText>
             </Surface>
           )}
@@ -166,7 +155,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
           {isBatchMode && (
             <Surface variant="solid" className={styles.listSelectionBadge}>
               <LqText variant="xs" weight="bold" color="primary">
-                {isSelected ? <Check size={10} /> : index + 1}
+                {isSelected ? <Icon name="Check" size="xs" /> : index + 1}
               </LqText>
             </Surface>
           )}
@@ -197,13 +186,13 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
 
           <Flex align="center" gap="lg" className={styles.listMeta}>
             <Flex align="center" gap="xs">
-              <Clock size={12} className={styles.mutedIcon} />
+              <Icon name="Clock" size="xs" className={styles.mutedIcon} />
               <LqText variant="xxxs" color="muted">
                 {formatDate(img.dateTaken || img.dateAdded)}
               </LqText>
             </Flex>
             <Flex align="center" gap="xs">
-              <HardDrive size={12} className={styles.mutedIcon} />
+              <Icon name="HardDrive" size="xs" className={styles.mutedIcon} />
               <LqText variant="xxxs" color="muted">
                 {formatFileSize(img.fileSize)}
               </LqText>
@@ -524,7 +513,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             {/* Identity */}
             <Flex align="center" gap="md">
               <Box className={styles.iconBox}>
-                <ImageIcon size={24} />
+                <Icon name="Image" size="xl" />
               </Box>
               <Stack gap="none">
                 <LqText variant="h2" weight="bold">
@@ -579,7 +568,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
                     title="Filter for people"
                   >
-                    <Users size={14} />
+                    <Icon name="Users" size="sm" />
                   </Button>
                   <Button
                     variant={!excludeTextScans ? 'accent-solid' : 'glass'}
@@ -587,7 +576,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     onClick={() => setExcludeTextScans(!excludeTextScans)}
                     title={excludeTextScans ? 'Show Archival Scans' : 'Hide Archival Scans'}
                   >
-                    <ImageIcon size={14} />
+                    <Icon name="Image" size="sm" />
                   </Button>
                 </Flex>
 
@@ -611,7 +600,11 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     size="sm"
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                   >
-                    {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                    {sortOrder === 'asc' ? (
+                      <Icon name="ArrowUp" size="sm" />
+                    ) : (
+                      <Icon name="ArrowDown" size="sm" />
+                    )}
                   </Button>
                 </Flex>
 
@@ -621,14 +614,14 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     size="sm"
                     onClick={() => setViewMode('tiles')}
                   >
-                    <LayoutGrid size={14} />
+                    <Icon name="LayoutGrid" size="sm" />
                   </Button>
                   <Button
                     variant={viewMode === 'rows' ? 'accent-solid' : 'glass'}
                     size="sm"
                     onClick={() => setViewMode('rows')}
                   >
-                    <ListIcon size={14} />
+                    <Icon name="List" size="sm" />
                   </Button>
                 </Flex>
 
@@ -639,9 +632,9 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                   title={showCopied ? 'Link copied!' : 'Share'}
                 >
                   {showCopied ? (
-                    <Check size={14} className={styles.shareSuccess} />
+                    <Icon name="Check" size="sm" className={styles.shareSuccess} />
                   ) : (
-                    <Share2 size={14} />
+                    <Icon name="Share2" size="sm" />
                   )}
                 </Button>
 
@@ -651,7 +644,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     size="sm"
                     onClick={isBatchMode ? exitBatchMode : enterBatchMode}
                   >
-                    <CheckSquare size={14} />
+                    <Icon name="CheckSquare" size="sm" />
                     <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
                   </Button>
                 )}
@@ -694,7 +687,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             {selectedAlbum && currentAlbum?.name.match(/Fake|Unconfirmed/i) && (
               <Surface variant="glass-strong" className={styles.warningBanner}>
                 <Flex align="start" gap="md">
-                  <AlertTriangle size={24} color="var(--lq-danger)" />
+                  <Icon name="AlertTriangle" size="lg" color="danger" />
                   <Stack gap="xs">
                     <LqText variant="small" weight="bold" color="danger">
                       {currentAlbum.name.includes('Fake')
@@ -725,7 +718,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                 {selectedTag && (
                   <Button variant="glass-highlight" size="sm" onClick={() => setSelectedTag(null)}>
                     <span>{selectedTagLabel}</span>
-                    <X size={10} />
+                    <Icon name="X" size="xs" />
                   </Button>
                 )}
                 {selectedPerson && (
@@ -735,7 +728,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     onClick={() => setSelectedPerson(null)}
                   >
                     <span>{selectedPersonLabel}</span>
-                    <X size={10} />
+                    <Icon name="X" size="xs" />
                   </Button>
                 )}
                 <Button

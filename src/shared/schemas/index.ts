@@ -11,3 +11,4 @@ export * from './stats';
 export * from './exportManifest';
 export * from './entityTabs';
 export * from './relationships';
+export * from './provenance';

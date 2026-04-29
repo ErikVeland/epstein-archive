@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useMemory } from '../../contexts/MemoryContext';
-import type { MemoryEntry, MemorySearchFilters } from '../../types/memory';
+import { useMemory } from '@client/contexts/MemoryContext';
+import type { MemoryEntry, MemorySearchFilters } from '@client/types/memory';
 import s from './MemoryDashboard.module.css';
 
-import { Button, Input, NativeSelect, TextArea } from '../../design-system/lib';
+import { Button, Input, NativeSelect, TextArea } from '@client/design-system/lib';
 
 const MemoryDashboard: React.FC = () => {
   const {

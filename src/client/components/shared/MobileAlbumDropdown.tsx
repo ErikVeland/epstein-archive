@@ -1,7 +1,7 @@
 import React from 'react';
-import { Folder, ChevronUp, ChevronDown } from 'lucide-react';
-import { Surface, Button, Flex, Box, LqText, Stack, Badge } from '../../design-system/lib';
-import type { MediaAlbum } from '../../hooks/useMediaBrowser';
+import Icon from '@client/components/common/Icon';
+import { Surface, Button, Flex, Box, LqText, Stack, Badge } from '@client/design-system/lib';
+import type { MediaAlbum } from '@client/hooks/useMediaBrowser';
 import styles from './MobileAlbumDropdown.module.css';
 
 interface MobileAlbumDropdownProps {
@@ -37,12 +37,12 @@ export const MobileAlbumDropdown: React.FC<MobileAlbumDropdownProps> = ({
       <Button variant="glass" onClick={onToggle} className={styles.trigger}>
         <Flex justify="between" align="center" grow>
           <Flex align="center" gap="sm">
-            <Folder size={16} />
+            <Icon name="Folder" size="sm" />
             <LqText variant="small" weight="bold">
               {displayName}
             </LqText>
           </Flex>
-          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          {isOpen ? <Icon name="ChevronUp" size="sm" /> : <Icon name="ChevronDown" size="sm" />}
         </Flex>
       </Button>
 

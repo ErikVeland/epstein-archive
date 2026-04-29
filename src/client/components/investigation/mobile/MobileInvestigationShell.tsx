@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import type {
   Investigation,
   TimelineEvent,
@@ -8,7 +8,7 @@ import type {
   EvidenceItem,
   Hypothesis,
   Annotation,
-} from '../../../../types/investigation';
+} from '@client/types/investigation';
 import { MobileBottomNav } from './MobileBottomNav';
 import { EvidenceCaptureSheet } from './EvidenceCaptureSheet';
 import { MobileBoardView } from './MobileBoardView';
@@ -24,7 +24,7 @@ import { InvestigationExportTools } from '../InvestigationExportTools';
 import { EvidencePacketExporter } from '../EvidencePacketExporter';
 import styles from './MobileInvestigationShell.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 type ActiveDest = 'board' | 'evidence' | 'activity';
 
@@ -177,7 +177,7 @@ export function MobileInvestigationShell({
       <div className={styles.header}>
         <span className={styles.invTitle}>{selectedInvestigation.title}</span>
         <Button unstyled className={styles.notifBtn} type="button" aria-label="Notifications">
-          <Bell size={20} />
+          <Icon name="Bell" size="md" />
         </Button>
       </div>
 

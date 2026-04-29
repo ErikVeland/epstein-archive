@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import express from 'express';
 import { claimTriplesRepository } from '../db/claimTriplesRepository.js';
 import { authenticateRequest, type AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 
 const verifyClaimSchema = z.object({
   params: z.object({

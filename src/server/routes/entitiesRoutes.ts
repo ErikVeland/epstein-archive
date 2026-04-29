@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import { z } from 'zod';
 import { entitiesRepository } from '../db/entitiesRepository.js';
 import { mediaRepository } from '../db/mediaRepository.js';
@@ -21,7 +21,7 @@ import path from 'path';
 import type { SearchFilters, SortOption } from '../../types.js';
 import type { EntityRow } from '../db/rowTypes.js';
 
-const router = Router();
+const router = express.Router();
 
 router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
   try {

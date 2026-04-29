@@ -3,19 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import {
-  Shield,
-  User,
-  MapPin,
-  Maximize2,
-  Minimize2,
-  Navigation,
-  AlertTriangle,
-} from 'lucide-react';
-import { apiClient } from '../../services/apiClient';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 import styles from './InteractiveEntityMap.module.css';
 
 // Fix for default marker icon issues
@@ -154,7 +146,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
       {error && (
         <div className={styles.errorOverlay}>
           <div className={styles.errorCard}>
-            <AlertTriangle className={styles.alertIconLg} />
+            <Icon name="AlertTriangle" className={styles.alertIconLg} />
             <p className={styles.errorText}>{error}</p>
             <Button
               variant="secondary"
@@ -172,7 +164,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
         fallback={
           <div className={styles.fallback}>
             <div className={styles.fallbackCard}>
-              <AlertTriangle className={styles.alertIconLg} />
+              <Icon name="AlertTriangle" className={styles.alertIconLg} />
               <p className={styles.fallbackTitle}>Map Rendering Failed</p>
               <p className={styles.fallbackBody}>Entity markers may be corrupted.</p>
             </div>
@@ -218,11 +210,11 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
 
                   <div className={styles.popupMeta}>
                     <div className={styles.popupRow}>
-                      <User className={styles.popupIcon} />
+                      <Icon name="User" className={styles.popupIcon} />
                       <span>{entity.type}</span>
                     </div>
                     <div className={styles.popupRow}>
-                      <Shield className={styles.popupIcon} />
+                      <Icon name="Shield" className={styles.popupIcon} />
                       <span>{entity.mentions} Mentions</span>
                     </div>
                   </div>
@@ -235,7 +227,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
                     }}
                     className={styles.profileButton}
                   >
-                    View Profile <Navigation className={styles.buttonIcon} />
+                    View Profile <Icon name="Navigation" className={styles.buttonIcon} />
                   </Button>
                 </div>
               </Popup>
@@ -247,7 +239,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
       {/* Stats Overlay */}
       <div className={styles.statsOverlay}>
         <div className={styles.statsRow}>
-          <MapPin className={styles.statsIcon} />
+          <Icon name="MapPin" className={styles.statsIcon} />
           <span className={styles.statsValue}>{entities.length} Locations</span>
         </div>
         {entities.length >= 500 && <div className={styles.statsWarning}>Cap Reached (Top 500)</div>}
@@ -260,7 +252,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
       <div className={styles.expandedShell}>
         <div className={styles.expandedHeader}>
           <h2 className={styles.expandedTitle}>
-            <MapPin className={styles.headerIcon} />
+            <Icon name="MapPin" className={styles.headerIcon} />
             Global Entity Map
           </h2>
           <Button
@@ -269,7 +261,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
             onClick={() => setIsExpanded(false)}
             className={styles.collapseButton}
           >
-            <Minimize2 className={styles.headerIcon} />
+            <Icon name="Minimize2" className={styles.headerIcon} />
           </Button>
         </div>
         <div className={styles.expandedBody}>{mapContent}</div>
@@ -288,7 +280,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
           title="Expand Map"
           aria-label="Expand map"
         >
-          <Maximize2 className={styles.expandIcon} />
+          <Icon name="Maximize2" className={styles.expandIcon} />
         </Button>
       </div>
       {mapContent}

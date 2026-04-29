@@ -1,19 +1,8 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import {
-  Play,
-  Pause,
-  SkipBack,
-  SkipForward,
-  Volume2,
-  VolumeX,
-  Shield,
-  Share2,
-  Search,
-  List as ListIcon,
-} from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../common/CloseButton';
 
-import { Box, Button, Flex, Input, LqText, Stack, Surface, cn } from '../../design-system/lib';
+import { Box, Button, Flex, Input, LqText, Stack, Surface, cn } from '@client/design-system/lib';
 import styles from './AudioPlayer.module.css';
 
 const css = <T,>(style: T) => style;
@@ -190,7 +179,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <Surface variant="glass-highlight" className={styles.warningCard}>
             <Stack gap="lg" align="center" textAlign="center">
               <Box className={styles.warningIconBox}>
-                <Shield size={48} color="var(--lq-error)" />
+                <Icon name="Shield" size="xl" color="danger" />
               </Box>
               <Stack gap="sm">
                 <LqText variant="h3" weight="bold">
@@ -221,7 +210,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <Flex justify="between" align="center" px="md" py="sm" fullWidth>
             <Flex align="center" gap="md">
               <Box className={styles.iconBox}>
-                <Volume2 size={16} />
+                <Icon name="Volume2" size="sm" />
               </Box>
               <Stack gap="none">
                 <LqText variant="small" weight="bold">
@@ -234,10 +223,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             </Flex>
             <Flex align="center" gap="sm">
               <Button variant="ghost" size="sm" onClick={handleShare}>
-                <Share2 size={16} />
+                <Icon name="Share2" size="sm" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => setShowTranscript(!showTranscript)}>
-                <ListIcon size={16} />
+                <Icon name="List" size="sm" />
               </Button>
               {onClose && <CloseButton onClick={onClose} />}
             </Flex>
@@ -290,23 +279,23 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
               <Flex justify="center" align="center" gap="xl">
                 <Button variant="ghost" size="lg" onClick={() => seek(currentTime - 10)}>
-                  <SkipBack size={24} />
+                  <Icon name="SkipBack" size="lg" />
                 </Button>
                 <Button variant="primary" size="lg" className={styles.playBtn} onClick={togglePlay}>
                   {isPlaying ? (
-                    <Pause size={32} fill="currentColor" />
+                    <Icon name="Pause" size="xl" fill="currentColor" />
                   ) : (
-                    <Play size={32} fill="currentColor" />
+                    <Icon name="Play" size="xl" fill="currentColor" />
                   )}
                 </Button>
                 <Button variant="ghost" size="lg" onClick={() => seek(currentTime + 10)}>
-                  <SkipForward size={24} />
+                  <Icon name="SkipForward" size="lg" />
                 </Button>
               </Flex>
 
               <Flex justify="between" align="center">
                 <Flex align="center" gap="md" className={styles.volumeArea}>
-                  {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+                  {isMuted ? <Icon name="VolumeX" size="sm" /> : <Icon name="Volume2" size="sm" />}
                   <Input
                     type="range"
                     min="0"
@@ -345,7 +334,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               <Stack fullHeight gap="none">
                 <Box p="md" style={css({ borderBottom: '1px solid var(--lq-border-dim)' })}>
                   <Box className={styles.searchBox}>
-                    <Search size={14} className={styles.searchIcon} />
+                    <Icon name="Search" size="sm" className={styles.searchIcon} />
                     <Input
                       type="text"
                       placeholder="Search signals..."

@@ -2,8 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useDragControls, useAnimation } from 'framer-motion';
 import type { PanInfo } from 'framer-motion';
-import { cn } from '../../utils/cn';
-import { useScrollLock } from '../../hooks/useScrollLock';
+import { cn } from '@client/utils/cn';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import s from './LiquidSheet.module.css';
 
 interface LiquidSheetProps {

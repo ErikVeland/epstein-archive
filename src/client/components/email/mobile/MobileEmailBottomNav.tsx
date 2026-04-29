@@ -1,7 +1,7 @@
-import { Inbox, Mail, MessageSquare, SlidersHorizontal } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './MobileEmailBottomNav.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 export type EmailDest = 'mailboxes' | 'threads' | 'message';
 
@@ -28,7 +28,7 @@ export function MobileEmailBottomNav({
         onClick={() => onSetActiveDest('mailboxes')}
         aria-label="Mailboxes"
       >
-        <Inbox size={20} />
+        <Icon name="Inbox" size="md" />
         <span className={styles.label}>Mailboxes</span>
       </Button>
 
@@ -38,7 +38,7 @@ export function MobileEmailBottomNav({
         onClick={() => onSetActiveDest('threads')}
         aria-label="Threads"
       >
-        <Mail size={20} />
+        <Icon name="Mail" size="md" />
         <span className={styles.label}>Threads</span>
       </Button>
 
@@ -51,7 +51,7 @@ export function MobileEmailBottomNav({
         aria-label="Message"
         aria-disabled={!hasSelectedThread}
       >
-        <MessageSquare size={20} />
+        <Icon name="MessageSquare" size="md" />
         <span className={styles.label}>Message</span>
       </Button>
 
@@ -62,7 +62,7 @@ export function MobileEmailBottomNav({
         aria-label={`Filters${activeFilterCount > 0 ? `, ${activeFilterCount} active` : ''}`}
       >
         <span className={styles.filterIconWrap}>
-          <SlidersHorizontal size={20} />
+          <Icon name="SlidersHorizontal" size="md" />
           {activeFilterCount > 0 && <span className={styles.filterBadge}>{activeFilterCount}</span>}
         </span>
         <span className={styles.label}>Filters</span>

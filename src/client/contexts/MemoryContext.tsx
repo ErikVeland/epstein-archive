@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { MemoryEntry, MemorySearchFilters } from '../types/memory';
+import { MemoryEntry, MemorySearchFilters } from '@client/types/memory';
 
 // Define the context state and actions
 interface MemoryState {

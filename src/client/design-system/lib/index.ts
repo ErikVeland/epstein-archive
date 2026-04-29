@@ -1,4 +1,4 @@
-export { cn } from '../../utils/cn';
+export { cn } from '@client/utils/cn';
 export { resolveSpace, resolveSize, buildSpacingStyles } from './resolveSpace';
 export type { SpaceValue, SizeValue, SpacingProps, SizingProps } from './resolveSpace';
 export * from './tokens';
@@ -16,7 +16,7 @@ export * from '../components/typography/Text';
 
 // Primitives
 export * from '../components/Button';
-export * from '../components/forms/TextInput';
+export { TextInput, SearchField, Textarea } from '../components/forms/TextInput';
 export * from '../components/forms/Input';
 export * from '../components/forms/TextArea';
 export * from '../components/forms/Range';

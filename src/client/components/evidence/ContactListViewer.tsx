@@ -5,11 +5,11 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Search, Phone, Mail, MapPin, User } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './ContactListViewer.module.css';
 
-import { Input } from '../../design-system/lib';
+import { Input } from '@client/design-system/lib';
 
 interface ContactListViewerProps {
   evidence: {
@@ -92,7 +92,7 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
       {/* Search */}
       <div className={styles.searchWrapper}>
         <div className={styles.searchInputWrapper}>
-          <Search className={styles.searchIcon} />
+          <Icon name="Search" className={styles.searchIcon} />
           <Input
             type="text"
             placeholder="Search contacts..."
@@ -108,28 +108,28 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
         {filteredContacts.map((contact, index) => (
           <div key={index} className={styles.card}>
             <div className={styles.cardInner}>
-              <User className={styles.userIcon} />
+              <Icon name="User" className={styles.userIcon} />
               <div className={styles.cardContent}>
                 <h4 className={styles.contactName}>{contact.name}</h4>
 
                 <div className={styles.contactDetails}>
                   {contact.phone && (
                     <div className={styles.contactDetailRow}>
-                      <Phone className={styles.detailIcon} />
+                      <Icon name="Phone" className={styles.detailIcon} />
                       {contact.phone}
                     </div>
                   )}
 
                   {contact.email && (
                     <div className={styles.contactDetailRow}>
-                      <Mail className={styles.detailIcon} />
+                      <Icon name="Mail" className={styles.detailIcon} />
                       {contact.email}
                     </div>
                   )}
 
                   {contact.address && (
                     <div className={styles.contactDetailRowAddress}>
-                      <MapPin className={styles.detailIconAddress} />
+                      <Icon name="MapPin" className={styles.detailIconAddress} />
                       <span className={styles.addressText}>{contact.address}</span>
                     </div>
                   )}

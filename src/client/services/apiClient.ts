@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { z } from 'zod';
-import { Person } from '../types';
+import { Person } from '@client/types';
 import type { SearchFilters, PaginatedResponse } from './optimizedDataLoader';
 import type {
   EmailMailboxesResponseDto,
@@ -26,8 +26,8 @@ import {
   investigationEvidenceListResponseSchema,
   subjectsListResponseSchema,
 } from '@shared/contracts';
-import { Semaphore, isHeavyRoute } from '../utils/semaphore';
-import { singleFlight, stableStringify } from '../utils/singleFlight';
+import { Semaphore, isHeavyRoute } from '@client/utils/semaphore';
+import { singleFlight, stableStringify } from '@client/utils/singleFlight';
 
 const globalSemaphore = new Semaphore(6);
 const heavySemaphore = new Semaphore(2);
@@ -335,7 +335,7 @@ class ApiClient {
 
       const duration = performance.now() - startTime;
       if (typeof window !== 'undefined') {
-        import('../utils/performanceMonitor.js')
+        import('@client/utils/performanceMonitor.js')
           .then(({ PerformanceMonitor }) => {
             PerformanceMonitor.logAPICall(
               url,
@@ -363,7 +363,7 @@ class ApiClient {
 
       const duration = performance.now() - startTime;
       if (typeof window !== 'undefined') {
-        import('../utils/performanceMonitor.js')
+        import('@client/utils/performanceMonitor.js')
           .then(({ PerformanceMonitor }) => {
             PerformanceMonitor.logAPICall(url, duration, 0, 0);
           })
@@ -1159,7 +1159,7 @@ class ApiClient {
     page?: number;
     limit?: number;
     searchQuery?: string;
-  }): Promise<import('../types/memory').MemorySearchResult> {
+  }): Promise<import('@client/types/memory').MemorySearchResult> {
     const usp = new URLSearchParams();
     if (params.page) usp.append('page', String(params.page));
     if (params.limit) usp.append('limit', String(params.limit));
@@ -1167,7 +1167,7 @@ class ApiClient {
     usp.append('memoryType', 'episodic');
     const url = `${API_BASE_URL}/memory${usp.toString() ? `?${usp.toString()}` : ''}`;
     const result =
-      await this.fetchWithErrorHandling<import('../types/memory').MemorySearchResult>(url);
+      await this.fetchWithErrorHandling<import('@client/types/memory').MemorySearchResult>(url);
     const filtered = result.data.filter(
       (entry) => entry.sourceType === 'investigation' && entry.sourceId === params.investigationId,
     );
@@ -1180,8 +1180,8 @@ class ApiClient {
     importanceScore?: number;
     contextTags?: string[];
     metadata?: Record<string, unknown>;
-  }): Promise<import('../types/memory').MemoryEntry> {
-    const payload: import('../types/memory').CreateMemoryEntryInput = {
+  }): Promise<import('@client/types/memory').MemoryEntry> {
+    const payload: import('@client/types/memory').CreateMemoryEntryInput = {
       memoryType: 'episodic',
       content: body.content,
       importanceScore: body.importanceScore,
@@ -1193,7 +1193,7 @@ class ApiClient {
       sourceId: body.investigationId,
       sourceType: 'investigation',
     };
-    return this.fetchWithErrorHandling<import('../types/memory').MemoryEntry>(
+    return this.fetchWithErrorHandling<import('@client/types/memory').MemoryEntry>(
       `${API_BASE_URL}/memory`,
       {
         method: 'POST',
@@ -1205,9 +1205,9 @@ class ApiClient {
 
   async updateMemoryEntry(
     id: number,
-    updates: import('../types/memory').UpdateMemoryEntryInput,
-  ): Promise<import('../types/memory').MemoryEntry> {
-    return this.fetchWithErrorHandling<import('../types/memory').MemoryEntry>(
+    updates: import('@client/types/memory').UpdateMemoryEntryInput,
+  ): Promise<import('@client/types/memory').MemoryEntry> {
+    return this.fetchWithErrorHandling<import('@client/types/memory').MemoryEntry>(
       `${API_BASE_URL}/memory/${encodeURIComponent(id)}`,
       {
         method: 'PUT',
@@ -1402,8 +1402,8 @@ class ApiClient {
 
   async getMediaByDocumentId(
     documentId: string | number,
-  ): Promise<import('../types/media.types').MediaImage[]> {
-    return this.get<import('../types/media.types').MediaImage[]>(
+  ): Promise<import('@client/types/media.types').MediaImage[]> {
+    return this.get<import('@client/types/media.types').MediaImage[]>(
       `/media/images?documentId=${encodeURIComponent(String(documentId))}&limit=200&slim=true&excludeTextScans=false`,
     );
   }

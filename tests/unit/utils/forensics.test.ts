@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateEvidenceLadder, type PersonAdapter } from '../../../src/utils/forensics';
+import { calculateEvidenceLadder, type PersonAdapter } from '../../../src/client/utils/forensics';
 
 describe('calculateEvidenceLadder', () => {
   it('should return L1 for black book entries', () => {

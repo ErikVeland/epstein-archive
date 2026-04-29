@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ShieldCheck, Sparkles } from 'lucide-react';
-import { EmailMailboxDTO } from '../../../services/apiClient';
-import { riskToneFromRating } from '../../../utils/riskSemantics';
-import { Button, SearchField } from '../../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { EmailMailboxDTO } from '@client/services/apiClient';
+import { riskToneFromRating } from '@client/utils/riskSemantics';
+import { Button, SearchField } from '@client/design-system/lib';
 import styles from './MobileMailboxList.module.css';
 
 const RISK_RANK: Record<string, number> = {
@@ -95,9 +95,9 @@ export function MobileMailboxList({
               <div className={styles.rowLeft}>
                 <div className={styles.nameRow}>
                   <span className={styles.name}>{mailbox.displayName}</span>
-                  {mailbox.isVip && <Sparkles className={styles.vipIcon} size={13} />}
+                  {mailbox.isVip && <Icon name="Sparkles" className={styles.vipIcon} size="sm" />}
                   {mailbox.isVerified && !mailbox.isVip && (
-                    <ShieldCheck className={styles.verifiedIcon} size={13} />
+                    <Icon name="ShieldCheck" className={styles.verifiedIcon} size="sm" />
                   )}
                 </div>
                 <div className={styles.meta}>

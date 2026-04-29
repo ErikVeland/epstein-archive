@@ -49,12 +49,6 @@
       }
     },
     {
-      "files": ["src/client/**/*.tsx"],
-      "rules": {
-        "no-restricted-syntax": "off"
-      }
-    },
-    {
       "files": ["src/client/components/common/Icon.tsx"],
       "rules": {
         "no-restricted-imports": "off"

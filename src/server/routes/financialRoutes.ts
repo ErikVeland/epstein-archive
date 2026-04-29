@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import { authenticateRequest } from '../auth/middleware.js';
 import { financialRepository } from '../db/financialRepository.js';
 import { validate, financialTransactionsQuerySchema } from '../middleware/validate.js';
@@ -9,7 +9,7 @@ import {
   mapFinancialSummaryDto,
 } from '../mappers/financialDtoMapper.js';
 
-const router = Router();
+const router = express.Router();
 
 // Get all transactions (with limit)
 router.get(

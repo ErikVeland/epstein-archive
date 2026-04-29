@@ -1,26 +1,9 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Plus,
-  Trash2,
-  Edit3,
-  Activity,
-  User,
-  FileText,
-  Navigation,
-  Building,
-  Mail,
-  Target,
-  Lightbulb,
-  Calendar,
-  AlertCircle,
-  RefreshCw,
-  Clock,
-  LucideIcon,
-} from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 
 // UI Library
-import { Surface, Flex, Box, Stack, LqText, cn, Badge, Skeleton } from '../../design-system/lib';
+import { Surface, Flex, Box, Stack, LqText, cn, Badge, Skeleton } from '@client/design-system/lib';
 import styles from './InvestigationActivityFeed.module.css';
 
 interface ActivityItem {
@@ -60,22 +43,22 @@ const actionLabels: Record<string, string> = {
   notebook_updated: 'updated notebook',
 };
 
-const targetTypeIcons: Record<string, LucideIcon> = {
-  entity: User,
-  document: FileText,
-  flight_log: Navigation,
-  property_record: Building,
-  email: Mail,
-  evidence: Target,
-  hypothesis: Lightbulb,
-  timeline_event: Calendar,
+const targetTypeIcons: Record<string, IconName> = {
+  entity: 'User',
+  document: 'FileText',
+  flight_log: 'Navigation',
+  property_record: 'Building',
+  email: 'Mail',
+  evidence: 'Target',
+  hypothesis: 'Lightbulb',
+  timeline_event: 'Calendar',
 };
 
-const getActionIcon = (actionType: string) => {
-  if (actionType.includes('added') || actionType.includes('created')) return Plus;
-  if (actionType.includes('removed') || actionType.includes('deleted')) return Trash2;
-  if (actionType.includes('updated') || actionType.includes('changed')) return Edit3;
-  return Activity;
+const getActionIcon = (actionType: string): IconName => {
+  if (actionType.includes('added') || actionType.includes('created')) return 'Plus';
+  if (actionType.includes('removed') || actionType.includes('deleted')) return 'Trash2';
+  if (actionType.includes('updated') || actionType.includes('changed')) return 'Edit3';
+  return 'Activity';
 };
 
 const getActionVariant = (actionType: string): 'success' | 'error' | 'warning' | 'accent' => {
@@ -155,7 +138,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
     return (
       <Surface variant="glass" p="xl">
         <Stack align="center" gap="sm">
-          <AlertCircle className={styles.autoGen145} size={24} />
+          <Icon name="AlertCircle" className={styles.autoGen145} size="lg" />
           <LqText variant="xs" color="muted">
             Investigation activity feed unavailable.
           </LqText>
@@ -168,7 +151,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
     return (
       <Surface variant="glass" p="xxl">
         <Stack align="center" gap="md">
-          <Activity size={32} className={styles.autoGen146} />
+          <Icon name="Activity" size="xl" className={styles.autoGen146} />
           <Stack gap="none">
             <LqText variant="small" weight="bold">
               No Activity Detected
@@ -186,17 +169,16 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
     <Stack gap={compact ? 'xs' : 'sm'} style={{ width: '100%' }}>
       {activities.map((activity) => {
         const relevance = readRelevance(activity.metadata?.relevance);
-        const ActionIcon = getActionIcon(activity.actionType);
         const variant = getActionVariant(activity.actionType);
-        const TargetIcon = activity.targetType
-          ? targetTypeIcons[activity.targetType] || FileText
+        const targetIconName = activity.targetType
+          ? targetTypeIcons[activity.targetType] || 'FileText'
           : null;
 
         return (
           <Surface key={activity.id} variant="glass-highlight" p={compact ? 'sm' : 'md'}>
             <Flex gap="md" align="center">
               <Box p="xs" className={cn('rounded', `bg-[var(--lq-${variant})]`, 'text-white')}>
-                <ActionIcon size={compact ? 12 : 16} />
+                <Icon name={getActionIcon(activity.actionType)} size="xs" />
               </Box>
 
               <Stack grow gap="none">
@@ -214,7 +196,9 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
                   </LqText>
                   {activity.targetTitle && (
                     <Flex align="center" gap="xs" className={styles.autoGen147}>
-                      {TargetIcon && <TargetIcon size={12} className={styles.autoGen148} />}
+                      {targetIconName && (
+                        <Icon name={targetIconName} size="xs" className={styles.autoGen148} />
+                      )}
                       <LqText variant="xs" weight="medium">
                         {activity.targetTitle}
                       </LqText>
@@ -240,7 +224,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
               </Stack>
 
               <Flex align="center" gap="xs" className="ml-auto opacity-60">
-                <Clock size={10} />
+                <Icon name="Clock" size="xs" />
                 <LqText variant="xs" style={{ textTransform: 'uppercase' }} weight="bold">
                   {formatTimeAgo(activity.createdAt)}
                 </LqText>
@@ -252,7 +236,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
       {refreshInterval > 0 && (
         <Flex justify="center" align="center" gap="xs" mt="md" className="opacity-40">
-          <RefreshCw size={10} className="animate-spin-slow" />
+          <Icon name="RefreshCw" size="xs" className="animate-spin-slow" />
           <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
             Signal check every {Math.floor(refreshInterval / 1000)}s
           </LqText>

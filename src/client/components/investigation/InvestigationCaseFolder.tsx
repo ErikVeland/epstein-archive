@@ -1,30 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  Folder,
-  User,
-  FileText,
-  Navigation,
-  Building,
-  Mail,
-  MessageSquare,
-  DollarSign,
-  Scale,
-  Image,
-  File,
-  ExternalLink,
-  Eye,
-  AlertCircle,
-  FolderOpen,
-  Loader2,
-  Clock,
-  LucideIcon,
-} from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 import type {
   InvestigationCaseEvidenceItemDto as EvidenceItem,
   InvestigationEvidenceByTypeResponseDto as EvidenceByType,
 } from '@shared/dto/investigations';
-import { useCaseFolder } from '../../domains/investigations';
+import { useCaseFolder } from '@client/domains/investigations';
 
 // UI Library
 import styles from './InvestigationCaseFolder.module.css';
@@ -39,7 +20,7 @@ import {
   Stack,
   Surface,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 const css = <T,>(style: T) => style;
 
 interface InvestigationCaseFolderProps {
@@ -55,7 +36,7 @@ interface InvestigationCaseFolderProps {
 const typeConfig: Record<
   string,
   {
-    icon: LucideIcon;
+    icon: IconName;
     label: string;
     tone:
       | 'cyan'
@@ -70,16 +51,16 @@ const typeConfig: Record<
       | 'slate';
   }
 > = {
-  entity: { icon: User, label: 'Entities', tone: 'cyan' },
-  document: { icon: FileText, label: 'Documents', tone: 'blue' },
-  flight_log: { icon: Navigation, label: 'Flights', tone: 'purple' },
-  property_record: { icon: Building, label: 'Properties', tone: 'emerald' },
-  email: { icon: Mail, label: 'Emails', tone: 'amber' },
-  testimony: { icon: MessageSquare, label: 'Testimonies', tone: 'pink' },
-  financial: { icon: DollarSign, label: 'Financial', tone: 'green' },
-  legal: { icon: Scale, label: 'Legal', tone: 'red' },
-  photo: { icon: Image, label: 'Photos', tone: 'indigo' },
-  other: { icon: File, label: 'Other', tone: 'slate' },
+  entity: { icon: 'User', label: 'Entities', tone: 'cyan' },
+  document: { icon: 'FileText', label: 'Documents', tone: 'blue' },
+  flight_log: { icon: 'Navigation', label: 'Flights', tone: 'purple' },
+  property_record: { icon: 'Building', label: 'Properties', tone: 'emerald' },
+  email: { icon: 'Mail', label: 'Emails', tone: 'amber' },
+  testimony: { icon: 'MessageSquare', label: 'Testimonies', tone: 'pink' },
+  financial: { icon: 'DollarSign', label: 'Financial', tone: 'green' },
+  legal: { icon: 'Scale', label: 'Legal', tone: 'red' },
+  photo: { icon: 'Image', label: 'Photos', tone: 'indigo' },
+  other: { icon: 'File', label: 'Other', tone: 'slate' },
 };
 
 const relevanceVariants: Record<string, 'primary' | 'secondary' | 'danger' | 'ghost'> = {
@@ -234,7 +215,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   if (loading) {
     return (
       <Flex justify="center" align="center" fullHeight p="xxxl">
-        <Loader2 className={styles.autoGen181} size={32} />
+        <Icon name="Loader2" className={styles.autoGen181} size="xl" />
       </Flex>
     );
   }
@@ -243,7 +224,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
     return (
       <Surface variant="glass" p="xl">
         <Flex align="center" gap="md" className={styles.autoGen182}>
-          <AlertCircle size={24} />
+          <Icon name="AlertCircle" size="lg" />
           <LqText variant="small" weight="bold">
             {error}
           </LqText>
@@ -256,7 +237,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
     return (
       <Surface variant="glass" p="xxl">
         <Stack align="center" gap="lg" textAlign="center">
-          <FolderOpen size={48} className={styles.autoGen183} />
+          <Icon name="FolderOpen" size="xl" className={styles.autoGen183} />
           <Stack gap="xs">
             <LqText variant="body" weight="bold">
               Case Folder is Empty
@@ -283,7 +264,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
           className={styles.autoGen184}
         >
           <Stack gap="xs" align="center">
-            <Folder size={18} />
+            <Icon name="Folder" size="md" />
             <LqText variant="body" weight="bold">
               {evidence.total}
             </LqText>
@@ -309,8 +290,9 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               )}
             >
               <Stack gap="xs" align="center">
-                <config.icon
-                  size={18}
+                <Icon
+                  name={config.icon}
+                  size="sm"
                   className={cn(isActive ? 'text-[var(--lq-accent)]' : 'text-[var(--lq-text-dim)]')}
                 />
                 <LqText variant="body" weight="bold">
@@ -422,7 +404,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                   >
                     <Flex p="lg" gap="lg" align="start">
                       <Box p="sm" className={styles.autoGen188}>
-                        <config.icon size={20} className={styles.autoGen189} />
+                        <Icon name={config.icon} size="sm" className={styles.autoGen189} />
                       </Box>
 
                       <Stack grow gap="xs">
@@ -453,7 +435,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                                 else evidenceButtonRefs.current.delete(key);
                               }}
                             >
-                              <Eye size={14} /> Analyze
+                              <Icon name="Eye" size="sm" /> Analyze
                             </Button>
                           )}
                         </Flex>
@@ -479,13 +461,13 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
 
                         <Flex wrap="wrap" gap="sm" mt="sm" align="center">
                           <Flex align="center" gap="xs">
-                            <Clock size={12} className={styles.autoGen191} />
+                            <Icon name="Clock" size="xs" className={styles.autoGen191} />
                             <LqText variant="xs" color="muted">
                               {new Date(item.addedAt).toLocaleDateString()}
                             </LqText>
                           </Flex>
                           <Flex align="center" gap="xs">
-                            <User size={12} className={styles.autoGen192} />
+                            <Icon name="User" size="xs" className={styles.autoGen192} />
                             <LqText variant="xs" color="muted">
                               Added by {item.addedBy}
                             </LqText>
@@ -505,7 +487,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                           {link && (
                             <Link to={link} className="ml-auto">
                               <Button variant="ghost" size="sm">
-                                <ExternalLink size={12} /> View Source
+                                <Icon name="ExternalLink" size="xs" /> View Source
                               </Button>
                             </Link>
                           )}

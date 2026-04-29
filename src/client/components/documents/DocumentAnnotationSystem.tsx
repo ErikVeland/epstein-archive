@@ -1,16 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CheckCircle, Flag, Highlighter, MessageSquare, Tag, XCircle } from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import styles from './DocumentAnnotationSystem.module.css';
 
 // Design System
-import { LqText } from '../../design-system/components/typography/Text';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
+import { LqText } from '@client/design-system/components/typography/Text';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Box } from '@client/design-system/components/layout/Box';
 
-import { Button, Input, TextArea } from '../../design-system/lib';
+import { Button, Input, TextArea } from '@client/design-system/lib';
 
 type AnnotationType = 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
 
@@ -48,49 +48,49 @@ type PendingSelection = {
 const annotationTypes: Array<{
   type: AnnotationType;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: IconName;
   styleKey: keyof typeof styles;
   accent?: 'amber' | 'cyan' | 'purple' | 'rose' | 'emerald';
 }> = [
   {
     type: 'highlight',
     label: 'Highlight',
-    icon: Highlighter,
+    icon: 'Highlighter',
     styleKey: 'type_highlight',
     accent: 'amber',
   },
   {
     type: 'note',
     label: 'Note',
-    icon: MessageSquare,
+    icon: 'MessageSquare',
     styleKey: 'type_note',
     accent: 'cyan',
   },
   {
     type: 'evidence',
     label: 'Evidence',
-    icon: CheckCircle,
+    icon: 'CheckCircle',
     styleKey: 'type_evidence',
     accent: 'emerald',
   },
   {
     type: 'question',
     label: 'Question',
-    icon: Flag,
+    icon: 'Flag',
     styleKey: 'type_question',
     accent: 'purple',
   },
   {
     type: 'contradiction',
     label: 'Contradiction',
-    icon: XCircle,
+    icon: 'XCircle',
     styleKey: 'type_contradiction',
     accent: 'rose',
   },
   {
     type: 'tag',
     label: 'Tag',
-    icon: Tag,
+    icon: 'Tag',
     styleKey: 'type_tag',
     accent: 'cyan',
   },
@@ -373,7 +373,6 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
             </LqText>
             <Box className={styles.typeGrid}>
               {annotationTypes.map((option) => {
-                const Icon = option.icon;
                 const active = draftType === option.type;
                 return (
                   <Button
@@ -383,7 +382,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                     className={`${styles.typeOption} ${active ? styles.typeOptionActive : ''}`}
                     onClick={() => setDraftType(option.type)}
                   >
-                    <Icon className={styles.iconMicro} />
+                    <Icon name={option.icon} className={styles.iconMicro} />
                     {option.label}
                   </Button>
                 );
@@ -441,7 +440,6 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           <Box className={styles.annotationList}>
             {annotations.map((annotation) => {
               const typeMeta = getTypeMeta(annotation.type);
-              const Icon = typeMeta.icon;
               const active = annotation.id === activeAnnotationId;
               return (
                 <Surface
@@ -455,7 +453,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                   onClick={() => setActiveAnnotationId(annotation.id)}
                 >
                   <Flex align="center" gap="sm" className={styles.cardHeader}>
-                    <Icon className={styles.cardHeaderIcon} />
+                    <Icon name={typeMeta.icon} className={styles.cardHeaderIcon} />
                     <LqText variant="small" weight="medium">
                       {typeMeta.label}
                     </LqText>
@@ -482,7 +480,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
 
             {annotations.length === 0 && !isLoading && (
               <Box className={styles.emptyState}>
-                <MessageSquare className={styles.emptyIcon} />
+                <Icon name="MessageSquare" className={styles.emptyIcon} />
                 <LqText variant="small" weight="medium" color="muted">
                   No annotations yet
                 </LqText>

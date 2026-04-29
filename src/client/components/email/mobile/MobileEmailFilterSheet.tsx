@@ -1,5 +1,5 @@
-import { Button, SearchField, Select, TextInput } from '../../../design-system/lib';
-import { SheetDialog } from '../../common/SheetDialog';
+import { Button, SearchField, Select, TextInput } from '@client/design-system/lib';
+import { SheetDialog } from '@client/components/common/SheetDialog';
 import styles from './MobileEmailFilterSheet.module.css';
 
 interface MobileEmailFilterSheetProps {
@@ -53,7 +53,7 @@ export function MobileEmailFilterSheet({
   return (
     <SheetDialog
       open
-      onOpenChange={(open) => {
+      onOpenChange={(open: boolean) => {
         if (!open) onClose();
       }}
       title="Search & Filters"

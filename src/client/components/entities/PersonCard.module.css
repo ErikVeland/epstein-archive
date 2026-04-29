@@ -152,6 +152,24 @@
   border: 1px solid var(--glass-border);
 }
 
+.provenanceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-bottom: var(--space-3);
+  overflow: hidden;
+}
+
+.missingSource {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
 /* ── Core metrics grid ── */
 .metricsGrid {
   display: grid;
@@ -228,6 +246,21 @@
   white-space: nowrap;
   max-width: 7.5rem;
   font-style: italic;
+}
+
+.sourceButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.sourceButton:hover {
+  color: var(--text-primary);
 }
 
 .profileLink {

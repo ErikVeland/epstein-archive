@@ -1,8 +1,8 @@
 import React from 'react';
-import { cn } from '../../utils/cn';
+import { cn } from '@client/utils/cn';
 import Icon, { IconName } from './Icon';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 import s from './Card.module.css';
 
 interface CardProps {

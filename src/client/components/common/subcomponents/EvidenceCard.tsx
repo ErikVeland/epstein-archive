@@ -1,9 +1,9 @@
 import React from 'react';
-import { ExternalLink, Clock, Link2, AlertTriangle } from 'lucide-react';
-import { highlightTerms, normalizeEvidenceSnippet } from '../../../utils/evidenceUtils';
+import Icon from '@client/components/common/Icon';
+import { highlightTerms, normalizeEvidenceSnippet } from '@client/utils/evidenceUtils';
 import s from './EvidenceCard.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 export interface EvidenceDocument {
   id?: string | number;
@@ -68,7 +68,7 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
             }}
             className={s.openLink}
           >
-            Open <ExternalLink size={12} />
+            Open <Icon name="ExternalLink" size="xs" />
           </Button>
         </div>
         <p className={s.excerpt}>
@@ -78,16 +78,16 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
 
       <div className={s.footer}>
         <span className={s.footerItem}>
-          <Clock size={10} />
+          <Icon name="Clock" size="xs" />
           {doc.dateCreated ? new Date(doc.dateCreated).toLocaleDateString() : 'Date unknown'}
         </span>
         <span className={s.footerItem}>
-          <Link2 size={10} />
+          <Icon name="Link2" size="xs" />
           {doc.source_collection || 'Archive'}
         </span>
         {(doc.redFlagRating || 0) >= 4 && (
           <span className={`${s.footerItem} ${s.warning}`}>
-            <AlertTriangle size={10} />
+            <Icon name="AlertTriangle" size="xs" />
             High risk score in source.
           </span>
         )}

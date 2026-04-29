@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { ChevronDown } from 'lucide-react';
-import { cn } from '../../../utils/cn';
+import Icon from '@client/components/common/Icon';
+import { cn } from '@client/utils/cn';
 import './Select.css';
 
 export interface DesignSystemSelectOption {
@@ -51,7 +51,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </option>
           ))}
         </select>
-        <ChevronDown aria-hidden="true" className="ds-selectIcon" size={16} />
+        <Icon name="ChevronDown" aria-hidden="true" className="ds-selectIcon" size="sm" />
       </div>
       {message ? (
         <p className="ds-selectMessage" data-tone={invalid ? 'critical' : 'muted'}>

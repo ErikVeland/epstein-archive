@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import type { TimelineEvent } from '../../../types/investigation';
-import { apiClient } from '../../../services/apiClient';
+import type { TimelineEvent } from '@client/types/investigation';
+import { apiClient } from '@client/services/apiClient';
 import styles from './MobileTimelineView.module.css';
 
-import { Button, Input, NativeSelect } from '../../../design-system/lib';
+import { Button, Input, NativeSelect } from '@client/design-system/lib';
 
 const EVENT_TYPE_COLORS: Record<string, string> = {
   document: 'var(--accent)',

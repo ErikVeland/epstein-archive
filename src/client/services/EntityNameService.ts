@@ -1,4 +1,4 @@
-import { Entity } from '../types/documents';
+import { Entity } from '@client/types/documents';
 
 export class EntityNameService {
   // Common verbs that indicate sentence fragments

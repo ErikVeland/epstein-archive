@@ -2,7 +2,7 @@ import { OCREngine, OCRResult } from './types.js';
 import { TesseractEngine } from './TesseractEngine.js';
 import { PDFExtractEngine } from './PDFExtractEngine.js';
 import { ExternalManualOCREngine } from './ExternalManualOCREngine.js';
-import { prettifyOCRText } from '../../utils/prettifyOCR.js';
+import { prettifyOCRText } from '@client/utils/prettifyOCR';
 
 export class CompetitiveOCRService {
   private engines: OCREngine[] = [];

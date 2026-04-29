@@ -1,17 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { FileText, Paperclip, Link } from 'lucide-react';
-import { investigationsApi } from '../../../domains/investigations';
-import { useSubjectsQuery } from '../../../hooks/useSubjectsQuery';
-import { useToasts } from '../../common/useToasts';
-import { SheetDialog } from '../../common/SheetDialog';
-import {
-  Button,
-  Input,
-  SearchField,
-  Select,
-  TextInput,
-  Textarea,
-} from '../../../design-system/lib';
+import Icon from '@client/components/common/Icon';
+import { investigationsApi } from '@client/domains/investigations';
+import { useSubjectsQuery } from '@client/hooks/useSubjectsQuery';
+import { useToasts } from '@client/components/common/useToasts';
+import { SheetDialog } from '@client/components/common/SheetDialog';
+import { Button, Input, SearchField, Select, TextInput, Textarea } from '@client/design-system/lib';
 import styles from './EvidenceCaptureSheet.module.css';
 
 type CaptureMode = 'note' | 'file' | 'url';
@@ -187,7 +180,7 @@ export function EvidenceCaptureSheet({
   return (
     <SheetDialog
       open
-      onOpenChange={(open) => {
+      onOpenChange={(open: boolean) => {
         if (!open) onClose();
       }}
       title="Capture Evidence"
@@ -215,9 +208,9 @@ export function EvidenceCaptureSheet({
               setSaveError(null);
             }}
           >
-            {m === 'note' && <FileText size={16} aria-hidden="true" />}
-            {m === 'file' && <Paperclip size={16} aria-hidden="true" />}
-            {m === 'url' && <Link size={16} aria-hidden="true" />}
+            {m === 'note' && <Icon name="FileText" size="sm" aria-hidden="true" />}
+            {m === 'file' && <Icon name="Paperclip" size="sm" aria-hidden="true" />}
+            {m === 'url' && <Icon name="Link" size="sm" aria-hidden="true" />}
             {m.charAt(0).toUpperCase() + m.slice(1)}
           </Button>
         ))}
@@ -260,7 +253,7 @@ export function EvidenceCaptureSheet({
             variant="glass"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Paperclip size={20} aria-hidden="true" />
+            <Icon name="Paperclip" size="md" aria-hidden="true" />
             {selectedFile ? selectedFile.name : 'Tap to select a file or photo'}
           </Button>
         </>

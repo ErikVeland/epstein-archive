@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { User, Save } from 'lucide-react';
-import { apiClient } from '../../services/apiClient';
+import Icon from '@client/components/common/Icon';
+import { apiClient } from '@client/services/apiClient';
 import { useToasts } from '../common/useToasts';
 import { CloseButton } from '../common/CloseButton';
 import {
@@ -14,7 +14,7 @@ import {
   Select,
   TextInput,
   Textarea,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './CreateEntityModal.module.css';
 
 interface CreateEntityModalProps {
@@ -78,7 +78,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
           <DialogHeader className={styles.headerMeta}>
             <Flex align="center" gap="sm" className={styles.titleWrap}>
               <div className={styles.headerIconWrap}>
-                <User className={styles.headerIcon} />
+                <Icon name="User" className={styles.headerIcon} />
               </div>
               <div>
                 <DialogTitle>Create New Subject</DialogTitle>
@@ -175,7 +175,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
               Cancel
             </Button>
             <Button type="submit" variant="primary" disabled={loading}>
-              <Save size={16} aria-hidden="true" />
+              <Icon name="Save" size="sm" aria-hidden="true" />
               {loading ? 'Creating…' : 'Create Subject'}
             </Button>
           </div>

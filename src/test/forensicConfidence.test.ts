@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   clearForensicConfidenceCache,
   computeForensicConfidence,
-} from '../utils/forensicConfidence';
+} from '../client/utils/forensicConfidence';
 
 describe('forensic confidence', () => {
   it('produces deterministic scores and cache keys', () => {

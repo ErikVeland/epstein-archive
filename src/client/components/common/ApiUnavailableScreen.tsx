@@ -1,7 +1,7 @@
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { Button, Flex, LqText, Stack, Surface } from '../../design-system/lib';
-import { useApiStatus } from '../../contexts/ApiStatusContext';
+import Icon from '@client/components/common/Icon';
+import { Button, Flex, LqText, Stack, Surface } from '@client/design-system/lib';
+import { useApiStatus } from '@client/contexts/ApiStatusContext';
 import styles from './ApiUnavailableScreen.module.css';
 
 export const ApiUnavailableScreen: React.FC = () => {
@@ -14,7 +14,7 @@ export const ApiUnavailableScreen: React.FC = () => {
       <Stack gap="lg">
         <Flex align="center" gap="md">
           <Surface variant="glass-highlight" p="md" className={styles.iconBubble}>
-            <AlertTriangle size={18} />
+            <Icon name="AlertTriangle" size="md" />
           </Surface>
           <Stack gap="xs">
             <LqText variant="h3" weight="bold">

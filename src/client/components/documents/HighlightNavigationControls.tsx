@@ -1,8 +1,8 @@
 import React from 'react';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './HighlightNavigationControls.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface HighlightNavigationControlsProps {
   currentHighlightIndex: number;
@@ -38,7 +38,7 @@ export const HighlightNavigationControls: React.FC<HighlightNavigationControlsPr
         title="Previous highlight (Ctrl/Cmd + Shift + G)"
         aria-label="Previous highlight"
       >
-        <ChevronUp className={styles.icon} />
+        <Icon name="ChevronUp" className={styles.icon} />
       </Button>
       <Button
         unstyled
@@ -48,7 +48,7 @@ export const HighlightNavigationControls: React.FC<HighlightNavigationControlsPr
         title="Next highlight (Ctrl/Cmd + G)"
         aria-label="Next highlight"
       >
-        <ChevronDown className={styles.icon} />
+        <Icon name="ChevronDown" className={styles.icon} />
       </Button>
     </div>
   );

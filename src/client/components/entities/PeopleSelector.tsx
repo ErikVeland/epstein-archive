@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, Plus, X, Search } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import styles from './PeopleSelector.module.css';
 
-import { Button, Input } from '../../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 export interface PersonData {
   id: number;
@@ -111,7 +111,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
   return (
     <div className={[styles.root, className].filter(Boolean).join(' ')}>
       <div className={styles.header}>
-        <Users className={styles.icon} />
+        <Icon name="Users" className={styles.icon} />
         People in Photo
       </div>
 
@@ -139,7 +139,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                 }}
                 className={styles.removeButton}
               >
-                <X className={styles.icon} />
+                <Icon name="X" className={styles.icon} />
               </Button>
             )}
           </div>
@@ -150,7 +150,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
       {isAdmin && (
         <div className={styles.searchWrap} ref={dropdownRef}>
           <div className={styles.searchFieldWrap}>
-            <Search className={styles.searchIcon} />
+            <Icon name="Search" className={styles.searchIcon} />
             <Input
               type="text"
               placeholder="Search people to add..."
@@ -181,7 +181,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                           {person.role}
                         </div>
                       </div>
-                      <Plus className={`${styles.icon} ${styles.riskMuted}`} />
+                      <Icon name="Plus" className={`${styles.icon} ${styles.riskMuted}`} />
                     </Button>
                   ))}
                 </div>

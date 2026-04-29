@@ -1,23 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  AlertTriangle,
-  Filter,
-  Calendar,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Search,
-  Download,
-  User,
-} from 'lucide-react';
-import { Button, Select } from '../../design-system/lib';
-import { useIsMobile } from '../../hooks/useIsMobile';
+import Icon from '@client/components/common/Icon';
+import { Button, Select } from '@client/design-system/lib';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
-import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './FinancialTransactionMapper.module.css';
 
@@ -301,7 +287,7 @@ export default function FinancialTransactionMapper({
           {/* Search Row */}
           <div className={styles.searchRow}>
             <div className={styles.searchWrap}>
-              <Search className={styles.searchIcon} />
+              <Icon name="Search" className={styles.searchIcon} />
               <input
                 type="text"
                 value={searchTerm}
@@ -401,7 +387,7 @@ export default function FinancialTransactionMapper({
               onClick={exportTransactionData}
               className={styles.exportButton}
             >
-              <Download className={styles.calendarIcon} />
+              <Icon name="Download" className={styles.calendarIcon} />
               Export Data
             </Button>
           </div>
@@ -419,7 +405,7 @@ export default function FinancialTransactionMapper({
                   {filteredTransactions.length}
                 </p>
               </div>
-              <TrendingUp className={`${styles.summaryIcon} ${styles.summaryAccent}`} />
+              <Icon name="TrendingUp" className={`${styles.summaryIcon} ${styles.summaryAccent}`} />
             </div>
           </div>
 
@@ -433,7 +419,7 @@ export default function FinancialTransactionMapper({
                   {formatCurrency(filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0))}
                 </p>
               </div>
-              <DollarSign className={`${styles.summaryIcon} ${styles.summaryGreen}`} />
+              <Icon name="DollarSign" className={`${styles.summaryIcon} ${styles.summaryGreen}`} />
             </div>
           </div>
 
@@ -451,7 +437,10 @@ export default function FinancialTransactionMapper({
                   }
                 </p>
               </div>
-              <AlertTriangle className={`${styles.summaryIcon} ${styles.summaryYellow}`} />
+              <Icon
+                name="AlertTriangle"
+                className={`${styles.summaryIcon} ${styles.summaryYellow}`}
+              />
             </div>
           </div>
 
@@ -464,7 +453,7 @@ export default function FinancialTransactionMapper({
                     {detectedPatterns.length}
                   </p>
                 </div>
-                <Filter className={`${styles.summaryIcon} ${styles.summaryRed}`} />
+                <Icon name="Filter" className={`${styles.summaryIcon} ${styles.summaryRed}`} />
               </div>
             </div>
           )}
@@ -490,12 +479,12 @@ export default function FinancialTransactionMapper({
                     <div className={styles.transactionHeader}>
                       <div className={styles.transactionTop}>
                         <div className={styles.transactionRoute}>
-                          <User className={styles.routeIconMuted} />
+                          <Icon name="User" className={styles.routeIconMuted} />
                           <span className={styles.routeEntity} title={transaction.fromEntity}>
                             {transaction.fromEntity}
                           </span>
-                          <TrendingDown className={styles.routeIconDanger} />
-                          <User className={styles.routeIconMuted} />
+                          <Icon name="TrendingDown" className={styles.routeIconDanger} />
+                          <Icon name="User" className={styles.routeIconMuted} />
                           <span className={styles.routeEntity} title={transaction.toEntity}>
                             {transaction.toEntity}
                           </span>
@@ -505,16 +494,28 @@ export default function FinancialTransactionMapper({
                           title={`Risk Level: ${transaction.riskLevel.toUpperCase()}`}
                         >
                           {transaction.riskLevel === 'critical' && (
-                            <ShieldAlert className={`${styles.riskIcon} ${styles.riskCritical}`} />
+                            <Icon
+                              name="ShieldAlert"
+                              className={`${styles.riskIcon} ${styles.riskCritical}`}
+                            />
                           )}
                           {transaction.riskLevel === 'high' && (
-                            <Shield className={`${styles.riskIcon} ${styles.riskHigh}`} />
+                            <Icon
+                              name="Shield"
+                              className={`${styles.riskIcon} ${styles.riskHigh}`}
+                            />
                           )}
                           {transaction.riskLevel === 'medium' && (
-                            <ShieldCheck className={`${styles.riskIcon} ${styles.riskMedium}`} />
+                            <Icon
+                              name="ShieldCheck"
+                              className={`${styles.riskIcon} ${styles.riskMedium}`}
+                            />
                           )}
                           {transaction.riskLevel === 'low' && (
-                            <Shield className={`${styles.riskIcon} ${styles.riskLow}`} />
+                            <Icon
+                              name="Shield"
+                              className={`${styles.riskIcon} ${styles.riskLow}`}
+                            />
                           )}
                           <span onClick={(e) => e.stopPropagation()}>
                             <AddToInvestigationButton
@@ -550,7 +551,7 @@ export default function FinancialTransactionMapper({
                           {formatCurrency(transaction.amount, transaction.currency)}
                         </span>
                         <span className={styles.calendarMeta}>
-                          <Calendar className={styles.calendarIcon} />
+                          <Icon name="Calendar" className={styles.calendarIcon} />
                           {transaction.date}
                         </span>
                         <span className={styles.typeText}>
@@ -567,7 +568,7 @@ export default function FinancialTransactionMapper({
                           {transaction.suspiciousIndicators.map((indicator, index) => (
                             <span key={index} className={styles.indicatorBadge}>
                               <span className={styles.indicatorText}>{indicator}</span>
-                              <AlertTriangle className={styles.indicatorIcon} />
+                              <Icon name="AlertTriangle" className={styles.indicatorIcon} />
                             </span>
                           ))}
                         </div>

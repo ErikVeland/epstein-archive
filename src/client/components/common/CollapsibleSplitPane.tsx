@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import s from './CollapsibleSplitPane.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface CollapsibleSplitPaneProps {
   mode?: 'split' | 'singleRight';
@@ -149,7 +149,11 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
               aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
               title={collapsed ? expandAriaLabel : collapseAriaLabel}
             >
-              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+              {collapsed ? (
+                <Icon name="ChevronRight" size="sm" />
+              ) : (
+                <Icon name="ChevronLeft" size="sm" />
+              )}
               {!collapsed && <span className={s.toggleLabel}>Collapse Sidebar</span>}
             </Button>
           </div>
@@ -195,7 +199,11 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
           aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
           title={collapsed ? expandAriaLabel : collapseAriaLabel}
         >
-          {collapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          {collapsed ? (
+            <Icon name="ChevronLeft" size="sm" />
+          ) : (
+            <Icon name="ChevronRight" size="sm" />
+          )}
         </Button>
 
         <div className={s.splitRightContent}>{collapsed ? collapsedRight : right}</div>

@@ -1,14 +1,6 @@
 import React from 'react';
-import {
-  Mail,
-  Scale,
-  ScrollText,
-  Image as ImageIcon,
-  Landmark,
-  Newspaper,
-  FileText,
-} from 'lucide-react';
-import { Document } from '../types/documents';
+import Icon from '@client/components/common/Icon';
+import { Document } from '@client/types/documents';
 
 export const highlightSearchTerm = (text: string, term?: string): React.ReactNode => {
   if (!term || !text || typeof text !== 'string') return text;
@@ -20,7 +12,7 @@ export const highlightSearchTerm = (text: string, term?: string): React.ReactNod
     const regex = new RegExp(pattern, 'gi');
     const highlighted = text.replace(
       regex,
-      '<mark class="bg-yellow-500/40 text-white px-1 rounded ring-1 ring-yellow-500/50">$1</mark>',
+      '<mark class="bg-[var(--accent-warning)]/40 text-white px-[var(--space-1)] rounded ring-1 ring-[var(--accent-warning)]/50">$1</mark>',
     );
     if (highlighted === text) return text;
     return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
@@ -40,7 +32,7 @@ export const renderHighlightedText = (text: string, term?: string): React.ReactN
     const regex = new RegExp(pattern, 'gi');
     const highlighted = text.replace(
       regex,
-      '<mark class="bg-yellow-500/40 text-white px-1 rounded ring-1 ring-yellow-500/50">$1</mark>',
+      '<mark class="bg-[var(--accent-warning)]/40 text-white px-[var(--space-1)] rounded ring-1 ring-[var(--accent-warning)]/50">$1</mark>',
     );
     if (highlighted === text) return text;
     return <span dangerouslySetInnerHTML={{ __html: highlighted }} />;
@@ -109,13 +101,13 @@ export const getRiskClass = (score: number): string => {
 
 export const getRenderTypeIcon = (doc: Document, props: React.SVGProps<SVGSVGElement>) => {
   const t = (doc.evidenceType || doc.fileType || '').toLowerCase();
-  if (t.includes('email')) return <Mail {...props} />;
-  if (t.includes('legal')) return <Scale {...props} />;
-  if (t.includes('deposition')) return <ScrollText {...props} />;
-  if (t.includes('photo') || t.includes('image')) return <ImageIcon {...props} />;
-  if (t.includes('financial')) return <Landmark {...props} />;
-  if (t.includes('article')) return <Newspaper {...props} />;
-  return <FileText {...props} />;
+  if (t.includes('email')) return <Icon name="Mail" {...props} />;
+  if (t.includes('legal')) return <Icon name="Scale" {...props} />;
+  if (t.includes('deposition')) return <Icon name="ScrollText" {...props} />;
+  if (t.includes('photo') || t.includes('image')) return <Icon name="Image" {...props} />;
+  if (t.includes('financial')) return <Icon name="Landmark" {...props} />;
+  if (t.includes('article')) return <Icon name="Newspaper" {...props} />;
+  return <Icon name="FileText" {...props} />;
 };
 
 export const getSourceLabel = (doc: Document): string =>

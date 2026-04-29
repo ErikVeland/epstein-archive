@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { FileText, Calendar, Users, ArrowUp, ArrowDown } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../common/CloseButton';
-import { useFilters } from '../../contexts/useFilters';
-import { useScrollLock } from '../../hooks/useScrollLock';
-import { Button, cn } from '../../design-system/lib';
+import { useFilters } from '@client/contexts/useFilters';
+import { useScrollLock } from '@client/hooks/useScrollLock';
+import { Button, cn } from '@client/design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { EntityMentionPill } from '../common/EntityMentionPill';
@@ -215,17 +215,17 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   const getTypeIcon = (type: TimelineEvent['type']) => {
     switch (type) {
       case 'email':
-        return <FileText className={styles.inlineIcon} />;
+        return <Icon name="FileText" className={styles.inlineIcon} />;
       case 'flight':
-        return <Calendar className={styles.inlineIcon} />;
+        return <Icon name="Calendar" className={styles.inlineIcon} />;
       case 'legal':
-        return <Users className={styles.inlineIcon} />;
+        return <Icon name="Users" className={styles.inlineIcon} />;
       case 'financial':
-        return <FileText className={styles.inlineIcon} />;
+        return <Icon name="FileText" className={styles.inlineIcon} />;
       case 'testimony':
-        return <Users className={styles.inlineIcon} />;
+        return <Icon name="Users" className={styles.inlineIcon} />;
       default:
-        return <FileText className={styles.inlineIcon} />;
+        return <Icon name="FileText" className={styles.inlineIcon} />;
     }
   };
 
@@ -374,12 +374,12 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
           >
             {sortOrder === 'desc' ? (
               <>
-                <ArrowDown className={styles.sortIcon} />
+                <Icon name="ArrowDown" className={styles.sortIcon} />
                 <span>Newest First</span>
               </>
             ) : (
               <>
-                <ArrowUp className={styles.sortIcon} />
+                <Icon name="ArrowUp" className={styles.sortIcon} />
                 <span>Oldest First</span>
               </>
             )}
@@ -513,7 +513,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                       onClick={() => setSelectedEvent(null)}
                       className={styles.sourceLink}
                     >
-                      <FileText className={styles.sourceIcon} />
+                      <Icon name="FileText" className={styles.sourceIcon} />
                       <span className={styles.sourceLinkText}>
                         {selectedEvent.related_document.name}
                       </span>
@@ -521,7 +521,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                     </Link>
                   ) : selectedEvent.file ? (
                     <div className={styles.sourceLink}>
-                      <FileText className={styles.sourceIcon} />
+                      <Icon name="FileText" className={styles.sourceIcon} />
                       <span className={styles.sourceLinkText}>
                         {selectedEvent.file.split('/').pop()}
                       </span>
@@ -556,7 +556,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                           onClick={() => setSelectedEvent(null)}
                           className={styles.supportingDocItem}
                         >
-                          <FileText className={styles.inlineIcon} />
+                          <Icon name="FileText" className={styles.inlineIcon} />
                           <span className={styles.supportingDocText}>{doc.name}</span>
                         </Link>
                       ))}

@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { cn } from '../../design-system/lib';
+import { cn } from '@client/design-system/lib';
 import Icon, { type IconName } from '../common/Icon';
 import styles from './MobileBottomNav.module.css';
 

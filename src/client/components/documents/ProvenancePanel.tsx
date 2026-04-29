@@ -1,13 +1,15 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import Icon from '../common/Icon';
+import Icon from '@client/components/common/Icon';
+import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
+import type { ReviewState } from '@shared/dto/provenance';
 import styles from './DocumentProvenance.module.css';
 
 // Design System
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { LqText } from '../../design-system/components/typography/Text';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { LqText } from '@client/design-system/components/typography/Text';
 
 interface ProvenanceDocument {
   id?: string | number;
@@ -55,6 +57,15 @@ interface ProvenanceLineageResponse {
 interface ProvenancePanelProps {
   document: ProvenanceDocument;
 }
+
+const mapStatusToReviewState = (status: string): ReviewState => {
+  const s = status.toLowerCase().replace(/_/g, '');
+  if (s === 'verified' || s === 'accepted') return 'accepted';
+  if (s === 'rejected' || s === 'disputed') return 'rejected';
+  if (s === 'deferred') return 'deferred';
+  if (s === 'insufficient' || s === 'insufficientevidence') return 'insufficient_evidence';
+  return 'unreviewed';
+};
 
 const formatTimestamp = (value: string | null | undefined): string => {
   if (!value) return 'N/A';
@@ -200,9 +211,11 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
                 <LqText variant="xs" color="muted" className={styles.marginBottom1}>
                   Status
                 </LqText>
-                <LqText variant="body" weight="medium" className={styles.textCapitalize}>
-                  {durableStatus.replace(/_/g, ' ')}
-                </LqText>
+                <ProvenanceBadge
+                  sourceHash={durableSourcePath !== 'N/A' ? durableSourcePath : undefined}
+                  reviewState={mapStatusToReviewState(durableStatus)}
+                  showLabel={true}
+                />
               </Box>
               <Box>
                 <LqText variant="xs" color="muted" className={styles.marginBottom1}>

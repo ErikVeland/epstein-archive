@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '../../../utils/cn';
+import Icon from '@client/components/common/Icon';
+import { cn } from '@client/utils/cn';
 import { Button } from '../Button';
 import './Pagination.css';
 
@@ -34,7 +34,7 @@ export function Pagination({
         disabled={previousDisabled}
         onClick={() => onPageChange(Math.max(1, page - 1))}
       >
-        <ChevronLeft size={16} />
+        <Icon name="ChevronLeft" size="sm" />
       </Button>
       <p className="ds-paginationText">
         Page {page} of {Math.max(totalPages, 1)}
@@ -47,7 +47,7 @@ export function Pagination({
         disabled={nextDisabled}
         onClick={() => onPageChange(Math.min(totalPages, page + 1))}
       >
-        <ChevronRight size={16} />
+        <Icon name="ChevronRight" size="sm" />
       </Button>
     </div>
   );

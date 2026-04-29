@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import styles from './DocumentDiffView.module.css';
 
-import { Input } from '../../design-system/lib';
+import { Input } from '@client/design-system/lib';
 
 interface DocumentDiffViewProps {
   cleanText: string;

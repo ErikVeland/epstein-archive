@@ -1,9 +1,9 @@
 import React from 'react';
-import { Filter, Users, Calendar, AlertTriangle } from 'lucide-react';
-import { SearchFilters as ISearchFilters } from '../../types';
+import Icon from '@client/components/common/Icon';
+import { SearchFilters as ISearchFilters } from '@client/types';
 import s from './SearchFilters.module.css';
 
-import { Input, NativeSelect } from '../../design-system/lib';
+import { Input, NativeSelect } from '@client/design-system/lib';
 
 interface SearchFiltersProps {
   filters: ISearchFilters;
@@ -18,14 +18,14 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
   return (
     <div className={s.root}>
       <div className={s.header}>
-        <Filter className={s.headerIcon} size={20} />
+        <Icon name="Filter" className={s.headerIcon} size="md" />
         <h3 className={s.heading}>Filters</h3>
       </div>
 
       <div className={s.grid}>
         <div className={s.field}>
           <label className={s.label}>
-            <AlertTriangle className={s.labelIcon} size={16} />
+            <Icon name="AlertTriangle" className={s.labelIcon} size="sm" />
             Likelihood Level
           </label>
           <NativeSelect
@@ -42,7 +42,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
 
         <div className={s.field}>
           <label className={s.label}>
-            <Users className={s.labelIcon} size={16} />
+            <Icon name="Users" className={s.labelIcon} size="sm" />
             Min Mentions
           </label>
           <Input
@@ -73,7 +73,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
 
         <div className={s.field}>
           <label className={s.label}>
-            <Calendar className={s.labelIcon} size={16} />
+            <Icon name="Calendar" className={s.labelIcon} size="sm" />
             Current Status
           </label>
           <NativeSelect

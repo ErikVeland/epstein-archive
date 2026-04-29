@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Person } from '../../types';
+import { Person } from '@client/types';
 
 interface VirtualListProps {
   items: Person[];

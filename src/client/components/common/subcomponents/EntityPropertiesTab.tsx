@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Building2, MapPin, DollarSign } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
 import s from './EntityPropertiesTab.module.css';
 
@@ -56,7 +56,7 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
     <div className={s.tabContainer} data-testid="entity-modal-tab-properties">
       <div className={s.header}>
         <h3 className={s.headerTitle}>
-          <Building2 size={16} className={s.propertyIcon} />
+          <Icon name="Building2" size="sm" className={s.propertyIcon} />
           Properties
         </h3>
         <div className={s.countBadge}>
@@ -77,7 +77,7 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
 
         {!isLoading && isError && (
           <div className={s.emptyState}>
-            <Building2 size={48} className={s.emptyIcon} />
+            <Icon name="Building2" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>Properties could not be loaded</h4>
             <p className={s.emptyText}>The properties endpoint returned an error.</p>
           </div>
@@ -85,7 +85,7 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
 
         {!isLoading && !isError && properties.length === 0 && (
           <div className={s.emptyState}>
-            <Building2 size={48} className={s.emptyIcon} />
+            <Icon name="Building2" size="xl" className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Properties Linked</h4>
             <p className={s.emptyText}>
               No properties are linked to this entity in the property records.
@@ -99,11 +99,11 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
             <div key={prop.id} className={s.card}>
               <div className={s.cardTop}>
                 <div className={s.address}>
-                  <MapPin size={12} style={{ display: 'inline', marginRight: 4 }} />
+                  <Icon name="MapPin" size="xs" style={{ display: 'inline', marginRight: 4 }} />
                   {prop.site_address || prop.street_name || 'Address unavailable'}
                 </div>
                 <div className={s.value}>
-                  <DollarSign size={12} style={{ display: 'inline' }} />
+                  <Icon name="DollarSign" size="xs" style={{ display: 'inline' }} />
                   {formatCurrency(prop.total_tax_value)}
                 </div>
               </div>

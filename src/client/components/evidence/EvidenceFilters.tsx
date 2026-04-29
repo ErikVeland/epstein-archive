@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Info, Filter, Flag, FileText, SlidersHorizontal } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import {
   Surface,
   Button,
@@ -11,7 +11,7 @@ import {
   SearchField,
   Select,
   Stack,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import ProgressBar from '../common/ProgressBar';
 import { MobileEvidenceFilterSheet } from './MobileEvidenceFilterSheet';
 import styles from './EvidenceFilters.module.css';
@@ -122,7 +122,7 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
                 onClick={() => onEvidenceTypeChange('ALL')}
                 className={styles.stripBtn}
               >
-                <Filter size={14} />
+                <Icon name="Filter" size="sm" />
                 All Evidence
               </Button>
               {allEvidenceTypes.slice(0, 6).map((type) => (
@@ -133,7 +133,7 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
                   onClick={() => onEvidenceTypeChange(type)}
                   className={styles.stripBtn}
                 >
-                  <FileText size={14} />
+                  <Icon name="FileText" size="sm" />
                   {type.replace('_', ' ')}
                 </Button>
               ))}
@@ -173,7 +173,7 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
               className={cn(styles.riskTab, styles.filtersTrigger)}
               aria-label="Open advanced filters"
             >
-              <SlidersHorizontal size={14} />
+              <Icon name="SlidersHorizontal" size="sm" />
               {activeAdvancedCount > 0 && (
                 <Box className={styles.filtersBadge}>{activeAdvancedCount}</Box>
               )}
@@ -266,14 +266,14 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
               onClick={() => onShowRedFlagOnlyChange(!showRedFlagOnly)}
               className={styles.fullWidthBtn}
             >
-              <Flag size={14} />
+              <Icon name="Flag" size="sm" />
               {showRedFlagOnly ? 'Flagged Intelligence Only' : 'Include All Observations'}
             </Button>
           </Stack>
 
           <Flex justify="end">
             <Button variant="ghost" size="sm" onClick={onShowFiltersToggle}>
-              <Info size={14} />
+              <Icon name="Info" size="sm" />
               Forensic Guidelines
             </Button>
           </Flex>

@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  File,
-  Folder,
-  Eye,
-  Download,
-  User,
-  Mail,
-  FileText,
-  Image,
-  FileSpreadsheet,
-} from 'lucide-react';
+import Icon, { IconName } from '@client/components/common/Icon';
 import { CloseButton } from './common/CloseButton';
-import { cn } from '../utils/cn';
+import { cn } from '@client/utils/cn';
 import styles from './FileBrowser.module.css';
-import { apiClient } from '../services/apiClient';
-import { Flex, Surface, Stack, Grid, Box, LqText, Button, SearchField } from '../design-system/lib';
+import { apiClient } from '@client/services/apiClient';
+import {
+  Flex,
+  Surface,
+  Stack,
+  Grid,
+  Box,
+  LqText,
+  Button,
+  SearchField,
+} from '@client/design-system/lib';
 
 interface FileItem {
   id?: string;
@@ -57,22 +56,27 @@ const FileBrowser: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const categories = [
-    { id: 'all', name: 'All Files', icon: Folder, colorClass: styles.iconDefault },
-    { id: 'emails', name: 'Emails & Communications', icon: Mail, colorClass: styles.iconEmails },
-    { id: 'documents', name: 'Legal Documents', icon: FileText, colorClass: styles.iconDocuments },
-    { id: 'images', name: 'Images & Photos', icon: Image, colorClass: styles.iconImages },
+  const categories: Array<{ id: string; name: string; icon: IconName; colorClass: string }> = [
+    { id: 'all', name: 'All Files', icon: 'Folder', colorClass: styles.iconDefault },
+    { id: 'emails', name: 'Emails & Communications', icon: 'Mail', colorClass: styles.iconEmails },
+    {
+      id: 'documents',
+      name: 'Legal Documents',
+      icon: 'FileText',
+      colorClass: styles.iconDocuments,
+    },
+    { id: 'images', name: 'Images & Photos', icon: 'Image', colorClass: styles.iconImages },
     {
       id: 'flight_logs',
       name: 'Flight Records',
-      icon: FileSpreadsheet,
+      icon: 'FileSpreadsheet',
       colorClass: styles.iconFlights,
     },
-    { id: 'testimonies', name: 'Testimonies', icon: User, colorClass: styles.iconDefault },
+    { id: 'testimonies', name: 'Testimonies', icon: 'User', colorClass: styles.iconDefault },
     {
       id: 'financial',
       name: 'Financial Records',
-      icon: FileSpreadsheet,
+      icon: 'FileSpreadsheet',
       colorClass: styles.iconFinancial,
     },
   ];
@@ -245,22 +249,22 @@ const FileBrowser: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const getFileIcon = (file: FileItem) => {
-    if (file.type === 'folder') return Folder;
+  const getFileIcon = (file: FileItem): IconName => {
+    if (file.type === 'folder') return 'Folder';
 
     const ext = file.name.split('.').pop()?.toLowerCase();
     switch (ext) {
       case 'pdf':
-        return FileText;
+        return 'FileText';
       case 'txt':
-        return FileText;
+        return 'FileText';
       case 'csv':
-        return FileSpreadsheet;
+        return 'FileSpreadsheet';
       case 'jpg':
       case 'png':
-        return Image;
+        return 'Image';
       default:
-        return File;
+        return 'File';
     }
   };
 
@@ -292,7 +296,6 @@ const FileBrowser: React.FC = () => {
         {loadError && <div className={styles.errorBanner}>{loadError}</div>}
         <div className={styles.categoryGrid}>
           {categories.map((category) => {
-            const Icon = category.icon;
             return (
               <Surface
                 key={category.id}
@@ -305,7 +308,10 @@ const FileBrowser: React.FC = () => {
                 )}
                 p={4}
               >
-                <Icon className={cn(styles.categoryIcon, category.colorClass)} />
+                <Icon
+                  name={category.icon}
+                  className={cn(styles.categoryIcon, category.colorClass)}
+                />
                 <span className={styles.categoryLabel}>{category.name}</span>
               </Surface>
             );
@@ -345,7 +351,6 @@ const FileBrowser: React.FC = () => {
 
         <div className={styles.fileList}>
           {filteredFiles.map((file, index) => {
-            const Icon = getFileIcon(file);
             return (
               <Surface
                 key={index}
@@ -358,7 +363,7 @@ const FileBrowser: React.FC = () => {
               >
                 <Flex align="center" justify="between">
                   <Flex align="center" gap={3}>
-                    <Icon className={styles.fileTypeIcon} />
+                    <Icon name={getFileIcon(file)} className={styles.fileTypeIcon} />
                     <div>
                       <LqText weight="medium">{file.name}</LqText>
                       <LqText color="muted" variant="small">
@@ -377,7 +382,7 @@ const FileBrowser: React.FC = () => {
                         {file.modified}
                       </LqText>
                     )}
-                    <Eye className={styles.fileEyeIcon} />
+                    <Icon name="Eye" className={styles.fileEyeIcon} />
                   </Flex>
                 </Flex>
               </Surface>
@@ -387,7 +392,7 @@ const FileBrowser: React.FC = () => {
 
         {filteredFiles.length === 0 && (
           <Surface p={8} className={styles.emptyState}>
-            <File className={styles.emptyIcon} />
+            <Icon name="File" className={styles.emptyIcon} />
             <Box mb={2}>
               <LqText variant="h4" weight="medium" color="secondary">
                 No files found
@@ -406,7 +411,7 @@ const FileBrowser: React.FC = () => {
               <Surface variant="glass" p={6} className={styles.modalHeader}>
                 <Flex align="center" justify="between">
                   <Flex align="center" gap={3}>
-                    <File className={styles.modalFileIcon} />
+                    <Icon name="File" className={styles.modalFileIcon} />
                     <h3 className={styles.modalTitle}>{selectedFile.name}</h3>
                   </Flex>
                   <Flex align="center" gap={3}>
@@ -416,7 +421,7 @@ const FileBrowser: React.FC = () => {
                       disabled={!selectedFile.content && !selectedFile.path && !selectedFile.id}
                       className={styles.downloadButton}
                     >
-                      <Download className={styles.downloadIcon} />
+                      <Icon name="Download" className={styles.downloadIcon} />
                       <LqText weight="medium">Download</LqText>
                     </Button>
                     <CloseButton

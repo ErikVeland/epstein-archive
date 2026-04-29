@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import express from 'express';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { InvestigativeTaskService } from '../services/InvestigativeTaskService.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
-const router = Router();
+const router = express.Router();
 const taskService = new InvestigativeTaskService();
 
 // Schemas

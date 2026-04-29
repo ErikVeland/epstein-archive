@@ -7,7 +7,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { Investigation } from '../types/investigation';
+import { Investigation } from '@client/types/investigation';
 import { useAuth } from './AuthContext';
 import { useApiStatus } from './ApiStatusContext';
 

@@ -13,7 +13,7 @@ import { runDevAffordanceAudit } from './utils/devAffordanceAudit';
 import { createPortal } from 'react-dom';
 import { useNavigate, Link, Routes, Route } from 'react-router-dom';
 // Icons imported as needed via Icon component
-import { Person } from './types';
+import { Person, Photo } from './types';
 import type {
   GlobalStatsPayload,
   SearchResponsePayload,
@@ -32,12 +32,14 @@ import ScopedErrorBoundary from './components/common/ScopedErrorBoundary';
 // ProgressBar available but not currently used
 import LoadingIndicator from './components/common/LoadingIndicator';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import { CommandPalette } from './components/common/CommandPalette';
 import { Breadcrumb } from './components/layout/Breadcrumb';
 import Icon from './components/common/Icon';
 import { RedactedLogo } from './components/RedactedLogo';
 // getEntityTypeIcon available via Icon component
 import { FirstRunOnboarding } from './components/FirstRunOnboarding';
 import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
+import { useCommandPalette } from './hooks/useCommandPalette';
 import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -191,7 +193,7 @@ const FinancialPage = lazyWithRetry(
   'FinancialPage',
 );
 
-import releaseNotesRaw from '../../release_notes.md?raw';
+import releaseNotesRaw from '@root/release_notes.md?raw';
 import styles from './App.module.css';
 import type { DocRecord } from './components/documents/DocumentModal';
 
@@ -318,22 +320,43 @@ function App() {
       const data = (await response.json()) as SearchResponsePayload;
       const entities = Array.isArray(data.entities) ? data.entities : [];
       const documents = Array.isArray(data.documents) ? data.documents : [];
-      const entitySuggestions: HeaderSuggestion[] = entities.map((entity) => ({
-        kind: 'entity',
-        id: entity.id,
-        name: entity.fullName || entity.name || 'Unknown',
-        fullName: entity.fullName || entity.name || 'Unknown',
-        canonicalName: entity.canonicalName || entity.fullName || entity.name || 'Unknown',
-        matchedAlias: entity.matchedAlias || null,
-        role: entity.primaryRole || entity.role || 'Unknown',
-        mentions: entity.mention_count || entity.mentions || 0,
-        redFlagRating: entity.redFlagRating ?? 0,
-        files: entity.document_count || entity.files || 0,
-        contexts: [],
-        evidenceTypes: [],
-        significantPassages: [],
-        fileReferences: [],
-      }));
+      type SearchEntityPayload = Partial<{
+        id: string | number;
+        fullName: string;
+        name: string;
+        canonicalName: string;
+        matchedAlias: string;
+        primaryRole: string;
+        role: string;
+        mention_count: number;
+        mentions: number;
+        redFlagRating: number;
+        document_count: number;
+        files: number;
+      }> &
+        Record<string, unknown>;
+
+      const entitySuggestions: HeaderSuggestion[] = (entities as SearchEntityPayload[])
+        .filter(
+          (entity): entity is SearchEntityPayload & { id: string | number } =>
+            entity.id !== undefined && entity.id !== null,
+        )
+        .map((entity) => ({
+          kind: 'entity',
+          id: entity.id ?? 'unknown',
+          name: entity.fullName || entity.name || 'Unknown',
+          fullName: entity.fullName || entity.name || 'Unknown',
+          canonicalName: entity.canonicalName || entity.fullName || entity.name || 'Unknown',
+          matchedAlias: entity.matchedAlias || null,
+          role: entity.primaryRole || entity.role || 'Unknown',
+          mentions: entity.mention_count || entity.mentions || 0,
+          redFlagRating: entity.redFlagRating ?? 0,
+          files: entity.document_count || entity.files || 0,
+          contexts: [],
+          evidenceTypes: [],
+          significantPassages: [],
+          fileReferences: [],
+        }));
       const documentSuggestions: HeaderSuggestion[] = documents
         .slice(0, 4)
         .map((document: SearchDocumentPayload) => ({
@@ -352,6 +375,8 @@ function App() {
 
   // First  // Onboarding
   const { shouldShowOnboarding, completeOnboarding, skipOnboarding } = useFirstRunOnboarding();
+  const commandPalette = useCommandPalette();
+  const { isOpen: isCommandPaletteOpen, close: closeCommandPalette } = commandPalette;
 
   const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track tab changes to sync document modal state */
@@ -424,6 +449,43 @@ function App() {
   useEffect(() => {
     if (urlEntityData?.id && urlEntityData.id !== prevUrlEntityDataId) {
       setPrevUrlEntityDataId(urlEntityData.id);
+      const photos: Photo[] = Array.isArray(urlEntityData.photos)
+        ? (urlEntityData.photos as unknown[])
+            .map((p) => {
+              const rec = p as Record<string, unknown>;
+              const id = rec.id ?? rec.photo_id ?? rec.media_id;
+              const filePath = rec.filePath ?? rec.file_path ?? rec.path ?? rec.url;
+              if (typeof id !== 'string' && typeof id !== 'number') return null;
+              if (typeof filePath !== 'string') return null;
+              return { id: String(id), filePath };
+            })
+            .filter((v): v is Photo => v !== null)
+        : [];
+
+      const blackBookEntries = Array.isArray(urlEntityData.blackBookEntry)
+        ? (urlEntityData.blackBookEntry as Array<Record<string, unknown>>)
+            .map((rec) => {
+              const id = rec.id;
+              if (typeof id !== 'number') return null;
+              return {
+                id,
+                phoneNumbers: Array.isArray(rec.phoneNumbers)
+                  ? (rec.phoneNumbers as string[])
+                  : undefined,
+                emailAddresses: Array.isArray(rec.emailAddresses)
+                  ? (rec.emailAddresses as string[])
+                  : undefined,
+                addresses: Array.isArray(rec.addresses) ? (rec.addresses as string[]) : undefined,
+                entryText: typeof rec.entryText === 'string' ? rec.entryText : undefined,
+                notes: typeof rec.notes === 'string' ? rec.notes : undefined,
+                entryCategory:
+                  typeof rec.entryCategory === 'string' ? rec.entryCategory : undefined,
+                documentId: typeof rec.documentId === 'number' ? rec.documentId : undefined,
+              };
+            })
+            .filter((v) => v !== null)
+        : undefined;
+
       const person: Person = {
         id: urlEntityData.id,
         name: urlEntityData.fullName || 'Unknown',
@@ -440,8 +502,8 @@ function App() {
         bio: urlEntityData.bio || urlEntityData.description,
         birthDate: urlEntityData.birthDate,
         deathDate: urlEntityData.deathDate,
-        photos: urlEntityData.photos,
-        blackBookEntries: urlEntityData.blackBookEntry,
+        photos,
+        blackBookEntries,
         entityType: urlEntityData.entityType || urlEntityData.type,
         redFlagDescription: urlEntityData.redFlagDescription,
       };
@@ -744,10 +806,18 @@ function App() {
     const likelihoodDistribution = Array.isArray(globalStatsData.likelihoodDistribution)
       ? globalStatsData.likelihoodDistribution
       : [];
-    const highRisk = likelihoodDistribution.find((bucket) => bucket.level === 'HIGH')?.count || 0;
+    const highRisk =
+      likelihoodDistribution.find(
+        (bucket: { level: string; count: number }) => bucket.level === 'HIGH',
+      )?.count || 0;
     const mediumRisk =
-      likelihoodDistribution.find((bucket) => bucket.level === 'MEDIUM')?.count || 0;
-    const lowRisk = likelihoodDistribution.find((bucket) => bucket.level === 'LOW')?.count || 0;
+      likelihoodDistribution.find(
+        (bucket: { level: string; count: number }) => bucket.level === 'MEDIUM',
+      )?.count || 0;
+    const lowRisk =
+      likelihoodDistribution.find(
+        (bucket: { level: string; count: number }) => bucket.level === 'LOW',
+      )?.count || 0;
     const newStats = {
       totalPeople: globalStatsData.totalEntities,
       totalMentions: globalStatsData.totalMentions,
@@ -2207,6 +2277,10 @@ function App() {
                 isOpen={showKeyboardShortcuts}
                 onClose={() => setShowKeyboardShortcuts(false)}
               />
+
+              <Suspense fallback={null}>
+                <CommandPalette isOpen={isCommandPaletteOpen} onClose={closeCommandPalette} />
+              </Suspense>
 
               {showCreateEntityModal && (
                 <CreateEntityModal

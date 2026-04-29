@@ -1,18 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { apiClient } from '../../services/apiClient';
+import { apiClient } from '@client/services/apiClient';
 import { useToasts } from '../common/useToasts';
-import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
-import {
-  ExternalLink,
-  FileText,
-  Loader2,
-  ShieldAlert,
-  User,
-  Plus,
-  XCircle,
-  TrendingUp,
-  Fingerprint,
-} from 'lucide-react';
+import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
+import Icon from '@client/components/common/Icon';
 
 // UI Library
 import {
@@ -27,7 +17,7 @@ import {
   Stack,
   Surface,
   cn,
-} from '../../design-system/lib';
+} from '@client/design-system/lib';
 import styles from './SubjectDossierPanel.module.css';
 
 const css = <T,>(style: T) => style;
@@ -154,7 +144,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
             <Flex justify="between" align="center">
               <Stack gap="none">
                 <Flex align="center" gap="sm">
-                  <Fingerprint size={20} className="text-[var(--lq-accent)]" />
+                  <Icon name="Fingerprint" size="md" className="text-[var(--lq-accent)]" />
                   <LqText variant="h3" weight="bold">
                     Subject Dossier
                   </LqText>
@@ -169,7 +159,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                 </LqText>
               </Stack>
               <Button variant="ghost" size="sm" onClick={onClose}>
-                <XCircle size={18} />
+                <Icon name="XCircle" size="md" />
               </Button>
             </Flex>
           </Surface>
@@ -187,7 +177,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                   className={styles.searchFieldInput}
                 />
                 {searching && (
-                  <Loader2 className={cn(styles.searchLoader, styles.spin)} size={16} />
+                  <Icon name="Loader2" className={cn(styles.searchLoader, styles.spin)} size="sm" />
                 )}
               </Box>
             </form>
@@ -237,7 +227,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
               </Stack>
             ) : !selectedEntity ? (
               <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
-                <User size={48} className="text-[var(--lq-text-dim)]" />
+                <Icon name="User" size="xl" className="text-[var(--lq-text-dim)]" />
                 <Stack gap="xs">
                   <LqText variant="small" weight="bold">
                     Intelligence Buffer Empty
@@ -289,7 +279,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                     variant="ghost"
                     onClick={() => window.open(`/subjects/${selectedEntity.id}`, '_blank')}
                   >
-                    <ExternalLink size={16} />
+                    <Icon name="ExternalLink" size="sm" />
                   </Button>
                 </Flex>
 
@@ -302,8 +292,9 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                   >
                     <Stack gap="xs">
                       <Flex align="center" gap="xs">
-                        <ShieldAlert
-                          size={12}
+                        <Icon
+                          name="ShieldAlert"
+                          size="xs"
                           className={cn(`text-[var(--lq-${getRfiVariant(rfi)})]`)}
                         />
                         <LqText
@@ -326,7 +317,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                   <Surface variant="glass-highlight" p="md">
                     <Stack gap="xs">
                       <Flex align="center" gap="xs">
-                        <TrendingUp size={12} className="text-[var(--lq-accent)]" />
+                        <Icon name="TrendingUp" size="xs" className="text-[var(--lq-accent)]" />
                         <LqText
                           variant="xs"
                           weight="bold"
@@ -364,7 +355,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
 
                 {/* Actions */}
                 <Button variant="primary" onClick={handlePin}>
-                  <Plus size={16} /> Link as Case Primary Subject
+                  <Icon name="Plus" size="sm" /> Link as Case Primary Subject
                 </Button>
 
                 {/* Sub-Signals */}
@@ -399,7 +390,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                           onClick={() => onOpenDocument?.(doc.id)}
                         >
                           <Flex gap="sm" align="center">
-                            <FileText size={14} className="text-[var(--lq-accent)]" />
+                            <Icon name="FileText" size="sm" className="text-[var(--lq-accent)]" />
                             <LqText variant="xs" weight="bold">
                               {doc.title || doc.file_path?.split('/').pop()}
                             </LqText>
@@ -416,7 +407,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                     style={css({ marginTop: 'var(--space-sm)' })}
                   >
                     View All Mentions{' '}
-                    <ExternalLink size={10} style={css({ marginLeft: '0.25rem' })} />
+                    <Icon name="ExternalLink" size="xs" style={css({ marginLeft: '0.25rem' })} />
                   </Button>
                 </Stack>
               </Stack>

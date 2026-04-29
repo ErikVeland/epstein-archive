@@ -1,24 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Download,
-  AlertTriangle,
-  CheckCircle,
-  MapPin,
-  Mail,
-  DollarSign,
-  User,
-  Building,
-  Calendar,
-  TrendingUp,
-  Activity,
-  Zap,
-  Layers,
-  Terminal,
-  Database,
-  Loader2,
-  AlertCircle,
-  FileText,
-} from 'lucide-react';
+import Icon, { type IconName, type IconProps } from '@client/components/common/Icon';
 import { format } from 'date-fns';
 
 // UI Library
@@ -34,8 +15,8 @@ import {
   Stack,
   Surface,
   cn,
-} from '../../design-system/lib';
-import { useIsMobile } from '../../hooks/useIsMobile';
+} from '@client/design-system/lib';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './MultiSourceCorrelationEngine.module.css';
@@ -123,22 +104,22 @@ export const MultiSourceCorrelationEngine = ({
     recomputeCorrelations();
   }, []);
 
-  const getSourceIcon = (type: string, size = 16) => {
+  const getSourceIcon = (type: string, size: IconProps['size'] = 'sm') => {
     switch (type) {
       case 'financial':
-        return <DollarSign size={size} />;
+        return <Icon name="DollarSign" size={size} />;
       case 'communication':
-        return <Mail size={size} />;
+        return <Icon name="Mail" size={size} />;
       case 'travel':
-        return <MapPin size={size} />;
+        return <Icon name="MapPin" size={size} />;
       case 'document':
-        return <FileText size={size} />;
+        return <Icon name="FileText" size={size} />;
       case 'social':
-        return <User size={size} />;
+        return <Icon name="User" size={size} />;
       case 'legal':
-        return <Building size={size} />;
+        return <Icon name="Building" size={size} />;
       default:
-        return <Database size={size} />;
+        return <Icon name="Database" size={size} />;
     }
   };
 
@@ -199,7 +180,7 @@ export const MultiSourceCorrelationEngine = ({
             <Flex justify="between" align="start">
               <Stack gap="none">
                 <Flex align="center" gap="md">
-                  <Layers size={24} className={styles.autoGen310} />
+                  <Icon name="Layers" size="lg" className={styles.autoGen310} />
                   <LqText variant="h1" weight="bold">
                     Multi-Source Correlation Engine
                   </LqText>
@@ -221,7 +202,7 @@ export const MultiSourceCorrelationEngine = ({
                   onClick={exportCorrelations}
                   className={styles.autoGen311}
                 >
-                  <Download size={14} className={styles.mr2} /> Export Analysis
+                  <Icon name="Download" size="sm" className={styles.mr2} /> Export Analysis
                 </Button>
                 <Button
                   variant="secondary"
@@ -230,9 +211,9 @@ export const MultiSourceCorrelationEngine = ({
                   disabled={isAnalyzing}
                 >
                   {isAnalyzing ? (
-                    <Loader2 size={14} className={`animate-spin ${styles.mr2}`} />
+                    <Icon name="Loader2" size="sm" className={`animate-spin ${styles.mr2}`} />
                   ) : (
-                    <Zap size={14} className={styles.mr2} />
+                    <Icon name="Zap" size="sm" className={styles.mr2} />
                   )}
                   {isAnalyzing ? `Analyzing Signals (${analysisProgress}%)` : 'Execute Analysis'}
                 </Button>
@@ -288,7 +269,7 @@ export const MultiSourceCorrelationEngine = ({
                   />
                 </Stack>
                 <Flex gap="md" align="center" className={styles.autoGen315}>
-                  <Activity size={14} className={styles.autoGen316} />
+                  <Icon name="Activity" size="sm" className={styles.autoGen316} />
                   <LqText variant="xs" weight="bold" color="muted">
                     {filteredCorrelations.length} Intersections Extracted
                   </LqText>
@@ -304,25 +285,25 @@ export const MultiSourceCorrelationEngine = ({
             {
               label: 'Intelligence Sources',
               val: dataSources.length,
-              icon: Database,
+              iconName: 'Database' as IconName,
               tone: 'accent',
             },
             {
               label: 'Active Intersections',
               val: filteredCorrelations.length,
-              icon: Layers,
+              iconName: 'Layers' as IconName,
               tone: 'success',
             },
             {
               label: 'Critical Anomalies',
               val: filteredCorrelations.filter((c) => c.significance === 'critical').length,
-              icon: AlertTriangle,
+              iconName: 'AlertTriangle' as IconName,
               tone: 'error',
             },
             {
               label: 'Avg Confidence',
               val: `${Math.round(filteredCorrelations.reduce((s, c) => s + c.confidence, 0) / (filteredCorrelations.length || 1))}%`,
-              icon: TrendingUp,
+              iconName: 'TrendingUp' as IconName,
               tone: 'accent',
             },
           ].map((m) => (
@@ -352,7 +333,7 @@ export const MultiSourceCorrelationEngine = ({
                         : 'bg-[var(--lq-accent-dim)] text-[var(--lq-accent)]',
                   )}
                 >
-                  <m.icon size={20} />
+                  <Icon name={m.iconName} size="lg" />
                 </Box>
               </Flex>
             </Surface>
@@ -363,7 +344,7 @@ export const MultiSourceCorrelationEngine = ({
           {/* Main Correlation Stream */}
           <Stack gap="md" style={css({ flex: 1 })}>
             <Flex align="center" gap="md">
-              <Terminal size={16} className={styles.autoGen318} />
+              <Icon name="Terminal" size="sm" className={styles.autoGen318} />
               <LqText
                 variant="xs"
                 weight="bold"
@@ -427,14 +408,14 @@ export const MultiSourceCorrelationEngine = ({
                     >
                       <Flex gap="md">
                         <Flex align="center" gap="xs">
-                          <Calendar size={12} className={styles.autoGen321} />
+                          <Icon name="Calendar" size="xs" className={styles.autoGen321} />
                           <LqText variant="xs" color="muted">
                             {c.timeRange.start}
                           </LqText>
                         </Flex>
                         {c.location && (
                           <Flex align="center" gap="xs">
-                            <MapPin size={12} className={styles.autoGen322} />
+                            <Icon name="MapPin" size="xs" className={styles.autoGen322} />
                             <LqText variant="xs" color="muted">
                               {c.location}
                             </LqText>
@@ -458,7 +439,7 @@ export const MultiSourceCorrelationEngine = ({
               <Surface variant="glass" p="lg" className={styles.autoGen323}>
                 <Stack gap="lg">
                   <Flex align="center" gap="md">
-                    <Activity size={16} className={styles.autoGen324} />
+                    <Icon name="Activity" size="sm" className={styles.autoGen324} />
                     <LqText
                       variant="xs"
                       weight="bold"
@@ -479,7 +460,7 @@ export const MultiSourceCorrelationEngine = ({
                         <Stack gap="sm">
                           <Flex justify="between" align="center">
                             <Flex align="center" gap="sm">
-                              {getSourceIcon(s.type, 14)}
+                              {getSourceIcon(s.type, 'xs')}
                               <LqText variant="xs" weight="bold">
                                 {s.name}
                               </LqText>
@@ -574,7 +555,7 @@ export const MultiSourceCorrelationEngine = ({
                       <Stack gap="xs">
                         {selectedCorrelation.evidence.map((ev, i) => (
                           <Flex key={i} align="start" gap="sm">
-                            <CheckCircle size={10} className={styles.autoGen329} />
+                            <Icon name="CheckCircle" size="xs" className={styles.autoGen329} />
                             <LqText variant="xs" color="muted" lineHeight="relaxed">
                               {ev}
                             </LqText>
@@ -591,7 +572,7 @@ export const MultiSourceCorrelationEngine = ({
                         <Stack gap="xs">
                           {selectedCorrelation.anomalies.map((an, i) => (
                             <Flex key={i} align="start" gap="sm">
-                              <AlertCircle size={10} className={styles.autoGen330} />
+                              <Icon name="AlertCircle" size="xs" className={styles.autoGen330} />
                               <LqText variant="xs" color="danger" lineHeight="relaxed">
                                 {an}
                               </LqText>

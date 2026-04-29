@@ -1,0 +1,60 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.label {
+  margin-left: 2px;
+}
+
+.sourceLink {
+  margin-left: 4px;
+  font-family: monospace;
+  font-size: 11px;
+  opacity: 0.8;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Variants — never rely on color alone; use icon + border */
+.unreviewed {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.accepted {
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  color: #065f46;
+}
+
+.rejected {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.deferred {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
+
+.insufficient {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+}

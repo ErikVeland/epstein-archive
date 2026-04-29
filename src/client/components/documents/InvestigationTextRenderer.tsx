@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Sparkles, AlertCircle, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
-import { prettifyOCRText } from '../../utils/prettifyOCR';
+import Icon from '@client/components/common/Icon';
+import { prettifyOCRText } from '@client/utils/prettifyOCR';
 import styles from './InvestigationTextRenderer.module.css';
 
 // Design System
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { LqText } from '../../design-system/components/typography/Text';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { LqText } from '@client/design-system/components/typography/Text';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface DocumentEntity {
   id?: string | number;
@@ -493,7 +493,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
       {lowLegibility && (
         <Box className={styles.warningBox}>
           <Box className={styles.warningIconContainer}>
-            <AlertCircle className={styles.warningIcon} />
+            <Icon name="AlertCircle" className={styles.warningIcon} />
           </Box>
           <Box>
             <LqText variant="xs" weight="bold" color="accent" className={styles.warningTitle}>
@@ -512,7 +512,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
         <Surface variant="glass" className={styles.significanceSection}>
           <Box className={styles.significanceHeader}>
             <Flex align="center" gap="sm">
-              <Sparkles className={styles.significanceIcon} />
+              <Icon name="Sparkles" className={styles.significanceIcon} />
               <LqText variant="xs" weight="black" className={styles.significanceLabel}>
                 AI Intelligence: Key Excerpts
               </LqText>
@@ -549,7 +549,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
             className={`${styles.iconButton} ${isReadingMode ? styles.iconButtonActive : ''} ${styles.readingModeToggle}`}
             title={isReadingMode ? 'Disable Reading Mode' : 'Enable Reading Mode'}
           >
-            <FileText className={styles.iconMedium} />
+            <Icon name="FileText" className={styles.iconMedium} />
           </Button>
 
           {searchTerm && matchCount > 0 && (
@@ -564,7 +564,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
                   className={styles.iconButton}
                   title="Previous match"
                 >
-                  <ChevronLeft className={styles.iconSmall} />
+                  <Icon name="ChevronLeft" className={styles.iconSmall} />
                 </Button>
                 <Button
                   unstyled
@@ -572,7 +572,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
                   className={styles.iconButton}
                   title="Next match"
                 >
-                  <ChevronRight className={styles.iconSmall} />
+                  <Icon name="ChevronRight" className={styles.iconSmall} />
                 </Button>
               </Box>
             </Box>

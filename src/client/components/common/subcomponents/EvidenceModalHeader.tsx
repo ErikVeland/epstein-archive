@@ -1,11 +1,11 @@
 import React from 'react';
-import { ShieldAlert, FileText, Search, BookOpen, Calendar } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../CloseButton';
 import { Tabs, TabItem } from '../Tabs';
 import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceModalHeader.module.css';
 
-import { Button } from '../../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface EvidenceEntity {
   id?: string | number;
@@ -80,9 +80,9 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
           ) : (
             <div className={s.photoPlaceholder}>
               {headerPhoto && !isVisualMediaItem(headerPhoto) ? (
-                <FileText size={32} />
+                <Icon name="FileText" size="xl" />
               ) : (
-                <Search size={32} />
+                <Icon name="Search" size="xl" />
               )}
             </div>
           )}
@@ -105,7 +105,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
             <div className={s.titleRow}>
               <h2 className={s.title}>{entity?.fullName}</h2>
               <span className={`${s.riskBadge} ${s[getRiskClass(entity?.redFlagRating || 0)]}`}>
-                <ShieldAlert size={12} className={s.badgeIcon} />
+                <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
                 Risk {(entity?.redFlagRating || 0).toFixed(0)}/5
               </span>
             </div>
@@ -135,7 +135,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
                   onClick={() => handleQuickAction('blackbook')}
                   className={s.blackbookBtn}
                 >
-                  <BookOpen size={14} />
+                  <Icon name="BookOpen" size="sm" />
                   Black Book Entry
                 </Button>
                 <Button
@@ -143,7 +143,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
                   onClick={() => handleQuickAction('timeline')}
                   className={s.timelineBtn}
                 >
-                  <Calendar size={12} />
+                  <Icon name="Calendar" size="xs" />
                   Timeline
                 </Button>
                 <Button
@@ -151,7 +151,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
                   onClick={() => handleQuickAction('search')}
                   className={s.searchBtn}
                 >
-                  <Search size={12} />
+                  <Icon name="Search" size="xs" />
                   Search
                 </Button>
               </div>
@@ -179,7 +179,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
               onClick={() => handleQuickAction('blackbook')}
               className={s.blackbookBtn}
             >
-              <BookOpen size={14} />
+              <Icon name="BookOpen" size="sm" />
               Black Book Entry
             </Button>
             <Button
@@ -187,11 +187,11 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
               onClick={() => handleQuickAction('timeline')}
               className={s.timelineBtn}
             >
-              <Calendar size={12} />
+              <Icon name="Calendar" size="xs" />
               Timeline
             </Button>
             <Button unstyled onClick={() => handleQuickAction('search')} className={s.searchBtn}>
-              <Search size={12} />
+              <Icon name="Search" size="xs" />
               Search
             </Button>
           </div>

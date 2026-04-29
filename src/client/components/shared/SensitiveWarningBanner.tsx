@@ -1,8 +1,8 @@
 import React from 'react';
-import { AlertTriangle } from 'lucide-react';
+import Icon from '@client/components/common/Icon';
 import s from './SensitiveWarningBanner.module.css';
 
-import { Button } from '../../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface SensitiveWarningBannerProps {
   /** Type of media for contextual warning message */
@@ -39,7 +39,7 @@ export function SensitiveWarningBanner({
 
   return (
     <div className={s.banner}>
-      <AlertTriangle className={s.icon} size={20} />
+      <Icon name="AlertTriangle" className={s.icon} size="md" />
       <div className={s.body}>
         <h4 className={s.heading}>Sensitive &amp; Disturbing Content</h4>
         <p className={s.message}>

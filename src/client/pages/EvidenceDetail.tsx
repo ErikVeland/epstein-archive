@@ -5,40 +5,27 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { useIsTouch } from '../hooks/useIsTouch';
+import { useIsTouch } from '@client/hooks/useIsTouch';
 import { useParams, Link } from 'react-router-dom';
-import {
-  FileText,
-  Calendar,
-  Tag,
-  AlertTriangle,
-  Users,
-  Download,
-  Share2,
-  Bookmark,
-  ChevronLeft,
-  Activity,
-  Zap,
-  ShieldCheck,
-} from 'lucide-react';
-import { EmailViewer } from '../components/evidence/EmailViewer';
-import { DepositionViewer } from '../components/evidence/DepositionViewer';
-import { TableViewer } from '../components/evidence/TableViewer';
-import { ImageViewer } from '../components/evidence/ImageViewer';
-import { DocumentViewer } from '../components/evidence/DocumentViewer';
-import { ContactListViewer } from '../components/evidence/ContactListViewer';
-import { getEntityCategoryIcon } from '../../config/entityIcons';
-import { ClaimsList } from '../components/evidence/ClaimsList';
-import { SEO } from '../components/common/SEO';
-import { apiClient } from '../services/apiClient';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Box } from '../design-system/components/layout/Box';
-import { Grid } from '../design-system/components/layout/Grid';
-import { LqText } from '../design-system/components/typography/Text';
+import Icon from '@client/components/common/Icon';
+import { EmailViewer } from '@client/components/evidence/EmailViewer';
+import { DepositionViewer } from '@client/components/evidence/DepositionViewer';
+import { TableViewer } from '@client/components/evidence/TableViewer';
+import { ImageViewer } from '@client/components/evidence/ImageViewer';
+import { DocumentViewer } from '@client/components/evidence/DocumentViewer';
+import { ContactListViewer } from '@client/components/evidence/ContactListViewer';
+import { getEntityCategoryIcon } from '@client/config/entityIcons';
+import { ClaimsList } from '@client/components/evidence/ClaimsList';
+import { SEO } from '@client/components/common/SEO';
+import { apiClient } from '@client/services/apiClient';
+import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Flex } from '@client/design-system/components/layout/Flex';
+import { Box } from '@client/design-system/components/layout/Box';
+import { Grid } from '@client/design-system/components/layout/Grid';
+import { LqText } from '@client/design-system/components/typography/Text';
 import styles from './EvidenceDetail.module.css';
 
-import { Button } from '../design-system/lib';
+import { Button } from '@client/design-system/lib';
 
 interface Evidence {
   id: number;
@@ -216,7 +203,7 @@ export function EvidenceDetail() {
     return (
       <Flex align="center" justify="center" className={styles.centerScreen}>
         <Box className={styles.centerContent}>
-          <AlertTriangle className={styles.errorIcon} />
+          <Icon name="AlertTriangle" className={styles.errorIcon} />
           <LqText as="p" variant="body" color="primary" className={styles.statusText}>
             {error || 'Evidence not found'}
           </LqText>
@@ -243,7 +230,7 @@ export function EvidenceDetail() {
           <Flex align="center" justify="between">
             <Flex align="center" gap={4}>
               <Link to="/evidence" className={styles.backButton}>
-                <ChevronLeft className={styles.backIcon} />
+                <Icon name="ChevronLeft" className={styles.backIcon} />
                 <span className={styles.backLabel}>Back</span>
               </Link>
               <Box>
@@ -263,7 +250,7 @@ export function EvidenceDetail() {
                 className={styles.iconButton}
                 aria-label="Share evidence"
               >
-                <Share2 className={styles.actionIcon} />
+                <Icon name="Share2" className={styles.actionIcon} />
               </Button>
               <Button
                 unstyled
@@ -271,7 +258,7 @@ export function EvidenceDetail() {
                 className={styles.iconButton}
                 aria-label="Bookmark evidence"
               >
-                <Bookmark className={styles.actionIcon} />
+                <Icon name="Bookmark" className={styles.actionIcon} />
               </Button>
               <Button
                 unstyled
@@ -279,7 +266,7 @@ export function EvidenceDetail() {
                 className={styles.iconButton}
                 aria-label="Download evidence file"
               >
-                <Download className={styles.actionIcon} />
+                <Icon name="Download" className={styles.actionIcon} />
               </Button>
             </Flex>
           </Flex>
@@ -297,25 +284,25 @@ export function EvidenceDetail() {
           <Flex align="center" justify="between" className={styles.metaPrimaryRow}>
             <Flex align="center" gap={4} className={styles.metaPrimaryRow}>
               <span className={`${styles.pill} ${styles.pillEvidenceType}`}>
-                <FileText className={styles.pillIcon} />
+                <Icon name="FileText" className={styles.pillIcon} />
                 {getEvidenceTypeLabel(evidence.evidenceType)}
               </span>
 
               <span className={`${styles.pill} ${getRedFlagColor(evidence.redFlagRating)}`}>
-                <AlertTriangle className={styles.pillIcon} />
+                <Icon name="AlertTriangle" className={styles.pillIcon} />
                 Red Flag: {evidence.redFlagRating}/5
               </span>
 
               {evidence.signalScore !== undefined && (
                 <span className={`${styles.pill} ${styles.pillSignal}`} title="Signal Strength">
-                  <Zap className={styles.pillIcon} />
+                  <Icon name="Zap" className={styles.pillIcon} />
                   Signal: {(evidence.signalScore * 100).toFixed(0)}%
                 </span>
               )}
 
               {evidence.ocrQualityScore !== undefined && evidence.ocrQualityScore < 0.7 && (
                 <span className={`${styles.pill} ${styles.pillWarning}`} title="Low OCR Quality">
-                  <Activity className={styles.pillIcon} />
+                  <Icon name="Activity" className={styles.pillIcon} />
                   OCR Quality: Low
                 </span>
               )}
@@ -325,14 +312,14 @@ export function EvidenceDetail() {
                   className={`${styles.pill} ${styles.pillSuccess}`}
                   title={`Gained ${evidence.unredaction_metrics.unredactedTextGain?.toFixed(0) || 0} characters`}
                 >
-                  <ShieldCheck className={styles.pillIcon} />
+                  <Icon name="ShieldCheck" className={styles.pillIcon} />
                   Unredacted
                 </span>
               )}
 
               {evidence.createdAt && (
                 <span className={styles.dateMeta}>
-                  <Calendar className={styles.pillIcon} />
+                  <Icon name="Calendar" className={styles.pillIcon} />
                   {formatDate(evidence.createdAt)}
                 </span>
               )}
@@ -350,7 +337,7 @@ export function EvidenceDetail() {
 
           {evidence.tags && evidence.tags.length > 0 && (
             <Flex align="center" gap={2} className={styles.tagRow}>
-              <Tag className={styles.tagIcon} />
+              <Icon name="Tag" className={styles.tagIcon} />
               <Flex gap={2} className={styles.tagsWrap}>
                 {evidence.tags.map((tag, index) => (
                   <span key={index} className={styles.tagPill}>
@@ -425,7 +412,7 @@ export function EvidenceDetail() {
             {evidence.entities && evidence.entities.length > 0 && (
               <Surface variant="glass" className={styles.linkedSurface}>
                 <LqText as="h3" variant="h3" color="primary" className={styles.linkedHeader}>
-                  <Users className={styles.linkedHeaderIcon} />
+                  <Icon name="Users" className={styles.linkedHeaderIcon} />
                   Linked Entities ({evidence.entities.length})
                 </LqText>
                 <Flex direction="column" gap={3}>

@@ -13,6 +13,9 @@ export default defineConfig({
     },
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@client': path.resolve(__dirname, './src/client'),
+      '@server': path.resolve(__dirname, './src/server'),
+      '@shared': path.resolve(__dirname, './src/shared'),
       '@epstein/db': path.resolve(__dirname, './packages/db/src/index.ts'),
     },
   },

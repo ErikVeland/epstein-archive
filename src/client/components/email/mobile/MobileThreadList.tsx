@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
-import { Loader2, Paperclip, Search } from 'lucide-react';
-import { EmailThreadDTO } from '../../../services/apiClient';
-import { riskToneFromRating } from '../../../utils/riskSemantics';
+import Icon from '@client/components/common/Icon';
+import { EmailThreadDTO } from '@client/services/apiClient';
+import { riskToneFromRating } from '@client/utils/riskSemantics';
 import styles from './MobileThreadList.module.css';
 
-import { Button, Input } from '../../../design-system/lib';
+import { Button, Input } from '@client/design-system/lib';
 
 const formatTime = (value: string | null): string => {
   if (!value) return '';
@@ -74,7 +74,7 @@ export function MobileThreadList({
           <span className={styles.count}>{threadsTotal.toLocaleString()} threads</span>
         </div>
         <div className={styles.searchWrap}>
-          <Search className={styles.searchIcon} size={16} />
+          <Icon name="Search" className={styles.searchIcon} size="sm" />
           <Input
             className={styles.searchInput}
             placeholder="Search threads"
@@ -87,7 +87,7 @@ export function MobileThreadList({
       <div className={styles.list}>
         {threadsLoading ? (
           <div className={styles.state}>
-            <Loader2 className={styles.spinner} size={20} />
+            <Icon name="Loader2" className={styles.spinner} size="md" />
             Loading conversations
           </div>
         ) : threadsError ? (
@@ -135,7 +135,7 @@ export function MobileThreadList({
                     <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>
                     <div className={styles.rowMeta}>
                       {thread.hasAttachments && (
-                        <Paperclip size={12} className={styles.paperclip} />
+                        <Icon name="Paperclip" size="xs" className={styles.paperclip} />
                       )}
                       <span className={`${styles.riskBadge} ${riskTone.className}`}>
                         R{thread.risk ?? '0'}
@@ -149,7 +149,7 @@ export function MobileThreadList({
             <div ref={sentinelRef} className={styles.sentinel}>
               {loadingMore && (
                 <div className={styles.loadingMore}>
-                  <Loader2 size={16} className={styles.spinner} /> Loading more
+                  <Icon name="Loader2" size="sm" className={styles.spinner} /> Loading more
                 </div>
               )}
               {!hasMore && threads.length > 0 && (

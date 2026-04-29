@@ -1,22 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useIsMobile } from '../../hooks/useIsMobile';
-import {
-  Network,
-  FileText,
-  Search,
-  Download,
-  Settings,
-  Sliders,
-  Filter,
-  Users,
-  Shield,
-  Zap,
-  Info,
-  ChevronRight,
-  AlertTriangle,
-} from 'lucide-react';
+import { useIsMobile } from '@client/hooks/useIsMobile';
+import Icon from '@client/components/common/Icon';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
-import { Button, SearchField, Surface } from '../../design-system/lib';
+import { Button, SearchField, Surface } from '@client/design-system/lib';
 import styles from './NetworkVisualization.module.css';
 
 export interface NetworkNode {
@@ -819,7 +805,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
           checked ? `${styles.checkboxBox} ${styles.checkboxBoxChecked}` : styles.checkboxBox
         }
       >
-        {checked && <Zap className={styles.checkboxCheck} />}
+        {checked && <Icon name="Zap" className={styles.checkboxCheck} />}
       </div>
       <div className={styles.checkboxMeta}>
         {color && <div className={styles.checkboxColorDot} style={{ backgroundColor: color }} />}
@@ -843,17 +829,17 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
         <div className={styles.headerRow}>
           <div className={styles.headerBrand}>
             <div className={styles.headerIconShell}>
-              <Network className={`${styles.headerIcon} ${styles.accentIcon}`} />
+              <Icon name="Network" className={`${styles.headerIcon} ${styles.accentIcon}`} />
             </div>
             <div>
               <h3 className={styles.title}>Epstein Network Analysis</h3>
               <div className={styles.headerMeta}>
                 <span className={styles.headerMetaItem}>
-                  <Users className={styles.metaIcon} /> {nodes.length} entities
+                  <Icon name="Users" className={styles.metaIcon} /> {nodes.length} entities
                 </span>
                 <span>•</span>
                 <span className={styles.headerMetaItem}>
-                  <Zap className={styles.metaIcon} /> {edges.length} connections
+                  <Icon name="Zap" className={styles.metaIcon} /> {edges.length} connections
                 </span>
               </div>
             </div>
@@ -879,9 +865,9 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               }`}
             >
               {showTableView ? (
-                <Network className={styles.metaIcon} />
+                <Icon name="Network" className={styles.metaIcon} />
               ) : (
-                <FileText className={styles.metaIcon} />
+                <Icon name="FileText" className={styles.metaIcon} />
               )}
               <span>{showTableView ? 'Visual Graph' : 'Data Table'}</span>
             </Button>
@@ -894,7 +880,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                 showSettings ? styles.settingsButtonActive : styles.settingsButtonInactive
               }`}
             >
-              <Settings className={styles.metaIcon} />
+              <Icon name="Settings" className={styles.metaIcon} />
             </Button>
 
             <Button
@@ -904,7 +890,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               className={`${styles.iconButton} ${styles.exportButton}`}
               title="Export Network"
             >
-              <Download className={styles.metaIcon} />
+              <Icon name="Download" className={styles.metaIcon} />
             </Button>
           </div>
         </div>
@@ -919,7 +905,10 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                   <div className={styles.tableContent}>
                     <div>
                       <h4 className={styles.sectionTitle}>
-                        <Users className={`${styles.headerIcon} ${styles.accentIcon}`} />
+                        <Icon
+                          name="Users"
+                          className={`${styles.headerIcon} ${styles.accentIcon}`}
+                        />
                         Filtered Entities ({filteredNodes.length})
                       </h4>
                       <Surface className={styles.tableShell}>
@@ -1022,7 +1011,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                       className={styles.zoomButton}
                       title="Zoom In"
                     >
-                      <Search className={styles.metaIcon} />
+                      <Icon name="Search" className={styles.metaIcon} />
                     </Button>
                     <div className={styles.divider} />
                     <Button
@@ -1068,7 +1057,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
             <div className={styles.settingsPanel}>
               <div className={styles.panelTop}>
                 <h4 className={styles.panelTitle}>
-                  <Sliders className={`${styles.metaIcon} ${styles.accentIcon}`} />
+                  <Icon name="Sliders" className={`${styles.metaIcon} ${styles.accentIcon}`} />
                   Graph Settings
                 </h4>
                 <Button
@@ -1077,7 +1066,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                   onClick={() => setShowSettings(false)}
                   className={styles.panelClose}
                 >
-                  <ChevronRight className={styles.headerIcon} />
+                  <Icon name="ChevronRight" className={styles.headerIcon} />
                 </Button>
               </div>
 
@@ -1135,7 +1124,8 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                   >
                     <div className={styles.dangerHeader}>
                       <div className={styles.dangerLabelWrap}>
-                        <AlertTriangle
+                        <Icon
+                          name="AlertTriangle"
                           className={
                             damningEvidenceOnly
                               ? `${styles.dangerIcon} ${styles.dangerIconActive}`
@@ -1179,7 +1169,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               <div className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <label className={styles.sectionLabel}>
-                    <Shield className={styles.metaIcon} /> Relationship Types
+                    <Icon name="Shield" className={styles.metaIcon} /> Relationship Types
                   </label>
                   <Button
                     variant="ghost"
@@ -1266,7 +1256,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               {/* Entity Types */}
               <div className={styles.section}>
                 <label className={styles.sectionLabel}>
-                  <Filter className={styles.metaIcon} /> Entity Groups
+                  <Icon name="Filter" className={styles.metaIcon} /> Entity Groups
                 </label>
                 <div className={styles.checkboxList}>
                   {['person', 'organization', 'location', 'event'].map((type) => (
@@ -1289,7 +1279,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               <div className={styles.infoPanelWrap}>
                 <div className={styles.infoPanel}>
                   <div className={styles.infoPanelRow}>
-                    <Info className={styles.infoIcon} />
+                    <Icon name="Info" className={styles.infoIcon} />
                     <p className={styles.infoText}>
                       Connecting lines represent evidence-backed associations. Thicker lines
                       indicate higher frequency or proximity scores in investigative files.
@@ -1309,12 +1299,12 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                 title="Expand graph settings"
                 aria-label="Expand graph settings"
               >
-                <Settings className={styles.metaIcon} />
+                <Icon name="Settings" className={styles.metaIcon} />
               </Button>
               <div className={styles.collapsedDivider} />
-              <Sliders className={styles.collapsedIcon} aria-hidden="true" />
-              <Filter className={styles.collapsedIcon} aria-hidden="true" />
-              <Shield className={styles.collapsedIcon} aria-hidden="true" />
+              <Icon name="Sliders" className={styles.collapsedIcon} aria-hidden="true" />
+              <Icon name="Filter" className={styles.collapsedIcon} aria-hidden="true" />
+              <Icon name="Shield" className={styles.collapsedIcon} aria-hidden="true" />
             </div>
           }
           defaultRightWidth={settingsPaneWidth}

@@ -157,6 +157,19 @@
   white-space: nowrap;
 }
 
+.provenanceRow {
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: var(--space-3);
+  overflow: hidden;
+}
+
+.missingSource {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
 /* Preview text */
 .preview {
   display: -webkit-box;

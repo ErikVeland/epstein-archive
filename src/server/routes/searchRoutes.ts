@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import express from 'express';
 import { searchRepository } from '../db/searchRepository.js';
 import { validate, searchSchema } from '../middleware/validate.js';
 import { mapUnifiedSearchResponseDto } from '../mappers/searchDtoMapper.js';
 import { logger } from '../services/Logger.js';
 
-const router = Router();
+const router = express.Router();
 
 router.get('/', validate(searchSchema), async (req, res, next) => {
   try {
