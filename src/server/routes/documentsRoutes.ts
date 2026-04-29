@@ -5,7 +5,10 @@ import { documentAnnotationsRepository } from '../db/documentAnnotationsReposito
 import { dataQualityRepository } from '../db/dataQualityRepository.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
-import { mapDocumentsListResponseDto } from '../mappers/documentsDtoMapper.js';
+import {
+  mapDocumentsListResponseDto,
+  mapDocumentDetailDto,
+} from '../mappers/documentsDtoMapper.js';
 import { searchRepository } from '../db/searchRepository.js';
 import fs from 'fs';
 import path from 'path';
@@ -668,13 +671,13 @@ router.get('/:id/related', validate(documentIdSchema), async (req, res, next) =>
   }
 });
 
-// GET /api/documents/:id (Alias to evidence route behavior if needed, or redirect)
+// GET /api/documents/:id
 router.get('/:id', validate(documentIdSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
-    res.json(doc);
+    res.json(mapDocumentDetailDto(doc));
   } catch (error) {
     next(error);
   }

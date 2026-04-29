@@ -1,11 +1,12 @@
 export interface RelationshipDto {
   entityId: string;
   relatedEntityId: string;
+  relatedEntityName?: string;
   relationshipType: string;
   strength: number;
   confidence: number;
   weight: number;
-  riskScore: number;
+  riskScore?: number;
   metadata?: Record<string, unknown>;
 }
 

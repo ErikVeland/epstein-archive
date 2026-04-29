@@ -30,9 +30,11 @@ router.get('/', validate(getRelationshipsSchema), async (req, res, next) => {
       const sourceId = String(r.source_id);
       const targetId = String(r.target_id);
       const neighborId = sourceId === currentId ? targetId : sourceId;
+      const neighborName = sourceId === currentId ? r.target_entity_name : r.source_entity_name;
       return {
         entity_id: currentId,
         related_entity_id: neighborId,
+        related_entity_name: neighborName,
         relationship_type: r.relationship_type,
         strength: r.proximity_score,
         confidence: r.confidence,

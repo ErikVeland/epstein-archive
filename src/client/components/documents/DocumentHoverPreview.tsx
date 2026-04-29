@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { AlertTriangle, Plane, User, Camera, ShieldAlert, X } from 'lucide-react';
 import { Box, Flex, LqText, Surface, Button } from '../../design-system/lib';
@@ -218,10 +219,22 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({
                 </LqText>
                 <Box className={styles.entityList}>
                   {doc.keyEntities.slice(0, 8).map((entity, i) => (
-                    <Surface key={i} variant="glass-highlight" className={styles.entityTag}>
-                      <LqText variant="xs" color="secondary" weight="medium">
-                        {entity}
-                      </LqText>
+                    <Surface
+                      key={entity.id || i}
+                      variant="glass-highlight"
+                      className={styles.entityTag}
+                    >
+                      {entity.id ? (
+                        <Link to={`/entity/${entity.id}`} onClick={(ev) => ev.stopPropagation()}>
+                          <LqText variant="xs" color="secondary" weight="medium">
+                            {entity.name}
+                          </LqText>
+                        </Link>
+                      ) : (
+                        <LqText variant="xs" color="secondary" weight="medium">
+                          {entity.name}
+                        </LqText>
+                      )}
                     </Surface>
                   ))}
                 </Box>

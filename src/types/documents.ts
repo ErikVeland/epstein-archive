@@ -15,7 +15,7 @@ export interface Document {
   contentPreview?: string;
   previewText?: string;
   previewKind?: 'excerpt' | 'ai_summary' | 'fallback';
-  keyEntities?: string[];
+  keyEntities?: { id: string; name: string }[];
   entitiesCount?: number;
   sourceType?: string;
   whyFlagged?: string;

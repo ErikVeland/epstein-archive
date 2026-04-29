@@ -85,11 +85,28 @@ export const relationshipsRepository = {
     );
     const rows = rowsRes.rows as IGetRelationshipsResult[];
 
+    // Batch-resolve entity names for all source/target IDs
+    const nameById = new Map<number, string>();
+    if (rows.length > 0) {
+      const allIds = Array.from(
+        new Set(rows.flatMap((r) => [Number(r.sourceId), Number(r.targetId)])),
+      );
+      const nameRows = await pool.query(
+        'SELECT id, full_name FROM entities WHERE id = ANY($1::bigint[])',
+        [allIds],
+      );
+      for (const row of nameRows.rows) {
+        nameById.set(Number(row.id), String(row.full_name));
+      }
+    }
+
     return {
       canonicalId: Number(canonicalId),
       relationships: rows.map((r: IGetRelationshipsResult) => ({
         source_id: Number(r.sourceId),
         target_id: Number(r.targetId),
+        source_entity_name: nameById.get(Number(r.sourceId)),
+        target_entity_name: nameById.get(Number(r.targetId)),
         relationship_type: r.relationshipType,
         proximity_score: r.proximityScore,
         risk_score: Number(r.riskScore),

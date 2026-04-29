@@ -24,7 +24,17 @@ export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentLi
   redFlagRating: Number(doc.redFlagRating || 0),
   wordCount: Number(doc.wordCount || 0),
   entitiesCount: Number(doc.entitiesCount || 0),
-  keyEntities: Array.isArray(doc.keyEntities) ? doc.keyEntities.map((v: unknown) => String(v)) : [],
+  keyEntities: Array.isArray(doc.keyEntities)
+    ? doc.keyEntities.map((v: unknown) => {
+        if (typeof v === 'object' && v !== null && 'id' in v && 'name' in v) {
+          return {
+            id: String((v as Record<string, unknown>).id),
+            name: String((v as Record<string, unknown>).name),
+          };
+        }
+        return { id: '', name: String(v) };
+      })
+    : [],
   sourceType: String(doc.sourceType || ''),
   previewText: String(doc.previewText || doc.snippet || ''),
   previewKind: String(doc.previewKind || 'fallback'),

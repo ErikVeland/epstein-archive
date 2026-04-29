@@ -50,7 +50,7 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
 
   const handleDefaultEntityClick = (node: GraphNode) => {
     if (String(node.id) !== String(entity?.id)) {
-      window.open(`/entities/${node.id}`, '_blank');
+      navigate(`/entity/${node.id}`);
     }
   };
 

@@ -332,11 +332,15 @@ export const documentsRepository = {
 
     // Batch-fetch top entities for all documents in a single query (eliminates N+1)
     const docIds = docs.map((d) => Number(d.id));
-    const entityRowsByDocId = new Map<number, Array<{ name: string; mentions: number }>>();
+    const entityRowsByDocId = new Map<
+      number,
+      Array<{ id: string; name: string; mentions: number }>
+    >();
     if (docIds.length > 0) {
       const entitiesBatchSql = `
         SELECT
           em.document_id as "documentId",
+          e.id,
           e.full_name as "name",
           COUNT(*) as "mentions"
         FROM entity_mentions em
@@ -349,9 +353,11 @@ export const documentsRepository = {
       for (const row of entityBatchRes.rows) {
         const docId = Number(row.documentId);
         if (!entityRowsByDocId.has(docId)) entityRowsByDocId.set(docId, []);
-        entityRowsByDocId
-          .get(docId)!
-          .push({ name: row.name || 'Unknown', mentions: Number(row.mentions) });
+        entityRowsByDocId.get(docId)!.push({
+          id: String(row.id),
+          name: row.name || 'Unknown',
+          mentions: Number(row.mentions),
+        });
       }
     }
 
@@ -378,7 +384,7 @@ export const documentsRepository = {
 
       const entities = entityRowsByDocId.get(Number(doc.id)) || [];
       const entityCount = entities.reduce((acc, e) => acc + e.mentions, 0);
-      const keyEntities = entities.slice(0, 3).map((e) => e.name);
+      const keyEntities = entities.slice(0, 3).map((e) => ({ id: e.id, name: e.name }));
 
       const sourceType = normalizeSourceType(evidenceType, fileType);
       const whyFlagged =
