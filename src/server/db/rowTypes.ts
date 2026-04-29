@@ -1,8 +1,8 @@
 /**
  * Database Row Interfaces
  *
- * These interfaces represent the raw data returned from SQL queries (both Postgres and SQLite).
- * They often contain both snake_case (legacy/internal) and camelCase (modern/joined) fields.
+ * These interfaces represent the raw data returned from PostgreSQL queries.
+ * They often contain both snake_case (DB columns) and camelCase (mapped) fields.
  */
 
 export interface DbRow {

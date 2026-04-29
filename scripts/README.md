@@ -65,7 +65,4 @@ Run the full suite to verify repository health and database performance.
 
 The following legacy systems are no longer supported:
 
-- `sync-db.ts` (SQLite/PG parity is deprecated)
-- `post_deploy_verify.sh` (Replaced by `verify_ops.ts`)
-- `tech_debt_scan.sh` (Debt addressed/purged)
 - All RTF-specific one-off extraction scripts.
