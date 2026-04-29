@@ -257,6 +257,9 @@ importers:
       '@playwright/test':
         specifier: ^1.40.0
         version: 1.58.2
+      '@rollup/rollup-linux-arm64-gnu':
+        specifier: 4.53.3
+        version: 4.53.3
       '@types/adm-zip':
         specifier: ^0.5.7
         version: 0.5.7
@@ -2775,7 +2778,6 @@ packages:
       }
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@rollup/rollup-linux-arm64-musl@4.53.3':
     resolution:
@@ -10236,8 +10238,7 @@ snapshots:
   '@rollup/rollup-linux-arm-musleabihf@4.53.3':
     optional: true
 
-  '@rollup/rollup-linux-arm64-gnu@4.53.3':
-    optional: true
+  '@rollup/rollup-linux-arm64-gnu@4.53.3': {}
 
   '@rollup/rollup-linux-arm64-musl@4.53.3':
     optional: true
