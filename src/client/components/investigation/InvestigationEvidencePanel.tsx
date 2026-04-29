@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Icon, { IconName } from '@client/components/common/Icon';
+import Icon from '@client/components/common/Icon';
+import type { IconName } from '@client/components/common/Icon';
 
 // UI Library
 import {
@@ -15,7 +16,7 @@ import {
   Stack,
   Surface,
 } from '@client/design-system/lib';
-import { ENTITY_CATEGORY_ICONS, EntityCategory } from '@client/config/entityIcons';
+import { getEntityCategoryIcon } from '@client/utils/entityTypeIcons';
 import { EvidenceAnnotationPanel, EvidenceAnnotation } from '../documents/EvidenceAnnotation';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
@@ -242,9 +243,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             {(entityByEvidence[String(item.id)] || []).length > 0 && (
               <Flex gap="xs" wrap="wrap" mt="xs">
                 {(entityByEvidence[String(item.id)] || []).slice(0, 4).map((ref) => {
-                  const entityIconName =
-                    (ENTITY_CATEGORY_ICONS[ref.entityCategory as EntityCategory]
-                      ?.icon as IconName) || 'User';
+                  const entityIconName = getEntityCategoryIcon(ref.entityCategory).icon;
                   return (
                     <Badge
                       key={ref.entityId}

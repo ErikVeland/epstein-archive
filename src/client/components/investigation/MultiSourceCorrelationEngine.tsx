@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import Icon, { type IconName, type IconProps } from '@client/components/common/Icon';
+import Icon from '@client/components/common/Icon';
+import type { IconName, IconProps } from '@client/components/common/Icon';
 import { format } from 'date-fns';
 
 // UI Library

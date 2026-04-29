@@ -14,7 +14,7 @@ import { TableViewer } from '@client/components/evidence/TableViewer';
 import { ImageViewer } from '@client/components/evidence/ImageViewer';
 import { DocumentViewer } from '@client/components/evidence/DocumentViewer';
 import { ContactListViewer } from '@client/components/evidence/ContactListViewer';
-import { getEntityCategoryIcon } from '@client/config/entityIcons';
+import { getEntityCategoryIcon } from '@client/utils/entityTypeIcons';
 import { ClaimsList } from '@client/components/evidence/ClaimsList';
 import { SEO } from '@client/components/common/SEO';
 import { apiClient } from '@client/services/apiClient';
@@ -417,7 +417,7 @@ export function EvidenceDetail() {
                 </LqText>
                 <Flex direction="column" gap={3}>
                   {evidence.entities.map((entity) => {
-                    const iconConfig = getEntityCategoryIcon(entity.category || 'person_associate');
+                    const iconName = getEntityCategoryIcon(entity.category).icon;
                     return (
                       <Link
                         key={entity.id}
@@ -426,14 +426,17 @@ export function EvidenceDetail() {
                       >
                         <Flex align="start" justify="between">
                           <Box className={styles.entityContent}>
-                            <LqText
-                              as="p"
-                              variant="body"
-                              color="primary"
-                              className={styles.entityName}
-                            >
-                              {entity.name}
-                            </LqText>
+                            <Flex align="center" gap={2} className={styles.entityNameRow}>
+                              <Icon name={iconName} size="xs" color="muted" />
+                              <LqText
+                                as="p"
+                                variant="body"
+                                color="primary"
+                                className={styles.entityName}
+                              >
+                                {entity.name}
+                              </LqText>
+                            </Flex>
                             <LqText
                               as="p"
                               variant="small"
@@ -453,9 +456,7 @@ export function EvidenceDetail() {
                               </LqText>
                             )}
                           </Box>
-                          <span className={`${styles.entityIcon} ${iconConfig.color}`}>
-                            {iconConfig.icon}
-                          </span>
+                          <Icon name={iconName} size="xs" className={styles.entityIcon} />
                         </Flex>
                       </Link>
                     );

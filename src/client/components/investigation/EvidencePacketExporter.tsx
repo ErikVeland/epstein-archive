@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Icon, { IconName } from '@client/components/common/Icon';
+import Icon from '@client/components/common/Icon';
+import type { IconName } from '@client/components/common/Icon';
 import type {
   Annotation,
   EvidenceItem,

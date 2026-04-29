@@ -33,6 +33,43 @@ export const ENTITY_TYPE_ICONS: Record<EntityType, string> = {
   FinancialEntity: 'DollarSign',
 };
 
+// Entity categories (from server) to icons
+export type EntityCategory =
+  | 'person_associate'
+  | 'person_victim'
+  | 'person_witness'
+  | 'person_staff'
+  | 'person_family'
+  | 'organization_financial'
+  | 'organization_shell'
+  | 'organization_charity'
+  | 'location_residence'
+  | 'location_business'
+  | 'document_court'
+  | 'document_financial'
+  | 'document_personal';
+
+export const ENTITY_CATEGORY_ICONS: Record<string, { icon: string }> = {
+  person_associate: { icon: 'User' },
+  person_victim: { icon: 'Heart' },
+  person_witness: { icon: 'FileText' },
+  person_staff: { icon: 'Briefcase' },
+  person_family: { icon: 'Users' },
+  organization_financial: { icon: 'Landmark' },
+  organization_shell: { icon: 'Building' },
+  organization_charity: { icon: 'Gift' },
+  location_residence: { icon: 'Home' },
+  location_business: { icon: 'Building2' },
+  document_court: { icon: 'Scale' },
+  document_financial: { icon: 'DollarSign' },
+  document_personal: { icon: 'FileText' },
+};
+
+export function getEntityCategoryIcon(category?: string | null): { icon: IconName } {
+  const icon = ENTITY_CATEGORY_ICONS[String(category || '')]?.icon || 'User';
+  return { icon: icon as IconName };
+}
+
 /**
  * Get the appropriate icon name for an entity type
  */
