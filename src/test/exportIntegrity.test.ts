@@ -6,7 +6,7 @@ import {
   buildTimelineExportJson,
   prependMarkdownMetadata,
 } from '../client/utils/investigationExportIntegrity';
-import type { EvidenceItem, TimelineEvent } from '../types/investigation';
+import type { EvidenceItem, TimelineEvent } from '../client/types/investigation';
 
 describe('investigation export integrity', () => {
   it('builds deterministic metadata and export formats', async () => {
