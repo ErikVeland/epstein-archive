@@ -1,5 +1,22 @@
 # Release Notes
 
+## 20.0.1 - 2026-04-30 - Strict TypeScript Enforcement
+
+### Quality & Type Safety
+
+- **0-Error Baseline**: Achieved a 100% green `pnpm type-check` status across the entire client and server codebase.
+- **Strict API Hardening**: Defined robust interfaces for all `apiClient` response types, eliminating `unknown` and `any` return values.
+- **Service Standardization**: Migrated `OptimizedDataService` and the `About` page to strict statistics types.
+- **Forensic Signal Precision**: Fully typed the `SignalAnalysis` forensic parsing logic with explicit `SignalItem` interfaces.
+- **Generic Utility Refinement**: Enhanced `lazyWithRetry` with proper generic constraints to handle diverse component prop signatures safely.
+- **Environment Resolution**: Fixed global variable type errors for `__APP_VERSION__` and `__BUILD_DATE__` in production builds.
+
+### Infrastructure & Environment
+
+- **tsconfig.json**: Resolved a critical syntax error that previously blocked local type checking.
+- **Multer Types**: Added missing type references for `Express.Multer` in server-side services.
+- **React Import Resolution**: Fixed missing React namespace imports in `App.tsx` and navigation services to ensure stable JSX type inference.
+
 ## 20.0.0 - 2026-04-29 - Hardening & Release Readiness
 
 ### Quality & Reliability
