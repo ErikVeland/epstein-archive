@@ -11,7 +11,7 @@
     "dev": "vite",
     "dev:clean": "rm -rf node_modules/.vite && vite --force",
     "build": "vite build",
-    "prebuild:prod": "pnpm type-check:server && bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
+    "prebuild:prod": "pnpm --filter @epstein/db build && pnpm type-check:server && bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "build:prod": "pnpm build:client && pnpm build:server",
     "build:client": "vite build",
     "build:server": "tsc -p tsconfig.server.json",
