@@ -71,6 +71,7 @@ cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
+export CI=true
 
 if [ -f .env ]; then
   set -a
@@ -128,6 +129,7 @@ cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
+export CI=true
 
 if [ -f .env ]; then
   set -a
@@ -151,6 +153,7 @@ cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
+export CI=true
 
 if [ -f .env ]; then
   set -a
@@ -177,6 +180,7 @@ cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
+export CI=true
 
 if [ -f .env ]; then
   set -a
@@ -270,6 +274,7 @@ perform_rollback() {
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
       export NODE_ENV=production
+      export CI=true
       pnpm install --frozen-lockfile
       pnpm build:prod
     fi
@@ -479,6 +484,7 @@ if [ "$DEPLOY_DB" = true ]; then
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
       export NODE_ENV=production
+      export CI=true
 
       if [ -f .env ]; then
         set -a
@@ -574,6 +580,7 @@ if [ "$DB_ONLY" = false ]; then
       export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
       export PATH="\$PNPM_HOME:\$PATH"
       export NODE_ENV=production
+      export CI=true
 
       pnpm install --frozen-lockfile
       pnpm build:prod
@@ -674,6 +681,7 @@ if [ "$DRY_RUN" = false ]; then
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
       export NODE_ENV=production
+      export CI=true
 
       if [ -f .env ]; then
         set -a
