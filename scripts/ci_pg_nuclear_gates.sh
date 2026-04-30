@@ -74,6 +74,9 @@ rm -f "$TMP_PGTYPED_DB"
 log "Guard: seed conflict policy"
 node --import tsx/esm scripts/check_seed_conflict_policy.ts
 
+log "Building dependencies"
+pnpm --filter @epstein/db build
+
 log "Lint + typecheck"
 pnpm lint
 pnpm type-check

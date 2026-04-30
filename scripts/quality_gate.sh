@@ -7,6 +7,9 @@ export NODE_ENV="${NODE_ENV:-test}"
 echo "▶ Installing dependencies"
 pnpm install --frozen-lockfile
 
+echo "▶ Building shared packages"
+pnpm --filter @epstein/db build
+
 echo "▶ Checking formatting"
 pnpm format:check
 
