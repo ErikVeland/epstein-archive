@@ -1108,8 +1108,8 @@ export class App {
 
   public async listen(port: number) {
     return new Promise<void>((resolve) => {
-      this.server = this.app.listen(port, () => {
-        logger.info(`Server running on port ${port}`);
+      this.server = this.app.listen(port, '0.0.0.0', () => {
+        logger.info(`Server listening on 0.0.0.0:${port}`);
         // Signal PM2 that the process is ready to accept traffic.
         if (typeof process.send === 'function') {
           process.send('ready');

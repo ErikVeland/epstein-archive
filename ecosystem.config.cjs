@@ -53,7 +53,7 @@ module.exports = {
       // === GRACEFUL SHUTDOWN ===
       // Handle SIGINT and SIGTERM for clean database closure
       shutdown_with_message: true,
-      listen_timeout: 8000, // Wait 8s for server to be ready
+      listen_timeout: 30000, // Wait 30s for server to be ready
       wait_ready: true, // Wait for 'ready' event from application (if implemented)
 
       // === ENVIRONMENT ===
