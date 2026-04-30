@@ -80,7 +80,7 @@ analysis/
 logs/
 consolidation_reports/
 validation_reports/
-config/
+/config/
 
 # OS generated files
 .DS_Store
