@@ -132,7 +132,7 @@ const UNRESOLVED_WRAPPER_ENTITY_PATTERN =
 import {
   ENTITY_BLACKLIST_PATTERNS,
   ENTITY_PARTIAL_BLOCKLIST,
-} from '../src/client/config/entityBlacklist.js';
+} from '../src/client/config/entityBlacklist';
 import { isJunkEntity } from './filters/entityFilters.js';
 import { resolveVip } from './filters/vipRules.js';
 
