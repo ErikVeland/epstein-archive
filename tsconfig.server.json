@@ -19,7 +19,8 @@
     "paths": {
       "@client/*": ["src/client/*"],
       "@server/*": ["src/server/*"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@epstein/db": ["packages/db/dist/index.d.cts"]
     }
   },
   "include": [
