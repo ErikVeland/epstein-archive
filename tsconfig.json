@@ -1,33 +1,25 @@
 {
   "compilerOptions": {
-    "target": "ES2021",
-    "useDefineForClassFields": true,
-    "lib": ["ES2021", "DOM", "DOM.Iterable"],
+    "target": "ES2022",
     "module": "ESNext",
-    "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "vite/client", "multer"],
-
-    /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
       "@client/*": ["src/client/*"],
-      "@server/*": ["src/server/*"],
       "@shared/*": ["src/shared/*"],
-      "@root/*": ["./*"]
+      "@server/*": ["src/server/*"]
     },
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "skipLibCheck": true,
+    "types": ["vite/client"]
   },
   "include": [
     "src/client/**/*.ts",
@@ -42,6 +34,14 @@
     "playwright.config.ts",
     "tests/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "**/*.test.tsx", "**/*.test.ts", "src/server"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.tsx",
+    "**/*.test.ts",
+    "src/server",
+    "dist",
+    "build_output*.txt",
+    "tsc*.txt"
+  ]
 }

@@ -23,11 +23,12 @@ const waitForNavigation = async (): Promise<never> => new Promise<never>(() => {
  * Wrap React.lazy with a one-time "cache bust + reload" retry on chunk load failures.
  * This prevents users from getting stuck after a deploy when an old HTML references a removed chunk.
  */
-export function lazyWithRetry<T extends React.ComponentType<React.ComponentProps<T>>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function lazyWithRetry<T extends React.ComponentType<any>>(
   importer: () => Promise<{ default: T }>,
   key: string,
 ): React.LazyExoticComponent<T> {
-  return React.lazy<T>(async (): Promise<{ default: T }> => {
+  return React.lazy<T>(async () => {
     try {
       return await importer();
     } catch (err) {

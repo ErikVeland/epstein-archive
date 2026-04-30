@@ -18,3 +18,4 @@
 - Use strict mode — never use 'any', use 'unknown' + type guards instead
 - Avoid non-null assertion (!) — handle nullability explicitly
 - Generic constraints over 'any' in utility functions
+- Do not relax TypeScript config to pass builds. Fix server and client type errors, and keep `pnpm build:prod` gated by `pnpm type-check:server`.

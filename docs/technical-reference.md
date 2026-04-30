@@ -24,5 +24,7 @@ The application logic adheres to rigorous React hooks standards, avoiding unnece
 ### Pipeline and CI
 
 - `pnpm type-check`: Strict structural typing checks.
+- `pnpm type-check:server`: Strict server-side typing checks using `tsconfig.server.json`; do not weaken this config to ship.
 - `pnpm lint`: Formatting and strict TS-Eslint guard rails.
 - `pnpm check:design-tokens`: Fails the build if any old Tailwind patterns slip back in.
+- `pnpm build:prod`: Runs the server type gate, Postgres guardrails, strict design-token checks, and the production client build.

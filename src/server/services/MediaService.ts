@@ -16,6 +16,13 @@ import type { Pool, QueryResultRow } from 'pg';
 import { getApiPool } from '../db/runtime.js';
 import { logger } from './Logger.js';
 
+type UploadFile = {
+  path: string;
+  filename: string;
+  originalname: string;
+  size: number;
+};
+
 export class MediaService {
   private db: Pool;
 
@@ -887,7 +894,7 @@ export class MediaService {
     }
   }
 
-  async processUpload(file: Express.Multer.File, albumId?: number): Promise<MediaImage> {
+  async processUpload(file: UploadFile, albumId?: number): Promise<MediaImage> {
     const buffer = await fs.promises.readFile(file.path);
     let tags: Record<string, unknown> = {};
     let imageSize: { width?: number; height?: number } = {};
