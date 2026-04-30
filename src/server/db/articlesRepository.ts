@@ -31,6 +31,8 @@ interface InsertArticleInput {
   redFlagRating?: number;
 }
 
+type ArticleRow = Omit<Article, 'id'> & { id: string | number };
+
 export class ArticlesRepository {
   /**
    * Get paginated articles with optional filters
@@ -45,8 +47,8 @@ export class ArticlesRepository {
     const [articles, countResult] = await Promise.all([
       articlesQueries.getArticles.run(
         {
-          limit: BigInt(limit),
-          offset: BigInt(offset),
+          limit: limit,
+          offset: offset,
           search: search ? `%${search}%` : null,
           publication: publication || null,
           sortBy: sort,
@@ -63,7 +65,7 @@ export class ArticlesRepository {
     ]);
 
     return {
-      articles: articles.map((a: Article & { id: string | number }) => ({
+      articles: (articles as ArticleRow[]).map((a: ArticleRow) => ({
         ...a,
         id: String(a.id),
       })),
@@ -72,12 +74,12 @@ export class ArticlesRepository {
   }
 
   async getArticleById(id: number | string): Promise<Article | undefined> {
-    const rows = await articlesQueries.getArticleById.run({ id: BigInt(id) }, getApiPool());
+    const rows = await articlesQueries.getArticleById.run({ id: String(id) }, getApiPool());
     if (!rows[0]) return undefined;
     return {
       ...rows[0],
       id: String(rows[0].id),
-    };
+    } as Article;
   }
 
   /**

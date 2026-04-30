@@ -33,6 +33,7 @@ import {
   requireRole,
 } from './server/auth/middleware.js';
 import statsRoutes from './server/routes/stats.js';
+import statusRoutes from './server/routes/statusRoutes.js';
 import relationshipsRoutes from './server/routes/relationships.js';
 import analyticsRoutes from './server/routes/analytics.js';
 import graphRoutes from './server/routes/graphRoutes.js';
@@ -759,6 +760,7 @@ export class App {
     router.use('/entities', entitiesRoutes);
     router.use('/search', searchRoutes);
     router.use('/stats', statsRoutes);
+    router.use('/status', statusRoutes);
     router.use('/relationships', relationshipsRoutes);
     router.use('/analytics', analyticsRoutes);
     router.use('/graph', graphRoutes);

@@ -44,3 +44,12 @@ export const healthResponseSchema = z.object({
   memory: z.record(z.unknown()),
   environment: z.string(),
 });
+
+export const archiveStatusSchema = z.object({
+  lastIngestedAt: z.string().nullable(),
+  status: z.enum(['current', 'stale', 'unknown']),
+  documentCount: z.number().int(),
+  entityCount: z.number().int(),
+});
+
+export type ArchiveStatusDto = z.infer<typeof archiveStatusSchema>;

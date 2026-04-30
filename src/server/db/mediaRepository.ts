@@ -207,7 +207,7 @@ export const mediaRepository = {
     const result = (await mediaQueries.getAlbumsByMediaType.run(
       { likePattern },
       getApiPool(),
-    )) as AlbumRow[];
+    )) as unknown as AlbumRow[];
     const albums = result.map((row: AlbumRow) => ({
       ...row,
       itemCount: Number(row.itemCount || 0),
@@ -402,12 +402,11 @@ export const mediaRepository = {
     });
   },
 
-  // Get all media items (for Evidence Media tab)
   getAllMediaItems: async () => {
     const mediaItems = (await mediaQueries.getAllMediaItems.run(
       undefined,
       getApiPool(),
-    )) as MediaItemRow[];
+    )) as unknown as MediaItemRow[];
 
     return mediaItems.map((item: MediaItemRow) => {
       let metadata: Record<string, unknown> = {};
@@ -445,7 +444,7 @@ export const mediaRepository = {
     const rows = (await mediaQueries.getMediaItemById.run(
       { id: String(id) },
       getApiPool(),
-    )) as SingleMediaItemRow[];
+    )) as unknown as SingleMediaItemRow[];
     const item = rows[0];
     if (!item) return undefined;
 

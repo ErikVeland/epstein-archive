@@ -1,4 +1,4 @@
-import { evidenceQueries } from '@epstein/db';
+import { evidenceQueries, investigationsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 
@@ -238,7 +238,7 @@ export const evidenceRepository = {
     }
     const sourcePath = media.filePath;
     const [existing] = await runQuery<{ sourcePath: string }, { id: number }>(
-      evidenceQueries.getEvidenceBySourcePath,
+      investigationsQueries.getEvidenceBySourcePath,
       { sourcePath },
       getApiPool(),
     );
@@ -523,22 +523,20 @@ export const evidenceRepository = {
     const [{ total }] = await runQuery<
       {
         query: string;
-        type: string | null;
-        entityId: string | null;
-        dateFrom: string | null;
-        dateTo: string | null;
+        evidenceType: string | null;
         redFlagMin: number | null;
+        startDate: string | null;
+        endDate: string | null;
       },
       { total: number | string }
     >(
-      evidenceQueries.countSearchEvidenceFull,
+      evidenceQueries.countSearchEvidence,
       {
         query: q || '',
-        type: type || null,
-        entityId: entityId ? String(entityId) : null,
-        dateFrom: dateFrom || null,
-        dateTo: dateTo || null,
+        evidenceType: type || null,
         redFlagMin: redFlagMin ? Number(redFlagMin) : null,
+        startDate: dateFrom || null,
+        endDate: dateTo || null,
       },
       getApiPool(),
     );
@@ -613,11 +611,19 @@ export const evidenceRepository = {
     );
 
     // Get timeline events if any
-    const events = await runQuery<{ evidenceId: string }, unknown>(
-      evidenceQueries.getEvidenceTimelineEvents,
-      { evidenceId: id },
-      getApiPool(),
+    const eventRows = await getApiPool().query(
+      `SELECT 
+        te.event_date as date,
+        te.event_description as description,
+        te.event_type as type,
+        'medium' as significance_score
+      FROM timeline_events te
+      JOIN documents d ON d.id = te.document_id
+      JOIN evidence e ON e.source_path = d.file_path
+      WHERE e.id = $1`,
+      [id],
     );
+    const events = eventRows.rows;
 
     return {
       ...evidence,
@@ -630,7 +636,7 @@ export const evidenceRepository = {
   // List all evidence types with counts
   getEvidenceTypes: async () => {
     const types = await runQuery<undefined, { type?: string; [key: string]: unknown }>(
-      evidenceQueries.getEvidenceTypeCounts,
+      evidenceQueries.getEvidenceTypesCounts,
       undefined,
       getApiPool(),
     );
@@ -668,31 +674,33 @@ export const evidenceRepository = {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
     const offset = (pageNum - 1) * limitNum;
 
-    const results = await runQuery<
-      { entityId: string; type: string | null; limit: number; offset: number },
-      unknown
-    >(
-      evidenceQueries.getEntityEvidenceDetailed,
-      {
-        entityId,
-        type: type || null,
-        limit: limitNum,
-        offset: offset,
-      },
-      getApiPool(),
+    const resultRows = await getApiPool().query(
+      `SELECT 
+        e.id,
+        e.evidence_type as "evidenceType",
+        e.title,
+        e.description,
+        e.red_flag_rating as "redFlagRating",
+        e.created_at as "createdAt"
+      FROM evidence e
+      INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
+      WHERE ee.entity_id = $1
+        AND ($2::text IS NULL OR e.evidence_type = $2)
+      ORDER BY e.created_at DESC
+      LIMIT $3 OFFSET $4`,
+      [entityId, type || null, limitNum, offset],
     );
+    const results = resultRows.rows;
 
-    const [{ total }] = await runQuery<
-      { entityId: string; type: string | null },
-      { total: number | string }
-    >(
-      evidenceQueries.countEntityEvidenceDetailed,
-      {
-        entityId,
-        type: type || null,
-      },
-      getApiPool(),
+    const countRows = await getApiPool().query(
+      `SELECT COUNT(*) as total
+      FROM evidence e
+      INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
+      WHERE ee.entity_id = $1
+        AND ($2::text IS NULL OR e.evidence_type = $2)`,
+      [entityId, type || null],
     );
+    const total = countRows.rows[0]?.total || 0;
 
     const totalNum = Number(total || 0);
     const totalPages = Math.ceil(totalNum / limitNum);

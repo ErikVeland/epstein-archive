@@ -4,6 +4,7 @@ import {
   buildManifest,
   buildEvidenceCsv,
   BUNDLE_README,
+  buildBundleReadme,
 } from '../../../src/server/utils/exportManifest';
 
 // ---------------------------------------------------------------------------
@@ -51,6 +52,7 @@ describe('buildManifest', () => {
     title: 'Test Investigation',
     status: 'open',
     appVersion: '19.5.0',
+    schemaHash: 'schema-test',
     exportLimits: { fileCountCap: 100, sizeLimitBytes: 524288000 },
     evidenceIds: [3, 1, 2],
     includedFiles: [
@@ -93,12 +95,13 @@ describe('buildManifest', () => {
     expect(manifest.checksum).toBe(expected);
   });
 
-  it('records investigationId, title, status, and appVersion', () => {
+  it('records investigationId, title, status, appVersion, and schemaHash', () => {
     const manifest = buildManifest(base);
     expect(manifest.investigationId).toBe(42);
     expect(manifest.title).toBe('Test Investigation');
     expect(manifest.status).toBe('open');
     expect(manifest.appVersion).toBe('19.5.0');
+    expect(manifest.schemaHash).toBe('schema-test');
   });
 
   it('sets generatedAt to a valid ISO timestamp', () => {
@@ -232,5 +235,18 @@ describe('BUNDLE_README', () => {
         expect(BUNDLE_README).toContain(f);
       }
     }
+  });
+
+  it('adds generated chain-of-custody metadata', () => {
+    const readme = buildBundleReadme({
+      appVersion: '20.0.0',
+      schemaHash: 'abc123',
+      generatedAt: '2026-04-29T00:00:00.000Z',
+    });
+
+    expect(readme).toContain('Chain of Custody');
+    expect(readme).toContain('20.0.0');
+    expect(readme).toContain('abc123');
+    expect(readme).toContain('2026-04-29T00:00:00.000Z');
   });
 });

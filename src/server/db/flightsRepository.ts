@@ -141,8 +141,8 @@ export const flightsRepository = {
               startDate: filters.startDate || null,
               endDate: filters.endDate || null,
               airport: filters.airport || null,
-              limit: BigInt(limit),
-              offset: BigInt(offset),
+              limit: limit,
+              offset: offset,
             },
             pool,
           );
@@ -195,7 +195,7 @@ export const flightsRepository = {
   },
 
   getFlightById: async (id: number): Promise<Flight | null> => {
-    const flightRows = await flightsQueries.getFlightById.run({ id: BigInt(id) }, getApiPool());
+    const flightRows = await flightsQueries.getFlightById.run({ id }, getApiPool());
     const f = flightRows[0];
     if (!f) return null;
 
@@ -216,15 +216,18 @@ export const flightsRepository = {
 
     return {
       ...f,
+      date: f.date || '',
       id: Number(f.id),
-      departure_airport: f.departureAirport || '',
-      departure_city: f.departureCity || '',
-      departure_country: f.departureCountry || '',
-      arrival_airport: f.arrivalAirport || '',
-      arrival_city: f.arrivalCity || '',
-      arrival_country: f.arrivalCountry || '',
-      aircraft_tail: f.aircraftTail || '',
-      aircraft_type: f.aircraftType || '',
+      departure_airport: f.departure_airport || '',
+      departure_city: f.departure_city || '',
+      departure_country: f.departure_country || '',
+      arrival_airport: f.arrival_airport || '',
+      arrival_city: f.arrival_city || '',
+      arrival_country: f.arrival_country || '',
+      aircraft_tail: f.aircraft_tail || '',
+      aircraft_type: f.aircraft_type || '',
+      pilot: f.pilot || undefined,
+      notes: f.notes || undefined,
       passengers: passengers.map((p) => ({
         ...p,
         id: Number(p.id),
@@ -237,11 +240,8 @@ export const flightsRepository = {
 
   getFlightStats: async (): Promise<FlightStats> => {
     const [basicStats] = await flightsQueries.getFlightStats.run(undefined, getApiPool());
-    const topPassengers = await flightsQueries.getTopPassengers.run(
-      { limit: BigInt(10) },
-      getApiPool(),
-    );
-    const topRoutes = await flightsQueries.getTopRoutes.run({ limit: BigInt(10) }, getApiPool());
+    const topPassengers = await flightsQueries.getTopPassengers.run({ limit: 10 }, getApiPool());
+    const topRoutes = await flightsQueries.getTopRoutes.run({ limit: 10 }, getApiPool());
     const flightsByYear = await flightsQueries.getFlightsByYear.run(undefined, getApiPool());
     const airportStats = await flightsQueries.getAirportStats.run(undefined, getApiPool());
 

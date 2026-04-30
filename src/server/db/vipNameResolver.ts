@@ -54,7 +54,11 @@ export async function buildVipDisplayLookup(): Promise<Map<string, string>> {
 
   let raw: Array<{ full_name?: string; mentions?: number | null; aliases?: string }> = [];
   try {
-    raw = await entitiesQueries.getVipEntities.run(undefined, getApiPool());
+    raw = (await entitiesQueries.getVipEntities.run(undefined, getApiPool())) as Array<{
+      full_name?: string;
+      mentions?: number | null;
+      aliases?: string;
+    }>;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const code =

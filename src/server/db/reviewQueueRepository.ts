@@ -57,12 +57,12 @@ export const reviewQueueRepository = {
   },
 
   async verifyMention(id: number, verifiedBy: string = 'system') {
-    await reviewQueries.verifyMention.run({ id, verifiedBy }, getApiPool());
+    await reviewQueries.verifyMention.run({ id: String(id), verifiedBy }, getApiPool());
     return { success: true };
   },
 
   async rejectMention(id: number, reason: string, verifiedBy: string = 'system') {
-    await reviewQueries.rejectMention.run({ id, reason, verifiedBy }, getApiPool());
+    await reviewQueries.rejectMention.run({ id: String(id), reason, verifiedBy }, getApiPool());
     return { success: true };
   },
 

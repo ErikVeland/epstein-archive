@@ -55,6 +55,17 @@ export const searchSchema = z.object({
     // Back-compat alias (some callers send `?query=...`)
     query: z.string().min(1).max(200).optional(),
     limit: z.preprocess((val) => Number(val), z.number().int().min(1).max(100)).optional(),
+    mode: z.enum(['web', 'prefix', 'lexical', 'semantic', 'hybrid']).optional(),
+    evidenceType: z.string().max(100).optional(),
+    sourceType: z.string().max(100).optional(),
+    mediaType: z.string().max(100).optional(),
+    entityType: z.string().max(100).optional(),
+    reviewState: z.string().max(100).optional(),
+    redFlagBand: z.enum(['low', 'medium', 'high']).optional(),
+    confidenceMin: z.coerce.number().min(0).max(1).optional(),
+    confidenceMax: z.coerce.number().min(0).max(1).optional(),
+    dateFrom: z.string().max(40).optional(),
+    dateTo: z.string().max(40).optional(),
   }),
 });
 

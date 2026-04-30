@@ -13,12 +13,15 @@ import archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
 import { InvestigationIngestorService } from '../services/InvestigationIngestorService.js';
-import { buildManifest, buildEvidenceCsv, BUNDLE_README } from '../utils/exportManifest.js';
+import { buildManifest, buildEvidenceCsv, buildBundleReadme } from '../utils/exportManifest.js';
 import { buildExportFileInventory } from '../utils/investigationExportInventory.js';
 import { InvestigationRow, InvestigationEvidenceRow } from '../db/rowTypes.js';
 
 const router = Router();
 const DATA_ROOT = path.resolve(process.cwd(), 'data');
+const SCHEMA_HASH = process.env.SCHEMA_HASH || process.env.PG_SCHEMA_HASH || 'unknown';
+const ZIP_FILE_LIMIT = 100;
+const ZIP_SIZE_LIMIT_BYTES = 500 * 1024 * 1024; // 500 MB
 
 // Read app version once at startup from package.json
 const APP_VERSION: string = (() => {
@@ -36,6 +39,92 @@ const HARD_CAP_INVESTIGATIONS_LIMIT = Math.max(
   1,
   Number(process.env.HARD_CAP_INVESTIGATIONS_LIMIT || 100),
 );
+
+async function buildExportPreview(investigation: InvestigationRow, investigationId: number) {
+  const evidence = await investigationsRepository.getEvidence(investigationId, {
+    limit: ZIP_FILE_LIMIT,
+  });
+  const evidenceList = Array.isArray(evidence)
+    ? evidence
+    : (evidence as { data?: unknown[] }).data || [];
+
+  const { includedFiles, skippedFiles } = await buildExportFileInventory({
+    evidenceList: evidenceList as Record<string, unknown>[],
+    dataRoot: DATA_ROOT,
+    fileCountCap: ZIP_FILE_LIMIT,
+    sizeLimitBytes: ZIP_SIZE_LIMIT_BYTES,
+  });
+
+  let timelineEvents: unknown[] = [];
+  try {
+    timelineEvents = await investigationsRepository.getTimelineEvents(investigationId);
+  } catch {
+    timelineEvents = [];
+  }
+
+  let allAnnotations: unknown[] = [];
+  try {
+    allAnnotations = await investigationsRepository.getAllEvidenceAnnotations(investigationId);
+  } catch {
+    allAnnotations = [];
+  }
+
+  const evidenceIds = Array.from(
+    new Set(
+      (evidenceList as unknown as InvestigationEvidenceRow[])
+        .map((e) => Number(e.id ?? e.investigation_evidence_id ?? 0))
+        .filter((n) => n > 0),
+    ),
+  ).sort((a, b) => a - b);
+
+  const warnings = [
+    ...skippedFiles.map((file) => ({
+      code: file.reason,
+      message: `Evidence #${file.evidenceId} source file will be skipped: ${file.reason.replace(/_/g, ' ')}`,
+      action: 'Review the evidence source path before exporting if this file is required.',
+    })),
+    ...(evidenceIds.length === 0
+      ? [
+          {
+            code: 'no_evidence',
+            message: 'This packet has no evidence items.',
+            action: 'Add evidence before exporting a review-grade packet.',
+          },
+        ]
+      : []),
+  ];
+
+  const readiness =
+    evidenceIds.length === 0 ? 'blocked' : warnings.length > 0 ? 'warning' : 'ready';
+
+  const manifest = buildManifest({
+    investigationId,
+    title: investigation.title,
+    status: investigation.status,
+    appVersion: APP_VERSION,
+    schemaHash: SCHEMA_HASH,
+    exportLimits: {
+      fileCountCap: ZIP_FILE_LIMIT,
+      sizeLimitBytes: ZIP_SIZE_LIMIT_BYTES,
+    },
+    evidenceIds,
+    includedFiles,
+    skippedFiles,
+  });
+
+  return {
+    readiness,
+    summary: {
+      evidenceCount: evidenceIds.length,
+      includedFileCount: includedFiles.length,
+      skippedFileCount: skippedFiles.length,
+      timelineEventCount: timelineEvents.length,
+      annotationCount: allAnnotations.length,
+    },
+    warnings,
+    manifest,
+  };
+}
 
 // Schemas
 const getInvestigationsSchema = z.object({
@@ -956,6 +1045,27 @@ router.get(
   },
 );
 
+router.get(
+  '/:id/export/preview',
+  authenticateRequest,
+  validate(numericIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const numericId = Number(id);
+      const investigation = await investigationsRepository.getInvestigationById(numericId);
+
+      if (!investigation) {
+        return res.status(404).json({ error: 'Investigation not found' });
+      }
+
+      res.json(await buildExportPreview(investigation as InvestigationRow, numericId));
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 // Export Case Bundle as ZIP
 router.get(
   '/:id/export/zip',
@@ -970,9 +1080,6 @@ router.get(
       if (!investigation) {
         return res.status(404).json({ error: 'Investigation not found' });
       }
-
-      const ZIP_FILE_LIMIT = 100;
-      const ZIP_SIZE_LIMIT_BYTES = 500 * 1024 * 1024; // 500 MB
 
       const evidence = await investigationsRepository.getEvidence(numericId, {
         limit: ZIP_FILE_LIMIT,
@@ -1020,6 +1127,7 @@ router.get(
         title: investigation.title,
         status: investigation.status,
         appVersion: APP_VERSION,
+        schemaHash: SCHEMA_HASH,
         exportLimits: {
           fileCountCap: ZIP_FILE_LIMIT,
           sizeLimitBytes: ZIP_SIZE_LIMIT_BYTES,
@@ -1053,7 +1161,14 @@ router.get(
       headersSent = true;
       archive.pipe(res);
 
-      archive.append(BUNDLE_README, { name: 'README.md' });
+      archive.append(
+        buildBundleReadme({
+          appVersion: APP_VERSION,
+          schemaHash: SCHEMA_HASH,
+          generatedAt: manifest.generatedAt,
+        }),
+        { name: 'README.md' },
+      );
       archive.append(JSON.stringify(investigation, null, 2), { name: 'investigation.json' });
       archive.append(JSON.stringify(manifest, null, 2), { name: 'manifest.json' });
       archive.append(JSON.stringify(evidenceList, null, 2), { name: 'evidence.json' });

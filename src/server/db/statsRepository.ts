@@ -1,6 +1,7 @@
 import { statsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
+import type { ArchiveStatusDto } from '../../shared/schemas/stats.js';
 
 interface CollectionCountRow {
   sourceCollection: string | null;
@@ -281,7 +282,7 @@ export const statsRepository = {
         getApiPool().query<{ count: string }>(
           'SELECT COUNT(*)::text AS count FROM entity_relationships',
         ),
-        statsQueries.getTopRoles.run({ limit: BigInt(10) }, getApiPool()),
+        statsQueries.getTopRoles.run({ limit: 10 }, getApiPool()),
         statsQueries.getRedFlagDistribution.run(undefined, getApiPool()),
         statsQueries.getCollectionCounts.run(undefined, getApiPool()),
         statsQueries.getActiveInvestigationsCount.run(undefined, getApiPool()),
@@ -492,7 +493,7 @@ export const statsRepository = {
     let throughput_docs_sec = 0;
     try {
       const recentProcessedRows = await statsQueries.getRecentProcessedCount.run(
-        { seconds: BigInt(300) },
+        { seconds: 300 as any },
         getApiPool(),
       );
       const recentProcessedCount = Number(recentProcessedRows[0]?.count || 0);
@@ -564,7 +565,7 @@ export const statsRepository = {
 
   getTimelineEvents: async () => {
     try {
-      const rows = await statsQueries.getTimelineEvents.run({ limit: BigInt(100) }, getApiPool());
+      const rows = await statsQueries.getTimelineEvents.run({ limit: 100 as any }, getApiPool());
       return rows;
     } catch (e) {
       logger.error({ err: e }, 'Failed to fetch timeline events for stats');
@@ -598,5 +599,36 @@ export const statsRepository = {
       logger.error({ err: e }, 'Failed to fetch ingest runs');
       return [];
     }
+  },
+
+  getArchiveStatus: async (): Promise<ArchiveStatusDto> => {
+    const pool = getApiPool();
+    const [{ rows: ingestRows }, { rows: countRows }] = await Promise.all([
+      pool.query<{ last_ingested_at: Date | string | null }>(
+        `
+        SELECT MAX(COALESCE(finished_at, created_at)) AS last_ingested_at
+        FROM ingest_runs
+      `,
+      ),
+      pool.query<{ document_count: string | number; entity_count: string | number }>(
+        `
+        SELECT
+          (SELECT COUNT(*) FROM documents) AS document_count,
+          (SELECT COUNT(*) FROM entities) AS entity_count
+      `,
+      ),
+    ]);
+
+    const lastIngested = ingestRows[0]?.last_ingested_at ?? null;
+    const lastIngestedAt = lastIngested ? new Date(lastIngested).toISOString() : null;
+    const ageMs = lastIngestedAt ? Date.now() - new Date(lastIngestedAt).getTime() : null;
+    const status = ageMs == null ? 'unknown' : ageMs <= 48 * 60 * 60 * 1000 ? 'current' : 'stale';
+
+    return {
+      lastIngestedAt,
+      status,
+      documentCount: Number(countRows[0]?.document_count ?? 0),
+      entityCount: Number(countRows[0]?.entity_count ?? 0),
+    };
   },
 };

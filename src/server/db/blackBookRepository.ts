@@ -23,6 +23,17 @@ const OCR_CORRECTIONS: [string, string][] = [
 
 let hasLoggedBlackBookArrayParseFailure = false;
 
+type BlackBookEntryRow = Record<string, unknown> & {
+  id?: string | number | null;
+  personId?: string | number | null;
+  documentId?: string | number | null;
+  displayName?: string | null;
+  entryText?: string | null;
+  emailAddresses?: unknown;
+  addresses?: unknown;
+  entryCategory?: string | null;
+};
+
 /**
  * Apply OCR corrections to entry text
  */
@@ -95,7 +106,7 @@ export const blackBookRepository = {
       getApiPool(),
     );
 
-    const filteredEntries = entries.filter((e: Record<string, unknown>) => {
+    const filteredEntries = (entries as BlackBookEntryRow[]).filter((e: BlackBookEntryRow) => {
       const emails = parseArrayValue(e.emailAddresses);
       const addresses = parseArrayValue(e.addresses);
 
@@ -117,7 +128,7 @@ export const blackBookRepository = {
     const dedupedPersonIds = Array.from(
       new Set(
         filteredEntries
-          .map((e: Record<string, unknown>) => {
+          .map((e: BlackBookEntryRow) => {
             const id = Number(e.personId);
             return Number.isFinite(id) && id > 0 ? id : null;
           })
@@ -194,7 +205,7 @@ export const blackBookRepository = {
     }
 
     return correctEntries(
-      filteredEntries.map((e: Record<string, unknown>) => ({
+      filteredEntries.map((e: BlackBookEntryRow) => ({
         ...e,
         id: Number(e.id),
         personId: e.personId ? Number(e.personId) : null,
@@ -247,7 +258,7 @@ export const blackBookRepository = {
 
       if (action === 'approve') {
         await blackBookQueries.updateBlackBookReview.run(
-          { id: BigInt(personId), fullName: correctedName },
+          { id: personId, fullName: correctedName },
           getApiPool(),
         );
 

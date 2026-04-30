@@ -29,6 +29,7 @@ export const exportManifestSchema = z.object({
   status: z.string(),
   generatedAt: z.string(),
   appVersion: z.string(),
+  schemaHash: z.string(),
   checksumAlgorithm: z.literal('sha256'),
   exportLimits: z.object({
     fileCountCap: z.number(),

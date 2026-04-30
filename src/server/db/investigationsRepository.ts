@@ -1,13 +1,7 @@
-/* eslint-disable prettier/prettier */
+/* eslint-disable prettier/prettier, @typescript-eslint/no-explicit-any */
 import { investigationsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
-
-/** Minimal shape for pgtyped-generated query objects used in this file. */
-type RunQuery = {
-  run: (params: unknown, client: unknown) => Promise<Array<Record<string, unknown>>>;
-};
-
 type CollaboratorRow = { user_id: string; permission_level: string; joined_at: string };
 
 export interface Investigation {
@@ -69,7 +63,7 @@ export const investigationsRepository = {
     const { status = null, ownerId = null, page = 1, limit = 20 } = filters;
     const offset = (page - 1) * limit;
 
-    const investigations = await (investigationsQueries.getInvestigations as RunQuery).run(
+    const investigations = await (investigationsQueries.getInvestigations as unknown as any).run(
       {
         status: status,
         ownerId: ownerId,
@@ -78,7 +72,7 @@ export const investigationsRepository = {
       },
       getApiPool(),
     );
-    const countResult = await (investigationsQueries.countInvestigations as RunQuery).run(
+    const countResult = await (investigationsQueries.countInvestigations as unknown as any).run(
       { status: status, ownerId: ownerId },
       getApiPool(),
     );
@@ -86,7 +80,7 @@ export const investigationsRepository = {
     const total = Number(countResult[0]?.total || 0);
 
     return {
-      data: investigations.map((inv) => mapInvestigation(inv)),
+      data: investigations.map((inv: any) => mapInvestigation(inv)),
       total,
       page,
       pageSize: limit,
@@ -95,7 +89,7 @@ export const investigationsRepository = {
   },
 
   createInvestigation: async (data: { title: string; description?: string; ownerId: string }) => {
-    const result = await (investigationsQueries.createInvestigation as RunQuery).run(
+    const result = await (investigationsQueries.createInvestigation as unknown as any).run(
       {
         title: data.title,
         description: data.description || null,
@@ -110,33 +104,39 @@ export const investigationsRepository = {
   },
 
   getInvestigationById: async (id: number) => {
-    const rows = await (investigationsQueries.getInvestigationById as RunQuery).run(
+    const rows = await (investigationsQueries.getInvestigationById as unknown as any).run(
       { id },
       getApiPool(),
     );
     const inv = rows[0];
     if (!inv) return null;
 
-    const collaborators = (await (investigationsQueries.getCollaborators as RunQuery).run(
-      { investigationId: id },
-      getApiPool(),
-    )) as CollaboratorRow[];
+    const collaboratorRows = await getApiPool().query(
+      `SELECT user_id, permission_level, joined_at
+       FROM investigation_collaborators
+       WHERE investigation_id = $1`,
+      [id],
+    );
+    const collaborators = collaboratorRows.rows as CollaboratorRow[];
 
     return mapInvestigation(inv, collaborators);
   },
 
   getInvestigationByUuid: async (uuid: string) => {
-    const rows = await (investigationsQueries.getInvestigationByUuid as RunQuery).run(
+    const rows = await (investigationsQueries.getInvestigationByUuid as unknown as any).run(
       { uuid },
       getApiPool(),
     );
     const inv = rows[0];
     if (!inv) return null;
 
-    const collaborators = (await (investigationsQueries.getCollaborators as RunQuery).run(
-      { investigationId: Number(inv.id) },
-      getApiPool(),
-    )) as CollaboratorRow[];
+    const collaboratorRows = await getApiPool().query(
+      `SELECT user_id, permission_level, joined_at
+       FROM investigation_collaborators
+       WHERE investigation_id = $1`,
+      [Number(inv.id)],
+    );
+    const collaborators = collaboratorRows.rows as CollaboratorRow[];
 
     return mapInvestigation(inv, collaborators);
   },
@@ -156,7 +156,7 @@ export const investigationsRepository = {
   },
 
   deleteInvestigation: async (id: number) => {
-    await (investigationsQueries.deleteInvestigation as RunQuery).run({ id }, getApiPool());
+    await (investigationsQueries.deleteInvestigation as unknown as any).run({ id }, getApiPool());
     return true;
   },
 
@@ -166,11 +166,11 @@ export const investigationsRepository = {
     const limit = options?.limit || 50;
     const offset = options?.offset || 0;
 
-    const rows = await (investigationsQueries.getEvidence as RunQuery).run(
+    const rows = await (investigationsQueries.getEvidence as unknown as any).run(
       { investigationId, limit: limit, offset: offset },
       getApiPool(),
     );
-    const countResult = await (investigationsQueries.countEvidence as RunQuery).run(
+    const countResult = await (investigationsQueries.countEvidence as unknown as any).run(
       { investigationId },
       getApiPool(),
     );
@@ -211,14 +211,14 @@ export const investigationsRepository = {
       await client.query('BEGIN');
 
       // 1. Check if evidence exists by sourcePath
-      const existing = await (investigationsQueries.getEvidenceBySourcePath as RunQuery).run(
+      const existing = await (investigationsQueries.getEvidenceBySourcePath as unknown as any).run(
         { sourcePath },
         client,
       );
       let evidenceId = existing[0]?.id ? Number(existing[0].id) : null;
 
       if (!evidenceId) {
-        const result = await (investigationsQueries.createEvidence as RunQuery).run(
+        const result = await (investigationsQueries.createEvidence as unknown as any).run(
           {
             title,
             description,
@@ -235,7 +235,7 @@ export const investigationsRepository = {
       if (!evidenceId) throw new Error('Failed to create evidence');
 
       // 2. Link to investigation
-      const result = await (investigationsQueries.addEvidenceToInvestigation as RunQuery).run(
+      const result = await (investigationsQueries.addEvidenceToInvestigation as unknown as any).run(
         {
           investigationId,
           evidenceId,
@@ -275,7 +275,7 @@ export const investigationsRepository = {
   },
 
   getTimelineEvents: async (investigationId: number) => {
-    const rows = await (investigationsQueries.getTimelineEvents as RunQuery).run(
+    const rows = await (investigationsQueries.getTimelineEvents as unknown as any).run(
       { investigationId },
       getApiPool(),
     );
@@ -287,7 +287,7 @@ export const investigationsRepository = {
   },
 
   addTimelineEvent: async (investigationId: number, data: Record<string, unknown>) => {
-    const result = await (investigationsQueries.createTimelineEvent as RunQuery).run(
+    const result = await (investigationsQueries.createTimelineEvent as unknown as any).run(
       {
         investigationId,
         title: data.title || '',
@@ -302,7 +302,7 @@ export const investigationsRepository = {
   },
 
   updateTimelineEvent: async (eventId: number, data: Record<string, unknown>) => {
-    await (investigationsQueries.updateTimelineEvent as RunQuery).run(
+    await (investigationsQueries.updateTimelineEvent as unknown as any).run(
       {
         id: eventId,
         title: data.title || null,
@@ -320,12 +320,12 @@ export const investigationsRepository = {
   },
 
   deleteTimelineEvent: async (id: number) => {
-    await (investigationsQueries.deleteTimelineEvent as RunQuery).run({ id }, getApiPool());
+    await (investigationsQueries.deleteTimelineEvent as unknown as any).run({ id }, getApiPool());
     return true;
   },
 
   getChainOfCustody: async (evidenceId: number) => {
-    const rows = await (investigationsQueries.getChainOfCustody as RunQuery).run(
+    const rows = await (investigationsQueries.getChainOfCustody as unknown as any).run(
       { evidenceId },
       getApiPool(),
     );
@@ -337,7 +337,7 @@ export const investigationsRepository = {
   },
 
   addChainOfCustody: async (data: Record<string, unknown>) => {
-    const result = await (investigationsQueries.addChainOfCustody as RunQuery).run(
+    const result = await (investigationsQueries.addChainOfCustody as unknown as any).run(
       {
         evidenceId: data.evidenceId,
         date: new Date().toISOString(),
@@ -365,7 +365,7 @@ export const investigationsRepository = {
     try {
       await client.query('BEGIN');
 
-      const rows = await (investigationsQueries.updateInvestigation as RunQuery).run(
+      const rows = await (investigationsQueries.updateInvestigation as unknown as any).run(
         {
           id,
           title: updates.title || null,
@@ -381,25 +381,26 @@ export const investigationsRepository = {
 
       if (updates.collaboratorIds) {
         // Simple sync for now: remove all and re-add
-        // In a production app, we'd do a delta, but for strengthening we at least move to the table
-        await (investigationsQueries.removeCollaborator as RunQuery).run(
-          { investigationId: id, userId: null }, // Assuming null means all if not specialized, but let's check
-          client,
-        );
+        await client.query('DELETE FROM investigation_collaborators WHERE investigation_id = $1', [
+          id,
+        ]);
         for (const cId of updates.collaboratorIds) {
-          await (investigationsQueries.addCollaborator as RunQuery).run(
-            { investigationId: id, userId: cId, permissionLevel: 'editor' },
-            client,
+          await client.query(
+            'INSERT INTO investigation_collaborators (investigation_id, user_id, permission_level, joined_at) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+            [id, cId, 'editor'],
           );
         }
       }
 
       await client.query('COMMIT');
 
-      const collaborators = (await (investigationsQueries.getCollaborators as RunQuery).run(
-        { investigationId: id },
-        getApiPool(),
-      )) as CollaboratorRow[];
+      const collaboratorRows = await getApiPool().query(
+        `SELECT user_id, permission_level, joined_at
+         FROM investigation_collaborators
+         WHERE investigation_id = $1`,
+        [id],
+      );
+      const collaborators = collaboratorRows.rows as CollaboratorRow[];
 
       return mapInvestigation(updated, collaborators);
     } catch (err) {
@@ -411,7 +412,7 @@ export const investigationsRepository = {
   },
 
   getNotebook: async (investigationId: number) => {
-    const rows = await (investigationsQueries.getNotebook as RunQuery).run(
+    const rows = await (investigationsQueries.getNotebook as unknown as any).run(
       { investigationId },
       getApiPool(),
     );
@@ -451,7 +452,7 @@ export const investigationsRepository = {
     investigationId: number,
     payload: { order?: number[]; annotations?: Array<Record<string, unknown>> },
   ) => {
-    await (investigationsQueries.saveNotebook as RunQuery).run(
+    await (investigationsQueries.saveNotebook as unknown as any).run(
       {
         investigationId,
         orderJson: JSON.stringify(payload.order || []),
@@ -679,7 +680,7 @@ export const investigationsRepository = {
   // --- Hypotheses ---
 
   getHypotheses: async (investigationId: number) => {
-    const hypotheses = await (investigationsQueries.getHypotheses as RunQuery).run(
+    const hypotheses = await (investigationsQueries.getHypotheses as unknown as any).run(
       { investigationId },
       getApiPool(),
     );
@@ -687,7 +688,7 @@ export const investigationsRepository = {
     if (hypotheses.length === 0) return [];
 
     // Fetch ALL evidence links for all these hypotheses in one go to avoid N+1
-    const hypothesisIds = hypotheses.map((h) => Number(h.id));
+    const hypothesisIds = hypotheses.map((h: any) => Number(h.id));
     const allEvidenceLinks = await getApiPool().query(
       `SELECT he.*, e.title as evidence_title, e.evidence_type
        FROM hypothesis_evidence he
@@ -711,7 +712,7 @@ export const investigationsRepository = {
       {} as Record<number, Record<string, unknown>[]>,
     );
 
-    return hypotheses.map((hyp) => ({
+    return hypotheses.map((hyp: any) => ({
       ...hyp,
       id: Number(hyp.id),
       investigation_id: Number(hyp.investigation_id),
@@ -720,7 +721,7 @@ export const investigationsRepository = {
   },
 
   addHypothesis: async (investigationId: number, data: { title: string; description?: string }) => {
-    const result = await (investigationsQueries.createHypothesis as RunQuery).run(
+    const result = await (investigationsQueries.createHypothesis as unknown as any).run(
       {
         investigationId,
         title: data.title,
@@ -735,7 +736,7 @@ export const investigationsRepository = {
     id: number,
     data: { title?: string; description?: string; status?: string; confidence?: number },
   ) => {
-    await (investigationsQueries.updateHypothesis as RunQuery).run(
+    await (investigationsQueries.updateHypothesis as unknown as any).run(
       {
         id,
         title: data.title || null,
@@ -749,7 +750,7 @@ export const investigationsRepository = {
   },
 
   deleteHypothesis: async (id: number) => {
-    await (investigationsQueries.deleteHypothesis as RunQuery).run({ id }, getApiPool());
+    await (investigationsQueries.deleteHypothesis as unknown as any).run({ id }, getApiPool());
     return true;
   },
 
@@ -758,7 +759,7 @@ export const investigationsRepository = {
     evidenceId: number,
     relevance = 'supporting',
   ) => {
-    const result = await (investigationsQueries.addEvidenceToHypothesis as RunQuery).run(
+    const result = await (investigationsQueries.addEvidenceToHypothesis as unknown as any).run(
       { hypothesisId, evidenceId, relevance },
       getApiPool(),
     );
@@ -766,7 +767,7 @@ export const investigationsRepository = {
   },
 
   removeEvidenceFromHypothesis: async (hypothesisId: number, evidenceId: number) => {
-    await (investigationsQueries.removeEvidenceFromHypothesis as RunQuery).run(
+    await (investigationsQueries.removeEvidenceFromHypothesis as unknown as any).run(
       { hypothesisId, evidenceId },
       getApiPool(),
     );
@@ -786,7 +787,7 @@ export const investigationsRepository = {
     metadata?: Record<string, unknown>;
   }) => {
     const metadata = data.metadata || {};
-    const result = await (investigationsQueries.logActivity as RunQuery).run(
+    const result = await (investigationsQueries.logActivity as unknown as any).run(
       {
         investigationId: data.investigationId,
         userId: data.userId || 'anonymous',
@@ -806,7 +807,7 @@ export const investigationsRepository = {
   },
 
   getActivity: async (investigationId: number, limit = 50) => {
-    const rows = await (investigationsQueries.getActivity as RunQuery).run(
+    const rows = await (investigationsQueries.getActivity as unknown as any).run(
       { investigationId, limit: limit },
       getApiPool(),
     );
@@ -946,15 +947,15 @@ export const investigationsRepository = {
     const evidenceLimit = options?.evidenceLimit ?? 100;
     const hypothesisLimit = options?.hypothesisLimit ?? 100;
 
-    const evidenceRows = await (investigationsQueries.getEvidence as RunQuery).run(
+    const evidenceRows = await (investigationsQueries.getEvidence as unknown as any).run(
       { investigationId, limit: evidenceLimit, offset: 0 },
       getApiPool(),
     );
-    const hypothesesRows = await (investigationsQueries.getHypotheses as RunQuery).run(
+    const hypothesesRows = await (investigationsQueries.getHypotheses as unknown as any).run(
       { investigationId },
       getApiPool(),
     );
-    const countsResult = await (investigationsQueries.countEvidence as RunQuery).run(
+    const countsResult = await (investigationsQueries.countEvidence as unknown as any).run(
       { investigationId },
       getApiPool(),
     );

@@ -239,17 +239,35 @@ Verification:
 
 - Passed: `pnpm exec vitest run src/test/provenanceDtoMapper.test.ts` (5 tests).
 - Passed: `pnpm format:check`.
-- Passed: `pnpm lint`.
+- Passed: `pnpm lint` with 0 warnings.
 - Passed: `pnpm type-check`.
-- Passed: `pnpm test:unit` (21 test files passed, 1 skipped; 74 tests passed, 16 skipped).
-- Partial: `pnpm build:prod` now completes prebuild gates and the Vite client build.
-- Blocked: `pnpm build:prod` fails in the final server compile step (`tsc -p tsconfig.server.json`) with 93 server type errors, mostly generated pgtyped repository contract mismatches plus a server-excluded `exif-parser` declaration.
+- Passed: `pnpm test:unit` (22 test files passed, 1 skipped; 77 tests passed, 16 skipped).
+- Passed: `pnpm build:prod`.
+- Passed: `pnpm audit --prod --audit-level high`.
+- Passed: `pnpm check:boundaries`.
+- Passed: `pnpm check:hygiene`.
+- Blocked locally: Playwright API contract and route-sync suites need a valid Postgres fixture. A fresh `pnpm test:contracts` run on 2026-04-29 stops at the first DTO contract because `GET /api/subjects?page=1&limit=1` returns 500. Earlier API boot diagnostics showed Postgres rejects the default role (`role "epstein" does not exist`).
 
 Next Packet 2 work:
 
-- Restore the server production-build baseline before browser release testing.
-- Add Playwright source-first smoke coverage once the broader type-check/build baseline is restored.
-- Audit any less-traveled claim-specific surfaces outside `ClaimsTab` or evidence results once route/UI sync coverage is available.
+- Rerun `pnpm test:contracts`, `pnpm test:route-sync`, and golden-path Playwright specs against a provisioned release-candidate database.
+
+### 2026-04-29 — Remaining 20.0 Work Completed
+
+Scope completed:
+
+- Added `GET /api/status/archive` and `archiveStatusSchema` for archive freshness.
+- Added review bulk triage (`POST /api/review/bulk`) and user-initiated review flags (`POST /api/review/flag`).
+- Added export preview/readiness (`GET /api/investigations/:id/export/preview`) with actionable warnings.
+- Added generated chain-of-custody metadata to exported packet README files.
+- Extended search request validation and repository handling for source type, confidence bounds, review state, date range, entity type, media type, evidence type, and red-flag band.
+- Added focused unit contracts for 20.0 release schemas and export metadata.
+- Cleaned remaining repository lint warnings so `pnpm lint` is quiet again after the 20.0 changes.
+
+Release-candidate status:
+
+- Code gates are green: format, lint, type-check, unit tests, production build, dependency audit, boundary check, and hygiene check.
+- Release sign-off is still blocked on Playwright/API contract execution against a valid Postgres fixture, not on a known application-code failure.
 
 ### Packet 7: Lint Warning Cleanup
 

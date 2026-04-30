@@ -42,6 +42,7 @@ export function buildManifest(options: {
   title: string;
   status: string;
   appVersion: string;
+  schemaHash?: string;
   exportLimits: { fileCountCap: number; sizeLimitBytes: number };
   evidenceIds: number[];
   includedFiles: ExportManifestIncludedFile[];
@@ -52,6 +53,7 @@ export function buildManifest(options: {
     title,
     status,
     appVersion,
+    schemaHash = 'unknown',
     exportLimits,
     evidenceIds,
     includedFiles,
@@ -76,6 +78,7 @@ export function buildManifest(options: {
     status,
     generatedAt: new Date().toISOString(),
     appVersion,
+    schemaHash,
     checksumAlgorithm: 'sha256',
     exportLimits,
     evidenceIds: sortedEvidenceIds,
@@ -143,3 +146,20 @@ To verify manually:
 File count cap and size limit are recorded in \`manifest.json\` under \`exportLimits\`.
 Skipped files (and the reason each was skipped) are listed in \`skippedFiles\`.
 `;
+
+export function buildBundleReadme(options: {
+  appVersion: string;
+  schemaHash: string;
+  generatedAt: string;
+}): string {
+  return `${BUNDLE_README}
+## Chain of Custody
+
+- App version: ${options.appVersion}
+- Schema hash: ${options.schemaHash}
+- Generation timestamp: ${options.generatedAt}
+
+This section is generated automatically for each evidence packet so reviewers can
+confirm which application and schema state produced the bundle.
+`;
+}

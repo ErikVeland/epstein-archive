@@ -36,8 +36,17 @@ function readCount(value: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
+type EmailRow = Record<string, unknown> & {
+  id: string | number;
+  metadataJson?: unknown;
+  file_name?: unknown;
+  date_created?: unknown;
+  dateCreated?: unknown;
+  content?: unknown;
+};
+
 // Helper to map DB row to EmailDTO
-function mapRowToEmailDTO(row: Record<string, unknown>): EmailDTO {
+function mapRowToEmailDTO(row: EmailRow): EmailDTO {
   let metadata: Record<string, unknown> = {};
   try {
     const parsed =
@@ -235,7 +244,7 @@ export const communicationsRepository = {
         ...row,
         metadataJson: row.metadata_json,
         dateCreated: row.date_created,
-      } as unknown as Record<string, unknown>),
+      } as unknown as EmailRow),
     );
   },
 };

@@ -32,7 +32,7 @@ interface EntityTransactionResult {
 
 export const entityEvidenceRepository = {
   async getEntityMentionEvidence(entityId: string) {
-    const eid = BigInt(entityId);
+    const eid = entityId;
 
     // Basic entity lookup
     const entityRows = await entityEvidenceQueries.getEntityMentionDetails.run(
@@ -47,7 +47,7 @@ export const entityEvidenceRepository = {
 
     // Core mention-derived evidence items
     const evidenceRows = await entityEvidenceQueries.getMentionDerivedEvidence.run(
-      { entityId: eid, limit: BigInt(200) },
+      { entityId: eid, limit: 200 },
       getApiPool(),
     );
 
@@ -79,7 +79,7 @@ export const entityEvidenceRepository = {
     }));
 
     const relatedEntitiesRaw = await entityEvidenceQueries.getRelatedEntitiesByRelations.run(
-      { entityId: eid, limit: BigInt(20) },
+      { entityId: eid, limit: 20 },
       getApiPool(),
     );
 
@@ -113,7 +113,7 @@ export const entityEvidenceRepository = {
   },
 
   async getRelationEvidenceForEntity(entityId: string | number) {
-    const eid = BigInt(entityId);
+    const eid = entityId;
     const rows = await entityEvidenceQueries.getRelationEvidenceForEntity.run(
       { entityId: eid },
       getApiPool(),

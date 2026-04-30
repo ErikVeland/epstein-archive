@@ -173,6 +173,25 @@ interface EntitySearchRow {
 }
 
 type DocumentSearchRow = ISearchDocumentsResult | ISearchDocumentsPrefixResult;
+type SearchArticleDto = {
+  id: string;
+  title: string;
+  source: string | null;
+  author: string | null;
+  pubDate: Date | null;
+  snippet: string | null;
+  rank: number | null;
+};
+type SearchMediaDto = {
+  id: string;
+  filename: string;
+  title: string | null;
+  description: string | null;
+  filePath: string;
+  fileType: string | null;
+  snippet: string | null;
+  rank: number | null;
+};
 
 export interface UnifiedSearchResult {
   entities: Record<string, unknown>[];
@@ -184,15 +203,40 @@ export interface UnifiedSearchResult {
   semanticCapability?: SemanticCapability;
 }
 
+interface SearchFilters {
+  evidenceType?: string;
+  redFlagBand?: string;
+  mode?: 'web' | 'prefix' | 'lexical' | 'semantic' | 'hybrid';
+  sourceType?: string;
+  mediaType?: string;
+  entityType?: string;
+  reviewState?: string;
+  confidenceMin?: number;
+  confidenceMax?: number;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+const matchesTextFilter = (actual: unknown, expected?: string): boolean => {
+  if (!expected || expected === 'ALL') return true;
+  return String(actual || '').toLowerCase() === expected.toLowerCase();
+};
+
+const matchesDateRange = (actual: unknown, dateFrom?: string, dateTo?: string): boolean => {
+  if (!dateFrom && !dateTo) return true;
+  if (!actual) return false;
+  const time = new Date(String(actual)).getTime();
+  if (!Number.isFinite(time)) return false;
+  if (dateFrom && time < new Date(dateFrom).getTime()) return false;
+  if (dateTo && time > new Date(dateTo).getTime()) return false;
+  return true;
+};
+
 export const searchRepository = {
   search: async (
     query: string,
     limit: number = 50,
-    filters: {
-      evidenceType?: string;
-      redFlagBand?: string;
-      mode?: 'web' | 'prefix' | 'lexical' | 'semantic' | 'hybrid';
-    } = {},
+    filters: SearchFilters = {},
   ): Promise<UnifiedSearchResult> => {
     const searchTerm = query.trim();
     if (!searchTerm) {
@@ -603,8 +647,8 @@ export const searchRepository = {
 
     const vipDisplayLookup = await buildVipDisplayLookup();
 
-    return {
-      entities: mergedEntityRows.map((row) => {
+    const entities = mergedEntityRows
+      .map((row) => {
         const aliases = parseEntityAliases(typeof row.aliases === 'string' ? row.aliases : null);
         const resolvedName = resolveCanonicalVipName(String(row.fullName || ''), vipDisplayLookup);
         const stats = entityStatsById.get(Number(row.id));
@@ -635,8 +679,11 @@ export const searchRepository = {
           files: stats?.files ?? 0,
           matchReason: entityMatchReasons.get(String(row.id)) || 'text',
         };
-      }),
-      documents: docRows.map((row: ISearchDocumentsResult | ISearchDocumentsPrefixResult) => {
+      })
+      .filter((entity) => matchesTextFilter(entity.entityType, filters.entityType));
+
+    const documents = docRows
+      .map((row: ISearchDocumentsResult | ISearchDocumentsPrefixResult) => {
         const meta = documentMetaById.get(Number(row.id));
         const rid = String(row.id);
         return {
@@ -654,17 +701,22 @@ export const searchRepository = {
           snippet: row.snippet,
           matchReason: docMatchReasons.get(rid) || 'text',
         };
-      }),
-      investigations: investigationRows.map((row: ISearchInvestigationsResult) => ({
-        id: String(row.id),
-        uuid: row.uuid,
-        title: row.title,
-        description: row.description,
-        status: row.status,
-        snippet: row.snippet,
-        rank: row.rank,
-      })),
-      articles: articleRows.map((row: ISearchArticlesResult) => ({
+      })
+      .filter((doc) => matchesTextFilter(doc.evidenceType || doc.fileType, filters.sourceType))
+      .filter((doc) => matchesDateRange(doc.dateCreated, filters.dateFrom, filters.dateTo));
+
+    const investigations = investigationRows.map((row: ISearchInvestigationsResult) => ({
+      id: String(row.id),
+      uuid: row.uuid,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      snippet: row.snippet,
+      rank: row.rank,
+    }));
+
+    const articles: SearchArticleDto[] = articleRows
+      .map((row: ISearchArticlesResult) => ({
         id: String(row.id),
         title: row.title,
         source: row.source,
@@ -672,8 +724,13 @@ export const searchRepository = {
         pubDate: row.pubDate,
         snippet: row.snippet,
         rank: row.rank,
-      })),
-      media: mediaRows.map((row: ISearchMediaResult) => ({
+      }))
+      .filter((article: SearchArticleDto) =>
+        matchesDateRange(article.pubDate, filters.dateFrom, filters.dateTo),
+      );
+
+    const media: SearchMediaDto[] = mediaRows
+      .map((row: ISearchMediaResult) => ({
         id: String(row.id),
         filename: row.filename,
         title: row.title,
@@ -682,7 +739,15 @@ export const searchRepository = {
         fileType: row.fileType,
         snippet: row.snippet,
         rank: row.rank,
-      })),
+      }))
+      .filter((item: SearchMediaDto) => matchesTextFilter(item.fileType, filters.mediaType));
+
+    return {
+      entities,
+      documents,
+      investigations,
+      articles,
+      media,
       didYouMean: [],
       semanticCapability: capability,
     };

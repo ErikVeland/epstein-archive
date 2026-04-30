@@ -26,7 +26,7 @@ export interface FinancialTransaction {
 
 export const financialRepository = {
   getTransactions: async (limit: number = 100): Promise<FinancialTransaction[]> => {
-    const rows = await financialQueries.getTransactions.run({ limit: BigInt(limit) }, getApiPool());
+    const rows = await financialQueries.getTransactions.run({ limit }, getApiPool());
     return rows.map((r: IGetTransactionsResult) => ({
       id: Number(r.id),
       from_entity: r.from_entity,
@@ -52,7 +52,7 @@ export const financialRepository = {
     investigationId: number,
   ): Promise<FinancialTransaction[]> => {
     const rows = await financialQueries.getTransactionsByInvestigation.run(
-      { investigationId: BigInt(investigationId) },
+      { investigationId },
       getApiPool(),
     );
     return rows.map((r: IGetTransactionsByInvestigationResult) => ({
@@ -111,7 +111,7 @@ export const financialRepository = {
         method: tx.method,
         riskLevel: tx.risk_level || 'medium',
         description: tx.description,
-        investigationId: tx.investigation_id ? BigInt(tx.investigation_id) : null,
+        investigationId: tx.investigation_id || null,
         sourceDocumentId: tx.source_document_id || null,
         metadataJson: tx.metadata_json || null,
       },
@@ -124,7 +124,7 @@ export const financialRepository = {
   getFinancialSummary: async () => {
     const [summary] = await financialQueries.getFinancialSummary.run(undefined, getApiPool());
     const topEntities = await financialQueries.getTopFinancialEntities.run(
-      { limit: BigInt(5) },
+      { limit: 5 },
       getApiPool(),
     );
 

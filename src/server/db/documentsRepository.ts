@@ -76,6 +76,51 @@ const firstMeaningfulExcerpt = (text: string): string => {
   return candidate.slice(0, PREVIEW_MAX_CHARS).trim();
 };
 
+type DocumentMetadata = Record<string, unknown>;
+type DocumentRow = Record<string, unknown> & {
+  id?: string | number;
+  title?: string | null;
+  fileName?: string | null;
+  filePath?: string | null;
+  originalFilePath?: string | null;
+  fileType?: string | null;
+  fileSize?: string | number | null;
+  dateCreated?: string | Date | null;
+  extractedDate?: string | Date | null;
+  evidenceType?: string | null;
+  content?: string | null;
+  contentRefined?: string | null;
+  contentPreview?: string | null;
+  cleanedText?: string | null;
+  metadata?: unknown;
+  metadataJson?: unknown;
+  redFlagRating?: string | number | null;
+  wordCount?: string | number | null;
+  source_collection?: string | null;
+  unredactionAttempted?: boolean | null;
+  unredactionSucceeded?: boolean | null;
+  redactionCoverageBefore?: string | number | null;
+  redactionCoverageAfter?: string | number | null;
+  unredactedTextGain?: string | number | null;
+  unredactionBaselineVocab?: unknown;
+};
+
+type PgtypedQuery<P, R> = {
+  run: (params: P, pool: ReturnType<typeof getApiPool>) => Promise<R[]>;
+};
+
+const parseMetadata = (value: unknown): DocumentMetadata => {
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return typeof parsed === 'object' && parsed !== null ? (parsed as DocumentMetadata) : {};
+    } catch {
+      return {};
+    }
+  }
+  return typeof value === 'object' && value !== null ? (value as DocumentMetadata) : {};
+};
+
 const normalizeSourceType = (evidenceType?: string | null, fileType?: string | null): string => {
   const value = (evidenceType || fileType || 'document').toLowerCase();
   if (value.includes('email')) return 'Email';
@@ -93,7 +138,7 @@ const buildPreview = (doc: {
   contentRefined?: string | null;
   cleanedText?: string | null;
   contentPreview?: string | null;
-  metadata?: Record<string, unknown>;
+  metadata?: DocumentMetadata;
 }) => {
   const curatedTitle =
     typeof doc.title === 'string' && doc.title.trim() && doc.title !== doc.fileName
@@ -277,7 +322,7 @@ export const documentsRepository = {
       ],
     });
 
-    const docs = docsRes.rows as Array<Record<string, unknown>>;
+    const docs = docsRes.rows as DocumentRow[];
     const shouldUseCachedCount =
       !search &&
       !fileTypes &&
@@ -368,17 +413,12 @@ export const documentsRepository = {
         typeof doc.contentRefined === 'string' ? doc.contentRefined : undefined;
       const evidenceType = typeof doc.evidenceType === 'string' ? doc.evidenceType : undefined;
       const fileType = typeof doc.fileType === 'string' ? doc.fileType : undefined;
-      const metadata =
-        typeof doc.metadata === 'string'
-          ? (JSON.parse(doc.metadata) as Record<string, unknown>)
-          : typeof doc.metadata === 'object' && doc.metadata !== null
-            ? (doc.metadata as Record<string, unknown>)
-            : {};
+      const metadata = parseMetadata(doc.metadata);
       const preview = buildPreview({
         title,
         fileName,
         contentRefined,
-        contentPreview: ((doc as Record<string, unknown>).contentPreview as string | null) || '',
+        contentPreview: typeof doc.contentPreview === 'string' ? doc.contentPreview : '',
         metadata,
       });
 
@@ -431,23 +471,14 @@ export const documentsRepository = {
         run: (
           params: { id: number },
           pool: ReturnType<typeof getApiPool>,
-        ) => Promise<Record<string, unknown>[]>;
+        ) => Promise<DocumentRow[]>;
       }
     ).run({ id: docId }, getApiPool());
     const document = rows[0];
 
     if (!document) return null;
 
-    let metadata: Record<string, unknown> = {};
-    if (document.metadataJson && typeof document.metadataJson === 'string') {
-      try {
-        metadata = JSON.parse(document.metadataJson);
-      } catch (_e) {
-        metadata = {};
-      }
-    } else if (document.metadataJson) {
-      metadata = document.metadataJson as Record<string, unknown>;
-    }
+    const metadata = parseMetadata(document.metadataJson);
 
     let entityRowsRes;
     try {
@@ -548,9 +579,6 @@ export const documentsRepository = {
       };
     });
 
-    type PgtypedQuery<P, R> = {
-      run: (params: P, pool: ReturnType<typeof getApiPool>) => Promise<R[]>;
-    };
     const redactionSpans = await (
       documentsQueries.getRedactionSpans as PgtypedQuery<
         { documentId: number },
@@ -688,20 +716,20 @@ export const documentsRepository = {
       mentionedEntities: entities,
       signals,
       original_file_path: document.originalFilePath || document.filePath,
-      redaction_spans: redactionSpans.map((s) => ({
+      redaction_spans: redactionSpans.map((s: Record<string, unknown>) => ({
         ...s,
-        id: Number((s as Record<string, unknown>).id),
-        document_id: Number((s as Record<string, unknown>).document_id),
+        id: Number(s.id),
+        document_id: Number(s.document_id),
       })),
-      claims: claims.map((c) => ({
+      claims: claims.map((c: Record<string, unknown>) => ({
         ...c,
-        id: Number((c as Record<string, unknown>).id),
-        document_id: Number((c as Record<string, unknown>).document_id),
+        id: Number(c.id),
+        document_id: Number(c.document_id),
       })),
-      sentences: sentences.map((s) => ({
+      sentences: sentences.map((s: Record<string, unknown>) => ({
         ...s,
-        id: Number((s as Record<string, unknown>).id),
-        document_id: Number((s as Record<string, unknown>).document_id),
+        id: Number(s.id),
+        document_id: Number(s.document_id),
       })),
       unredaction_metrics: {
         attempted: Boolean(document.unredactionAttempted),
@@ -716,9 +744,6 @@ export const documentsRepository = {
 
   getRelatedDocuments: async (documentId: string, limit: number = 10) => {
     const docId = Number(documentId);
-    type PgtypedQuery<P, R> = {
-      run: (params: P, pool: ReturnType<typeof getApiPool>) => Promise<R[]>;
-    };
     interface RelatedDocRow {
       id: string | number;
       title?: string | null;
