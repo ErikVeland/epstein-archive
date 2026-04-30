@@ -28,7 +28,7 @@ export function lazyWithRetry<T extends React.ComponentType<any>>(
   importer: () => Promise<{ default: T }>,
   key: string,
 ): React.LazyExoticComponent<T> {
-  return React.lazy<T>(async () => {
+  return React.lazy<T>(async (): Promise<{ default: T }> => {
     try {
       return await importer();
     } catch (err) {
