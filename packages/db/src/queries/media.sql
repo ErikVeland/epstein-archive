@@ -102,7 +102,7 @@ SELECT * FROM (
 ) t WHERE rn <= 5;
 
 /* @name countMediaItems */
-SELECT COUNT(*) as total
+SELECT COUNT(*)::integer as total
 FROM media_items m
 WHERE (:entityId::bigint IS NULL OR m.entity_id = :entityId)
   AND (:fileType::text IS NULL OR m.file_type LIKE :fileType)

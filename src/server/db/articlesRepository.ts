@@ -5,17 +5,17 @@ import { logger } from '../services/Logger.js';
 export interface Article {
   id: string;
   title: string;
-  link?: string;
-  url?: string;
-  source?: string;
-  publication?: string;
-  pubDate?: string;
-  description?: string;
-  summary?: string;
-  tags?: string;
-  redFlagRating?: number;
-  imageUrl?: string;
-  readingTime?: string;
+  link?: string | null;
+  url?: string | null;
+  source?: string | null;
+  publication?: string | null;
+  pubDate?: string | null;
+  description?: string | null;
+  summary?: string | null;
+  tags?: string | null;
+  redFlagRating?: number | null;
+  imageUrl?: string | null;
+  readingTime?: string | null;
 }
 
 interface InsertArticleInput {
@@ -31,7 +31,15 @@ interface InsertArticleInput {
   redFlagRating?: number;
 }
 
-type ArticleRow = Omit<Article, 'id'> & { id: string | number };
+interface ArticleListRow extends Omit<Article, 'id' | 'pubDate'> {
+  id: string | number;
+  pubDate?: Date | string | null;
+}
+
+const dateToIso = (value: Date | string | null | undefined): string | null => {
+  if (!value) return null;
+  return value instanceof Date ? value.toISOString() : value;
+};
 
 export class ArticlesRepository {
   /**
@@ -65,9 +73,10 @@ export class ArticlesRepository {
     ]);
 
     return {
-      articles: (articles as ArticleRow[]).map((a: ArticleRow) => ({
+      articles: (articles as ArticleListRow[]).map((a) => ({
         ...a,
         id: String(a.id),
+        pubDate: dateToIso(a.pubDate),
       })),
       total: Number(countResult[0]?.total || 0),
     };
@@ -79,7 +88,9 @@ export class ArticlesRepository {
     return {
       ...rows[0],
       id: String(rows[0].id),
-    } as Article;
+      imageUrl: rows[0].image_url as string | null,
+      pubDate: rows[0].pub_date ? rows[0].pub_date.toISOString() : null,
+    };
   }
 
   /**

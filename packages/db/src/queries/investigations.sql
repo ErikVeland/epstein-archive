@@ -17,7 +17,7 @@ ORDER BY updated_at DESC
 LIMIT :limit! OFFSET :offset!;
 
 /* @name countInvestigations */
-SELECT COUNT(*) as total 
+SELECT COUNT(*)::integer as total 
 FROM investigations 
 WHERE (:status::text IS NULL OR status = :status)
   AND (:ownerId::text IS NULL OR owner_id = :ownerId);
@@ -106,7 +106,7 @@ ORDER BY ie.added_at DESC
 LIMIT :limit OFFSET :offset;
 
 /* @name countEvidence */
-SELECT COUNT(*) as total FROM investigation_evidence WHERE investigation_id = :investigationId!;
+SELECT COUNT(*)::integer as total FROM investigation_evidence WHERE investigation_id = :investigationId!;
 
 /* @name getEvidenceBySourcePath */
 SELECT id FROM evidence WHERE source_path = :sourcePath!;

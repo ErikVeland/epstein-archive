@@ -72,14 +72,14 @@ LIMIT :limit!;
 
 /* @name getRelationshipStats */
 SELECT 
-  COUNT(*) as "totalRelationships",
+  COUNT(*)::integer as "totalRelationships",
   AVG(proximity_score) as "avgProximityScore",
   0 as "avgRiskScore",
   1 as "avgConfidence"
 FROM entity_relationships;
 
 /* @name getTopEntitiesByRelationshipCount */
-SELECT source_entity_id as "entityId", COUNT(*) as count
+SELECT source_entity_id as "entityId", COUNT(*)::integer as count
 FROM entity_relationships
 GROUP BY source_entity_id
 ORDER BY count DESC

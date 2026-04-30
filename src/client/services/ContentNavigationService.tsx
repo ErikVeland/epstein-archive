@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import { NavigationContext } from './NavigationContext';
 
 // Internal provider implementation

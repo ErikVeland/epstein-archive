@@ -6,7 +6,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "typeRoots": ["./node_modules/@types"],
-    "types": ["node"],
+    "types": ["node", "vite/client", "multer"],
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -30,14 +30,18 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
+    "src/client/**/*.ts",
+    "src/client/**/*.tsx",
+    "src/shared/**/*.ts",
+    "src/shared/**/*.tsx",
+    "src/types.ts",
+    "src/types/**/*.d.ts",
     "scripts/**/*.ts",
     "scripts/**/*.tsx",
     "vitest.config.ts",
     "playwright.config.ts",
     "tests/**/*.ts"
   ],
-  "exclude": ["node_modules", "dist", "**/*.test.tsx", "**/*.test.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.tsx", "**/*.test.ts", "src/server"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

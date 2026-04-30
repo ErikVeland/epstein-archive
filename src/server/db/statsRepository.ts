@@ -493,7 +493,7 @@ export const statsRepository = {
     let throughput_docs_sec = 0;
     try {
       const recentProcessedRows = await statsQueries.getRecentProcessedCount.run(
-        { seconds: 300 as any },
+        { seconds: 300 },
         getApiPool(),
       );
       const recentProcessedCount = Number(recentProcessedRows[0]?.count || 0);
@@ -565,7 +565,7 @@ export const statsRepository = {
 
   getTimelineEvents: async () => {
     try {
-      const rows = await statsQueries.getTimelineEvents.run({ limit: 100 as any }, getApiPool());
+      const rows = await statsQueries.getTimelineEvents.run({ limit: 100 }, getApiPool());
       return rows;
     } catch (e) {
       logger.error({ err: e }, 'Failed to fetch timeline events for stats');

@@ -9,8 +9,8 @@ SELECT
   e.red_flag_rating as "redFlagRating",
   e.connections_summary as "connections",
   e.was_agentic as "wasAgentic",
-  (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = 'media') as "mediaCount",
-  (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
+  (SELECT COUNT(*)::integer FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = 'media') as "mediaCount",
+  (SELECT COUNT(*)::integer FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
   (
     SELECT mi.id
     FROM media_items mi
@@ -35,7 +35,7 @@ ORDER BY
 LIMIT :limit! OFFSET :offset!;
 
 /* @name countSubjectCards */
-SELECT COUNT(*) as total 
+SELECT COUNT(*)::integer as total 
 FROM entities e
 WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL);
@@ -73,7 +73,7 @@ LIMIT :limit!;
 
 /* @name getMaxConnectivity */
 SELECT MAX(cnt) as "maxConn" FROM (
-  SELECT source_entity_id, COUNT(*) as cnt 
+  SELECT source_entity_id, COUNT(*)::integer as cnt 
   FROM entity_relationships 
   GROUP BY source_entity_id
 ) AS subquery;

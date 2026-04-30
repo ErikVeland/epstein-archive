@@ -63,16 +63,16 @@ LIMIT 500;
 
 /* @name getTotalCounts */
 SELECT
-  (SELECT COUNT(*) FROM entities  WHERE COALESCE(junk_tier,'clean') = 'clean') AS entities,
-  (SELECT COUNT(*) FROM documents)                                               AS documents,
-  (SELECT COUNT(*) FROM documents WHERE evidence_type IS NOT NULL)               AS evidence_files,
-  (SELECT COUNT(*) FROM documents WHERE evidence_type IS NULL)                   AS unclassified_documents,
-  (SELECT COUNT(*) FROM entity_relationships)                                    AS relationships;
+  (SELECT COUNT(*)::integer FROM entities  WHERE COALESCE(junk_tier,'clean') = 'clean') AS entities,
+  (SELECT COUNT(*)::integer FROM documents)                                               AS documents,
+  (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NOT NULL)               AS evidence_files,
+  (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NULL)                   AS unclassified_documents,
+  (SELECT COUNT(*)::integer FROM entity_relationships)                                    AS relationships;
 
 /* @name getReconciliationCounts */
 SELECT
-  (SELECT COUNT(*) FROM documents WHERE evidence_type IS NULL) AS unclassified,
-  (SELECT COUNT(*) FROM documents
+  (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NULL) AS unclassified,
+  (SELECT COUNT(*)::integer FROM documents
      WHERE date_created IS NULL
        OR date_created > '2026-12-31'::date) AS unknown_date;
 
@@ -84,7 +84,7 @@ VALUES (:sessionId!, :route!, :cls!, :lcp!, :inp!, :longTaskCount!);
 SELECT 
   collected_at::date as date,
   route,
-  COUNT(*) as "sampleCount",
+  COUNT(*)::integer as "sampleCount",
   percentile_cont(0.75) WITHIN GROUP (ORDER BY cls) as "p75Cls",
   percentile_cont(0.75) WITHIN GROUP (ORDER BY lcp) as "p75Lcp",
   percentile_cont(0.75) WITHIN GROUP (ORDER BY inp) as "p75Inp",
@@ -98,7 +98,7 @@ ORDER BY date DESC, route;
 SELECT 
   collected_at::date as date,
   route,
-  COUNT(*) as "sampleCount",
+  COUNT(*)::integer as "sampleCount",
   AVG(cls) as "avgCls",
   AVG(lcp) as "avgLcp",
   AVG(inp) as "avgInp",

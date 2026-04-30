@@ -14,6 +14,15 @@ export interface GlobalStatsPayload {
   totalDocuments: number;
   totalMentions: number;
   likelihoodDistribution: Array<{ level: string; count: number }>;
+  pipeline_status?: {
+    datasets?: Array<{
+      name: string;
+      target: number;
+      ingested: number;
+      downloaded: number;
+    }>;
+    eta_minutes?: number;
+  };
 }
 
 export interface SearchDocumentPayload {

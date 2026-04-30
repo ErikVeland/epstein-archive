@@ -1,4 +1,5 @@
 import { Person } from '@client/types';
+import { GlobalStatsPayload } from '@client/types/api';
 import { SearchFilters, PaginatedResponse } from './optimizedDataLoader';
 export type { SearchFilters, PaginatedResponse } from './optimizedDataLoader';
 import { apiClient } from './apiClient';
@@ -43,7 +44,7 @@ interface CacheEntry<T> {
 export class OptimizedDataService {
   private static instance: OptimizedDataService;
   private isInitialized: boolean = false;
-  private statsCache: Record<string, unknown> | null = null;
+  private statsCache: GlobalStatsPayload | null = null;
   private readonly BASE_PAGE_SIZE = 24; // Base page size for grid layout
   private cache = new Map<string, CacheEntry<unknown>>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -320,7 +321,7 @@ export class OptimizedDataService {
     }
   }
 
-  async getStatistics(): Promise<Record<string, unknown>> {
+  async getStatistics(): Promise<GlobalStatsPayload> {
     await this.initialize();
 
     if (this.statsCache) {
@@ -333,7 +334,7 @@ export class OptimizedDataService {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const stats = (await apiClient.getStats()) as Record<string, unknown>;
+        const stats = await apiClient.getStats();
         this.statsCache = stats;
 
         // Clear stats cache after 5 minutes (TTL)

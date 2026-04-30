@@ -1,5 +1,5 @@
 import React from 'react';
-import Icon from './Icon';
+import Icon, { IconName } from './Icon';
 import styles from './SignalAnalysis.module.css';
 
 interface SignalAnalysisProps {
@@ -7,35 +7,43 @@ interface SignalAnalysisProps {
   rating: number;
 }
 
+interface SignalItem {
+  value: number;
+  label: string;
+  icon: IconName;
+  color: string;
+  barColor: string;
+}
+
 export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rating }) => {
   // Parse the signal string: "Signal Analysis: High exposure (7727 mentions); Direct network link to high-risk figures (12 connections); Associated visual evidence (4 items)."
-  const parseSignals = () => {
-    const signals = {
+  const parseSignals = (): SignalItem[] => {
+    const signals: Record<string, SignalItem> = {
       exposure: {
         value: 0,
         label: 'Exposure',
-        icon: 'Eye' as const,
+        icon: 'Eye',
         color: styles.accent,
         barColor: styles.fillAccent,
       },
       network: {
         value: 0,
         label: 'Network',
-        icon: 'Network' as const,
+        icon: 'Network',
         color: styles.accentSecondary,
         barColor: styles.fillAccentSecondary,
       },
       evidence: {
         value: 0,
         label: 'Evidence',
-        icon: 'Shield' as const,
+        icon: 'Shield',
         color: styles.accent,
         barColor: styles.fillAccent,
       },
       risk: {
         value: rating * 20,
         label: 'Risk Index',
-        icon: 'AlertTriangle' as const,
+        icon: 'AlertTriangle',
         color: styles.danger,
         barColor: styles.fillDanger,
       },

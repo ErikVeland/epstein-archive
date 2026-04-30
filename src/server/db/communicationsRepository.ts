@@ -36,9 +36,10 @@ function readCount(value: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-type EmailRow = Record<string, unknown> & {
+type EmailRow = {
   id: string | number;
   metadataJson?: unknown;
+  metadata_json?: unknown;
   file_name?: unknown;
   date_created?: unknown;
   dateCreated?: unknown;
@@ -49,8 +50,8 @@ type EmailRow = Record<string, unknown> & {
 function mapRowToEmailDTO(row: EmailRow): EmailDTO {
   let metadata: Record<string, unknown> = {};
   try {
-    const parsed =
-      typeof row.metadataJson === 'string' ? JSON.parse(row.metadataJson) : row.metadataJson;
+    const rawMetadata = row.metadataJson ?? row.metadata_json;
+    const parsed = typeof rawMetadata === 'string' ? JSON.parse(rawMetadata) : rawMetadata;
     metadata =
       typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
   } catch {

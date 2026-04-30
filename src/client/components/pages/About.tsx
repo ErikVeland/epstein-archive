@@ -1,8 +1,10 @@
+/// <reference types="vite/client" />
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 
 import { optimizedDataService } from '@client/services/OptimizedDataService';
+import { GlobalStatsPayload } from '@client/types/api';
 import s from './About.module.css';
 
 interface AboutStats {
@@ -23,20 +25,16 @@ interface PipelineStatus {
 }
 
 export const About: React.FC = () => {
-  const { data: statsData = null } = useQuery<Record<string, unknown> | null>({
+  const { data: statsData = null } = useQuery<GlobalStatsPayload | null>({
     queryKey: ['about-statistics'],
-    queryFn: async () =>
-      (await optimizedDataService.getStatistics()) as Record<string, unknown> | null,
+    queryFn: async () => await optimizedDataService.getStatistics(),
     staleTime: 300_000,
   });
 
   const stats: AboutStats | null = statsData
-    ? { total: 5200000, released: Number(statsData.totalDocuments || statsData.documents || 0) }
+    ? { total: 5200000, released: statsData.totalDocuments || 0 }
     : null;
-  const pipelineStatus: PipelineStatus | null =
-    statsData?.pipeline_status && typeof statsData.pipeline_status === 'object'
-      ? (statsData.pipeline_status as PipelineStatus)
-      : null;
+  const pipelineStatus: PipelineStatus | null = statsData?.pipeline_status || null;
 
   const percentage = stats ? ((stats.released / stats.total) * 100).toFixed(4) : '0';
 

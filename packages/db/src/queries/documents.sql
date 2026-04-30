@@ -13,7 +13,7 @@ SELECT
   red_flag_rating as "redFlagRating",
   COALESCE(NULLIF(title, ''), file_name) as "title",
   source_collection as "sourceCollection",
-  COUNT(*) OVER () as "totalCount"
+  COUNT(*)::integer OVER () as "totalCount"
 FROM documents
 WHERE (
   :search::text IS NULL
@@ -33,7 +33,7 @@ ORDER BY red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC
 LIMIT :limit! OFFSET :offset!;
 
 /* @name countDocuments */
-SELECT COUNT(*) as total 
+SELECT COUNT(*)::integer as total 
 FROM documents
 WHERE (
   :search::text IS NULL
@@ -82,7 +82,7 @@ SELECT
   e.full_name as "name",
   COALESCE(e.entity_type, 'unknown') as "entityType",
   COALESCE(e.red_flag_rating, 0) as "redFlagRating",
-  COUNT(*) as "mentions"
+  COUNT(*)::integer as "mentions"
 FROM entity_mentions em
 JOIN entities e ON e.id = em.entity_id
 WHERE em.document_id = :documentId!

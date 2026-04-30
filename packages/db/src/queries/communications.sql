@@ -2,7 +2,7 @@
 SELECT 
   COALESCE(metadata_json->>'thread_id', id::text) as "threadId",
   MIN(metadata_json->>'subject') as "subjectCanonical",
-  COUNT(*) as "messageCount",
+  COUNT(*)::integer as "messageCount",
   MIN(date_created) as "firstDate",
   MAX(date_created) as "lastDate",
   jsonb_agg(metadata_json->>'from') as "participantsJson",

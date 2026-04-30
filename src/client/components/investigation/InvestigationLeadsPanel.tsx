@@ -101,11 +101,8 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
   const handleStatusCycle = async (lead: InvestigationLead) => {
     const next = STATUS_MAP[lead.status].next;
     try {
-      await fetch(`/api/investigations/${investigationId}/leads/${lead.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ status: next }),
+      await apiClient.patch(`/investigations/${investigationId}/leads/${lead.id}`, {
+        status: next,
       });
       await loadLeads();
     } catch {
@@ -321,10 +318,9 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                             className={`${styles.deleteButton} ${styles.actionButtonDanger}`}
                             onClick={() => {
                               if (window.confirm('Delete signal?'))
-                                fetch(`/api/investigations/${investigationId}/leads/${lead.id}`, {
-                                  method: 'DELETE',
-                                  credentials: 'include',
-                                }).then(() => loadLeads());
+                                apiClient
+                                  .delete(`/investigations/${investigationId}/leads/${lead.id}`)
+                                  .then(() => loadLeads());
                             }}
                           >
                             <Icon name="Trash2" size="xs" />

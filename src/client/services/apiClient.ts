@@ -28,6 +28,26 @@ import {
 } from '@shared/contracts';
 import { Semaphore, isHeavyRoute } from '@client/utils/semaphore';
 import { singleFlight, stableStringify } from '@client/utils/singleFlight';
+import { GlobalStatsPayload } from '@client/types/api';
+
+export interface ReadinessResponse {
+  status: 'ok' | 'degraded' | 'down';
+  timestamp: string;
+  checks: {
+    db: { ok: boolean; latencyMs?: number; error?: string; dialect?: string };
+    schema?: { missingTables?: string[]; missingOptionalTables?: string[] };
+    data?: {
+      ok?: boolean;
+      entities?: number;
+      documents?: number;
+      latencyMs?: number;
+      error?: string;
+    };
+    pool?: { total?: number; idle?: number; waiting?: number; max?: number } | null;
+    readiness?: { mode?: string; timeoutMs?: number };
+  };
+  durationMs: number;
+}
 
 const globalSemaphore = new Semaphore(6);
 const heavySemaphore = new Semaphore(2);
@@ -848,7 +868,7 @@ class ApiClient {
     });
   }
 
-  async getStats(filters: Record<string, unknown> = {}): Promise<unknown> {
+  async getStats(filters: Record<string, unknown> = {}): Promise<GlobalStatsPayload> {
     const params = new URLSearchParams();
     if (
       (filters as Record<string, string[]>).timeRange &&
@@ -864,7 +884,7 @@ class ApiClient {
       params.append('limit', (filters as Record<string, number>).limit.toString());
 
     const url = `${API_BASE_URL}/stats${params.toString() ? `?${params.toString()}` : ''}`;
-    return this.fetchWithErrorHandling<unknown>(url);
+    return this.fetchWithErrorHandling<GlobalStatsPayload>(url);
   }
 
   async getDocumentPages(id: string): Promise<{ pages: string[]; total: number }> {
@@ -1361,26 +1381,9 @@ class ApiClient {
     );
   }
 
-  async readinessCheck(): Promise<{
-    status: 'ok' | 'degraded' | 'down';
-    timestamp: string;
-    checks: {
-      db: { ok: boolean; latencyMs?: number; error?: string; dialect?: string };
-      schema?: { missingTables?: string[]; missingOptionalTables?: string[] };
-      data?: {
-        ok?: boolean;
-        entities?: number;
-        documents?: number;
-        latencyMs?: number;
-        error?: string;
-      };
-      pool?: { total?: number; idle?: number; waiting?: number; max?: number } | null;
-      readiness?: { mode?: string; timeoutMs?: number };
-    };
-    durationMs: number;
-  }> {
+  async readinessCheck(): Promise<ReadinessResponse> {
     const url = `${API_BASE_URL}/health/ready`;
-    return this.fetchWithErrorHandling<Awaited<ReturnType<typeof this.readinessCheck>>>(url, {
+    return this.fetchWithErrorHandling<ReadinessResponse>(url, {
       useCache: false,
     });
   }

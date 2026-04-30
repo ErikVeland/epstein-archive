@@ -34,11 +34,11 @@ SELECT * FROM flights WHERE id = :id!;
 
 /* @name getFlightStats */
 SELECT
-  (SELECT COUNT(*) FROM flights) as "totalFlights",
+  (SELECT COUNT(*)::integer FROM flights) as "totalFlights",
   (SELECT COUNT(DISTINCT passenger_name) FROM flight_passengers) as "uniquePassengers";
 
 /* @name getTopPassengers */
-SELECT passenger_name as name, COUNT(*) as count
+SELECT passenger_name as name, COUNT(*)::integer as count
 FROM flight_passengers
 GROUP BY passenger_name
 ORDER BY count DESC
@@ -47,7 +47,7 @@ LIMIT :limit!;
 /* @name getTopRoutes */
 SELECT 
   departure_airport || ' -> ' || arrival_airport as route,
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM flights
 GROUP BY route
 ORDER BY count DESC
@@ -56,7 +56,7 @@ LIMIT :limit!;
 /* @name getFlightsByYear */
 SELECT 
   EXTRACT(YEAR FROM date::timestamp)::text as year,
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM flights
 GROUP BY year
 ORDER BY year DESC;
@@ -67,9 +67,9 @@ SELECT
   city,
   SUM(count) as count
 FROM (
-  SELECT departure_airport as airport, departure_city as city, COUNT(*) as count FROM flights GROUP BY airport, city
+  SELECT departure_airport as airport, departure_city as city, COUNT(*)::integer as count FROM flights GROUP BY airport, city
   UNION ALL
-  SELECT arrival_airport as airport, arrival_city as city, COUNT(*) as count FROM flights GROUP BY airport, city
+  SELECT arrival_airport as airport, arrival_city as city, COUNT(*)::integer as count FROM flights GROUP BY airport, city
 ) t
 GROUP BY airport, city
 ORDER BY count DESC;

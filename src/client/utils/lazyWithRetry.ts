@@ -17,16 +17,17 @@ const isChunkLoadError = (err: unknown): boolean => {
   );
 };
 
+const waitForNavigation = async (): Promise<never> => new Promise<never>(() => {});
+
 /**
  * Wrap React.lazy with a one-time "cache bust + reload" retry on chunk load failures.
  * This prevents users from getting stuck after a deploy when an old HTML references a removed chunk.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function lazyWithRetry<T extends React.ComponentType<any>>(
+export function lazyWithRetry<T extends React.ComponentType<React.ComponentProps<T>>>(
   importer: () => Promise<{ default: T }>,
   key: string,
 ): React.LazyExoticComponent<T> {
-  return React.lazy(async () => {
+  return React.lazy<T>(async (): Promise<{ default: T }> => {
     try {
       return await importer();
     } catch (err) {
@@ -38,8 +39,8 @@ export function lazyWithRetry<T extends React.ComponentType<any>>(
             const url = new URL(window.location.href);
             url.searchParams.set('cachebust', Date.now().toString());
             window.location.replace(url.toString());
-            // Return a never-resolving promise so React doesn't continue rendering.
-            return new Promise<{ default: T }>(() => {});
+            // Wait forever so React doesn't continue rendering during navigation.
+            await waitForNavigation();
           }
         } catch {
           // ignore and fall through

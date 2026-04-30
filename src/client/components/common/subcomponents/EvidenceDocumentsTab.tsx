@@ -23,7 +23,7 @@ const TypedInfiniteLoader = InfiniteLoader as unknown as React.ComponentType<{
       overscanStartIndex: number;
       overscanStopIndex: number;
     }) => void;
-    ref: React.Ref<HTMLElement> | ((instance: HTMLElement | null) => void);
+    ref: React.Ref<List>;
   }) => React.ReactNode;
 }>;
 
@@ -204,8 +204,7 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                           width={effectiveWidth}
                           onItemsRendered={onItemsRendered}
                           onScroll={onScroll}
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          ref={ref as any}
+                          ref={ref}
                         >
                           {({ index, style }) => {
                             const doc = documents[index];

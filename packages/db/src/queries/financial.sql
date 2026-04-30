@@ -28,8 +28,8 @@ RETURNING id;
 /* @name getFinancialSummary */
 SELECT
   (SELECT SUM(amount) FROM financial_transactions) as "totalValue",
-  (SELECT COUNT(*) FROM financial_transactions WHERE risk_level IN ('high', 'critical')) as "highRiskCount",
-  (SELECT COUNT(*) FROM financial_transactions) as "totalTransactions";
+  (SELECT COUNT(*)::integer FROM financial_transactions WHERE risk_level IN ('high', 'critical')) as "highRiskCount",
+  (SELECT COUNT(*)::integer FROM financial_transactions) as "totalTransactions";
 
 /* @name getTopFinancialEntities */
 SELECT entity, SUM(amount) as "totalVolume" FROM (

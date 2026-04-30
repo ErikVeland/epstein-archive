@@ -10,12 +10,12 @@ SELECT
     ) || ' Group' as label,
     'cluster' as type,
     MAX(red_flag_rating) as risk,
-    COUNT(*) as size,
+    COUNT(*)::integer as size,
     SUM(mentions) as mentions
 FROM entities
 WHERE community_id IS NOT NULL AND entity_type = 'Person'
 GROUP BY community_id
-HAVING COUNT(*) > 10
+HAVING COUNT(*)::integer > 10
 ORDER BY size DESC
 LIMIT 50;
 
@@ -67,13 +67,13 @@ WITH candidate_entities AS (
 ),
 rel_counts AS (
 SELECT entity_id, SUM(cnt) as degree FROM (
-    SELECT source_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships 
+    SELECT source_entity_id as entity_id, COUNT(*)::integer as cnt FROM entity_relationships 
     WHERE source_entity_id IN (SELECT id FROM candidate_entities)
       AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) 
       AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
     GROUP BY source_entity_id
     UNION ALL
-    SELECT target_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships 
+    SELECT target_entity_id as entity_id, COUNT(*)::integer as cnt FROM entity_relationships 
     WHERE target_entity_id IN (SELECT id FROM candidate_entities)
       AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) 
       AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)

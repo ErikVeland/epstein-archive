@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
@@ -28,11 +29,10 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
           apiClient.readinessCheck(),
           apiClient.getStats(),
         ]);
-        const typedStats = stats as { totalEntities?: number; totalDocuments?: number };
 
         const dbOk = health.checks?.db?.ok === true;
-        const statsEntities = Number(typedStats?.totalEntities || 0);
-        const statsDocuments = Number(typedStats?.totalDocuments || 0);
+        const statsEntities = Number(stats.totalEntities || 0);
+        const statsDocuments = Number(stats.totalDocuments || 0);
         const entities = Number(health.checks?.data?.entities ?? statsEntities);
         const documents = Number(health.checks?.data?.documents ?? statsDocuments);
 

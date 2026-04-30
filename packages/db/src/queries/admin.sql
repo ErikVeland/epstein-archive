@@ -6,8 +6,8 @@ SELECT
 
 /* @name getEntityAndDocumentCounts */
 SELECT 
-  (SELECT COUNT(*) FROM entities) as entities,
-  (SELECT COUNT(*) FROM documents) as documents;
+  (SELECT COUNT(*)::integer FROM entities) as entities,
+  (SELECT COUNT(*)::integer FROM documents) as documents;
 
 /* @name listUsers */
 SELECT id, username, email, role, created_at as "createdAt", last_active as "lastActive" 

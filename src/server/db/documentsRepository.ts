@@ -105,9 +105,31 @@ type DocumentRow = Record<string, unknown> & {
   unredactionBaselineVocab?: unknown;
 };
 
-type PgtypedQuery<P, R> = {
-  run: (params: P, pool: ReturnType<typeof getApiPool>) => Promise<R[]>;
-};
+interface RedactionSpanRow {
+  id: string | number;
+  document_id: string | number;
+}
+
+interface ClaimTripleRow {
+  id: string | number;
+  document_id: string | number | null;
+}
+
+interface DocumentSentenceRow {
+  id: string | number;
+}
+
+interface RelatedDocumentRow {
+  id: string | number;
+  title?: string | null;
+  fileName?: string | null;
+  fileType?: string | null;
+  evidenceType?: string | null;
+  redFlagRating?: string | number | null;
+  dateCreated?: string | Date | null;
+  sharedEntityCount?: string | number | null;
+  sharedEntitiesList?: string | null;
+}
 
 const parseMetadata = (value: unknown): DocumentMetadata => {
   if (typeof value === 'string') {
@@ -466,15 +488,8 @@ export const documentsRepository = {
 
   getDocumentById: async (id: string): Promise<Record<string, unknown> | null> => {
     const docId = Number(id);
-    const rows = await (
-      documentsQueries.getDocumentById as {
-        run: (
-          params: { id: number },
-          pool: ReturnType<typeof getApiPool>,
-        ) => Promise<DocumentRow[]>;
-      }
-    ).run({ id: docId }, getApiPool());
-    const document = rows[0];
+    const rows = await documentsQueries.getDocumentById.run({ id: docId }, getApiPool());
+    const document = rows[0] ? ({ ...rows[0] } as DocumentRow) : undefined;
 
     if (!document) return null;
 
@@ -574,29 +589,23 @@ export const documentsRepository = {
         thumbnail_path: row.thumbnailPath,
         contexts: contextStrings.map((ctx) => ({
           context: ctx,
-          source: (document['source_collection'] as string | null) || 'Document',
+          source: document.source_collection || 'Document',
         })),
       };
     });
 
-    const redactionSpans = await (
-      documentsQueries.getRedactionSpans as PgtypedQuery<
-        { documentId: number },
-        Record<string, unknown>
-      >
-    ).run({ documentId: docId }, getApiPool());
-    const claims = await (
-      documentsQueries.getClaimTriples as PgtypedQuery<
-        { documentId: number },
-        Record<string, unknown>
-      >
-    ).run({ documentId: docId }, getApiPool());
-    const sentences = await (
-      documentsQueries.getDocumentSentences as PgtypedQuery<
-        { documentId: number },
-        Record<string, unknown>
-      >
-    ).run({ documentId: docId }, getApiPool());
+    const redactionSpans = (await documentsQueries.getRedactionSpans.run(
+      { documentId: docId },
+      getApiPool(),
+    )) as RedactionSpanRow[];
+    const claims = (await documentsQueries.getClaimTriples.run(
+      { documentId: docId },
+      getApiPool(),
+    )) as ClaimTripleRow[];
+    const sentences = (await documentsQueries.getDocumentSentences.run(
+      { documentId: docId },
+      getApiPool(),
+    )) as DocumentSentenceRow[];
 
     const rawContent = (typeof document.content === 'string' ? document.content : '').trim();
     const refinedContent =
@@ -716,20 +725,20 @@ export const documentsRepository = {
       mentionedEntities: entities,
       signals,
       original_file_path: document.originalFilePath || document.filePath,
-      redaction_spans: redactionSpans.map((s: Record<string, unknown>) => ({
+      redaction_spans: redactionSpans.map((s) => ({
         ...s,
         id: Number(s.id),
         document_id: Number(s.document_id),
       })),
-      claims: claims.map((c: Record<string, unknown>) => ({
+      claims: claims.map((c) => ({
         ...c,
         id: Number(c.id),
         document_id: Number(c.document_id),
       })),
-      sentences: sentences.map((s: Record<string, unknown>) => ({
+      sentences: sentences.map((s) => ({
         ...s,
         id: Number(s.id),
-        document_id: Number(s.document_id),
+        document_id: docId,
       })),
       unredaction_metrics: {
         attempted: Boolean(document.unredactionAttempted),
@@ -744,23 +753,10 @@ export const documentsRepository = {
 
   getRelatedDocuments: async (documentId: string, limit: number = 10) => {
     const docId = Number(documentId);
-    interface RelatedDocRow {
-      id: string | number;
-      title?: string | null;
-      fileName?: string | null;
-      fileType?: string | null;
-      evidenceType?: string | null;
-      redFlagRating?: string | number | null;
-      dateCreated?: string | null;
-      sharedEntityCount?: string | number | null;
-      sharedEntitiesList?: string | null;
-    }
-    const related = await (
-      documentsQueries.getRelatedDocuments as PgtypedQuery<
-        { documentId: number; limit: number },
-        RelatedDocRow
-      >
-    ).run({ documentId: docId, limit: limit }, getApiPool());
+    const related = (await documentsQueries.getRelatedDocuments.run(
+      { documentId: docId, limit },
+      getApiPool(),
+    )) as RelatedDocumentRow[];
 
     return related.map((doc) => ({
       id: String(doc.id),
@@ -774,10 +770,10 @@ export const documentsRepository = {
       reasons: (doc.sharedEntitiesList || '')
         .split(',')
         .slice(0, 3)
-        .map((name) => `Shared entity: ${name.trim()}`),
+        .map((name: string) => `Shared entity: ${name.trim()}`),
       sharedEntities: (doc.sharedEntitiesList || '')
         .split(',')
-        .map((s) => s.trim())
+        .map((s: string) => s.trim())
         .slice(0, 5),
     }));
   },

@@ -23,7 +23,7 @@ const OCR_CORRECTIONS: [string, string][] = [
 
 let hasLoggedBlackBookArrayParseFailure = false;
 
-type BlackBookEntryRow = Record<string, unknown> & {
+type BlackBookEntryRow = {
   id?: string | number | null;
   personId?: string | number | null;
   documentId?: string | number | null;
@@ -106,7 +106,7 @@ export const blackBookRepository = {
       getApiPool(),
     );
 
-    const filteredEntries = (entries as BlackBookEntryRow[]).filter((e: BlackBookEntryRow) => {
+    const filteredEntries = (entries as BlackBookEntryRow[]).filter((e) => {
       const emails = parseArrayValue(e.emailAddresses);
       const addresses = parseArrayValue(e.addresses);
 

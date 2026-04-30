@@ -1,0 +1,46 @@
+src/server/db/articlesRepository.ts(66,7): error TS2322: Type '{ id: string; author: string | null; content: string | null; createdAt: Date; description: string | null; imageUrl: string | null; link: string | null; pubDate: Date | null; redFlagRating: number | null; source: string | null; title: string; }[]' is not assignable to type 'Article[]'.
+  Type '{ id: string; author: string | null; content: string | null; createdAt: Date; description: string | null; imageUrl: string | null; link: string | null; pubDate: Date | null; redFlagRating: number | null; source: string | null; title: string; }' is not assignable to type 'Article'.
+    Types of property 'pubDate' are incompatible.
+      Type 'Date | null' is not assignable to type 'string | null | undefined'.
+        Type 'Date' is not assignable to type 'string'.
+src/server/db/articlesRepository.ts(77,5): error TS2322: Type '{ id: string; author: string | null; content: string | null; created_at: Date; description: string | null; guid: string | null; image_url: string | null; link: string | null; pub_date: Date | null; ... 9 more ...; url: string | null; }' is not assignable to type 'Article'.
+  Types of property 'summary' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/server/db/blackBookRepository.ts(109,30): error TS2352: Conversion of type 'IGetBlackBookEntriesResult[]' to type 'BlackBookEntryRow[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'IGetBlackBookEntriesResult' is not comparable to type 'BlackBookEntryRow'.
+    Type 'IGetBlackBookEntriesResult' is not comparable to type 'Record<string, unknown>'.
+      Index signature for type 'string' is missing in type 'IGetBlackBookEntriesResult'.
+src/server/db/communicationsRepository.ts(176,31): error TS2345: Argument of type '(row: EmailRow) => EmailDTO' is not assignable to parameter of type '(value: IGetThreadMessagesResult, index: number, array: IGetThreadMessagesResult[]) => EmailDTO'.
+  Types of parameters 'row' and 'value' are incompatible.
+    Type 'IGetThreadMessagesResult' is not assignable to type 'EmailRow'.
+      Type 'IGetThreadMessagesResult' is not assignable to type 'Record<string, unknown>'.
+        Index signature for type 'string' is missing in type 'IGetThreadMessagesResult'.
+src/server/db/communicationsRepository.ts(213,29): error TS2345: Argument of type 'IGetMessageByIdResult' is not assignable to parameter of type 'EmailRow'.
+  Type 'IGetMessageByIdResult' is not assignable to type 'Record<string, unknown>'.
+    Index signature for type 'string' is missing in type 'IGetMessageByIdResult'.
+src/server/db/documentsRepository.ts(470,7): error TS2352: Conversion of type 'PreparedQuery<IGetDocumentByIdParams, IGetDocumentByIdResult>' to type '{ run: (params: { id: number; }, pool: Pool) => Promise<DocumentRow[]>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetDocumentByIdResult[]>' is not comparable to type 'Promise<DocumentRow[]>'.
+      Type 'IGetDocumentByIdResult[]' is not comparable to type 'DocumentRow[]'.
+        Type 'IGetDocumentByIdResult' is not comparable to type 'DocumentRow'.
+          Type 'IGetDocumentByIdResult' is not comparable to type 'Record<string, unknown>'.
+            Index signature for type 'string' is missing in type 'IGetDocumentByIdResult'.
+src/server/db/documentsRepository.ts(583,7): error TS2352: Conversion of type 'PreparedQuery<IGetRedactionSpansParams, IGetRedactionSpansResult>' to type 'PgtypedQuery<{ documentId: number; }, Record<string, unknown>>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetRedactionSpansResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetRedactionSpansResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetRedactionSpansResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetRedactionSpansResult'.
+src/server/db/documentsRepository.ts(589,7): error TS2352: Conversion of type 'PreparedQuery<IGetClaimTriplesParams, IGetClaimTriplesResult>' to type 'PgtypedQuery<{ documentId: number; }, Record<string, unknown>>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetClaimTriplesResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetClaimTriplesResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetClaimTriplesResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetClaimTriplesResult'.
+src/server/db/documentsRepository.ts(595,7): error TS2352: Conversion of type 'PreparedQuery<IGetDocumentSentencesParams, IGetDocumentSentencesResult>' to type 'PgtypedQuery<{ documentId: number; }, Record<string, unknown>>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetDocumentSentencesResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetDocumentSentencesResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetDocumentSentencesResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetDocumentSentencesResult'.

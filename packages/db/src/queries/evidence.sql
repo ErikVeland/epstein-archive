@@ -23,7 +23,7 @@ ORDER BY e.created_at DESC
 LIMIT :limit! OFFSET :offset!;
 
 /* @name countEntityEvidence */
-SELECT COUNT(*) as total
+SELECT COUNT(*)::integer as total
 FROM evidence e
 INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
 WHERE ee.entity_id = :entityId!;
@@ -31,7 +31,7 @@ WHERE ee.entity_id = :entityId!;
 /* @name getEvidenceTypeBreakdownByEntity */
 SELECT 
   e.evidence_type as "evidenceType",
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM evidence e
 INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
 WHERE ee.entity_id = :entityId!
@@ -41,7 +41,7 @@ ORDER BY count DESC;
 /* @name getRoleBreakdownByEntity */
 SELECT 
   ee.role,
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM evidence_entity ee
 WHERE ee.entity_id = :entityId!
 GROUP BY ee.role
@@ -50,7 +50,7 @@ ORDER BY count DESC;
 /* @name getRedFlagDistributionByEntity */
 SELECT 
   e.red_flag_rating,
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM evidence e
 INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
 WHERE ee.entity_id = :entityId! AND e.red_flag_rating IS NOT NULL
@@ -213,7 +213,7 @@ WHERE ee.evidence_id = :evidenceId!;
 /* @name getEvidenceTypesCounts */
 SELECT 
   evidence_type as type,
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM evidence
 GROUP BY evidence_type
 ORDER BY count DESC;

@@ -1,33 +1,33 @@
 /* @name getGlobalStats */
 SELECT
-  COUNT(*) as "totalEntities",
+  COUNT(*)::integer as "totalEntities",
   SUM(COALESCE(mentions, 0)) as "totalMentions",
   AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",
   COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != '' THEN primary_role END) as "totalUniqueRoles",
-  COUNT(*) FILTER (WHERE mentions > 0) as "entitiesWithDocuments",
-  (SELECT COUNT(*) FROM documents) as "totalDocuments",
-  (SELECT COUNT(*) FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = 'object' AND metadata_json <> '{}'::jsonb)) as "documentsWithMetadata",
-  (SELECT COUNT(*) FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"
+  COUNT(*)::integer FILTER (WHERE mentions > 0) as "entitiesWithDocuments",
+  (SELECT COUNT(*)::integer FROM documents) as "totalDocuments",
+  (SELECT COUNT(*)::integer FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = 'object' AND metadata_json <> '{}'::jsonb)) as "documentsWithMetadata",
+  (SELECT COUNT(*)::integer FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"
 FROM entities;
 
 /* @name getRiskDistribution */
 SELECT
   COALESCE(risk_level, 'LOW') as level,
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM entities
 GROUP BY risk_level;
 
 /* @name getRedFlagDistribution */
 SELECT
   red_flag_rating as rating,
-  COUNT(*) as count
+  COUNT(*)::integer as count
 FROM entities
 WHERE red_flag_rating IS NOT NULL
 GROUP BY red_flag_rating
 ORDER BY red_flag_rating ASC;
 
 /* @name getTopRoles */
-SELECT primary_role as role, COUNT(*) as count 
+SELECT primary_role as role, COUNT(*)::integer as count 
 FROM entities 
 WHERE primary_role IS NOT NULL AND primary_role != ''
 GROUP BY primary_role 
@@ -69,16 +69,16 @@ ORDER BY mentions DESC
 LIMIT :limit!;
 
 /* @name getCollectionCounts */
-SELECT source_collection as "sourceCollection", COUNT(*) as count 
+SELECT source_collection as "sourceCollection", COUNT(*)::integer as count 
 FROM documents 
 WHERE source_collection IS NOT NULL 
 GROUP BY source_collection;
 
 /* @name getActiveInvestigationsCount */
-SELECT COUNT(*) as count FROM investigations WHERE status IN ('active', 'open');
+SELECT COUNT(*)::integer as count FROM investigations WHERE status IN ('active', 'open');
 
 /* @name getRecentProcessedCount */
-SELECT COUNT(*) as count 
+SELECT COUNT(*)::integer as count 
 FROM documents 
 WHERE last_processed_at > CURRENT_TIMESTAMP - (INTERVAL '1 second' * :seconds!);
 

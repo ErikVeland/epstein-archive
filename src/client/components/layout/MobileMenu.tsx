@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import s from './MobileMenu.module.css';

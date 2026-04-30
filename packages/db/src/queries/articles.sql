@@ -37,7 +37,7 @@ ORDER BY
 LIMIT :limit! OFFSET :offset!;
 
 /* @name countArticles */
-SELECT COUNT(*) as total
+SELECT COUNT(*)::integer as total
 FROM articles 
 WHERE (:search::text IS NULL 
     OR title ILIKE :search 

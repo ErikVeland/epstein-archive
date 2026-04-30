@@ -1,267 +1,312 @@
 
-> epstein-archive@19.9.0 prebuild:prod /Volumes/Media/Epstein Files/epstein-archive
-> bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts
-
-[pg-nuclear] Guard: no SQLite remnants in src/
-[pg-nuclear] Guard: no legacy DB_DIALECT anywhere in runtime/deploy/CI configs
-[pg-nuclear] Guard: no raw SQL in route files (health route exception only)
-[pg-nuclear] Guard: no pgtyped/db namespace executor misuse in repositories
-[pg-nuclear] Guard: seed conflict policy
-[seed-conflict-policy] OK
-[pg-nuclear] Lint + typecheck
-
-> epstein-archive@19.9.0 lint /Volumes/Media/Epstein Files/epstein-archive
-> eslint . --ext .ts,.tsx
-
-
-/Volumes/Media/Epstein Files/epstein-archive/src/app.ts
-  455:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/App.tsx
-  194:1   error    Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  321:75  warning  Unexpected any. Specify a different type                                      @typescript-eslint/no-explicit-any
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/AddToInvestigationButton.tsx
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/ApiUnavailableScreen.tsx
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/SensitiveContent.tsx
-  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceCard.tsx
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceDocumentsTab.tsx
-   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  32:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceInvestigationsTab.tsx
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceMediaTab.tsx
-  13:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  14:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  17:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceModalHeader.tsx
-  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceNetworkTab.tsx
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/common/subcomponents/EvidenceOverviewTab.tsx
-   4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  12:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/DocumentBrowser.tsx
-  9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentAnalysisTab.tsx
-   9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  10:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  12:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  14:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentAssetsTab.tsx
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentHeader.tsx
-   3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentMetadataRail.tsx
-   3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  10:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/DocumentPDFTab.tsx
-   7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-   9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/subcomponents/FloatingReadingControls.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/EmailClient.tsx
-  14:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileEmailBottomNav.tsx
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileEmailFilterSheet.tsx
-  1:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileMailboxList.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileMessageView.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/email/mobile/MobileThreadList.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/SubjectCardV2.tsx
-  20:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/cards/DriverChips.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/cards/EvidenceBadge.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/entities/cards/SignalPanel.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/flights/FlightCard.tsx
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/InvestigationTasksPanel.tsx
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/InvestigationWorkspace.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/EvidenceCaptureSheet.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileBoardView.tsx
-  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileBottomNav.tsx
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileEvidenceList.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileForensicView.tsx
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  9:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileInvestigationShell.tsx
-  27:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileTimelineView.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/investigation/mobile/MobileToolScreen.tsx
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/layout/Footer.tsx
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/layout/MobileMenu.tsx
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  8:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/AudioTab.tsx
-  4:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/MediaAndArticlesTab.tsx
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/MediaTab.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/MediaViewerModal.tsx
-  18:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/PhotoBrowser.tsx
-  28:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/media/VideoTab.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/pages/EnhancedAnalytics.tsx
-  10:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  11:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/pages/MemoryDashboard.tsx
-  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/shared/DegradedBanner.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/visualizations/DataVisualization.tsx
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/visualizations/Timeline.tsx
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/components/visualizations/TreeMap.tsx
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/Button.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/interactive/BottomSheet.tsx
-  5:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  6:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-  7:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Box.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Flex.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Grid.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Responsive.tsx
-  2:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/layout/Stack.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/design-system/components/surfaces/Surface.tsx
-  3:1  error  Deep relative paths are prohibited. Use @client, @server, or @shared aliases  no-restricted-syntax
-
-/Volumes/Media/Epstein Files/epstein-archive/src/client/types/api.ts
-  28:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  48:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  49:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/Volumes/Media/Epstein Files/epstein-archive/src/server/db/entityEvidenceRepository.ts
-   54:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   96:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   97:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-   99:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  104:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  177:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  179:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-✖ 119 problems (107 errors, 12 warnings)
-
- ELIFECYCLE  Command failed with exit code 1.
- ELIFECYCLE  Command failed with exit code 1.
+> epstein-archive@20.0.0 prebuild:prod /Volumes/Media/Epstein Files/epstein-archive
+> pnpm type-check:server && bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts
+
+
+> epstein-archive@20.0.0 type-check:server /Volumes/Media/Epstein Files/epstein-archive
+> tsc -p tsconfig.server.json --noEmit
+
+src/server/db/articlesRepository.ts(48,11): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$6'.
+src/server/db/articlesRepository.ts(49,11): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$6'.
+src/server/db/articlesRepository.ts(66,30): error TS2345: Argument of type '(a: Article & { id: string | number; }) => { id: string; title: string; link?: string; url?: string; source?: string; publication?: string; pubDate?: string; description?: string; summary?: string; tags?: string; redFlagRating?: number; imageUrl?: string; readingTime?: string; }' is not assignable to parameter of type '(value: IGetArticlesResult, index: number, array: IGetArticlesResult[]) => { id: string; title: string; link?: string | undefined; url?: string | undefined; ... 8 more ...; readingTime?: string | undefined; }'.
+  Types of parameters 'a' and 'value' are incompatible.
+    Type 'IGetArticlesResult' is not assignable to type 'Article & { id: string | number; }'.
+      Type 'IGetArticlesResult' is not assignable to type 'Article'.
+        Types of property 'link' are incompatible.
+          Type 'string | null' is not assignable to type 'string | undefined'.
+            Type 'null' is not assignable to type 'string | undefined'.
+src/server/db/articlesRepository.ts(75,61): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$6'.
+src/server/db/articlesRepository.ts(77,5): error TS2322: Type '{ id: string; author: string | null; content: string | null; created_at: Date; description: string | null; guid: string | null; image_url: string | null; link: string | null; pub_date: Date | null; ... 9 more ...; url: string | null; }' is not assignable to type 'Article'.
+  Types of property 'link' are incompatible.
+    Type 'string | null' is not assignable to type 'string | undefined'.
+      Type 'null' is not assignable to type 'string | undefined'.
+src/server/db/blackBookRepository.ts(98,44): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(predicate: (value: IGetBlackBookEntriesResult, index: number, array: IGetBlackBookEntriesResult[]) => value is IGetBlackBookEntriesResult, thisArg?: any): IGetBlackBookEntriesResult[]', gave the following error.
+    Argument of type '(e: Record<string, unknown>) => boolean' is not assignable to parameter of type '(value: IGetBlackBookEntriesResult, index: number, array: IGetBlackBookEntriesResult[]) => value is IGetBlackBookEntriesResult'.
+      Types of parameters 'e' and 'value' are incompatible.
+        Type 'IGetBlackBookEntriesResult' is not assignable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetBlackBookEntriesResult'.
+  Overload 2 of 2, '(predicate: (value: IGetBlackBookEntriesResult, index: number, array: IGetBlackBookEntriesResult[]) => unknown, thisArg?: any): IGetBlackBookEntriesResult[]', gave the following error.
+    Argument of type '(e: Record<string, unknown>) => boolean' is not assignable to parameter of type '(value: IGetBlackBookEntriesResult, index: number, array: IGetBlackBookEntriesResult[]) => unknown'.
+      Types of parameters 'e' and 'value' are incompatible.
+        Type 'IGetBlackBookEntriesResult' is not assignable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetBlackBookEntriesResult'.
+src/server/db/blackBookRepository.ts(120,16): error TS2345: Argument of type '(e: Record<string, unknown>) => number | null' is not assignable to parameter of type '(value: IGetBlackBookEntriesResult, index: number, array: IGetBlackBookEntriesResult[]) => number | null'.
+  Types of parameters 'e' and 'value' are incompatible.
+    Type 'IGetBlackBookEntriesResult' is not assignable to type 'Record<string, unknown>'.
+      Index signature for type 'string' is missing in type 'IGetBlackBookEntriesResult'.
+src/server/db/blackBookRepository.ts(197,7): error TS2345: Argument of type '{ id: number; personId: number | null; documentId: number | null; thumbnailPath: string | undefined; }[]' is not assignable to parameter of type '{ entryText?: string | null | undefined; displayName?: string | null | undefined; }[]'.
+  Type '{ id: number; personId: number | null; documentId: number | null; thumbnailPath: string | undefined; }' has no properties in common with type '{ entryText?: string | null | undefined; displayName?: string | null | undefined; }'.
+src/server/db/blackBookRepository.ts(197,27): error TS2345: Argument of type '(e: Record<string, unknown>) => { id: number; personId: number | null; documentId: number | null; thumbnailPath: string | undefined; }' is not assignable to parameter of type '(value: IGetBlackBookEntriesResult, index: number, array: IGetBlackBookEntriesResult[]) => { id: number; personId: number | null; documentId: number | null; thumbnailPath: string | undefined; }'.
+  Types of parameters 'e' and 'value' are incompatible.
+    Type 'IGetBlackBookEntriesResult' is not assignable to type 'Record<string, unknown>'.
+      Index signature for type 'string' is missing in type 'IGetBlackBookEntriesResult'.
+src/server/db/blackBookRepository.ts(250,13): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$a'.
+src/server/db/communicationsRepository.ts(167,31): error TS2345: Argument of type '(row: Record<string, unknown>) => EmailDTO' is not assignable to parameter of type '(value: IGetThreadMessagesResult, index: number, array: IGetThreadMessagesResult[]) => EmailDTO'.
+  Types of parameters 'row' and 'value' are incompatible.
+    Type 'IGetThreadMessagesResult' is not assignable to type 'Record<string, unknown>'.
+      Index signature for type 'string' is missing in type 'IGetThreadMessagesResult'.
+src/server/db/communicationsRepository.ts(204,29): error TS2345: Argument of type 'IGetMessageByIdResult' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'IGetMessageByIdResult'.
+src/server/db/documentsRepository.ts(430,7): error TS2352: Conversion of type 'PreparedQuery<IGetDocumentByIdParams, IGetDocumentByIdResult>' to type '{ run: (params: { id: number; }, pool: Pool) => Promise<Record<string, unknown>[]>; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetDocumentByIdResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetDocumentByIdResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetDocumentByIdResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetDocumentByIdResult'.
+src/server/db/documentsRepository.ts(555,7): error TS2352: Conversion of type 'PreparedQuery<IGetRedactionSpansParams, IGetRedactionSpansResult>' to type 'PgtypedQuery<{ documentId: number; }, Record<string, unknown>>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetRedactionSpansResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetRedactionSpansResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetRedactionSpansResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetRedactionSpansResult'.
+src/server/db/documentsRepository.ts(561,7): error TS2352: Conversion of type 'PreparedQuery<IGetClaimTriplesParams, IGetClaimTriplesResult>' to type 'PgtypedQuery<{ documentId: number; }, Record<string, unknown>>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetClaimTriplesResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetClaimTriplesResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetClaimTriplesResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetClaimTriplesResult'.
+src/server/db/documentsRepository.ts(567,7): error TS2352: Conversion of type 'PreparedQuery<IGetDocumentSentencesParams, IGetDocumentSentencesResult>' to type 'PgtypedQuery<{ documentId: number; }, Record<string, unknown>>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetDocumentSentencesResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetDocumentSentencesResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetDocumentSentencesResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetDocumentSentencesResult'.
+src/server/db/entityEvidenceRepository.ts(39,9): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$5'.
+src/server/db/entityEvidenceRepository.ts(50,9): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$5'.
+src/server/db/entityEvidenceRepository.ts(50,24): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$5'.
+src/server/db/entityEvidenceRepository.ts(82,9): error TS2322: Type 'bigint' is not assignable to type 'void | NumberOrString$5 | null | undefined'.
+src/server/db/entityEvidenceRepository.ts(82,24): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$5'.
+src/server/db/entityEvidenceRepository.ts(118,9): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$5'.
+src/server/db/evidenceRepository.ts(241,23): error TS2339: Property 'getEvidenceBySourcePath' does not exist on type 'typeof evidence'.
+src/server/db/evidenceRepository.ts(534,23): error TS2551: Property 'countSearchEvidenceFull' does not exist on type 'typeof evidence'. Did you mean 'countSearchEvidence'?
+src/server/db/evidenceRepository.ts(617,23): error TS2339: Property 'getEvidenceTimelineEvents' does not exist on type 'typeof evidence'.
+src/server/db/evidenceRepository.ts(633,23): error TS2551: Property 'getEvidenceTypeCounts' does not exist on type 'typeof evidence'. Did you mean 'getEvidenceTypesCounts'?
+src/server/db/evidenceRepository.ts(675,23): error TS2551: Property 'getEntityEvidenceDetailed' does not exist on type 'typeof evidence'. Did you mean 'getEntityEvidence'?
+src/server/db/evidenceRepository.ts(689,23): error TS2551: Property 'countEntityEvidenceDetailed' does not exist on type 'typeof evidence'. Did you mean 'countEntityEvidence'?
+src/server/db/financialRepository.ts(29,63): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$8'.
+src/server/db/financialRepository.ts(55,9): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$8'.
+src/server/db/financialRepository.ts(114,9): error TS2322: Type 'bigint | null' is not assignable to type 'void | NumberOrString$8 | null | undefined'.
+  Type 'bigint' is not assignable to type 'void | NumberOrString$8 | null | undefined'.
+src/server/db/financialRepository.ts(127,9): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$8'.
+src/server/db/flightsRepository.ts(144,15): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$9'.
+src/server/db/flightsRepository.ts(145,15): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$9'.
+src/server/db/flightsRepository.ts(198,65): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$9'.
+src/server/db/flightsRepository.ts(217,5): error TS2322: Type '{ id: number; departure_airport: any; departure_city: any; departure_country: any; arrival_airport: any; arrival_city: any; arrival_country: any; aircraft_tail: any; aircraft_type: any; passengers: any[]; created_at: Date | null; date: string | null; notes: string | null; pilot: string | null; }' is not assignable to type 'Flight'.
+  Types of property 'date' are incompatible.
+    Type 'string | null' is not assignable to type 'string'.
+      Type 'null' is not assignable to type 'string'.
+src/server/db/flightsRepository.ts(220,28): error TS2551: Property 'departureAirport' does not exist on type 'IGetFlightByIdResult'. Did you mean 'departure_airport'?
+src/server/db/flightsRepository.ts(221,25): error TS2551: Property 'departureCity' does not exist on type 'IGetFlightByIdResult'. Did you mean 'departure_city'?
+src/server/db/flightsRepository.ts(222,28): error TS2551: Property 'departureCountry' does not exist on type 'IGetFlightByIdResult'. Did you mean 'departure_country'?
+src/server/db/flightsRepository.ts(223,26): error TS2551: Property 'arrivalAirport' does not exist on type 'IGetFlightByIdResult'. Did you mean 'arrival_airport'?
+src/server/db/flightsRepository.ts(224,23): error TS2551: Property 'arrivalCity' does not exist on type 'IGetFlightByIdResult'. Did you mean 'arrival_city'?
+src/server/db/flightsRepository.ts(225,26): error TS2551: Property 'arrivalCountry' does not exist on type 'IGetFlightByIdResult'. Did you mean 'arrival_country'?
+src/server/db/flightsRepository.ts(226,24): error TS2551: Property 'aircraftTail' does not exist on type 'IGetFlightByIdResult'. Did you mean 'aircraft_tail'?
+src/server/db/flightsRepository.ts(227,24): error TS2551: Property 'aircraftType' does not exist on type 'IGetFlightByIdResult'. Did you mean 'aircraft_type'?
+src/server/db/flightsRepository.ts(241,9): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$9'.
+src/server/db/flightsRepository.ts(244,63): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$9'.
+src/server/db/investigationsRepository.ts(72,35): error TS2352: Conversion of type 'PreparedQuery<IGetInvestigationsParams, IGetInvestigationsResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetInvestigationsResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetInvestigationsResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetInvestigationsResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetInvestigationsResult'.
+src/server/db/investigationsRepository.ts(81,32): error TS2352: Conversion of type 'PreparedQuery<ICountInvestigationsParams, ICountInvestigationsResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ICountInvestigationsResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ICountInvestigationsResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ICountInvestigationsResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ICountInvestigationsResult'.
+src/server/db/investigationsRepository.ts(98,27): error TS2352: Conversion of type 'PreparedQuery<ICreateInvestigationParams, ICreateInvestigationResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ICreateInvestigationResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ICreateInvestigationResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ICreateInvestigationResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ICreateInvestigationResult'.
+src/server/db/investigationsRepository.ts(113,25): error TS2352: Conversion of type 'PreparedQuery<IGetInvestigationByIdParams, IGetInvestigationByIdResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetInvestigationByIdResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetInvestigationByIdResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetInvestigationByIdResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetInvestigationByIdResult'.
+src/server/db/investigationsRepository.ts(120,57): error TS2339: Property 'getCollaborators' does not exist on type 'typeof investigations'.
+src/server/db/investigationsRepository.ts(129,25): error TS2352: Conversion of type 'PreparedQuery<IGetInvestigationByUuidParams, IGetInvestigationByUuidResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetInvestigationByUuidResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetInvestigationByUuidResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetInvestigationByUuidResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetInvestigationByUuidResult'.
+src/server/db/investigationsRepository.ts(136,57): error TS2339: Property 'getCollaborators' does not exist on type 'typeof investigations'.
+src/server/db/investigationsRepository.ts(159,12): error TS2352: Conversion of type 'PreparedQuery<IDeleteInvestigationParams, void>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<void[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'void[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'void' is not comparable to type 'Record<string, unknown>'.
+src/server/db/investigationsRepository.ts(169,25): error TS2352: Conversion of type 'PreparedQuery<IGetEvidenceParams, IGetEvidenceResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetEvidenceResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetEvidenceResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetEvidenceResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetEvidenceResult'.
+src/server/db/investigationsRepository.ts(173,32): error TS2352: Conversion of type 'PreparedQuery<ICountEvidenceParams, ICountEvidenceResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ICountEvidenceResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ICountEvidenceResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ICountEvidenceResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ICountEvidenceResult'.
+src/server/db/investigationsRepository.ts(214,31): error TS2352: Conversion of type 'PreparedQuery<IGetEvidenceBySourcePathParams, IGetEvidenceBySourcePathResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetEvidenceBySourcePathResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetEvidenceBySourcePathResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetEvidenceBySourcePathResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetEvidenceBySourcePathResult'.
+src/server/db/investigationsRepository.ts(221,31): error TS2352: Conversion of type 'PreparedQuery<ICreateEvidenceParams, ICreateEvidenceResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ICreateEvidenceResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ICreateEvidenceResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ICreateEvidenceResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ICreateEvidenceResult'.
+src/server/db/investigationsRepository.ts(238,29): error TS2352: Conversion of type 'PreparedQuery<IAddEvidenceToInvestigationParams$1, IAddEvidenceToInvestigationResult$1>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IAddEvidenceToInvestigationResult$1[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IAddEvidenceToInvestigationResult$1[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IAddEvidenceToInvestigationResult$1' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IAddEvidenceToInvestigationResult$1'.
+src/server/db/investigationsRepository.ts(278,25): error TS2352: Conversion of type 'PreparedQuery<IGetTimelineEventsParams$1, IGetTimelineEventsResult$1>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetTimelineEventsResult$1[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetTimelineEventsResult$1[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetTimelineEventsResult$1' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetTimelineEventsResult$1'.
+src/server/db/investigationsRepository.ts(290,27): error TS2352: Conversion of type 'PreparedQuery<ICreateTimelineEventParams, ICreateTimelineEventResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ICreateTimelineEventResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ICreateTimelineEventResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ICreateTimelineEventResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ICreateTimelineEventResult'.
+src/server/db/investigationsRepository.ts(305,12): error TS2352: Conversion of type 'PreparedQuery<IUpdateTimelineEventParams, void>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<void[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'void[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'void' is not comparable to type 'Record<string, unknown>'.
+src/server/db/investigationsRepository.ts(323,12): error TS2352: Conversion of type 'PreparedQuery<IDeleteTimelineEventParams, void>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<void[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'void[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'void' is not comparable to type 'Record<string, unknown>'.
+src/server/db/investigationsRepository.ts(328,25): error TS2352: Conversion of type 'PreparedQuery<IGetChainOfCustodyParams, IGetChainOfCustodyResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetChainOfCustodyResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetChainOfCustodyResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetChainOfCustodyResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetChainOfCustodyResult'.
+src/server/db/investigationsRepository.ts(340,27): error TS2352: Conversion of type 'PreparedQuery<IAddChainOfCustodyParams, IAddChainOfCustodyResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IAddChainOfCustodyResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IAddChainOfCustodyResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IAddChainOfCustodyResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IAddChainOfCustodyResult'.
+src/server/db/investigationsRepository.ts(368,27): error TS2352: Conversion of type 'PreparedQuery<IUpdateInvestigationParams, IUpdateInvestigationResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IUpdateInvestigationResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IUpdateInvestigationResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IUpdateInvestigationResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IUpdateInvestigationResult'.
+src/server/db/investigationsRepository.ts(385,38): error TS2339: Property 'removeCollaborator' does not exist on type 'typeof investigations'.
+src/server/db/investigationsRepository.ts(390,40): error TS2339: Property 'addCollaborator' does not exist on type 'typeof investigations'.
+src/server/db/investigationsRepository.ts(399,59): error TS2339: Property 'getCollaborators' does not exist on type 'typeof investigations'.
+src/server/db/investigationsRepository.ts(414,25): error TS2352: Conversion of type 'PreparedQuery<IGetNotebookParams, IGetNotebookResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetNotebookResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetNotebookResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetNotebookResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetNotebookResult'.
+src/server/db/investigationsRepository.ts(454,12): error TS2352: Conversion of type 'PreparedQuery<ISaveNotebookParams, void>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<void[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'void[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'void' is not comparable to type 'Record<string, unknown>'.
+src/server/db/investigationsRepository.ts(682,31): error TS2352: Conversion of type 'PreparedQuery<IGetHypothesesParams, IGetHypothesesResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetHypothesesResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetHypothesesResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetHypothesesResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetHypothesesResult'.
+src/server/db/investigationsRepository.ts(723,27): error TS2352: Conversion of type 'PreparedQuery<ICreateHypothesisParams, ICreateHypothesisResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ICreateHypothesisResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ICreateHypothesisResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ICreateHypothesisResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ICreateHypothesisResult'.
+src/server/db/investigationsRepository.ts(738,12): error TS2352: Conversion of type 'PreparedQuery<IUpdateHypothesisParams, void>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<void[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'void[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'void' is not comparable to type 'Record<string, unknown>'.
+src/server/db/investigationsRepository.ts(752,12): error TS2352: Conversion of type 'PreparedQuery<IDeleteHypothesisParams, void>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<void[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'void[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'void' is not comparable to type 'Record<string, unknown>'.
+src/server/db/investigationsRepository.ts(761,27): error TS2352: Conversion of type 'PreparedQuery<IAddEvidenceToHypothesisParams, IAddEvidenceToHypothesisResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IAddEvidenceToHypothesisResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IAddEvidenceToHypothesisResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IAddEvidenceToHypothesisResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IAddEvidenceToHypothesisResult'.
+src/server/db/investigationsRepository.ts(769,12): error TS2352: Conversion of type 'PreparedQuery<IRemoveEvidenceFromHypothesisParams, void>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<void[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'void[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'void' is not comparable to type 'Record<string, unknown>'.
+src/server/db/investigationsRepository.ts(789,27): error TS2352: Conversion of type 'PreparedQuery<ILogActivityParams, ILogActivityResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ILogActivityResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ILogActivityResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ILogActivityResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ILogActivityResult'.
+src/server/db/investigationsRepository.ts(809,25): error TS2352: Conversion of type 'PreparedQuery<IGetActivityParams, IGetActivityResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetActivityResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetActivityResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetActivityResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetActivityResult'.
+src/server/db/investigationsRepository.ts(949,33): error TS2352: Conversion of type 'PreparedQuery<IGetEvidenceParams, IGetEvidenceResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetEvidenceResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetEvidenceResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetEvidenceResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetEvidenceResult'.
+src/server/db/investigationsRepository.ts(953,35): error TS2352: Conversion of type 'PreparedQuery<IGetHypothesesParams, IGetHypothesesResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<IGetHypothesesResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'IGetHypothesesResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'IGetHypothesesResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'IGetHypothesesResult'.
+src/server/db/investigationsRepository.ts(957,33): error TS2352: Conversion of type 'PreparedQuery<ICountEvidenceParams, ICountEvidenceResult>' to type 'RunQuery' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  The types returned by 'run(...)' are incompatible between these types.
+    Type 'Promise<ICountEvidenceResult[]>' is not comparable to type 'Promise<Record<string, unknown>[]>'.
+      Type 'ICountEvidenceResult[]' is not comparable to type 'Record<string, unknown>[]'.
+        Type 'ICountEvidenceResult' is not comparable to type 'Record<string, unknown>'.
+          Index signature for type 'string' is missing in type 'ICountEvidenceResult'.
+src/server/db/mediaRepository.ts(207,20): error TS2352: Conversion of type 'IGetAlbumsByMediaTypeResult[]' to type 'AlbumRow[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'IGetAlbumsByMediaTypeResult' is not comparable to type 'AlbumRow'.
+    Types of property 'id' are incompatible.
+      Type 'string' is not comparable to type 'number'.
+src/server/db/mediaRepository.ts(407,24): error TS2352: Conversion of type 'IGetAllMediaItemsResult[]' to type 'MediaItemRow[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'IGetAllMediaItemsResult' is missing the following properties from type 'MediaItemRow': thumbnailPath, fileSize, width, height, and 2 more.
+src/server/db/mediaRepository.ts(445,18): error TS2352: Conversion of type 'IGetMediaItemByIdResult[]' to type 'SingleMediaItemRow[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Property 'redFlagRatingRaw' is missing in type 'IGetMediaItemByIdResult' but required in type 'SingleMediaItemRow'.
+src/server/db/reviewQueueRepository.ts(60,45): error TS2322: Type 'number' is not assignable to type 'string'.
+src/server/db/reviewQueueRepository.ts(65,45): error TS2322: Type 'number' is not assignable to type 'string'.
+src/server/db/statsRepository.ts(284,40): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$c'.
+src/server/db/statsRepository.ts(495,11): error TS2322: Type 'bigint' is not assignable to type 'number'.
+src/server/db/statsRepository.ts(567,63): error TS2322: Type 'bigint' is not assignable to type 'NumberOrString$c'.
+src/server/db/vipNameResolver.ts(57,5): error TS2322: Type 'IGetVipEntitiesResult[]' is not assignable to type '{ full_name?: string | undefined; mentions?: number | null | undefined; aliases?: string | undefined; }[]'.
+  Type 'IGetVipEntitiesResult' is not assignable to type '{ full_name?: string | undefined; mentions?: number | null | undefined; aliases?: string | undefined; }'.
+    Types of property 'aliases' are incompatible.
+      Type 'string | null' is not assignable to type 'string | undefined'.
+        Type 'null' is not assignable to type 'string | undefined'.
+ ELIFECYCLE  Command failed with exit code 2.
+ ELIFECYCLE  Command failed with exit code 2.

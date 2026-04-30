@@ -30,7 +30,7 @@ LIMIT :limit!;
 
 /* @name getBlackBookReviewStats */
 SELECT 
-  COUNT(*) as total,
+  COUNT(*)::integer as total,
   COUNT(CASE WHEN needs_review = 1 THEN 1 END) as remaining,
   COUNT(CASE WHEN needs_review = 0 OR manually_reviewed = 1 THEN 1 END) as reviewed
 FROM entities

@@ -6,6 +6,7 @@ import {
   ImageSort,
   MediaStats,
 } from '../../types/media.types';
+/// <reference types="multer" />
 import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
