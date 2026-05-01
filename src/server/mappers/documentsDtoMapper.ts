@@ -3,7 +3,7 @@ import type {
   DocumentListItemDto,
   DocumentsListResponseDto,
 } from '@shared/dto/documents';
-import { mapProvenanceFieldsDto } from './provenanceDtoMapper';
+import { mapProvenanceFieldsDto } from './provenanceDtoMapper.js';
 
 export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentListItemDto => ({
   ...mapProvenanceFieldsDto(doc),

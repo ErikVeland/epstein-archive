@@ -4,7 +4,7 @@ import {
   mapEntityMentionEvidenceDto,
   mapEntityEvidenceResponseDto,
   mapEntityRelationEvidenceDto,
-} from '../mappers/entityEvidenceDtoMapper';
+} from '../mappers/entityEvidenceDtoMapper.js';
 
 interface RelationEvidenceRow {
   relation_id: string;

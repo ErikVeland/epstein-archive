@@ -6,7 +6,7 @@ import {
   SubjectsListResponseDto,
   RiskLevel,
 } from '@shared/dto/entities';
-import { mapProvenanceFieldsDto } from './provenanceDtoMapper';
+import { mapProvenanceFieldsDto } from './provenanceDtoMapper.js';
 
 type UnknownRecord = Record<string, unknown>;
 

@@ -18,8 +18,7 @@
       "@shared/*": ["src/shared/*"],
       "@server/*": ["src/server/*"]
     },
-    "skipLibCheck": true,
-    "types": ["vite/client"]
+    "skipLibCheck": true
   },
   "include": [
     "src/client/**/*.ts",

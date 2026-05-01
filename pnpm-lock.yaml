@@ -395,6 +395,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@pgtyped/runtime':
+        specifier: ^2.4.2
+        version: 2.4.2
       pg:
         specifier: ^8.18.0
         version: 8.18.0
@@ -405,9 +408,6 @@ importers:
       '@pgtyped/cli':
         specifier: ^2.4.2
         version: 2.4.3(typescript@5.9.3)
-      '@pgtyped/runtime':
-        specifier: ^2.4.2
-        version: 2.4.2
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.2

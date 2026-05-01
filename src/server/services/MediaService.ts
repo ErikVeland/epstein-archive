@@ -5,7 +5,7 @@ import {
   ImageFilter,
   ImageSort,
   MediaStats,
-} from '../../types/media.types';
+} from '../../types/media.types.js';
 /// <reference types="multer" />
 import fs from 'fs';
 import path from 'path';

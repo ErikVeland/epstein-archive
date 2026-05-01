@@ -3,7 +3,7 @@ import type {
   EntityEvidenceResponseDto,
   EntityRelationEvidenceDto,
 } from '@shared/dto/evidence';
-import { mapProvenanceFieldsDto } from './provenanceDtoMapper';
+import { mapProvenanceFieldsDto } from './provenanceDtoMapper.js';
 
 const asId = (value: unknown): string | number | null => {
   if (value == null) return null;

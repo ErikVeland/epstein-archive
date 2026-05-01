@@ -1,4 +1,4 @@
-import { Person, SearchFilters, SortOption } from '../../types';
+import { Person, SearchFilters, SortOption } from '../../types.js';
 import { entitiesRepository } from '../db/entitiesRepository.js';
 import { statsRepository } from '../db/statsRepository.js';
 import { searchRepository } from '../db/searchRepository.js';
