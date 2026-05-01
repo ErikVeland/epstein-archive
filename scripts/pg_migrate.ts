@@ -29,7 +29,11 @@ async function runMigrations() {
     );
     if (leadsTable.rows[0]?.exists) {
       await pool.query(
-        "INSERT INTO pgmigrations (name, run_on) VALUES ('1754200000000_investigation_leads', NOW()) ON CONFLICT (name) DO NOTHING",
+        `INSERT INTO pgmigrations (name, run_on)
+         SELECT '1754200000000_investigation_leads', NOW()
+         WHERE NOT EXISTS (
+           SELECT 1 FROM pgmigrations WHERE name = '1754200000000_investigation_leads'
+         )`,
       );
       console.log('🩹 Reconciled investigation_leads migration entry.');
     }
