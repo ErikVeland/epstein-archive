@@ -11,6 +11,9 @@ import s from './EvidenceOverviewTab.module.css';
 
 import { Button } from '@client/design-system/lib';
 
+const INITIAL_MEDIA_PREVIEW_COUNT = 4;
+const MEDIA_PREVIEW_BATCH_SIZE = 4;
+
 interface EvidenceEntity {
   id?: string | number;
   fullName?: string;
@@ -68,6 +71,18 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
   navigateFromModal,
   blackBookSectionRef,
 }) => {
+  const [visibleMediaCount, setVisibleMediaCount] = React.useState(INITIAL_MEDIA_PREVIEW_COUNT);
+  const visualMediaItems = React.useMemo(
+    () => mediaItems.filter((media) => isVisualMediaItem(media)),
+    [mediaItems],
+  );
+  const visibleMediaItems = visualMediaItems.slice(0, visibleMediaCount);
+  const remainingMediaCount = Math.max(0, visualMediaItems.length - visibleMediaCount);
+
+  React.useEffect(() => {
+    setVisibleMediaCount(INITIAL_MEDIA_PREVIEW_COUNT);
+  }, [entity?.id]);
+
   if (loading) {
     return (
       <div className={s.loadingContainer}>
@@ -162,53 +177,55 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
       </div>
 
       {/* VERIFIED MEDIA PREVIEW */}
-      {mediaItems.length > 0 && (
+      {visualMediaItems.length > 0 && (
         <div className={s.mediaSection}>
           <h3 className={s.tabTitle}>
             <Icon name="Image" size="sm" className={s.mediaIcon} /> Verified Media
           </h3>
           <div className={s.mediaGrid}>
-            {mediaItems
-              .filter((m) => isVisualMediaItem(m))
-              .slice(0, 4)
-              .map((item, idx) => {
-                const previewSrc = item.thumbnailUrl || item.url || item.fullUrl;
-                const type = item.fileType || item.sourceType || 'image';
-                const isVideo = type.toLowerCase().includes('video');
+            {visibleMediaItems.map((item, idx) => {
+              const previewSrc = item.thumbnailUrl || item.url || item.fullUrl;
+              const type = item.fileType || item.sourceType || 'image';
+              const isVideo = type.toLowerCase().includes('video');
 
-                return (
-                  <div key={idx} className={s.mediaCard} onClick={() => navigateFromModal('media')}>
-                    {previewSrc ? (
-                      <div className={s.mediaThumbWrapper}>
-                        <img
-                          src={previewSrc}
-                          alt={item.title || 'Media'}
-                          className={s.mediaThumb}
-                        />
-                        {isVideo && (
-                          <div className={s.videoOverlay}>
-                            <Icon name="Play" size="sm" />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className={s.mediaPlaceholder}>
-                        {isVideo ? (
-                          <Icon name="Video" size="md" />
-                        ) : (
-                          <Icon name="Image" size="md" />
-                        )}
-                      </div>
-                    )}
-                    <div className={s.mediaMeta}>
-                      <span className={s.mediaTitle}>{item.title || 'Verified Media'}</span>
+              return (
+                <div
+                  key={item.id ?? `${item.title || 'media'}-${idx}`}
+                  className={s.mediaCard}
+                  onClick={() => navigateFromModal('media')}
+                >
+                  {previewSrc ? (
+                    <div className={s.mediaThumbWrapper}>
+                      <img src={previewSrc} alt={item.title || 'Media'} className={s.mediaThumb} />
+                      {isVideo && (
+                        <div className={s.videoOverlay}>
+                          <Icon name="Play" size="sm" />
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    <div className={s.mediaPlaceholder}>
+                      {isVideo ? <Icon name="Video" size="md" /> : <Icon name="Image" size="md" />}
+                    </div>
+                  )}
+                  <div className={s.mediaMeta}>
+                    <span className={s.mediaTitle}>{item.title || 'Verified Media'}</span>
                   </div>
-                );
-              })}
-            {mediaItems.length > 4 && (
-              <button className={s.moreMediaButton} onClick={() => navigateFromModal('media')}>
-                +{mediaItems.length - 4} More
+                </div>
+              );
+            })}
+            {remainingMediaCount > 0 && (
+              <button
+                type="button"
+                className={s.moreMediaButton}
+                onClick={() =>
+                  setVisibleMediaCount((count) =>
+                    Math.min(visualMediaItems.length, count + MEDIA_PREVIEW_BATCH_SIZE),
+                  )
+                }
+                aria-label={`Load ${Math.min(remainingMediaCount, MEDIA_PREVIEW_BATCH_SIZE)} more media items`}
+              >
+                +{remainingMediaCount} More
               </button>
             )}
           </div>

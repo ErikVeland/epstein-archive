@@ -453,15 +453,7 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
       git add -A
       ensure_local_git_identity
       # Prompt for meaningful commit message if interactive, otherwise use context-aware default
-      if [ -t 0 ]; then
-        read -p "Enter commit message: " COMMIT_MSG
-        if [ -z "$COMMIT_MSG" ]; then
-          log_error "Commit message required."
-          exit 1
-        fi
-      else
-        COMMIT_MSG="deploy: auto-commit pre-deployment changes"
-      fi
+      COMMIT_MSG="deploy: auto-commit pre-deployment changes"
       git commit --no-verify -m "$COMMIT_MSG"
       log_success "Commit created: $COMMIT_MSG"
     fi
