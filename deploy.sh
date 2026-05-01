@@ -401,6 +401,29 @@ wait_for_ci_green() {
   exit 1
 }
 
+SYNCED_HEAD_CHANGED=false
+sync_local_main_with_origin() {
+  local branch before after
+  branch=$(git branch --show-current)
+  if [ "$branch" != "main" ]; then
+    log_error "Deploy must run from main; current branch is ${branch:-unknown}."
+    exit 1
+  fi
+
+  log_step "Synchronizing local main with origin/main..."
+  before=$(git rev-parse HEAD)
+  git fetch origin main
+  git rebase --autostash origin/main
+  after=$(git rev-parse HEAD)
+
+  if [ "$before" != "$after" ]; then
+    SYNCED_HEAD_CHANGED=true
+    log_success "Local main synchronized to ${after:0:8}."
+  else
+    log_success "Local main already includes origin/main."
+  fi
+}
+
 require_file "$SSH_KEY_PATH"
 log_step "Using production SSH key: $SSH_KEY_PATH"
 
@@ -408,6 +431,8 @@ log_step "Using production SSH key: $SSH_KEY_PATH"
 # PRE-FLIGHT (all non-mutating checks first)
 # ============================================
 if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
+  sync_local_main_with_origin
+
   if [ "$SKIP_INTEGRITY" = true ]; then
     log_warning "Bypassing local integrity checks (--skip-integrity). Standardizing format and release notes only..."
     verify_release_notes_version
@@ -447,6 +472,14 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
     # CRITICAL GATE: Catch bundle-level initialization errors (ReferenceError, TDZ)
     # that only appear after minification.
     log_step "Running production bundle integrity test (Playwright Smoke)..."
+    pnpm test:bundle-smoke:only
+  fi
+
+  SYNCED_HEAD_CHANGED=false
+  sync_local_main_with_origin
+  if [ "$SYNCED_HEAD_CHANGED" = true ]; then
+    log_warning "origin/main advanced during local gates; re-running build gates after rebase."
+    pnpm build:prod
     pnpm test:bundle-smoke:only
   fi
 
