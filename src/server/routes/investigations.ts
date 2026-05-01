@@ -869,20 +869,18 @@ router.get('/:id/activity', validate(activityQuerySchema), async (req, res, next
     const activity = await investigationsRepository.getActivity(Number(id), Number(limit));
 
     // Parse metadata JSON for each activity
-    const parsed = activity.map(
-      (a: { metadata_json?: string | null } & Record<string, unknown>) => {
-        const metaJson = typeof a.metadata_json === 'string' ? a.metadata_json : null;
-        let metadata = null;
-        if (metaJson) {
-          try {
-            metadata = JSON.parse(metaJson);
-          } catch {
-            metadata = null;
-          }
+    const parsed = activity.map((a) => {
+      const metaJson = typeof a.metadata_json === 'string' ? a.metadata_json : null;
+      let metadata = null;
+      if (metaJson) {
+        try {
+          metadata = JSON.parse(metaJson);
+        } catch {
+          metadata = null;
         }
-        return { ...a, metadata };
-      },
-    );
+      }
+      return { ...a, metadata };
+    });
 
     res.json(parsed);
   } catch (error) {

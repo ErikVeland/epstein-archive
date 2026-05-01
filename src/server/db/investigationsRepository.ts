@@ -7,6 +7,13 @@ type IGetEvidenceResult = Awaited<ReturnType<typeof investigationsQueries.getEvi
 type IGetHypothesesResult = Awaited<
   ReturnType<typeof investigationsQueries.getHypotheses.run>
 >[number];
+type IGetTimelineEventsResult = Awaited<
+  ReturnType<typeof investigationsQueries.getTimelineEvents.run>
+>[number];
+type IGetChainOfCustodyResult = Awaited<
+  ReturnType<typeof investigationsQueries.getChainOfCustody.run>
+>[number];
+type IGetActivityResult = Awaited<ReturnType<typeof investigationsQueries.getActivity.run>>[number];
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 type CollaboratorRow = { user_id: string; permission_level: string; joined_at: string };
@@ -283,7 +290,7 @@ export const investigationsRepository = {
       { investigationId },
       getApiPool(),
     );
-    return rows.map((row: IGetEvidenceResult) => ({
+    return rows.map((row: IGetTimelineEventsResult) => ({
       ...row,
       id: Number(row.id),
       investigation_id: Number(row.investigation_id),
@@ -330,7 +337,7 @@ export const investigationsRepository = {
 
   getChainOfCustody: async (evidenceId: number) => {
     const rows = await investigationsQueries.getChainOfCustody.run({ evidenceId }, getApiPool());
-    return rows.map((row: IGetEvidenceResult) => ({
+    return rows.map((row: IGetChainOfCustodyResult) => ({
       ...row,
       id: Number(row.id),
       evidence_id: Number(row.evidence_id),
@@ -811,7 +818,7 @@ export const investigationsRepository = {
       { investigationId, limit: limit },
       getApiPool(),
     );
-    return rows.map((row: IGetInvestigationsResult) => ({
+    return rows.map((row: IGetActivityResult) => ({
       ...row,
       id: Number(row.id),
       investigation_id: Number(row.investigation_id),
