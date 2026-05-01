@@ -1,5 +1,12 @@
-/* eslint-disable prettier/prettier, @typescript-eslint/no-explicit-any */
 import { investigationsQueries } from '@epstein/db';
+
+type IGetInvestigationsResult = Awaited<
+  ReturnType<typeof investigationsQueries.getInvestigations.run>
+>[number];
+type IGetEvidenceResult = Awaited<ReturnType<typeof investigationsQueries.getEvidence.run>>[number];
+type IGetHypothesesResult = Awaited<
+  ReturnType<typeof investigationsQueries.getHypotheses.run>
+>[number];
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 type CollaboratorRow = { user_id: string; permission_level: string; joined_at: string };
@@ -34,7 +41,10 @@ type InvestigationEvidenceAnnotationRow = {
   updated_at: string;
 };
 
-const mapInvestigation = (inv: any, collaborators: CollaboratorRow[] = []) => ({
+const mapInvestigation = (
+  inv: IGetInvestigationsResult,
+  collaborators: CollaboratorRow[] = [],
+) => ({
   id: Number(inv.id),
   uuid: String(inv.uuid || ''),
   title: String(inv.title || ''),
@@ -80,7 +90,7 @@ export const investigationsRepository = {
     const total = Number(countResult[0]?.total || 0);
 
     return {
-      data: investigations.map((inv: any) => mapInvestigation(inv)),
+      data: investigations.map((inv: IGetInvestigationsResult) => mapInvestigation(inv)),
       total,
       page,
       pageSize: limit,
@@ -171,7 +181,7 @@ export const investigationsRepository = {
     const total = Number(countResult[0]?.total || 0);
 
     return {
-      data: rows.map((row: any) => ({
+      data: rows.map((row: IGetEvidenceResult) => ({
         ...row,
         id: Number(row.id),
         investigation_evidence_id: Number(row.investigation_evidence_id),
@@ -273,7 +283,7 @@ export const investigationsRepository = {
       { investigationId },
       getApiPool(),
     );
-    return rows.map((row: any) => ({
+    return rows.map((row: IGetEvidenceResult) => ({
       ...row,
       id: Number(row.id),
       investigation_id: Number(row.investigation_id),
@@ -320,7 +330,7 @@ export const investigationsRepository = {
 
   getChainOfCustody: async (evidenceId: number) => {
     const rows = await investigationsQueries.getChainOfCustody.run({ evidenceId }, getApiPool());
-    return rows.map((row: any) => ({
+    return rows.map((row: IGetEvidenceResult) => ({
       ...row,
       id: Number(row.id),
       evidence_id: Number(row.evidence_id),
@@ -676,7 +686,7 @@ export const investigationsRepository = {
     if (hypotheses.length === 0) return [];
 
     // Fetch ALL evidence links for all these hypotheses in one go to avoid N+1
-    const hypothesisIds = hypotheses.map((h: any) => Number(h.id));
+    const hypothesisIds = hypotheses.map((h: IGetHypothesesResult) => Number(h.id));
     const allEvidenceLinks = await getApiPool().query(
       `SELECT he.*, e.title as evidence_title, e.evidence_type
        FROM hypothesis_evidence he
@@ -700,7 +710,7 @@ export const investigationsRepository = {
       {} as Record<number, Record<string, unknown>[]>,
     );
 
-    return hypotheses.map((hyp: any) => ({
+    return hypotheses.map((hyp: IGetHypothesesResult) => ({
       ...hyp,
       id: Number(hyp.id),
       investigation_id: Number(hyp.investigation_id),
@@ -801,7 +811,7 @@ export const investigationsRepository = {
       { investigationId, limit: limit },
       getApiPool(),
     );
-    return rows.map((row: any) => ({
+    return rows.map((row: IGetInvestigationsResult) => ({
       ...row,
       id: Number(row.id),
       investigation_id: Number(row.investigation_id),
@@ -953,15 +963,17 @@ export const investigationsRepository = {
 
     return {
       investigationId,
-      evidencePreview: evidenceRows.map((row: any) => ({
+      evidencePreview: evidenceRows.map((row: IGetEvidenceResult) => ({
         ...row,
         id: Number(row.id),
         investigation_evidence_id: Number(row.investigation_evidence_id),
       })),
-      hypothesesPreview: hypothesesRows.slice(0, hypothesisLimit).map((row: any) => ({
-        ...row,
-        id: Number(row.id),
-      })),
+      hypothesesPreview: hypothesesRows
+        .slice(0, hypothesisLimit)
+        .map((row: IGetHypothesesResult) => ({
+          ...row,
+          id: Number(row.id),
+        })),
       evidenceCount: Number(countsResult[0]?.total || 0),
       hypothesisCount: Math.min(hypothesesRows.length, hypothesisLimit),
       notebookOrder: notebook.order,
