@@ -232,7 +232,10 @@ export const entityEvidenceRepository = {
        ORDER BY f.date DESC`,
       [Number(entityId), entityName],
     );
-    return result.rows;
+    return result.rows.map((row) => ({
+      ...row,
+      id: Number(row.id),
+    }));
   },
 
   async getTransactionsForEntity(
