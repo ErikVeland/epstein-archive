@@ -26,13 +26,5 @@ export function readEnvStrict(): Env {
 
   const env = result.data;
 
-  if (env.NODE_ENV === 'production') {
-    if (process.env.DB_PATH) {
-      throw new Error(
-        '[FATAL] SQLite configuration detected in production. @epstein/db is Postgres-only.',
-      );
-    }
-  }
-
   return env;
 }

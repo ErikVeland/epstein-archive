@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@client/services/apiClient';
 
 interface CollectionAlbum {
@@ -152,6 +153,7 @@ function reducer<TItem>(
 export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbum>(
   options: UsePaginatedMediaCollectionOptions<TItem>,
 ) {
+  const navigate = useNavigate();
   const {
     mediaEndpoint,
     albumsEndpoint,
@@ -295,8 +297,11 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
     const url = new URL(window.location.href);
     if (state.selectedAlbum) url.searchParams.set('albumId', state.selectedAlbum.toString());
     else url.searchParams.delete('albumId');
-    window.history.pushState({}, '', url.toString());
-  }, [state.selectedAlbum, syncAlbumToUrl]);
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl === currentUrl) return;
+    navigate(nextUrl, { replace: true });
+  }, [navigate, state.selectedAlbum, syncAlbumToUrl]);
 
   const setSelectedAlbum = useCallback((value: number | null) => {
     dispatch({ type: 'SET_SELECTED_ALBUM', value });

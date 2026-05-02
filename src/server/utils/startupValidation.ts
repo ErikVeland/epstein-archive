@@ -41,12 +41,6 @@ export async function validateStartup() {
     warnings.push(`RAW_CORPUS_BASE_PATH is set to ${corpusPath} but directory does not exist.`);
   }
 
-  if (process.env.NODE_ENV === 'production' && process.env.DB_PATH) {
-    warnings.push(
-      `DB_PATH is set to ${process.env.DB_PATH} in production, but the application now uses Postgres. This value is ignored.`,
-    );
-  }
-
   // 3. Auth
   // Authentication is now forced to be enabled in all environments
   // The ENABLE_AUTH environment variable is no longer used

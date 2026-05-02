@@ -61,6 +61,7 @@ import { SEO } from './components/common/SEO';
 import { useSeoConfig } from './hooks/useSeoConfig';
 import { useAppNavigation, tabLabels } from './hooks/useAppNavigation';
 import { useIsMobile } from './hooks/useIsMobile';
+import { useReliableBackNavigation, useTrackRouteHistory } from './hooks/useReliableBackNavigation';
 import { parseReleaseNotes } from './utils/releaseNotes';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 import { useApiStatus } from './contexts/ApiStatusContext';
@@ -208,8 +209,11 @@ function App() {
   const { filters, setFilters } = useFilters();
   const { activeTab, location } = useAppNavigation();
   const navigate = useNavigate();
+  const { goBack } = useReliableBackNavigation();
   const { user: currentUser, isAdmin } = useAuth();
   const isMobile = useIsMobile();
+
+  useTrackRouteHistory();
 
   const seoConfig = useSeoConfig();
 
@@ -240,7 +244,6 @@ function App() {
 
   // Modal State
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
-  const [previousPath, setPreviousPath] = useState<string>('/people');
 
   const [, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
@@ -642,7 +645,7 @@ function App() {
       if (e.key === 'Escape') {
         if (selectedPerson) {
           setSelectedPerson(null);
-          navigate(previousPath || '/people');
+          goBack('/people');
           // Announce modal close for screen readers
           // Announce modal close for screen readers
           const announcement = document.createElement('div');
@@ -656,16 +659,7 @@ function App() {
         if (documentModalId) {
           setDocumentModalId('');
           setDocumentModalInitial(null);
-          if (activeTab === 'documents') {
-            navigate('/documents');
-          } else {
-            // If we're on another tab (e.g. search), just clear the query param or keep URL context
-            // But usually document modal is /documents/:id.
-            // If accessed via /documents/:id, we should go back to /documents
-            if (location.pathname.startsWith('/documents/')) {
-              navigate('/documents');
-            }
-          }
+          goBack('/documents');
           // Announce modal close for screen readers
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
@@ -729,7 +723,7 @@ function App() {
     showKeyboardShortcuts,
     activeTab,
     location.pathname,
-    previousPath,
+    goBack,
   ]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -1042,9 +1036,6 @@ function App() {
 
   const handlePersonClick = useCallback(
     (person: Person) => {
-      // Save current path before opening modal so we can restore it on close
-      setPreviousPath(location.pathname + location.search);
-
       setSelectedPerson(person);
 
       // Update URL via router so UI/state stays synchronized
@@ -1061,18 +1052,17 @@ function App() {
       document.body.appendChild(announcement);
       setTimeout(() => document.body.removeChild(announcement), 1000);
     },
-    [location.pathname, location.search, navigate],
+    [navigate],
   );
 
   const handleDocumentSuggestionClick = useCallback(
     (documentId: string) => {
-      setPreviousPath(location.pathname + location.search);
       setSelectedPerson(null);
       setDocumentModalInitial(null);
       setDocumentModalId(documentId);
       navigate(`/documents/${encodeURIComponent(documentId)}`);
     },
-    [location.pathname, location.search, navigate],
+    [navigate],
   );
 
   const openSearchResultsRoute = useCallback(() => {
@@ -2230,7 +2220,7 @@ function App() {
                       isOpen={!!selectedPerson}
                       onClose={() => {
                         setSelectedPerson(null);
-                        navigate(previousPath || '/people');
+                        goBack('/people');
                       }}
                     />
                   </ScopedErrorBoundary>
@@ -2253,11 +2243,7 @@ function App() {
                       onClose={() => {
                         setDocumentModalId('');
                         setDocumentModalInitial(null);
-                        if (activeTab === 'documents') {
-                          navigate('/documents');
-                        } else if (location.pathname.startsWith('/documents/')) {
-                          navigate('/documents');
-                        }
+                        goBack('/documents');
                       }}
                     />
                   </ScopedErrorBoundary>

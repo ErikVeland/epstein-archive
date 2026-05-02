@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@client/services/apiClient';
 import { Album, MediaImage, MediaStats, MediaTag } from '@client/types/media.types';
 
@@ -196,6 +197,7 @@ async function fetchLibraryTotalCount(): Promise<number> {
 }
 
 export function usePhotoBrowserData() {
+  const navigate = useNavigate();
   const [state, dispatch] = useReducer(reducer, undefined, buildInitialState);
   const requestKeyRef = useRef<string | null>(null);
   const loadMoreKeyRef = useRef<string | null>(null);
@@ -333,8 +335,12 @@ export function usePhotoBrowserData() {
     if (state.filters.excludeTextScans === false) url.searchParams.set('excludeTextScans', 'false');
     else url.searchParams.delete('excludeTextScans');
 
-    window.history.replaceState({}, '', url);
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl === currentUrl) return;
+    navigate(nextUrl, { replace: true });
   }, [
+    navigate,
     state.filters.hasPeopleOnly,
     state.filters.selectedAlbum,
     state.filters.selectedPerson,

@@ -959,6 +959,129 @@ Return [] if no financial transactions found.
     }
   }
 
+  private static buildFocusedExcerpt(content: string, keywords: string[], maxChars = 2600): string {
+    const normalized = content.replace(/\s+/g, ' ').trim();
+    if (normalized.length <= maxChars) return normalized;
+
+    const lower = normalized.toLowerCase();
+    const windows: string[] = [normalized.slice(0, 700)];
+    const seen = new Set<number>([0]);
+
+    for (const keyword of keywords) {
+      const idx = lower.indexOf(keyword.toLowerCase());
+      if (idx < 0) continue;
+      const start = Math.max(0, idx - 260);
+      const bucket = Math.floor(start / 200);
+      if (seen.has(bucket)) continue;
+      seen.add(bucket);
+      windows.push(normalized.slice(start, Math.min(normalized.length, start + 760)));
+      if (windows.join('\n\n').length >= maxChars) break;
+    }
+
+    return windows.join('\n\n').slice(0, maxChars);
+  }
+
+  static buildClaimExcerptForRetry(content: string, entityNames: string[]): string {
+    return this.buildClaimExcerpt(content, entityNames);
+  }
+
+  private static buildClaimExcerpt(
+    content: string,
+    entityNames: string[],
+    maxChars = 2400,
+  ): string {
+    const normalized = content.replace(/\s+/g, ' ').trim();
+    const keywords = [
+      'alleges',
+      'alleged',
+      'plaintiff',
+      'defendant',
+      'testified',
+      'stated',
+      'paid',
+      'transferred',
+      'met',
+      'traveled',
+      'owned',
+      'claims',
+      'represents',
+      'confirmed',
+      'denied',
+    ];
+    const entities = entityNames.map((name) => name.toLowerCase()).filter(Boolean);
+    const sentences = normalized.split(/(?<=[.!?;:])\s+/);
+    const scored = sentences
+      .map((sentence, index) => {
+        const lower = sentence.toLowerCase();
+        const entityHits = entities.filter((entity) => lower.includes(entity)).length;
+        const keywordHits = keywords.filter((keyword) => lower.includes(keyword)).length;
+        const mostlyUpper =
+          sentence.length > 80 &&
+          sentence.replace(/[^A-Za-z]/g, '').length > 0 &&
+          sentence.replace(/[^A-Z]/g, '').length / sentence.replace(/[^A-Za-z]/g, '').length > 0.75;
+        return {
+          sentence,
+          index,
+          score: entityHits * 3 + keywordHits - (mostlyUpper ? 4 : 0),
+        };
+      })
+      .filter(({ sentence, score }) => score > 0 && sentence.length >= 35 && sentence.length <= 700)
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .slice(0, 8)
+      .sort((a, b) => a.index - b.index)
+      .map(({ sentence }) => sentence);
+
+    const excerpt = scored.join(' ');
+    if (excerpt.length >= 100) return excerpt.slice(0, maxChars);
+
+    return this.buildFocusedExcerpt(content, keywords, maxChars);
+  }
+
+  private static fallbackClaimTriples(
+    excerpt: string,
+    entityNames: string[],
+  ): {
+    subject: string;
+    predicate: string;
+    object: string;
+    confidence: number;
+    modality: string;
+  }[] {
+    const entities = entityNames.filter(Boolean);
+    if (entities.length === 0) return [];
+
+    const sentences = excerpt
+      .split(/(?<=[.!?;:])\s+/)
+      .map((sentence) => sentence.trim())
+      .filter((sentence) => sentence.length >= 40 && sentence.length <= 500);
+
+    const triples: {
+      subject: string;
+      predicate: string;
+      object: string;
+      confidence: number;
+      modality: string;
+    }[] = [];
+
+    for (const sentence of sentences) {
+      const lower = sentence.toLowerCase();
+      const subject = entities.find((entity) => lower.includes(entity.toLowerCase()));
+      if (!subject) continue;
+      triples.push({
+        subject,
+        predicate: /alleg|claim|complaint|plaintiff|defendant/i.test(sentence)
+          ? 'is referenced in allegation'
+          : 'is referenced in statement',
+        object: sentence.slice(0, 450),
+        confidence: 0.65,
+        modality: /alleg|claim|complaint/i.test(sentence) ? 'ALLEGED' : 'ASSERTED',
+      });
+      if (triples.length >= 5) break;
+    }
+
+    return triples;
+  }
+
   /**
    * EXTRACT: Claim Triples (subject-predicate-object) from a document
    */
@@ -978,33 +1101,24 @@ Return [] if no financial transactions found.
     if (!isAiEnabled || !content || content.length < 100) return [];
 
     try {
+      const excerpt = this.buildClaimExcerpt(content, entityNames);
       const entityHint =
         entityNames.length > 0 ? `Known entities: ${entityNames.slice(0, 20).join(', ')}` : '';
-      const prompt = `### INSTRUCTION
-Extract factual claims as subject-predicate-object triples from this document.
+      const prompt = `Extract subject-predicate-object triples from this text as JSON array: ${excerpt}
 ${entityHint}
-
-### DOCUMENT
-"${content.slice(0, 2000)}"
-
-### OUTPUT FORMAT
-Return a compact JSON array (no markdown). Each object:
-{"subject":"entity or person name","predicate":"verb phrase (e.g. 'owns property at', 'met with', 'paid')","object":"entity name or descriptive text","confidence":0.8,"modality":"ASSERTED|ALLEGED|DENIED|UNKNOWN"}
-Only include triples with confidence >= 0.6. Return [] if none found.
-
-### OUTPUT`;
+Return JSON only with subject,predicate,object,confidence,modality. Use ALLEGED for disputed allegations and ASSERTED for ordinary statements.`;
 
       const result = await this.callLLM(prompt, {
         maxTokens: 600,
         temperature: 0.1,
         task: 'graph',
       });
-      if (!result || result.trim() === '[]') return [];
+      if (!result || result.trim() === '[]') return this.fallbackClaimTriples(excerpt, entityNames);
       const match = result.match(/\[[\s\S]*\]/);
-      if (!match) return [];
+      if (!match) return this.fallbackClaimTriples(excerpt, entityNames);
       const parsed = JSON.parse(match[0]);
-      if (!Array.isArray(parsed)) return [];
-      return parsed.filter(
+      if (!Array.isArray(parsed)) return this.fallbackClaimTriples(excerpt, entityNames);
+      const triples = parsed.filter(
         (e: unknown) =>
           e &&
           typeof e === 'object' &&
@@ -1012,8 +1126,9 @@ Only include triples with confidence >= 0.6. Return [] if none found.
           typeof (e as Record<string, unknown>).predicate === 'string' &&
           typeof (e as Record<string, unknown>).object === 'string',
       );
+      return triples.length > 0 ? triples : this.fallbackClaimTriples(excerpt, entityNames);
     } catch {
-      return [];
+      return this.fallbackClaimTriples(content.slice(0, 2000), entityNames);
     }
   }
 

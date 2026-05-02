@@ -1,5 +1,15 @@
 # Release Notes
 
+## 20.0.2 - 2026-05-02 - UI Polish & Code Quality
+
+### Bug Fixes & Quality
+
+- **About Page**: Removed the "Audio & Video with Transcripts" credits section (Sascha Riley / Lisa Noelle Volding / Gareth Wright) and its associated CSS classes.
+- **Review Queue**: Wired the previously suppressed `refetch` to a new refresh button in the panel header — queue can now be manually refreshed without a full page reload.
+- **Evidence Chain Service**: Replaced the hardcoded `chainIntegrity: 50` placeholder with a value derived from the actual custody chain length returned by the server.
+- **Mapper Hardening**: Replaced `row: any` with `row: Record<string, unknown>` in `mapInvestigativeLeadDto` and `mapInvestigationListItemDto`, completing the `any`-free mapper surface.
+- **Lint Cleanup**: Removed duplicate `eslint-disable prettier/prettier` comment in `DocumentModal.tsx` and the stale `eslint-disable prettier/prettier` comment in `EvidenceModal.tsx`.
+
 ## 20.0.1 - 2026-04-30 - Strict TypeScript Enforcement
 
 ### Quality & Type Safety
@@ -1252,7 +1262,7 @@ This release completes a full cycle of platform improvements begun in v16.0. The
 ### Deployment
 
 - Added `pg_dump -Fc` pre-migration backup step to the deploy pipeline.
-- Rollback procedure updated from legacy SQLite restore to Postgres `pg_restore --clean --if-exists`.
+- Rollback procedure updated to Postgres `pg_restore --clean --if-exists`.
 
 ### Database
 
@@ -1277,7 +1287,7 @@ This release completes a full cycle of platform improvements begun in v16.0. The
 
 ### Deployment
 
-- Upgraded deploy rollback path from legacy SQLite to Postgres `pg_dump`/`pg_restore`
+- Upgraded deploy rollback path to Postgres `pg_dump`/`pg_restore`
 - Added pre-migration `pg_dump` backup step to the deploy pipeline
 - Added `CORS_ORIGIN` to the production PM2 env block
 
@@ -1715,9 +1725,9 @@ This release completes a full cycle of platform improvements begun in v16.0. The
 
 ### Major Architecture Update
 
-- **PostgreSQL Migration:** Completed the transition from SQLite to PostgreSQL 16+, enabling massive concurrency and improved data integrity for the 1.3M document corpus.
+- **PostgreSQL Migration:** Standardized the database layer on PostgreSQL 16+, enabling massive concurrency and improved data integrity for the 1.3M document corpus.
 - **Database Hardening:** Implemented strict connection pooling, robust health checks (`/api/health/deep`), and automated schema verification to prevent drift.
-- **Legacy Cleanup:** Removed all dependencies on `better-sqlite3` and purged legacy SQLite database files from production.
+- **Legacy Cleanup:** Removed obsolete embedded database dependencies and purged legacy database files from production.
 
 ### Security & Access
 

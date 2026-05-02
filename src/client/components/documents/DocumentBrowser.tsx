@@ -142,19 +142,26 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     [effectiveSearchTerm, navigate, searchMode],
   );
 
-  const setSearchMode = useCallback((mode: SearchMode) => {
-    setSearchModeState(mode);
-    const params = new URLSearchParams(window.location.search);
-    if (mode === 'lexical') {
-      params.delete('mode');
-      params.delete('searchMode');
-    } else {
-      params.set('mode', mode);
-      params.delete('searchMode');
-    }
-    const nextUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
-    window.history.replaceState(null, '', nextUrl);
-  }, []);
+  const setSearchMode = useCallback(
+    (mode: SearchMode) => {
+      setSearchModeState(mode);
+      const params = new URLSearchParams(window.location.search);
+      if (mode === 'lexical') {
+        params.delete('mode');
+        params.delete('searchMode');
+      } else {
+        params.set('mode', mode);
+        params.delete('searchMode');
+      }
+      const nextUrl = `${window.location.pathname}${
+        params.toString() ? `?${params.toString()}` : ''
+      }`;
+      const currentUrl = `${window.location.pathname}${window.location.search}`;
+      if (nextUrl === currentUrl) return;
+      navigate(nextUrl, { replace: true });
+    },
+    [navigate],
+  );
 
   const handleHoverStart = useCallback((doc: Document, rect: DOMRect) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);

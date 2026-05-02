@@ -7,6 +7,7 @@
  */
 
 import pg from 'pg';
+import 'dotenv/config';
 
 const HOT_TABLES = [
   'entities',

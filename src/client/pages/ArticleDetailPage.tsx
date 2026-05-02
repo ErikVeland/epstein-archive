@@ -5,6 +5,7 @@ import Icon from '@client/components/common/Icon';
 import DOMPurify from 'isomorphic-dompurify';
 import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
 import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
+import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
 import panelStyles from '@client/components/media/ArticleViewerModal.module.css';
 import styles from './ArticleDetailPage.module.css';
 
@@ -24,6 +25,7 @@ interface ArticleDetail {
 export const ArticleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { goBack } = useReliableBackNavigation('/media/articles');
 
   const {
     data: article,
@@ -43,7 +45,7 @@ export const ArticleDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className={styles.page}>
-        <MobileStackHeader title="Article" onBack={() => navigate(-1)} />
+        <MobileStackHeader title="Article" onBack={() => goBack('/media/articles')} />
         <div className={styles.stateMessage}>Loading article…</div>
       </div>
     );
@@ -52,7 +54,7 @@ export const ArticleDetailPage: React.FC = () => {
   if (isError || !article) {
     return (
       <div className={styles.page}>
-        <MobileStackHeader title="Article" onBack={() => navigate(-1)} />
+        <MobileStackHeader title="Article" onBack={() => goBack('/media/articles')} />
         <div className={styles.stateMessage}>Article not found.</div>
       </div>
     );
@@ -96,7 +98,7 @@ export const ArticleDetailPage: React.FC = () => {
       <MobileStackHeader
         title={article.publication || 'Article'}
         subtitle={publishedDate}
-        onBack={() => navigate(-1)}
+        onBack={() => goBack('/media/articles')}
         breadcrumbItems={[
           { label: 'Articles', onClick: () => navigate('/media/articles') },
           { label: article.publication || 'Article' },

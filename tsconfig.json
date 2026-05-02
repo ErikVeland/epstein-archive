@@ -23,8 +23,8 @@
   "include": [
     "src/client/**/*.ts",
     "src/client/**/*.tsx",
-    "src/test/**/*.ts",
-    "src/test/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
     "src/shared/**/*.ts",
     "src/shared/**/*.tsx",
     "src/types.ts",

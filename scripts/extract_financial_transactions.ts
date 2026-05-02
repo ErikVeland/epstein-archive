@@ -40,6 +40,10 @@ async function main() {
     process.exit(0);
   }
 
+  if (!process.env.AI_PROVIDER) {
+    process.env.AI_PROVIDER = 'exo_cluster';
+  }
+
   const pool = getIngestPool();
   let processed = 0;
   let txAdded = 0;

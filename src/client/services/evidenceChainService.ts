@@ -58,7 +58,7 @@ export class EvidenceChainService {
         overall: Math.round(serverScore),
         factors: {
           sourceReliability: this.scoreSourceReliability(document), // Can move to server later
-          chainIntegrity: 50, // Placeholder or from server
+          chainIntegrity: custodyChain.length > 0 ? Math.min(100, custodyChain.length * 20 + 40) : 50,
           contentConsistency: serverMetrics.readability ? 80 : 50, // inferred from server metrics
           technicalAuthenticity: serverMetrics.metadataAnalysis ? 80 : 50,
           corroboration: 50,

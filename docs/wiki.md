@@ -33,7 +33,7 @@ The `scripts/` directory contains the ETL logic.
 ### 3. Database (PostgreSQL 16+)
 
 All schema is managed via migrations in `src/server/db/postgres/migrations/`.
-The active database is **PostgreSQL only** — SQLite has been fully removed.
+The active database is **PostgreSQL only**.
 
 Core tables: `investigations`, `entities`, `documents`, `communications`,
 `investigation_evidence`, `entity_mentions`, `claims`, `review_queue`.

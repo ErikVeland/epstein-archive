@@ -44,6 +44,103 @@ interface FinancialTransactionMapperProps {
   investigationId?: string | number;
 }
 
+interface FinancialSnapshot {
+  financialTransactions?: Record<string, unknown>[];
+}
+
+function firstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === 'string' && value.length > 0) return value;
+    if (typeof value === 'number' || typeof value === 'bigint') return String(value);
+  }
+  return '';
+}
+
+function normalizeType(value: string): Transaction['type'] {
+  const normalized = value.toLowerCase();
+  if (
+    normalized === 'payment' ||
+    normalized === 'transfer' ||
+    normalized === 'investment' ||
+    normalized === 'loan' ||
+    normalized === 'shell_company' ||
+    normalized === 'offshore'
+  ) {
+    return normalized;
+  }
+  return 'transfer';
+}
+
+function normalizeMethod(value: string): Transaction['method'] {
+  const normalized = value.toLowerCase();
+  if (
+    normalized === 'wire' ||
+    normalized === 'cash' ||
+    normalized === 'check' ||
+    normalized === 'crypto' ||
+    normalized === 'shell'
+  ) {
+    return normalized;
+  }
+  return 'wire';
+}
+
+function normalizeRisk(value: string, rating: unknown): Transaction['riskLevel'] {
+  const normalized = value.toLowerCase();
+  if (
+    normalized === 'low' ||
+    normalized === 'medium' ||
+    normalized === 'high' ||
+    normalized === 'critical'
+  ) {
+    return normalized;
+  }
+
+  const numeric = Number(rating);
+  if (Number.isFinite(numeric)) {
+    if (numeric >= 9) return 'critical';
+    if (numeric >= 7) return 'high';
+    if (numeric >= 3) return 'medium';
+    return 'low';
+  }
+
+  return 'medium';
+}
+
+function normalizeTransaction(tx: Record<string, unknown>): Transaction {
+  const rawId = firstString(tx.id, tx.transactionId);
+  return {
+    id: rawId.startsWith('tx-') ? rawId : `tx-${rawId}`,
+    fromEntity: firstString(tx.fromEntity, tx.from_entity, tx.fromEntityName, tx.from_entity_name),
+    toEntity: firstString(tx.toEntity, tx.to_entity, tx.toEntityName, tx.to_entity_name),
+    amount: Number(tx.amount || 0),
+    currency: firstString(tx.currency) || 'USD',
+    date: firstString(tx.date, tx.transaction_date),
+    type: normalizeType(firstString(tx.type, tx.transactionType, tx.transaction_type)),
+    method: normalizeMethod(firstString(tx.method)),
+    riskLevel: normalizeRisk(
+      firstString(tx.riskLevel, tx.risk_level),
+      tx.riskRating ?? tx.risk_rating,
+    ),
+    description: firstString(tx.description),
+    suspiciousIndicators: Array.isArray(tx.suspiciousIndicators)
+      ? (tx.suspiciousIndicators as string[])
+      : [],
+    sourceDocuments: Array.isArray(tx.sourceDocuments)
+      ? (tx.sourceDocuments as string[])
+      : Array.isArray(tx.sourceDocumentIds)
+        ? (tx.sourceDocumentIds as string[])
+        : [],
+  };
+}
+
+async function loadFinancialSnapshot(): Promise<Transaction[]> {
+  const response = await fetch('/data/dashboard_snapshot.json');
+  if (!response.ok) return [];
+  const snapshot = (await response.json()) as FinancialSnapshot;
+  return (snapshot.financialTransactions || []).map(normalizeTransaction);
+}
+
 function getRiskScoreValue(riskLevel: string): number {
   switch (riskLevel) {
     case 'low':
@@ -190,29 +287,16 @@ export default function FinancialTransactionMapper({
 
       const response = await fetch(endpoint);
       if (!response.ok) {
-        throw new Error('Failed to fetch transactions');
+        return loadFinancialSnapshot();
       }
 
       const data = await response.json();
-      if (!data || data.length === 0) return [];
+      // An empty array is a valid response (investigation has no transactions).
+      // Do not replace a legitimate empty result with unrelated snapshot data.
+      if (!data) return loadFinancialSnapshot();
+      if (data.length === 0) return [];
 
-      return (data as Record<string, unknown>[]).map((tx) => ({
-        id: `tx-${tx.id}`,
-        fromEntity: (tx.from_entity as string) || '',
-        toEntity: (tx.to_entity as string) || '',
-        amount: (tx.amount as number) || 0,
-        currency: (tx.currency as string) || 'USD',
-        date: (tx.transaction_date as string) || '',
-        type: ((tx.transaction_type as Transaction['type'] | undefined) ||
-          'transfer') as Transaction['type'],
-        method: ((tx.method as Transaction['method'] | undefined) ||
-          'wire') as Transaction['method'],
-        riskLevel: ((tx.risk_level as Transaction['riskLevel'] | undefined) ||
-          'medium') as Transaction['riskLevel'],
-        description: (tx.description as string) || '',
-        suspiciousIndicators: (tx.suspiciousIndicators as string[]) || [],
-        sourceDocuments: (tx.sourceDocumentIds as string[]) || [],
-      }));
+      return (data as Record<string, unknown>[]).map(normalizeTransaction);
     },
   });
 

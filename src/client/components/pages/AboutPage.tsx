@@ -1067,55 +1067,6 @@ export const AboutPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Audio & Video Credits */}
-      <section className={s.creditsSection}>
-        <div className={s.sectionHeader}>
-          <Icon name="Image" size="xl" className={s.iconAccent} />
-          <h2 className={s.sectionTitle}>Audio &amp; Video with Transcripts</h2>
-        </div>
-        <p className={s.bodyText}>
-          The archive features interview audio with precision transcripts, chapter markers, and a
-          synchronized reading experience.
-        </p>
-        <div className={s.creditsGrid}>
-          <div className={s.creditsCard}>
-            <h3 className={s.creditsCardTitle}>Credits</h3>
-            <ul className={s.creditsList}>
-              <li>
-                Testimony &amp; Interview:
-                <a href="https://www.threads.com/@saschabarros" className={s.creditsLink}>
-                  Sascha Riley
-                </a>
-              </li>
-              <li>
-                Investigation &amp; Publication:
-                <a href="https://www.threads.com/@lvoldeng" className={s.creditsLink}>
-                  Lisa Noelle Volding
-                </a>
-              </li>
-              <li>
-                Transcripts:
-                <a href="https://www.threads.com/@roguerevision" className={s.creditsLink}>
-                  Gareth Wright
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className={s.creditsCard}>
-            <h3 className={s.creditsCardTitle}>Original Publication</h3>
-            <p className={s.bodyText} style={{ marginBottom: 'var(--space-3)' }}>
-              Read the original briefing and recordings:
-            </p>
-            <a
-              href="https://lisevoldeng.substack.com/p/dont-worry-boys-are-hard-to-find?r=1uodw7&triedRedirect=true"
-              className={s.substackBtn}
-            >
-              Read Full Briefing on Substack
-            </a>
-          </div>
-        </div>
-      </section>
-
       {/* What's Next */}
       <section className={`surface-panel ${s.whatsNextSection}`}>
         <div className={s.sectionHeader}>

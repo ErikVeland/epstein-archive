@@ -17,7 +17,12 @@ function isBypassPath(pathname: string): boolean {
 }
 
 export function pgSaturationShed(req: Request, res: Response, next: NextFunction) {
-  if (process.env.DISABLE_PG_SHED === '1' || process.env.DISABLE_PG_SHED === 'true') {
+  if (
+    process.env.DISABLE_PG_SHED === '1' ||
+    process.env.DISABLE_PG_SHED === 'true' ||
+    process.env.NODE_ENV === 'test' ||
+    process.env.NODE_ENV === 'development'
+  ) {
     return next();
   }
   if (isBypassPath(req.path || req.originalUrl || '')) {

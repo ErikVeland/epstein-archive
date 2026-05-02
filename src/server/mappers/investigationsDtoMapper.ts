@@ -10,7 +10,7 @@ import type {
   LeadPriority,
 } from '@shared/dto/investigations';
 
-export const mapInvestigativeLeadDto = (row: any): InvestigativeLeadDto => ({
+export const mapInvestigativeLeadDto = (row: Record<string, unknown>): InvestigativeLeadDto => ({
   id: Number(row.id || 0),
   investigationId: Number(row.investigationId ?? row.investigation_id ?? 0),
   title: String(row.title ?? ''),
@@ -30,7 +30,7 @@ export const mapInvestigativeLeadDto = (row: any): InvestigativeLeadDto => ({
   updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),
 });
 
-export const mapInvestigationListItemDto = (row: any): InvestigationListItemDto => ({
+export const mapInvestigationListItemDto = (row: Record<string, unknown>): InvestigationListItemDto => ({
   id: Number(row.id || 0),
   title: String(row.title ?? ''),
   description: row.description ?? null,

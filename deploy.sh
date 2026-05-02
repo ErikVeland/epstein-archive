@@ -443,7 +443,7 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
     pnpm format
     pnpm lint:fix
 
-    # Parity check removed (legacy SQLite/RTF logic purged)
+    # Retired legacy parity check after the Postgres migration.
 
     verify_release_notes_version
 

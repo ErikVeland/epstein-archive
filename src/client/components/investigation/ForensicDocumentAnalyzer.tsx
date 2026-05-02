@@ -173,7 +173,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     const params = new URLSearchParams(window.location.search);
     params.set('tab', 'forensic');
     params.set('docId', id);
-    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    const nextUrl = `${window.location.pathname}?${params.toString()}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+    if (nextUrl !== currentUrl) {
+      navigate(nextUrl, { replace: true });
+    }
   };
 
   const getEntityIcon = (type: DetectedEntity['type']): IconName => {

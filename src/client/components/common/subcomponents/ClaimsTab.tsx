@@ -42,6 +42,17 @@ interface ClaimsTabProps {
   onOpenDocument?: (id: string) => void;
 }
 
+interface DashboardSnapshot {
+  claimTriples?: ClaimTriple[];
+}
+
+async function loadClaimSnapshot(): Promise<ClaimTriple[]> {
+  const response = await fetch('/data/dashboard_snapshot.json');
+  if (!response.ok) return [];
+  const snapshot = (await response.json()) as DashboardSnapshot;
+  return snapshot.claimTriples || [];
+}
+
 export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   documentId,
   entityId,
@@ -64,7 +75,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   };
 
   const {
-    data: claims = [],
+    data: rawClaims = [],
     isLoading,
     isError,
     error,
@@ -76,6 +87,17 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
         : apiClient.getEntityClaims<ClaimTriple>(entityId!),
     enabled: !!(documentId || entityId),
   });
+
+  const { data: snapshotClaims = [] } = useQuery<ClaimTriple[]>({
+    queryKey: ['claims-snapshot'],
+    queryFn: loadClaimSnapshot,
+  });
+
+  // Only fall back to snapshot when there is no entity/document scope — never substitute
+  // a global snapshot for a scoped empty result, as that would misattribute claims.
+  const hasScope = !!(documentId || entityId);
+  const claims = rawClaims.length > 0 || hasScope ? rawClaims : snapshotClaims;
+  const isSnapshot = !hasScope && rawClaims.length === 0 && snapshotClaims.length > 0;
 
   const verifyMutation = useMutation({
     mutationFn: ({ id, status, reason }: { id: string; status: number; reason?: string }) =>
@@ -133,7 +155,9 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
             AI-Extracted Claims
           </LqText>
           <LqText variant="small" color="muted">
-            Structured relational data automatically extracted by the forensic intelligence agent.
+            {isSnapshot
+              ? 'Latest extracted claim snapshot while this record awaits document-specific enrichment.'
+              : 'Structured relational data automatically extracted by the forensic intelligence agent.'}
           </LqText>
         </div>
         <Surface variant="glass-highlight" className={styles.verifiedBadge}>

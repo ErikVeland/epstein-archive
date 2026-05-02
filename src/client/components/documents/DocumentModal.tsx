@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-/* eslint-disable prettier/prettier */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -111,6 +110,7 @@ export const DocumentModal: React.FC<Props> = ({
 
   const handleBackToCase = () => {
     if (caseIdFromQuery) {
+      onClose();
       navigate(`/investigations/${encodeURIComponent(caseIdFromQuery)}?tab=casefolder`);
       return;
     }
@@ -449,7 +449,7 @@ export const DocumentModal: React.FC<Props> = ({
                 size="sm"
                 onClick={() => {
                   onClose();
-                  window.location.href = `/emails?messageId=${id}`;
+                  navigate(`/emails?messageId=${id}`);
                 }}
               >
                 Open Email Viewer

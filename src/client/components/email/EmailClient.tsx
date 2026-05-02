@@ -4,6 +4,7 @@ import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EmailClient.module.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
 import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
+import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import Icon from '@client/components/common/Icon';
 import { EmailMailboxDTO, EmailThreadDTO } from '@client/services/apiClient';
@@ -193,6 +194,7 @@ const MailboxRow = React.memo(
 
 export const EmailClient: React.FC = () => {
   const navigate = useNavigate();
+  const { goBack } = useReliableBackNavigation('/emails');
   const [searchParams, setSearchParams] = useSearchParams();
   const deepLinkedMessageId = searchParams.get('messageId') || searchParams.get('id');
   const { filters: globalFilters } = useFilters();
@@ -908,7 +910,7 @@ export const EmailClient: React.FC = () => {
                   <MobileStackHeader
                     title={selectedThread.subject}
                     subtitle={`${selectedThread.messages.length} messages · ${selectedMailbox?.displayName || 'Archive'}`}
-                    onBack={() => navigate(-1)}
+                    onBack={() => goBack('/emails')}
                   />
                   <div className={styles.fullScreenContent}>
                     <div className={styles.messageThread}>

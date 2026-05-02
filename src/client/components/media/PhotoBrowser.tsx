@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   FixedSizeGrid as Grid,
   FixedSizeList as List,
@@ -205,6 +206,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
 }, areEqual);
 
 export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageClick }) => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('tiles');
   const { isAdmin } = useAuth();
   const [viewerStartIndex, setViewerStartIndex] = useState<number | null>(null);
@@ -497,7 +499,11 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     setViewerStartIndex(null);
     const url = new URL(window.location.href);
     url.searchParams.delete('photoId');
-    window.history.replaceState({}, '', url);
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl !== currentUrl) {
+      navigate(nextUrl, { replace: true });
+    }
   };
 
   return (

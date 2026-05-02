@@ -72,9 +72,6 @@ export const ReviewQueuePanel: React.FC = () => {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  void refetch;
-
   const decisionMutation = useMutation({
     mutationFn: async ({
       id,
@@ -141,6 +138,14 @@ export const ReviewQueuePanel: React.FC = () => {
               {reviewCounts.deferred} Deferred
             </span>
           )}
+          <Button
+            unstyled
+            onClick={() => void refetch()}
+            title="Refresh queue"
+            className={styles.refreshButton}
+          >
+            <Icon name="RefreshCw" size="sm" />
+          </Button>
         </div>
       </div>
 

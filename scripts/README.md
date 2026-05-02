@@ -1,7 +1,7 @@
 # Epstein Archive Scripts
 
 > [!IMPORTANT]
-> **SYSTEM SOURCE OF TRUTH** — All operations are consolidated into the `unified_pipeline.ts` and `deploy.sh`. Legacy SQLite/RTF scripts have been purged.
+> **SYSTEM SOURCE OF TRUTH** — All operations are consolidated into the `unified_pipeline.ts` and `deploy.sh`.
 
 ## Primary Pipelines
 
@@ -54,7 +54,7 @@ Run the full suite to verify repository health and database performance.
 
 ## Database Operations
 
-- `pg_migrate.ts`: Executes migrations in `scripts/migrations/`.
+- `pg_migrate.ts`: Executes Postgres migrations in `src/server/db/postgres/migrations/`.
 - `pg_schema_hash.ts`: Verifies production schema matches local expectation.
 - `pg_analyze_after_migrate.ts`: Refreshes query planner statistics.
 - `pg_fix_mentions.ts`: Corrects overlapping entity mention spans.

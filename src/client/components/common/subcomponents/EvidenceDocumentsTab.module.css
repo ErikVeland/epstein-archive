@@ -40,8 +40,9 @@
 
 .searchInput {
   width: 100%;
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   padding-left: 3rem; /* pl-12 */
   padding-right: var(--space-6);
   padding-top: var(--space-3);

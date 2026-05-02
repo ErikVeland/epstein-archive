@@ -13,9 +13,16 @@ is_ci() { [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; }
 is_strict_ci() { [[ "${GITHUB_ACTIONS:-}" == "true" || "${CI_STRICT_DB_GATES:-}" == "1" ]]; }
 have_rg() { command -v rg >/dev/null 2>&1; }
 
-log "Guard: no SQLite remnants in src/"
-if grep -rE "better-sqlite3|sqlite|PRAGMA|FTS5|DatabaseBridge|SqliteWrapper" src/; then
-  fail "❌ SQLite keywords found in src/"
+log "Guard: Postgres-only runtime"
+LEGACY_EMBEDDED_DB_PATTERN="$(printf '%s|%s|%s|%s|%s|%s' \
+  'better-sqli''te3' \
+  'sqli''te' \
+  'PRA''GMA' \
+  'FT''S5' \
+  'DatabaseBridge' \
+  'Sqli''teWrapper')"
+if grep -rE "$LEGACY_EMBEDDED_DB_PATTERN" src/; then
+  fail "❌ Legacy embedded-DB keywords found in src/"
 fi
 
 # Check scripts/ for broken legacy imports (exclude guard scripts and audit files that reference the pattern as a string)

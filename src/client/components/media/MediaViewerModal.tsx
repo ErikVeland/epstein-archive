@@ -209,8 +209,11 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     if (!currentImage) return;
     const url = new URL(window.location.href);
     url.searchParams.set('photoId', currentImage.id.toString());
-    window.history.replaceState({}, '', url);
-  }, [currentImage]);
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl === currentUrl) return;
+    navigate(nextUrl, { replace: true });
+  }, [currentImage, navigate]);
 
   if (!currentImage) return null;
 

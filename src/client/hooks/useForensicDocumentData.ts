@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@client/services/apiClient';
 import type {
   ForensicAnalysis,
@@ -46,6 +47,7 @@ export function useForensicDocumentData({
   onAnalysisComplete,
   locationSearch,
 }: UseForensicDocumentDataOptions) {
+  const navigate = useNavigate();
   const initialCompareIds = useMemo(
     () => getCompareIdsFromSearch(locationSearch),
     [locationSearch],
@@ -201,11 +203,13 @@ export function useForensicDocumentData({
       else params.delete('compareB');
       const query = params.toString();
       const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-      window.history.replaceState(null, '', url);
+      const currentUrl = `${window.location.pathname}${window.location.search}`;
+      if (url === currentUrl) return;
+      navigate(url, { replace: true });
     } catch {
       // Ignore comparison fetch errors to keep the dashboard responsive.
     }
-  }, [compareAId, compareBId]);
+  }, [compareAId, compareBId, navigate]);
 
   const startForensicAnalysis = useCallback(async () => {
     if (!documentId) return;

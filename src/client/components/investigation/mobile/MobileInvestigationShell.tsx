@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
+import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
 import type {
   Investigation,
   TimelineEvent,
@@ -55,7 +56,7 @@ export function MobileInvestigationShell({
 }: MobileInvestigationShellProps) {
   const invId = String(selectedInvestigation.id);
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const { goBack } = useReliableBackNavigation(`/investigations/${invId}`);
 
   const VALID_TABS = new Set<string>(['board', 'evidence', 'activity']);
   const VALID_TOOLS = new Set<string>([
@@ -111,8 +112,8 @@ export function MobileInvestigationShell({
   );
 
   const handleBackFromTool = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
+    goBack(`/investigations/${invId}`);
+  }, [goBack, invId]);
 
   const handleHypothesesUpdate = useCallback((updated: unknown[]) => {
     setHypotheses(updated as Hypothesis[]);

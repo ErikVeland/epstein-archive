@@ -6,6 +6,7 @@ import { Surface, Flex, Box, Stack, LqText, cn, Button } from '@client/design-sy
 import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
 import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
 import { useIsTouch } from '@client/hooks/useIsTouch';
+import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
 const RouteMap = React.lazy(() =>
   import('@client/components/visualizations/RouteMap').then((m) => ({ default: m.RouteMap })),
 );
@@ -24,6 +25,7 @@ const formatDate = (dateStr: string): string =>
 export const FlightDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { goBack } = useReliableBackNavigation('/flights');
   const isTouch = useIsTouch();
   const [showMap, setShowMap] = useState(false);
 
@@ -68,7 +70,7 @@ export const FlightDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className={styles.page}>
-        <MobileStackHeader title="Flight Details" onBack={() => navigate(-1)} />
+        <MobileStackHeader title="Flight Details" onBack={() => goBack('/flights')} />
         <div className={styles.stateMessage}>Loading flight data…</div>
       </div>
     );
@@ -77,7 +79,7 @@ export const FlightDetailPage: React.FC = () => {
   if (isError || !flight) {
     return (
       <div className={styles.page}>
-        <MobileStackHeader title="Flight Details" onBack={() => navigate(-1)} />
+        <MobileStackHeader title="Flight Details" onBack={() => goBack('/flights')} />
         <div className={styles.stateMessage}>Flight record not found.</div>
       </div>
     );
@@ -91,7 +93,7 @@ export const FlightDetailPage: React.FC = () => {
       <MobileStackHeader
         title={`Flight ${flight.aircraft_tail}`}
         subtitle={formatDate(flight.date)}
-        onBack={() => navigate(-1)}
+        onBack={() => goBack('/flights')}
         breadcrumbItems={[
           { label: 'Flights', onClick: () => navigate('/flights') },
           { label: flight.aircraft_tail },

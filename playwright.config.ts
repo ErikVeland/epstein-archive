@@ -95,9 +95,9 @@ export default defineConfig({
           timeout: 120 * 1000,
         },
         {
-          command: `NODE_ENV=development PORT=${apiPort} pnpm exec tsx src/server.ts`,
+          command: `NODE_ENV=development PORT=${apiPort} DISABLE_PG_SHED=1 pnpm run server`,
           url: `${localApiBaseUrl}/api/health`,
-          reuseExistingServer: true,
+          reuseExistingServer: false,
           timeout: 120 * 1000,
         },
       ],

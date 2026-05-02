@@ -20,6 +20,10 @@ async function main() {
     process.exit(0);
   }
 
+  if (!process.env.AI_PROVIDER) {
+    process.env.AI_PROVIDER = 'exo_cluster';
+  }
+
   const pool = getIngestPool();
   let processed = 0;
   let triplesAdded = 0;
@@ -37,7 +41,16 @@ async function main() {
       SELECT id, content_refined
       FROM documents
       WHERE content_refined IS NOT NULL
-        AND (metadata_json IS NULL OR metadata_json->>'graph_triples_at' IS NULL)
+        AND (
+          metadata_json IS NULL
+          OR metadata_json->>'graph_triples_at' IS NULL
+          OR NOT EXISTS (
+            SELECT 1
+            FROM claim_triples ct
+            WHERE ct.document_id = documents.id
+          )
+        )
+        AND (metadata_json IS NULL OR metadata_json->>'graph_triples_empty_at' IS NULL)
       ORDER BY id ASC
       LIMIT $1
     `,
@@ -62,13 +75,32 @@ async function main() {
         const entityNames = mentions.map((m) => m.full_name);
         const nameToId = new Map(mentions.map((m) => [m.full_name.toLowerCase(), m.entity_id]));
 
-        const triples = await AIEnrichmentService.extractClaimTriples(
+        let triples = await AIEnrichmentService.extractClaimTriples(
           doc.content_refined,
           entityNames,
         );
 
+        if (triples.length === 0) {
+          // Retry with a focused excerpt that prioritises allegation-bearing sentences
+          const focusedExcerpt = AIEnrichmentService.buildClaimExcerptForRetry(
+            doc.content_refined,
+            entityNames,
+          );
+          triples = await AIEnrichmentService.extractClaimTriples(focusedExcerpt, entityNames);
+        }
+
+        if (triples.length === 0) {
+          console.warn(`   ⚠️  Doc ${doc.id}: AI returned no claim triples after retry`);
+        }
+
+        let triplesAddedForDoc = 0;
+        const seenTriples = new Set<string>();
+
         for (const triple of triples) {
-          const confidence = Math.min(1.0, Math.max(0.0, Number(triple.confidence) || 0));
+          const rawConfidence = Number(triple.confidence);
+          const confidence = Number.isFinite(rawConfidence)
+            ? Math.min(1.0, Math.max(0.0, rawConfidence))
+            : 0.75;
           if (confidence < MIN_CONFIDENCE) continue;
 
           const modality = VALID_MODALITY.has((triple.modality || '').toUpperCase())
@@ -78,6 +110,9 @@ async function main() {
           // Try to resolve subject/object to entity IDs
           const subjectLower = triple.subject.toLowerCase();
           const objectLower = triple.object.toLowerCase();
+          const tripleKey = `${subjectLower}|${String(triple.predicate).toLowerCase()}|${objectLower}`;
+          if (seenTriples.has(tripleKey)) continue;
+          seenTriples.add(tripleKey);
 
           const subjectId =
             nameToId.get(subjectLower) ??
@@ -96,7 +131,7 @@ async function main() {
             INSERT INTO claim_triples
               (subject_entity_id, predicate, object_entity_id, object_text,
                document_id, confidence, modality)
-            VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6, $7)
+            VALUES ($1::bigint, $2, $3::bigint, $4, $5, $6, $7)
           `,
             [
               subjectId,
@@ -110,16 +145,32 @@ async function main() {
           );
 
           triplesAdded++;
+          triplesAddedForDoc++;
         }
 
-        await pool.query(
-          `
-          UPDATE documents
-          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_triples_at', $1::text)
-          WHERE id = $2::bigint
-        `,
-          [new Date().toISOString(), doc.id],
-        );
+        if (triplesAddedForDoc > 0) {
+          await pool.query(
+            `
+            UPDATE documents
+            SET metadata_json =
+              (COALESCE(metadata_json, '{}'::jsonb) - 'graph_triples_empty_at' - 'graph_triples_error_at')
+              || jsonb_build_object('graph_triples_at', $1::text)
+            WHERE id = $2::bigint
+          `,
+            [new Date().toISOString(), doc.id],
+          );
+        } else {
+          await pool.query(
+            `
+            UPDATE documents
+            SET metadata_json =
+              (COALESCE(metadata_json, '{}'::jsonb) - 'graph_triples_at' - 'graph_triples_error_at')
+              || jsonb_build_object('graph_triples_empty_at', $1::text)
+            WHERE id = $2::bigint
+          `,
+            [new Date().toISOString(), doc.id],
+          );
+        }
 
         processed++;
         if (processed % 100 === 0) {
@@ -130,7 +181,9 @@ async function main() {
         await pool.query(
           `
           UPDATE documents
-          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_triples_at', $1::text)
+          SET metadata_json =
+            (COALESCE(metadata_json, '{}'::jsonb) - 'graph_triples_at')
+            || jsonb_build_object('graph_triples_error_at', $1::text)
           WHERE id = $2::bigint
         `,
           [new Date().toISOString(), doc.id],

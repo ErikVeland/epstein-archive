@@ -28,6 +28,42 @@ const resolveFirstDocumentId = async (request: APIRequestContext): Promise<strin
   return String(first.id);
 };
 
+const resolveEntityWithFlights = async (
+  request: APIRequestContext,
+): Promise<{ entityId: string; flightId: string } | null> => {
+  const response = await request.get(
+    `${API_BASE}/entities?limit=20&sortBy=mentions&sortOrder=desc`,
+  );
+  if (!response.ok()) return null;
+
+  const payload = await response.json();
+  const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+
+  for (const item of items) {
+    const entityId = Number(item?.id);
+    if (!Number.isFinite(entityId)) continue;
+
+    const flightsResponse = await request.get(`${API_BASE}/entities/${entityId}/flights`);
+    if (!flightsResponse.ok()) continue;
+
+    const flightsPayload = await flightsResponse.json();
+    const firstFlight = Array.isArray(flightsPayload?.flights)
+      ? flightsPayload.flights.find((flight: Record<string, unknown>) =>
+          Number.isFinite(Number(flight?.id)),
+        )
+      : null;
+
+    if (firstFlight) {
+      return {
+        entityId: String(entityId),
+        flightId: String(firstFlight.id),
+      };
+    }
+  }
+
+  return null;
+};
+
 const resolveInvestigationAndEvidence = async (
   request: APIRequestContext,
 ): Promise<{ investigationId: string; evidenceId: string } | null> => {
@@ -65,8 +101,23 @@ const preparePage = async (page: import('@playwright/test').Page) => {
 test.describe('Route to UI state synchronization', () => {
   test.setTimeout(120_000);
   test.beforeAll(async ({ request }) => {
-    const response = await request.get(`${API_BASE}/subjects?page=1&limit=1`, { timeout: 15000 });
-    expect(response.ok()).toBeTruthy();
+    test.setTimeout(120_000);
+    let ok = false;
+    for (let i = 0; i < 30; i++) {
+      try {
+        const response = await request.get(`${API_BASE}/subjects?page=1&limit=1`, { timeout: 15000 });
+        if (response.ok()) {
+          ok = true;
+          break;
+        } else {
+          console.log(`[WAITING FOR SERVER] Status: ${response.status()} Text: ${await response.text()}`);
+        }
+      } catch (err) {
+        console.error(`[WAITING FOR SERVER] Error:`, err);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+    expect(ok).toBeTruthy();
   });
 
   test('entity modal quick actions update modal state (not just URL)', async ({
@@ -180,6 +231,35 @@ test.describe('Route to UI state synchronization', () => {
     expect(afterBox).toBeTruthy();
     const heightDelta = Math.abs((afterBox?.height || 0) - (initialBox?.height || 0));
     expect(heightDelta).toBeLessThan(96);
+  });
+
+  test('flight detail back returns to the originating entity flight state', async ({
+    page,
+    request,
+  }) => {
+    const resolved = await resolveEntityWithFlights(request);
+    if (!resolved) {
+      test.skip(true, 'No entity with linked flights available');
+      return;
+    }
+
+    await preparePage(page);
+    await page.goto(`/entity/${resolved.entityId}?entityTab=flights`);
+
+    const flightsTab = page.getByTestId('entity-modal-tab-flights');
+    const viewLink = flightsTab.locator('a[href^="/flights/"]').first();
+    await expect(viewLink).toBeVisible({ timeout: 20000 });
+
+    await viewLink.click();
+    await expect(page).toHaveURL(new RegExp(`/flights/${resolved.flightId}$`));
+
+    await page.getByRole('button', { name: 'Go back' }).click();
+
+    await expect(page).toHaveURL(
+      new RegExp(`/entity/${resolved.entityId}(\\?entityTab=flights)?$`),
+      { timeout: 20000 },
+    );
+    await expect(page.getByTestId('entity-modal-tab-flights')).toBeVisible({ timeout: 20000 });
   });
 
   test('investigation evidence deep links reconstruct case-folder UI for both route patterns', async ({
