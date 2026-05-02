@@ -64,7 +64,9 @@
   height: 1.75rem;
   border-radius: var(--radius-md);
   color: var(--text-muted);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .refreshButton:hover {
