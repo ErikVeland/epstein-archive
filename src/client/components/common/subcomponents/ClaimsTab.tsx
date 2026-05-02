@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { apiClient } from '@client/services/apiClient';
@@ -60,6 +60,8 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   onOpenDocument,
 }) => {
   const queryClient = useQueryClient();
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const getClaimReviewState = (claim: ClaimTriple): ReviewState => {
     if (claim.reviewState) return claim.reviewState;
@@ -251,23 +253,66 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
 
             {claim.verified === 0 && (
               <div className={styles.actions}>
-                <button
-                  className={styles.rejectBtn}
-                  onClick={() => {
-                    const reason = window.prompt('Reason for rejection?');
-                    if (reason !== null) {
-                      verifyMutation.mutate({ id: claim.id, status: 2, reason });
-                    }
-                  }}
-                >
-                  Reject
-                </button>
-                <button
-                  className={styles.verifyBtn}
-                  onClick={() => verifyMutation.mutate({ id: claim.id, status: 1 })}
-                >
-                  Verify Claim
-                </button>
+                {rejectingId === claim.id ? (
+                  <div className={styles.rejectInline}>
+                    <input
+                      className={styles.rejectInput}
+                      type="text"
+                      placeholder="Reason for rejection..."
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          verifyMutation.mutate({ id: claim.id, status: 2, reason: rejectReason });
+                          setRejectingId(null);
+                          setRejectReason('');
+                        }
+                        if (e.key === 'Escape') {
+                          setRejectingId(null);
+                          setRejectReason('');
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      className={styles.rejectBtn}
+                      onClick={() => {
+                        verifyMutation.mutate({ id: claim.id, status: 2, reason: rejectReason });
+                        setRejectingId(null);
+                        setRejectReason('');
+                      }}
+                    >
+                      Confirm
+                    </button>
+                    <button
+                      className={styles.cancelBtn}
+                      onClick={() => {
+                        setRejectingId(null);
+                        setRejectReason('');
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      className={styles.rejectBtn}
+                      onClick={() => {
+                        setRejectingId(claim.id);
+                        setRejectReason('');
+                      }}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      className={styles.verifyBtn}
+                      onClick={() => verifyMutation.mutate({ id: claim.id, status: 1 })}
+                    >
+                      Verify Claim
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </Surface>

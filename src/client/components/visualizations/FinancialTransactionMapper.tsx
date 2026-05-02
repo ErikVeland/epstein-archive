@@ -617,7 +617,6 @@ export default function FinancialTransactionMapper({
                               }}
                               investigations={[]} // This needs to be populated from context or props
                               onAddToInvestigation={(invId, item, relevance) => {
-                                console.log('Add to investigation', invId, item, relevance);
                                 const event = new CustomEvent('add-to-investigation', {
                                   detail: { investigationId: invId, item, relevance },
                                 });
@@ -790,7 +789,6 @@ export default function FinancialTransactionMapper({
                       }}
                       investigations={[]} // This needs to be populated from context or props
                       onAddToInvestigation={(invId, item, relevance) => {
-                        console.log('Add to investigation', invId, item, relevance);
                         const event = new CustomEvent('add-to-investigation', {
                           detail: { investigationId: invId, item, relevance },
                         });

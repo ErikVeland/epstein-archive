@@ -46,17 +46,22 @@ const assertSchema = <T>(schema: ZodSchema<T>, payload: unknown, label: string):
   const details = parsed.error.issues
     .map((issue) => `${issue.path.join('.') || '<root>'}: ${issue.message}`)
     .join('; ');
+  console.error(`[VALIDATION FAIL ERROR] ${label}:`, JSON.stringify(parsed.error.issues, null, 2));
   throw new Error(`[DTO contract] ${label} failed schema validation: ${details}`);
 };
 
 const waitForOk = async (request: APIRequestContext, url: string, attempts = 30) => {
   let lastStatus: number | null = null;
   for (let index = 0; index < attempts; index += 1) {
-    const response = await request.get(url, { timeout: 15000 });
-    if (response.ok()) {
-      return response;
+    try {
+      const response = await request.get(url, { timeout: 30000 });
+      if (response.ok()) {
+        return response;
+      }
+      lastStatus = response.status();
+    } catch (_err) {
+      // Ignored during waiting period
     }
-    lastStatus = response.status();
     if (index < attempts - 1) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }

@@ -179,3 +179,50 @@
     transform: translateY(0);
   }
 }
+
+/* Inline rejection UI */
+.rejectInline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.rejectInput {
+  flex: 1;
+  min-width: 0;
+  background: color-mix(in srgb, var(--error-bg, #ef4444) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error-bg, #ef4444) 40%, transparent);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.rejectInput:focus {
+  border-color: var(--error-bg, #ef4444);
+}
+
+.rejectInput::placeholder {
+  color: var(--text-muted);
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancelBtn:hover {
+  background: color-mix(in srgb, var(--glass-bg) 60%, transparent);
+  color: var(--text-primary);
+}

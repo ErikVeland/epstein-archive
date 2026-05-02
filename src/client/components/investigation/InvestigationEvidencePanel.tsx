@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Icon from '@client/components/common/Icon';
 import type { IconName } from '@client/components/common/Icon';
+import { useToasts } from '../common/useToasts';
 
 // UI Library
 import {
@@ -59,6 +60,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
   onClose,
   onChainOfCustody,
 }) => {
+  const { addToast } = useToasts();
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [entityCoverage, setEntityCoverage] = useState<Entity[]>([]);
   const [typeBreakdown, setTypeBreakdown] = useState<Record<string, number>>({});
@@ -120,12 +122,13 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
   }, [loadEvidenceSummary]);
 
   const handleDeleteEvidence = async (id: number) => {
-    if (!window.confirm('Remove this evidence item from the investigation?')) return;
     try {
       await apiClient.removeEvidenceFromInvestigation(String(id));
       setEvidence((prev) => prev.filter((e) => e.id !== id));
+      addToast({ text: 'Evidence item removed', type: 'info' });
     } catch (error) {
       console.error(error);
+      addToast({ text: 'Failed to remove evidence item', type: 'error' });
     }
   };
 

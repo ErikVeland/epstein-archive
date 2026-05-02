@@ -75,7 +75,7 @@ export const mapInvestigationEvidenceListItemDto = (
     addedBy,
     // Back-compat aliases used by some UI normalizers
     extractedAt: addedAt,
-    extractedBy: addedBy ?? undefined,
+    extractedBy: addedBy ?? 'system',
   };
 };
 

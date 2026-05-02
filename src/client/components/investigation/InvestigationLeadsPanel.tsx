@@ -317,10 +317,15 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                             size="sm"
                             className={`${styles.deleteButton} ${styles.actionButtonDanger}`}
                             onClick={() => {
-                              if (window.confirm('Delete signal?'))
-                                apiClient
-                                  .delete(`/investigations/${investigationId}/leads/${lead.id}`)
-                                  .then(() => loadLeads());
+                              apiClient
+                                .delete(`/investigations/${investigationId}/leads/${lead.id}`)
+                                .then(() => {
+                                  addToast({ text: 'Signal deleted', type: 'info' });
+                                  return loadLeads();
+                                })
+                                .catch(() =>
+                                  addToast({ text: 'Failed to delete signal', type: 'error' }),
+                                );
                             }}
                           >
                             <Icon name="Trash2" size="xs" />

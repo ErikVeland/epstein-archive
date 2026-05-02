@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useMemory } from '@client/contexts/MemoryContext';
 import type { MemoryEntry, MemorySearchFilters } from '@client/types/memory';
 import s from './MemoryDashboard.module.css';
+import { useToasts } from '../common/useToasts';
 
 import { Button, Input, NativeSelect, TextArea } from '@client/design-system/lib';
 
 const MemoryDashboard: React.FC = () => {
+  const { addToast } = useToasts();
   const {
     state,
     loadMemoryEntries,
@@ -62,12 +64,11 @@ const MemoryDashboard: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this memory entry?')) {
-      await deleteMemoryEntry(id);
-      if (selectedMemory?.id === id) {
-        setSelectedMemory(null);
-        selectMemoryEntry(null);
-      }
+    await deleteMemoryEntry(id);
+    addToast({ text: 'Memory entry deleted', type: 'info' });
+    if (selectedMemory?.id === id) {
+      setSelectedMemory(null);
+      selectMemoryEntry(null);
     }
   };
 

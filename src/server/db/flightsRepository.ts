@@ -182,8 +182,11 @@ export const flightsRepository = {
         .map((p) => ({
           ...p,
           id: Number(p.id),
+          flightId: Number(p.flightId),
           flight_id: Number(p.flightId),
+          entityId: p.entityId ? Number(p.entityId) : undefined,
           entity_id: p.entityId ? Number(p.entityId) : undefined,
+          passengerName: p.passengerName,
           passenger_name: p.passengerName,
         })),
     }));
@@ -231,8 +234,11 @@ export const flightsRepository = {
       passengers: passengers.map((p) => ({
         ...p,
         id: Number(p.id),
+        flightId: Number(p.flightId),
         flight_id: Number(p.flightId),
+        entityId: p.entityId ? Number(p.entityId) : undefined,
         entity_id: p.entityId ? Number(p.entityId) : undefined,
+        passengerName: p.passengerName,
         passenger_name: p.passengerName,
       })),
     };

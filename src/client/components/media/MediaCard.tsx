@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../common/Card';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { IconName } from '../common/Icon';
@@ -20,6 +21,7 @@ interface MediaCardProps {
 }
 
 export const MediaCard: React.FC<MediaCardProps> = ({ media, onClick }) => {
+  const navigate = useNavigate();
   const metadata: { label: string; value: string | number; icon: IconName }[] = [
     { label: 'Linked Entities', value: media.linkedEntities, icon: 'Link' },
   ];
@@ -31,7 +33,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({ media, onClick }) => {
   const actionButtons = [
     {
       label: 'View in Timeline',
-      onClick: () => console.log('View in timeline clicked for:', media.title),
+      onClick: () => navigate(`/timeline?media=${encodeURIComponent(media.id)}`),
       variant: 'secondary' as const,
     },
   ];

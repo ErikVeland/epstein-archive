@@ -167,9 +167,12 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
   };
 
   const removeMember = (memberId: string) => {
-    if (!window.confirm('De-authorize this asset?')) return;
+    const member = team.find((m) => m.id === memberId);
     applyTeamUpdate(team.filter((m) => m.id !== memberId));
-    addToast({ text: 'Asset de-authorized.', type: 'warning' });
+    addToast({
+      text: `${member?.name ?? 'Asset'} de-authorized`,
+      type: 'warning',
+    });
   };
 
   const getRoleIcon = (role: TeamRole): IconName => {

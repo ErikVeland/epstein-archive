@@ -77,7 +77,6 @@ export class OptimizedDataService {
       throw new Error('API server not ready');
     }
     this.isInitialized = true;
-    console.log('OptimizedDataService initialized with API backend');
   }
 
   private getCacheKey(type: string, params: unknown): string {
@@ -117,7 +116,6 @@ export class OptimizedDataService {
     const cached = filters.searchTerm ? null : this.getCachedData<PaginatedResponse>(cacheKey);
 
     if (cached) {
-      console.log(`Cache hit for entities page ${page}`);
       return cached;
     }
 
@@ -128,7 +126,6 @@ export class OptimizedDataService {
 
     // Check if we're already fetching this page (prefetch)
     if (this.prefetchCache.has(cacheKey)) {
-      console.log(`Prefetch hit for entities page ${page}`);
       return this.prefetchCache.get(cacheKey)!;
     }
 
@@ -214,9 +211,6 @@ export class OptimizedDataService {
           // Remove from prefetch cache since we've fulfilled it
           this.prefetchCache.delete(cacheKey);
 
-          console.log(
-            `Fetched page ${page} with ${result.data.length} deduplicated entities from API (${result.total} total unique)`,
-          );
           return result;
         } catch (error) {
           console.warn(`API fetch failed (attempt ${attempt + 1}/${maxRetries + 1}):`, error);
@@ -274,7 +268,6 @@ export class OptimizedDataService {
     const cached = this.getCachedData<Person>(cacheKey);
 
     if (cached) {
-      console.log(`Cache hit for person ${id}`);
       return cached;
     }
 
@@ -284,7 +277,6 @@ export class OptimizedDataService {
       // Cache the result
       this.setCachedData(cacheKey, person);
 
-      console.log(`Fetched person ${id}: ${person.name}`);
       return person;
     } catch (error) {
       console.error(`Error fetching person ${id}:`, error);
@@ -303,7 +295,6 @@ export class OptimizedDataService {
     const cached = this.getCachedData<Person[]>(cacheKey);
 
     if (cached) {
-      console.log(`Cache hit for search: "${query}"`);
       return cached;
     }
 
@@ -313,7 +304,6 @@ export class OptimizedDataService {
       // Cache the result
       this.setCachedData(cacheKey, results);
 
-      console.log(`Search "${query}" returned ${results.length} results`);
       return results;
     } catch (error) {
       console.error(`Error searching for "${query}":`, error);
@@ -369,7 +359,6 @@ export class OptimizedDataService {
     const cached = this.getCachedData<Person[]>(cacheKey);
 
     if (cached) {
-      console.log('Cache hit for all people');
       return cached;
     }
 
@@ -388,7 +377,6 @@ export class OptimizedDataService {
       // Cache the result
       this.setCachedData(cacheKey, allPeople);
 
-      console.log(`Fetched ${allPeople.length} people for "all people" request`);
       return allPeople;
     } catch (error) {
       console.error('Error fetching all people:', error);
@@ -401,7 +389,6 @@ export class OptimizedDataService {
     this.cache.clear();
     this.prefetchCache.clear();
     this.statsCache = null;
-    console.log('All caches cleared');
   }
 }
 

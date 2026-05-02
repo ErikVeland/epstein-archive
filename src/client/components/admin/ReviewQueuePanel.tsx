@@ -290,7 +290,7 @@ export const ReviewQueuePanel: React.FC = () => {
                   {/* Action Buttons */}
                   <div className={styles.decisionSection}>
                     <Textarea
-                      placeholder="Add review notes... (optional)"
+                      placeholder="Add review notes or rejection reason... (optional)"
                       value={reviewNote}
                       onChange={(e) => setReviewNote(e.target.value)}
                       className={styles.reviewTextarea}
@@ -316,10 +316,7 @@ export const ReviewQueuePanel: React.FC = () => {
                         <span className={styles.decisionGroupLabel}>Reject</span>
                         <Button
                           onClick={() => {
-                            const reason = window.prompt('Reason for rejection?');
-                            if (reason !== null) {
-                              handleDecision(item.id, 'rejected', reason);
-                            }
+                            handleDecision(item.id, 'rejected', reviewNote || undefined);
                           }}
                           type="button"
                           variant="secondary"

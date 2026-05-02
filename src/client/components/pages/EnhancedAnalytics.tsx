@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import s from './EnhancedAnalytics.module.css';
 import { SunburstChart } from '../visualizations/SunburstChart';
@@ -184,6 +185,7 @@ const StatCard: React.FC<{
 );
 
 export const EnhancedAnalytics: React.FC = () => {
+  const navigate = useNavigate();
   const { filters, setFilters } = useFilters();
   const { onPersonSelect, filteredPeople } = useAnalytics();
 
@@ -195,7 +197,7 @@ export const EnhancedAnalytics: React.FC = () => {
   };
 
   const onTypeFilter = (type: string) => {
-    console.log('Filter by type:', type);
+    navigate(`/documents?search=${encodeURIComponent(type)}`);
   };
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -719,9 +721,7 @@ export const EnhancedAnalytics: React.FC = () => {
             loading={isEvidenceLoading}
             documents={edgeEvidence}
             onDocumentClick={(docId) => {
-              // Navigate to document view? Or just log for now
-              console.log('Open document', docId);
-              // Ideally this would open the Evidence Modal
+              navigate(`/documents?doc=${encodeURIComponent(docId)}`);
             }}
           />
         </div>

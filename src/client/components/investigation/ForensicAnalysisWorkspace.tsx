@@ -795,15 +795,6 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                         ))}
                       </Stack>
                     </Stack>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => console.log(selectedConfidenceDetails.factorInputs)}
-                    >
-                      <Icon name="ShieldCheck" size="sm" style={css({ marginRight: '0.25rem' })} />
-                      Log Raw Factor Inputs to Console
-                    </Button>
                   </Stack>
                 )}
               </Stack>

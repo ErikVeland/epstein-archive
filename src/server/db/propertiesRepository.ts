@@ -129,8 +129,16 @@ export const propertiesRepository = {
     `;
     const propertiesRes = await pool.query(query, [...params, limit, offset]);
 
+    const properties = (propertiesRes.rows as Property[]).map((row) => ({
+      ...row,
+      id: isNaN(Number(row.id)) ? row.id : Number(row.id),
+      linked_entity_id: row.linked_entity_id ? Number(row.linked_entity_id) : null,
+      is_epstein_property: row.is_epstein_property ? Number(row.is_epstein_property) : 0,
+      is_known_associate: row.is_known_associate ? Number(row.is_known_associate) : 0,
+    }));
+
     return {
-      properties: propertiesRes.rows as Property[],
+      properties,
       total,
       page,
       pageSize: limit,
