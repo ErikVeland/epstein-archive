@@ -447,11 +447,10 @@ function App() {
   }, [urlEntityId, prevUrlEntityId, documentModalId, documentModalInitial]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const [prevUrlEntityDataId, setPrevUrlEntityDataId] = useState<number | null>(null);
+  const [_prevUrlEntityDataId, _setPrevUrlEntityDataId] = useState<number | null>(null);
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track entityData changes to set selected person */
   useEffect(() => {
-    if (urlEntityData?.id && urlEntityData.id !== prevUrlEntityDataId) {
-      setPrevUrlEntityDataId(urlEntityData.id);
+    if (urlEntityData?.id && (!selectedPerson || selectedPerson.id !== urlEntityData.id)) {
       const photos: Photo[] = Array.isArray(urlEntityData.photos)
         ? (urlEntityData.photos as unknown[])
             .map((p) => {
@@ -512,7 +511,7 @@ function App() {
       };
       setSelectedPerson(person);
     }
-  }, [urlEntityData, prevUrlEntityDataId]);
+  }, [urlEntityData, selectedPerson]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const [prevPathname, setPrevPathname] = useState(location.pathname);
