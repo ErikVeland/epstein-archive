@@ -14,18 +14,18 @@ export const mapInvestigativeLeadDto = (row: Record<string, unknown>): Investiga
   id: Number(row.id || 0),
   investigationId: Number(row.investigationId ?? row.investigation_id ?? 0),
   title: String(row.title ?? ''),
-  description: row.description ?? null,
+  description: typeof row.description === 'string' ? row.description : null,
   status: (row.status ?? 'open') as LeadStatus,
   priority: (row.priority ?? 'medium') as LeadPriority,
   sourceDocumentId:
     (row.sourceDocumentId ?? row.source_document_id) != null
       ? Number(row.sourceDocumentId ?? row.source_document_id)
       : null,
-  sourceEftaRef: row.sourceEftaRef ?? row.source_efta_ref ?? null,
-  assignedTo: row.assignedTo ?? row.assigned_to ?? null,
-  createdBy: row.createdBy ?? row.created_by ?? null,
-  resolvedAt: row.resolvedAt ?? row.resolved_at ?? null,
-  resolutionNotes: row.resolutionNotes ?? row.resolution_notes ?? null,
+  sourceEftaRef: typeof row.sourceEftaRef === 'string' ? row.sourceEftaRef : null,
+  assignedTo: typeof row.assignedTo === 'string' ? row.assignedTo : null,
+  createdBy: typeof row.createdBy === 'string' ? row.createdBy : null,
+  resolvedAt: typeof row.resolvedAt === 'string' ? row.resolvedAt : null,
+  resolutionNotes: typeof row.resolutionNotes === 'string' ? row.resolutionNotes : null,
   createdAt: String(row.createdAt ?? row.created_at ?? ''),
   updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),
 });
@@ -35,7 +35,7 @@ export const mapInvestigationListItemDto = (
 ): InvestigationListItemDto => ({
   id: Number(row.id || 0),
   title: String(row.title ?? ''),
-  description: row.description ?? null,
+  description: typeof row.description === 'string' ? row.description : null,
   status: String(row.status ?? 'active'),
   priority: String(row.priority ?? 'medium'),
   createdAt: String(row.createdAt ?? row.created_at ?? ''),
