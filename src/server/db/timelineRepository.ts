@@ -388,9 +388,7 @@ export const timelineRepository = {
               return entityById.get(Number(value)) ?? null;
             }
             if (typeof value === 'string' && value.trim()) {
-              return (
-                entityByName.get(value.trim().toLowerCase()) ?? { id: null, name: value.trim() }
-              );
+              return entityByName.get(value.trim().toLowerCase()) ?? { name: value.trim() };
             }
             return null;
           })
