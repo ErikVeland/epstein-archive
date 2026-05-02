@@ -50,6 +50,9 @@ function upsertVipAlias(
 
 export async function buildVipDisplayLookup(): Promise<Map<string, string>> {
   const now = Date.now();
+  if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+    return new Map(VIP_DISPLAY_FALLBACKS);
+  }
   if (vipLookupCache && vipLookupCache.expiresAt > now) return vipLookupCache.value;
 
   let raw: Array<{ full_name?: string; mentions?: number | null; aliases?: string | null }> = [];

@@ -151,6 +151,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@esbuild/linux-arm64": "0.25.12",
     "@playwright/test": "^1.40.0",
     "@rollup/rollup-linux-arm64-gnu": "4.53.3",
     "@types/adm-zip": "^0.5.7",

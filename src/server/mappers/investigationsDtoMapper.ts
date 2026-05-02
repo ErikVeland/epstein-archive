@@ -30,7 +30,9 @@ export const mapInvestigativeLeadDto = (row: Record<string, unknown>): Investiga
   updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),
 });
 
-export const mapInvestigationListItemDto = (row: Record<string, unknown>): InvestigationListItemDto => ({
+export const mapInvestigationListItemDto = (
+  row: Record<string, unknown>,
+): InvestigationListItemDto => ({
   id: Number(row.id || 0),
   title: String(row.title ?? ''),
   description: row.description ?? null,

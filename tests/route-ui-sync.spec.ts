@@ -105,12 +105,16 @@ test.describe('Route to UI state synchronization', () => {
     let ok = false;
     for (let i = 0; i < 30; i++) {
       try {
-        const response = await request.get(`${API_BASE}/subjects?page=1&limit=1`, { timeout: 15000 });
+        const response = await request.get(`${API_BASE}/subjects?page=1&limit=1`, {
+          timeout: 15000,
+        });
         if (response.ok()) {
           ok = true;
           break;
         } else {
-          console.log(`[WAITING FOR SERVER] Status: ${response.status()} Text: ${await response.text()}`);
+          console.log(
+            `[WAITING FOR SERVER] Status: ${response.status()} Text: ${await response.text()}`,
+          );
         }
       } catch (err) {
         console.error(`[WAITING FOR SERVER] Error:`, err);

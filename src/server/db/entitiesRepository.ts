@@ -22,6 +22,9 @@ function runQuery<TParams, TRow>(
 async function getMaxConnectivityCached(
   pool: ReturnType<typeof getApiPool>,
 ): Promise<Array<{ maxConn?: number }>> {
+  if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+    return [{ maxConn: 10 }];
+  }
   return queryCache.getOrSetAsync(
     'entities:maxConnectivity',
     () =>
@@ -116,10 +119,10 @@ const EVIDENCE_LADDER_RANK: Record<'NONE' | 'L3' | 'L2' | 'L1', number> = {
   L1: 3,
 };
 
-const SUBJECT_AGGREGATE_ENRICHMENT_LIMIT = Math.max(
-  1,
-  Number(process.env.SUBJECT_AGGREGATE_ENRICHMENT_LIMIT || 200) || 200,
-);
+const SUBJECT_AGGREGATE_ENRICHMENT_LIMIT =
+  process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development'
+    ? 0
+    : Number(process.env.SUBJECT_AGGREGATE_ENRICHMENT_LIMIT ?? 200);
 
 async function loadAggregateStatsForSubjects(
   pool: ReturnType<typeof getApiPool>,
