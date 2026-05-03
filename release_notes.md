@@ -1,5 +1,16 @@
 # Release Notes
 
+## 20.1.1 - 2026-05-03 - Mobile Modal Space Optimization
+
+### Mobile Space Optimization
+
+- **Entity Card Headers (`EvidenceModal`)**: Replaced the long horizontal list of buttons with a compact single-line dropdown and hid unnecessary elements on mobile viewports to maximize viewable content.
+- **Document Viewer (`DocumentModal`)**: Migrated the tabs bar to a sleek select dropdown on mobile to save vertical space.
+
+### Spacing Improvements
+
+- **People Page**: Added spacing between Entity Type and Sort By dropdown filters.
+
 ## 20.1.0 - 2026-05-03 - Restored Timeline Design & Ingestion Optimization
 
 ### Visual UI Restorations

@@ -69,6 +69,10 @@
   max-width: 18.75rem;
 }
 
+.filterWrap + .filterWrap {
+  margin-left: var(--space-4);
+}
+
 @media (max-width: 479px) {
   .filterWrap {
     flex: 1 1 100%;
@@ -101,14 +105,13 @@
 }
 
 .toolbarSummary {
-  width: 100%;
-  margin-top: var(--space-2);
   color: var(--text-muted);
   font-size: 0.7rem;
   letter-spacing: 0.05em;
-  text-align: right;
   text-transform: uppercase;
   opacity: 0.8;
+  white-space: nowrap;
+  margin-left: var(--space-3);
 }
 
 .resultsShell {
@@ -325,10 +328,6 @@
      (z-index: 40) whose open menus (z-index: 1200 inside) overlap and block the card
      grid below. Removed until a proper mobile filter sheet is added. */
   .toolbarCard {
-    display: none;
-  }
-
-  .toolbarSummary {
     display: none;
   }
 

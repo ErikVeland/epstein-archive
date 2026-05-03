@@ -623,14 +623,47 @@ export const DocumentModal: React.FC<Props> = ({
                 downloadOriginalDocument={downloadOriginalDocument}
                 onClose={onClose}
               />
+              <div className={styles.mobileTabsDropdownContainer}>
+                <label htmlFor="doc-mobile-tabs-select" className={styles.mobileTabsLabel}>
+                  Section:
+                </label>
+                <select
+                  id="doc-mobile-tabs-select"
+                  className={styles.mobileTabsSelect}
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value as ViewerTab)}
+                >
+                  {viewerTabs.map((tab) => {
+                    const labelStr =
+                      typeof tab.label === 'string'
+                        ? tab.label
+                        : tab.key === 'pdf'
+                          ? 'Original Document'
+                          : tab.key === 'analysis'
+                            ? 'Summary & Analysis'
+                            : tab.key === 'claims'
+                              ? 'AI Claims'
+                              : tab.key === 'assets'
+                                ? 'Recovered Assets'
+                                : 'Provenance';
+                    return (
+                      <option key={tab.key} value={tab.key}>
+                        {labelStr}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
 
-              <Tabs
-                tabs={viewerTabs}
-                activeTab={activeTab}
-                onChange={(key) => setActiveTab(key as ViewerTab)}
-                variant="viewer"
-                className={styles.tabsOverride}
-              />
+              <div className={styles.desktopTabsContainer}>
+                <Tabs
+                  tabs={viewerTabs}
+                  activeTab={activeTab}
+                  onChange={(key) => setActiveTab(key as ViewerTab)}
+                  variant="viewer"
+                  className={styles.tabsOverride}
+                />
+              </div>
             </div>
 
             <div className={styles.mobileScrollArea} ref={mobileScrollAreaRef}>

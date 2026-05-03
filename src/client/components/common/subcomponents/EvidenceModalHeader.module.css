@@ -451,6 +451,63 @@
   }
 }
 
+.mobileTabsDropdownContainer {
+  display: none;
+}
+
+.desktopTabsContainer {
+  display: block;
+  flex: 1 0 100%;
+}
+
+@media (max-width: 767px) {
+  .forensicContainer {
+    display: none !important;
+  }
+
+  .mobileActions {
+    display: none !important;
+  }
+
+  .mobileTabsDropdownContainer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    margin-top: var(--space-1);
+    background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    box-sizing: border-box;
+  }
+
+  .mobileTabsLabel {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .mobileTabsSelect {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: var(--space-1) 0;
+    outline: none;
+    cursor: pointer;
+    color-scheme: dark !important;
+  }
+
+  .desktopTabsContainer {
+    display: none !important;
+  }
+}
+
 .closeBtn {
   position: absolute;
   top: var(--space-6);

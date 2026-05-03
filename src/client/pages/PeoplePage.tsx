@@ -19,7 +19,6 @@ import {
   Stack,
   Surface,
 } from '@client/design-system/lib';
-import { ProgressiveIntelligencePanel } from '@client/components/intelligence/ProgressiveIntelligencePanel';
 import { usePageScrollRestoration } from '@client/hooks/usePageScrollRestoration';
 import styles from './PeoplePage.module.css';
 
@@ -150,8 +149,6 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
             />
           )}
 
-          <ProgressiveIntelligencePanel />
-
           <Surface variant="panel" className={styles.toolbarCard}>
             <Flex wrap="wrap" align="center" justify="between" gap="md" fullWidth>
               <Flex align="center" className={styles.toolbarMetaRow}>
@@ -159,6 +156,9 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 <p className={styles.toolbarMeta}>
                   {total.toLocaleString()} subjects • Page {page}/{totalPagesLocal || 1}
                 </p>
+                <span className={styles.toolbarSummary}>
+                  Sort: {sortBy.replace('_', ' ')} ({sortOrder})
+                </span>
               </Flex>
 
               <Flex gap="md" align="center" className={styles.toolbarControls}>
@@ -221,10 +221,6 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                   </span>
                 </Button>
               </Flex>
-
-              <div className={styles.toolbarSummary}>
-                Sort: {sortBy.replace('_', ' ')} ({sortOrder})
-              </div>
             </Flex>
           </Surface>
 

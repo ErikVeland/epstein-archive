@@ -208,14 +208,33 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
           )}
         </div>
       )}
+      <div className={s.mobileTabsDropdownContainer}>
+        <label htmlFor="mobile-tabs-select" className={s.mobileTabsLabel}>
+          Section:
+        </label>
+        <select
+          id="mobile-tabs-select"
+          className={s.mobileTabsSelect}
+          value={activeTab}
+          onChange={(e) => onTabChange(e.target.value)}
+        >
+          {tabs.map((tab) => (
+            <option key={tab.key} value={tab.key}>
+              {tab.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      <Tabs
-        tabs={tabs}
-        activeTab={activeTab}
-        onChange={onTabChange}
-        className={s.tabsOverride}
-        variant="viewer"
-      />
+      <div className={s.desktopTabsContainer}>
+        <Tabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={onTabChange}
+          className={s.tabsOverride}
+          variant="viewer"
+        />
+      </div>
 
       <CloseButton
         onClick={onClose}
