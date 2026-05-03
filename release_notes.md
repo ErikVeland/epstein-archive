@@ -1,5 +1,13 @@
 # Release Notes
 
+## 20.1.2 - 2026-05-04 - Mobile Document Viewer Enhancements & 404 Resolution
+
+### Mobile Fixes
+
+- **404 Image Fix**: Re-mapped absolute local paths in the database to resolve seamlessly against the production environment cwd `data` folder.
+- **Header Duplicate Removal**: Eliminated redundant title headers on the mobile document modal.
+- **Mobile Styling Polish**: Decreased margins and improved spacing to optimize vertical layout on smaller screen sizes.
+
 ## 20.1.1 - 2026-05-03 - Mobile Modal Space Optimization
 
 ### Mobile Space Optimization

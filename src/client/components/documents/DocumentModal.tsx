@@ -608,7 +608,6 @@ export const DocumentModal: React.FC<Props> = ({
       <LiquidSheet
         isOpen={id !== undefined}
         onClose={onClose}
-        title={doc.title || doc.fileName || 'Record'}
         className={cn(styles.mobileSheet, isImmersive && styles.immersiveReading)}
       >
         <div className={styles.mobileLayout}>

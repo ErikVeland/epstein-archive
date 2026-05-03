@@ -20,6 +20,12 @@ export function resolveMediaPath(dbPath: string, fallbackDir: string = 'data'): 
 
   const cwd = process.cwd();
 
+  // Robust parsing: extract anything after 'data/' in the path if present.
+  const dataMatch = dbPath.match(/(?:^|[/\\])data[/\\](.+)/i);
+  if (dataMatch) {
+    return path.join(cwd, 'data', dataMatch[1].replace(/\\/g, '/'));
+  }
+
   // Path starting with /data/ - resolve relative to cwd
   if (dbPath.startsWith('/data/')) {
     return path.join(cwd, dbPath.substring(1));
@@ -40,7 +46,8 @@ export function resolveMediaPath(dbPath: string, fallbackDir: string = 'data'): 
     const dataRoot = path.resolve(cwd, 'data');
     const normalizedRoot = dataRoot.endsWith(path.sep) ? dataRoot : `${dataRoot}${path.sep}`;
     if (dbPath !== dataRoot && !dbPath.startsWith(normalizedRoot)) {
-      return ''; // Reject paths outside data/
+      const basename = path.basename(dbPath);
+      return path.join(cwd, fallbackDir, basename);
     }
     return dbPath;
   }
