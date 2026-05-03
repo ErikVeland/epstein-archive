@@ -7,7 +7,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useIsTouch } from '@client/hooks/useIsTouch';
 import { useParams, Link } from 'react-router-dom';
-import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
+import {
+  useBackLinkState,
+  useReliableBackNavigation,
+} from '@client/hooks/useReliableBackNavigation';
 import Icon from '@client/components/common/Icon';
 import { EmailViewer } from '@client/components/evidence/EmailViewer';
 import { DepositionViewer } from '@client/components/evidence/DepositionViewer';
@@ -24,6 +27,7 @@ import { Flex } from '@client/design-system/components/layout/Flex';
 import { Box } from '@client/design-system/components/layout/Box';
 import { Grid } from '@client/design-system/components/layout/Grid';
 import { LqText } from '@client/design-system/components/typography/Text';
+import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
 import styles from './EvidenceDetail.module.css';
 
 import { Button } from '@client/design-system/lib';
@@ -67,6 +71,7 @@ export function EvidenceDetail() {
   const { id } = useParams<{ id: string }>();
   const backLinkState = useBackLinkState();
   const isTouch = useIsTouch();
+  const { goBack } = useReliableBackNavigation('/evidence');
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -209,7 +214,7 @@ export function EvidenceDetail() {
           <LqText as="p" variant="body" color="primary" className={styles.statusText}>
             {error || 'Evidence not found'}
           </LqText>
-          <Link to="/evidence" className={styles.backLink}>
+          <Link to="/evidence" state={backLinkState} className={styles.backLink}>
             ← Back to Evidence List
           </Link>
         </Box>
@@ -229,49 +234,85 @@ export function EvidenceDetail() {
       {/* Header */}
       <Box className={styles.headerBar}>
         <Box className={styles.shell}>
-          <Flex align="center" justify="between">
-            <Flex align="center" gap={4}>
-              <Link to="/evidence" className={styles.backButton}>
-                <Icon name="ChevronLeft" className={styles.backIcon} />
-                <span className={styles.backLabel}>Back</span>
-              </Link>
-              <Box>
-                <LqText as="h1" variant="h3" color="primary" className={styles.headerTitle}>
-                  {evidence.title}
-                </LqText>
-                <LqText as="p" variant="body" color="muted" className={styles.headerMeta}>
-                  {evidence.originalFilename}
-                </LqText>
-              </Box>
-            </Flex>
+          {isTouch ? (
+            <MobileStackHeader
+              title={evidence.title}
+              subtitle={evidence.originalFilename}
+              onBack={() => goBack('/evidence')}
+              actions={
+                <>
+                  <Button
+                    unstyled
+                    onClick={handleShare}
+                    className={styles.iconButton}
+                    aria-label="Share evidence"
+                  >
+                    <Icon name="Share2" className={styles.actionIcon} />
+                  </Button>
+                  <Button
+                    unstyled
+                    onClick={handleBookmark}
+                    className={styles.iconButton}
+                    aria-label="Bookmark evidence"
+                  >
+                    <Icon name="Bookmark" className={styles.actionIcon} />
+                  </Button>
+                  <Button
+                    unstyled
+                    onClick={handleDownload}
+                    className={styles.iconButton}
+                    aria-label="Download evidence file"
+                  >
+                    <Icon name="Download" className={styles.actionIcon} />
+                  </Button>
+                </>
+              }
+            />
+          ) : (
+            <Flex align="center" justify="between">
+              <Flex align="center" gap={4}>
+                <Link to="/evidence" state={backLinkState} className={styles.backButton}>
+                  <Icon name="ChevronLeft" className={styles.backIcon} />
+                  <span className={styles.backLabel}>Back</span>
+                </Link>
+                <Box>
+                  <LqText as="h1" variant="h3" color="primary" className={styles.headerTitle}>
+                    {evidence.title}
+                  </LqText>
+                  <LqText as="p" variant="body" color="muted" className={styles.headerMeta}>
+                    {evidence.originalFilename}
+                  </LqText>
+                </Box>
+              </Flex>
 
-            <Flex align="center" gap={2} className={styles.headerActions}>
-              <Button
-                unstyled
-                onClick={handleShare}
-                className={styles.iconButton}
-                aria-label="Share evidence"
-              >
-                <Icon name="Share2" className={styles.actionIcon} />
-              </Button>
-              <Button
-                unstyled
-                onClick={handleBookmark}
-                className={styles.iconButton}
-                aria-label="Bookmark evidence"
-              >
-                <Icon name="Bookmark" className={styles.actionIcon} />
-              </Button>
-              <Button
-                unstyled
-                onClick={handleDownload}
-                className={styles.iconButton}
-                aria-label="Download evidence file"
-              >
-                <Icon name="Download" className={styles.actionIcon} />
-              </Button>
+              <Flex align="center" gap={2} className={styles.headerActions}>
+                <Button
+                  unstyled
+                  onClick={handleShare}
+                  className={styles.iconButton}
+                  aria-label="Share evidence"
+                >
+                  <Icon name="Share2" className={styles.actionIcon} />
+                </Button>
+                <Button
+                  unstyled
+                  onClick={handleBookmark}
+                  className={styles.iconButton}
+                  aria-label="Bookmark evidence"
+                >
+                  <Icon name="Bookmark" className={styles.actionIcon} />
+                </Button>
+                <Button
+                  unstyled
+                  onClick={handleDownload}
+                  className={styles.iconButton}
+                  aria-label="Download evidence file"
+                >
+                  <Icon name="Download" className={styles.actionIcon} />
+                </Button>
+              </Flex>
             </Flex>
-          </Flex>
+          )}
           {actionNotice && (
             <LqText as="p" variant="small" color="muted" className={styles.notice}>
               {actionNotice}

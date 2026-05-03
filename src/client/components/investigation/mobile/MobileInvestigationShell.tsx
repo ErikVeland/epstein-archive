@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
@@ -28,6 +28,14 @@ import styles from './MobileInvestigationShell.module.css';
 import { Button } from '@client/design-system/lib';
 
 type ActiveDest = 'board' | 'evidence' | 'activity';
+const VALID_TABS = new Set<string>(['board', 'evidence', 'activity']);
+const VALID_TOOLS = new Set<string>([
+  'timeline',
+  'forensic',
+  'communications',
+  'hypotheses',
+  'export',
+]);
 
 const TOOL_LABELS: Record<MoreTool, string> = {
   timeline: 'Event Chronology',
@@ -58,26 +66,34 @@ export function MobileInvestigationShell({
   const [searchParams, setSearchParams] = useSearchParams();
   const { goBack } = useReliableBackNavigation(`/investigations/${invId}`);
 
-  const VALID_TABS = new Set<string>(['board', 'evidence', 'activity']);
-  const VALID_TOOLS = new Set<string>([
-    'timeline',
-    'forensic',
-    'communications',
-    'hypotheses',
-    'export',
-  ]);
-
   const rawTab = searchParams.get('tab') ?? 'board';
   const activeDest: ActiveDest = VALID_TABS.has(rawTab) ? (rawTab as ActiveDest) : 'board';
   const rawTool = searchParams.get('tool');
   const moreDest: MoreTool | null =
     rawTool && VALID_TOOLS.has(rawTool) ? (rawTool as MoreTool) : null;
 
+  useEffect(() => {
+    const hasInvalidTab = searchParams.has('tab') && !VALID_TABS.has(rawTab);
+    const hasInvalidTool = rawTool !== null && !VALID_TOOLS.has(rawTool);
+    if (!hasInvalidTab && !hasInvalidTool) return;
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (hasInvalidTab) next.delete('tab');
+        if (hasInvalidTool) next.delete('tool');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [rawTab, rawTool, searchParams, setSearchParams]);
+
   const setActiveDest = useCallback(
     (dest: ActiveDest) => {
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
+          next.delete('tool');
           if (dest === 'board') next.delete('tab');
           else next.set('tab', dest);
           return next;
@@ -112,8 +128,22 @@ export function MobileInvestigationShell({
   );
 
   const handleBackFromTool = useCallback(() => {
+    if (searchParams.has('tool')) {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('tool');
+          if ((next.get('tab') ?? 'board') === 'board') {
+            next.delete('tab');
+          }
+          return next;
+        },
+        { replace: true },
+      );
+      return;
+    }
     goBack(`/investigations/${invId}`);
-  }, [goBack, invId]);
+  }, [goBack, invId, searchParams, setSearchParams]);
 
   const handleHypothesesUpdate = useCallback((updated: unknown[]) => {
     setHypotheses(updated as Hypothesis[]);

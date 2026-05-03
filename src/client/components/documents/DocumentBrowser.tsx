@@ -14,6 +14,7 @@ import { DocumentList } from './DocumentList';
 import { DocumentHoverPreview } from './DocumentHoverPreview';
 import { useDocumentBrowserData } from '@client/hooks/useDocumentBrowserData';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
+import { usePageScrollRestoration } from '@client/hooks/usePageScrollRestoration';
 import { useNavigate } from 'react-router-dom';
 import type { SearchMode } from '@client/services/apiClient';
 import styles from './DocumentBrowser.module.css';
@@ -225,6 +226,9 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     selectedDocumentId,
     searchMode,
   });
+  usePageScrollRestoration(
+    `/documents:${effectiveSearchTerm || ''}:${searchMode}:${sortBy}:${sortOrder}:${currentPage}`,
+  );
 
   const fileTypeOptions = useMemo(() => {
     if (!collection) return [];

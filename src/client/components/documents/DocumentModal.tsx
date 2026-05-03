@@ -33,6 +33,7 @@ import { DocumentAssetsTab } from './subcomponents/DocumentAssetsTab';
 import { ClaimsTab } from '../common/subcomponents/ClaimsTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '@client/utils/evidenceUtils';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 
 import { Button, cn } from '@client/design-system/lib';
 
@@ -77,6 +78,9 @@ interface Props {
 type ViewerTab = 'analysis' | 'pdf' | 'provenance' | 'assets' | 'claims';
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
+const VALID_VIEWER_TABS = new Set<ViewerTab>(['analysis', 'pdf', 'provenance', 'assets', 'claims']);
+const VALID_TEXT_SUBVIEWS = new Set<TextSubview>(['clean', 'ocr', 'diff']);
+
 const BASE_VIEWER_TABS: Array<{
   key: ViewerTab;
   label: React.ReactNode;
@@ -98,6 +102,7 @@ export const DocumentModal: React.FC<Props> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Record<string, number>>({});
 
@@ -119,7 +124,7 @@ export const DocumentModal: React.FC<Props> = ({
 
   const activeTab = useMemo((): ViewerTab => {
     const current = urlParams.get('modalTab');
-    if (current && BASE_VIEWER_TABS.some((tab) => tab.key === current)) {
+    if (current && VALID_VIEWER_TABS.has(current as ViewerTab)) {
       return current as ViewerTab;
     }
     return 'analysis';
@@ -137,12 +142,6 @@ export const DocumentModal: React.FC<Props> = ({
     [activeTab, location.pathname, location.search, navigate],
   );
 
-  useEffect(() => {
-    if (contentRef.current) {
-      contentRef.current.scrollTop = scrollPositions.current[activeTab] || 0;
-    }
-  }, [activeTab]);
-
   const [selectedEntity, setSelectedEntity] = useState<DocEntityRecord | null>(null);
   const [entityModalId, setEntityModalId] = useState<string | null>(null);
   const [showRecoveryHighlights, setShowRecoveryHighlights] = useState(true);
@@ -150,13 +149,47 @@ export const DocumentModal: React.FC<Props> = ({
   const [rightPaneCollapsed, setRightPaneCollapsed] = useState(true);
   const isMobile = useIsMobile();
   const [rightPaneWidth, setRightPaneWidth] = useState(() => (isMobile ? 300 : 320));
-  const [textSubview, setTextSubviewState] = useState<TextSubview>(
-    (urlParams.get('textMode') as TextSubview) || 'clean',
+  const [textSubview, setTextSubviewState] = useState<TextSubview>(() => {
+    const current = urlParams.get('textMode');
+    return current && VALID_TEXT_SUBVIEWS.has(current as TextSubview)
+      ? (current as TextSubview)
+      : 'clean';
+  });
+
+  const getScrollKey = useCallback(
+    (
+      tab: ViewerTab = activeTab,
+      mode: TextSubview = textSubview,
+      documentId: string = id,
+      mobile: boolean = isMobile,
+    ) =>
+      `${documentId}:${tab}:${tab === 'analysis' ? mode : 'static'}:${mobile ? 'mobile' : 'desktop'}`,
+    [activeTab, id, isMobile, textSubview],
+  );
+
+  const getScrollContainer = useCallback(
+    (mobile: boolean = isMobile) => (mobile ? mobileScrollAreaRef.current : contentRef.current),
+    [isMobile],
+  );
+
+  const persistScrollPosition = useCallback(
+    (
+      tab: ViewerTab = activeTab,
+      mode: TextSubview = textSubview,
+      documentId: string = id,
+      mobile: boolean = isMobile,
+    ) => {
+      const container = getScrollContainer(mobile);
+      if (!container) return;
+      scrollPositions.current[getScrollKey(tab, mode, documentId, mobile)] = container.scrollTop;
+    },
+    [activeTab, getScrollContainer, getScrollKey, id, isMobile, textSubview],
   );
 
   const setTextSubview = (mode: TextSubview) => {
+    persistScrollPosition();
     setTextSubviewState(mode);
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(location.search);
     params.set('textMode', mode);
     navigate(`${location.pathname}?${params.toString()}`, { replace: true });
   };
@@ -172,6 +205,26 @@ export const DocumentModal: React.FC<Props> = ({
   const { scrollDirection } = useScrollDirection(
     mobileScrollAreaRef as React.RefObject<HTMLElement>,
   );
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    let changed = false;
+    const rawModalTab = params.get('modalTab');
+    const rawTextMode = params.get('textMode');
+
+    if (rawModalTab && !VALID_VIEWER_TABS.has(rawModalTab as ViewerTab)) {
+      params.delete('modalTab');
+      changed = true;
+    }
+
+    if (rawTextMode && !VALID_TEXT_SUBVIEWS.has(rawTextMode as TextSubview)) {
+      params.delete('textMode');
+      changed = true;
+    }
+
+    if (!changed) return;
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  }, [location.pathname, location.search, navigate]);
 
   const {
     data: fetchedDoc,
@@ -239,6 +292,25 @@ export const DocumentModal: React.FC<Props> = ({
   }, [id]);
 
   useEffect(() => {
+    const key = getScrollKey(activeTab, textSubview, id, isMobile);
+    const positions = scrollPositions.current;
+    const restoreScroll = () => {
+      const container = getScrollContainer(isMobile);
+      if (!container) return;
+      container.scrollTop = positions[key] ?? 0;
+    };
+
+    const frame = window.requestAnimationFrame(restoreScroll);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      const container = getScrollContainer(isMobile);
+      if (!container) return;
+      positions[key] = container.scrollTop;
+    };
+  }, [activeTab, getScrollContainer, getScrollKey, id, isMobile, textSubview]);
+
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     const hasExplicitTab = params.has('modalTab');
 
@@ -268,16 +340,24 @@ export const DocumentModal: React.FC<Props> = ({
   }, [doc?.title, doc?.fileName]);
 
   useEffect(() => {
-    if (!localSearchTerm || !contentRef.current || activeTab !== 'analysis') return;
+    if (!localSearchTerm || activeTab !== 'analysis') return;
     const timeout = setTimeout(() => {
-      const firstMark = contentRef.current?.querySelector('mark');
+      const firstMark = getScrollContainer(isMobile)?.querySelector('mark');
       if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 120);
     return () => clearTimeout(timeout);
-  }, [activeTab, textSubview, localSearchTerm, doc?.content, doc?.contentRefined]);
+  }, [
+    activeTab,
+    doc?.content,
+    doc?.contentRefined,
+    getScrollContainer,
+    isMobile,
+    localSearchTerm,
+    textSubview,
+  ]);
 
   const modeFromUrl = urlParams.get('textMode') as TextSubview;
-  if (modeFromUrl && modeFromUrl !== textSubview) {
+  if (modeFromUrl && VALID_TEXT_SUBVIEWS.has(modeFromUrl) && modeFromUrl !== textSubview) {
     setTextSubviewState(modeFromUrl);
   }
 
@@ -448,8 +528,9 @@ export const DocumentModal: React.FC<Props> = ({
                 variant="secondary"
                 size="sm"
                 onClick={() => {
+                  persistScrollPosition();
                   onClose();
-                  navigate(`/emails?messageId=${id}`);
+                  navigate(`/emails?messageId=${id}`, { state: backLinkState });
                 }}
               >
                 Open Email Viewer
@@ -493,9 +574,12 @@ export const DocumentModal: React.FC<Props> = ({
                     (d): d is DocRecord => d.id !== undefined,
                   )}
                   isLoadingRelated={isLoadingRelated}
-                  onNavigateToDoc={(newId) =>
-                    navigate(`${location.pathname}?documentId=${encodeURIComponent(newId)}`)
-                  }
+                  onNavigateToDoc={(newId) => {
+                    persistScrollPosition();
+                    const params = new URLSearchParams(location.search);
+                    params.set('documentId', newId);
+                    navigate(`${location.pathname}?${params.toString()}`);
+                  }}
                   cleanText={cleanText}
                   ocrText={ocrText}
                 />

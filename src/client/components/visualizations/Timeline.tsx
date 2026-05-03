@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
@@ -64,6 +64,8 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   ]);
   useScrollLock(!!selectedEvent);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const navigate = useNavigate();
   const backLinkState = useBackLinkState();
   const openEntity = React.useCallback(
@@ -84,6 +86,29 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
     });
   }, [filteredEvents, sortOrder]);
+
+  // Scroll-triggered entrance animations — runs after sortedEvents resolves
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add(styles.visible);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.04, rootMargin: '0px 0px -10px 0px' },
+    );
+
+    const items = container.querySelectorAll<HTMLElement>(`.${styles.eventItem}`);
+    items.forEach((item) => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, [sortedEvents]);
 
   const toggleSignificanceFilter = (significance: 'high' | 'medium' | 'low') => {
     setFilteredSignificance((prev) => {
@@ -241,6 +266,10 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
         return styles.typeFinancial;
       case 'incident':
         return styles.typeIncident;
+      case 'email':
+        return styles.typeEmail;
+      case 'testimony':
+        return styles.typeTestimony;
       default:
         return styles.typeDefault;
     }
@@ -389,7 +418,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
         </div>
       </div>
 
-      <div className={styles.timelineContainer}>
+      <div className={styles.timelineContainer} ref={containerRef}>
         <ScopedErrorBoundary
           fallback={
             <div className={styles.errorCard}>
@@ -406,26 +435,25 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
             return (
               <React.Fragment key={event.id}>
                 {showYearDivider && (
-                  <div className={styles.yearDivider}>
-                    <div className={styles.yearDividerDot} />
-                    <span className={styles.yearDividerLabel}>{year}</span>
-                    <div className={styles.yearDividerLine} />
+                  <div className={styles.yearBlock}>
+                    <span className={styles.yearGlyph}>{year}</span>
+                    <div className={styles.yearRule} />
                   </div>
                 )}
-                <div className={styles.eventItem}>
-                  <div className={`${styles.timelineDot} ${getDotClass(event.significance)}`}></div>
+                <div className={styles.eventItem} style={{ '--i': index } as React.CSSProperties}>
+                  <div className={`${styles.timelineDot} ${getDotClass(event.significance)}`} />
 
                   <div
                     className={`${styles.eventCard} ${getSignificanceCardClass(event)}`}
                     onClick={() => setSelectedEvent(event)}
                   >
                     <div className={styles.eventMetaRow}>
-                      <span className={styles.datePill}>{formatDate(event.date)}</span>
                       <div className={`${styles.typeBadge} ${getTypeBadgeClass(event.type)}`}>
                         {getTypeIcon(event.type)}
                         <span>{event.type}</span>
                       </div>
                       {event.is_curated && <span className={styles.keyEventBadge}>KEY EVENT</span>}
+                      <span className={styles.datePill}>{formatDate(event.date)}</span>
                     </div>
 
                     <h3 className={styles.eventTitle}>{event.title}</h3>
@@ -452,14 +480,16 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                     {hasSupportSignal(event.support) && event.support && (
                       <div className={styles.supportRow}>
                         <span className={styles.supportPill}>
-                          Evidence: {event.support.evidence_count}
+                          {event.support.evidence_count} evidence
                         </span>
                         <span className={styles.supportPill}>
-                          Docs: {event.support.document_count}
+                          {event.support.document_count} docs
                         </span>
-                        <span className={styles.supportPill}>
-                          Media: {event.support.media_count}
-                        </span>
+                        {event.support.media_count > 0 && (
+                          <span className={styles.supportPill}>
+                            {event.support.media_count} media
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>

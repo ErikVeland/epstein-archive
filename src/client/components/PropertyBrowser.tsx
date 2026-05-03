@@ -7,6 +7,7 @@ import { PropertyAnalyticsView } from './properties/PropertyAnalyticsView';
 import { PropertyStatsHeader } from './properties/PropertyStatsHeader';
 import { PropertyDetailPanel } from './properties/PropertyDetailPanel';
 import { cn } from '@client/utils/cn';
+import { usePageScrollRestoration } from '@client/hooks/usePageScrollRestoration';
 import { Button, EmptyState } from '@client/design-system/lib';
 import type { Property, PropertyStats, ValueDistribution, TopOwner } from './properties/types';
 import styles from './PropertyBrowser.module.css';
@@ -25,6 +26,9 @@ export function PropertyBrowser(): React.ReactElement {
   const [minValue, setMinValue] = useState('');
   const [showAssociatesOnly, setShowAssociatesOnly] = useState(false);
   const [page, setPage] = useState(1);
+  usePageScrollRestoration(
+    `/properties:${viewMode}:${searchTerm}:${propertyType}:${minValue}:${showAssociatesOnly}:${page}`,
+  );
 
   const {
     data: stats,

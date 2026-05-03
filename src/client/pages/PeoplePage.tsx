@@ -20,6 +20,7 @@ import {
   Surface,
 } from '@client/design-system/lib';
 import { ProgressiveIntelligencePanel } from '@client/components/intelligence/ProgressiveIntelligencePanel';
+import { usePageScrollRestoration } from '@client/hooks/usePageScrollRestoration';
 import styles from './PeoplePage.module.css';
 
 interface DataStats {
@@ -65,6 +66,9 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
   onPersonClick,
 }) => {
   const [page, setPage] = useState(1);
+  usePageScrollRestoration(
+    `/people:${searchTerm}:${entityType}:${sortBy}:${sortOrder}:${selectedRiskLevel || 'all'}:${page}`,
+  );
 
   const PAGE_SIZE = 24;
   const {
