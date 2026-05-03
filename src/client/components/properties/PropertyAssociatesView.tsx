@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import Icon from '../common/Icon';
 import { formatCurrency } from '@client/utils/formatters';
 import type { Property } from './types';
@@ -12,6 +13,7 @@ interface PropertyAssociatesViewProps {
 export function PropertyAssociatesView({
   knownAssociates,
 }: PropertyAssociatesViewProps): React.ReactElement {
+  const backLinkState = useBackLinkState();
   return (
     <div className={styles.associatesView}>
       <div className={styles.header}>
@@ -34,7 +36,11 @@ export function PropertyAssociatesView({
                 {property.owner_name_1 ?? 'Unknown'}
               </div>
               {property.linked_entity_id !== null && (
-                <Link to={`/entity/${property.linked_entity_id}`} className={styles.viewProfile}>
+                <Link
+                  to={`/entity/${property.linked_entity_id}`}
+                  state={backLinkState}
+                  className={styles.viewProfile}
+                >
                   View Profile <Icon name="ExternalLink" size="sm" />
                 </Link>
               )}

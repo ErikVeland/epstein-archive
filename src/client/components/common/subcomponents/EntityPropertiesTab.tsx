@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import s from './EntityPropertiesTab.module.css';
 
 interface EntityProperty {
@@ -29,6 +30,7 @@ interface EntityPropertiesTabProps {
 }
 
 export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entityId }) => {
+  const backLinkState = useBackLinkState();
   const { data, isLoading, isError } = useQuery<{ properties: EntityProperty[] }>({
     queryKey: ['entity-properties', entityId],
     queryFn: async () => {
@@ -122,7 +124,7 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
                 )}
               </div>
 
-              <Link to={`/properties?id=${prop.id}`} className={s.viewLink}>
+              <Link to={`/properties?id=${prop.id}`} state={backLinkState} className={s.viewLink}>
                 View in Properties →
               </Link>
             </div>

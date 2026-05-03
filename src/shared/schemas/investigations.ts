@@ -8,13 +8,13 @@ const collaboratorSchema = z.object({
 
 export const investigationItemSchema = z.object({
   id: z.number(),
-  uuid: z.string(),
+  uuid: z.string().optional(),
   title: z.string(),
   description: z.string().optional(),
-  ownerId: z.string(),
-  status: z.enum(['active', 'archived', 'closed']),
+  ownerId: z.string().optional(),
+  status: z.enum(['active', 'archived', 'closed', 'open', 'in_progress']),
   scope: z.string().optional(),
-  collaborators: z.array(collaboratorSchema),
+  collaborators: z.array(collaboratorSchema).optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

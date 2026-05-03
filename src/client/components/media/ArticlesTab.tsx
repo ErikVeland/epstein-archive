@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { Article } from './ArticleCard';
 import {
   Badge,
@@ -41,6 +42,7 @@ const asNumber = (value: unknown, fallback = 0): number =>
 
 export const ArticlesTab: React.FC = () => {
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -337,7 +339,9 @@ export const ArticlesTab: React.FC = () => {
                       key={article.id}
                       variant="glass"
                       className={styles.articleCard}
-                      onClick={() => navigate(`/media/article/${article.id}`)}
+                      onClick={() =>
+                        navigate(`/media/article/${article.id}`, { state: backLinkState })
+                      }
                     >
                       <Box className={styles.hero}>
                         {article.imageUrl ? (

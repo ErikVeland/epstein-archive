@@ -13,6 +13,7 @@ import { DocumentBrowserFilters } from './DocumentBrowserFilters';
 import { DocumentList } from './DocumentList';
 import { DocumentHoverPreview } from './DocumentHoverPreview';
 import { useDocumentBrowserData } from '@client/hooks/useDocumentBrowserData';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useNavigate } from 'react-router-dom';
 import type { SearchMode } from '@client/services/apiClient';
 import styles from './DocumentBrowser.module.css';
@@ -53,6 +54,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   selectedDocumentId,
 }) => {
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const { filters: globalFilters } = useFilters();
   const navigation = useNavigation();
   const { searchTerm: contextSearchTerm, setSearchTerm: setContextSearchTerm } = navigation;
@@ -137,9 +139,11 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         params.delete('searchMode');
       }
       const query = params.toString();
-      navigate(`/documents/${encodeURIComponent(document.id)}${query ? `?${query}` : ''}`);
+      navigate(`/documents/${encodeURIComponent(document.id)}${query ? `?${query}` : ''}`, {
+        state: backLinkState,
+      });
     },
-    [effectiveSearchTerm, navigate, searchMode],
+    [backLinkState, effectiveSearchTerm, navigate, searchMode],
   );
 
   const setSearchMode = useCallback(

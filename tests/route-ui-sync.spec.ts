@@ -90,6 +90,40 @@ const resolveInvestigationAndEvidence = async (
   };
 };
 
+const resolveThreadAndMessage = async (
+  request: APIRequestContext,
+): Promise<{ threadId: string; messageId: string } | null> => {
+  const threadsResponse = await request.get(`${API_BASE}/emails/threads?mailboxId=all&limit=5`);
+  if (!threadsResponse.ok()) return null;
+
+  const threadsPayload = await threadsResponse.json();
+  const firstThread = Array.isArray(threadsPayload?.data)
+    ? threadsPayload.data.find((item: Record<string, unknown>) =>
+        String(item?.threadId || '').trim(),
+      )
+    : null;
+  if (!firstThread) return null;
+
+  const threadId = String(firstThread.threadId);
+  const detailResponse = await request.get(
+    `${API_BASE}/emails/threads/${encodeURIComponent(threadId)}`,
+  );
+  if (!detailResponse.ok()) return null;
+
+  const detailPayload = await detailResponse.json();
+  const firstMessage = Array.isArray(detailPayload?.messages)
+    ? detailPayload.messages.find((item: Record<string, unknown>) =>
+        String(item?.messageId || '').trim(),
+      )
+    : null;
+  if (!firstMessage) return null;
+
+  return {
+    threadId,
+    messageId: String(firstMessage.messageId),
+  };
+};
+
 const preparePage = async (page: import('@playwright/test').Page) => {
   await page.setViewportSize({ width: 1600, height: 1000 });
   await page.addInitScript(() => {
@@ -264,6 +298,71 @@ test.describe('Route to UI state synchronization', () => {
       { timeout: 20000 },
     );
     await expect(page.getByTestId('entity-modal-tab-flights')).toBeVisible({ timeout: 20000 });
+  });
+
+  test('people list navigation returns to the people surface after opening an entity', async ({
+    page,
+  }) => {
+    await preparePage(page);
+    await page.goto('/people');
+
+    const firstCard = page.getByTestId('subject-card').first();
+    const hasCard = await firstCard.isVisible({ timeout: 20000 }).catch(() => false);
+    if (!hasCard) {
+      test.skip(true, 'No subject cards available');
+      return;
+    }
+
+    await firstCard.click();
+    await expect(page).toHaveURL(/\/entity\/\d+/);
+
+    await page.getByRole('button', { name: 'Go back' }).click();
+    await expect(page).toHaveURL(/\/people(?:\?|$)/, { timeout: 20000 });
+    await expect(page.getByTestId('subject-card').first()).toBeVisible({ timeout: 20000 });
+  });
+
+  test('email evidence navigation returns to the originating thread and message', async ({
+    page,
+    request,
+  }) => {
+    const resolved = await resolveThreadAndMessage(request);
+    if (!resolved) {
+      test.skip(true, 'No email thread/message fixture available');
+      return;
+    }
+
+    await preparePage(page);
+    await page.goto(
+      `/emails?mailboxId=all&threadId=${encodeURIComponent(
+        resolved.threadId,
+      )}&messageId=${encodeURIComponent(resolved.messageId)}`,
+    );
+
+    const messageCard = page.locator(`[data-message-id="${resolved.messageId}"]`).first();
+    await expect(messageCard).toBeVisible({ timeout: 30000 });
+
+    const evidenceButton = messageCard.getByRole('button', { name: 'Evidence' }).first();
+    const evidenceVisible = await evidenceButton.isVisible({ timeout: 5000 }).catch(() => false);
+    if (!evidenceVisible) {
+      test.skip(true, 'Evidence button not available for selected email message');
+      return;
+    }
+
+    await evidenceButton.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/documents/${encodeURIComponent(resolved.messageId)}(?:\\?|$)`),
+    );
+
+    await page.getByRole('button', { name: 'Go back' }).click();
+    await expect(page).toHaveURL(
+      new RegExp(
+        `/emails\\?[^#]*threadId=${encodeURIComponent(resolved.threadId)}[^#]*messageId=${encodeURIComponent(resolved.messageId)}`,
+      ),
+      { timeout: 20000 },
+    );
+    await expect(page.locator(`[data-message-id="${resolved.messageId}"]`).first()).toBeVisible({
+      timeout: 20000,
+    });
   });
 
   test('investigation evidence deep links reconstruct case-folder UI for both route patterns', async ({

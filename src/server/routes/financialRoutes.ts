@@ -11,6 +11,19 @@ import {
 
 const router = express.Router();
 
+// Get one transaction for public share/detail pages.
+router.get('/transactions/:id', async (req, res, next) => {
+  try {
+    const transaction = await financialRepository.getTransactionById(req.params.id);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Transaction not found' });
+    }
+    res.json(mapFinancialTransactionDto(transaction));
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Get all transactions (with limit)
 router.get(
   '/transactions',

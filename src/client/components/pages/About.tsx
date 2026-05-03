@@ -1,7 +1,9 @@
 /// <reference types="vite/client" />
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 
 import { optimizedDataService } from '@client/services/OptimizedDataService';
 import { GlobalStatsPayload } from '@client/types/api';
@@ -25,6 +27,7 @@ interface PipelineStatus {
 }
 
 export const About: React.FC = () => {
+  const backLinkState = useBackLinkState();
   const { data: statsData = null } = useQuery<GlobalStatsPayload | null>({
     queryKey: ['about-statistics'],
     queryFn: async () => await optimizedDataService.getStatistics(),
@@ -382,7 +385,7 @@ export const About: React.FC = () => {
         </p>
 
         <div className={s.sourcesGrid}>
-          <a href="/blackbook" className={s.sourceCard}>
+          <Link to="/blackbook" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Unredacted Black Book
               <Icon name="Search" size="sm" className={s.searchLinkIcon} />
@@ -390,9 +393,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               1,101 contacts from Epstein's original 1990s address book.
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Flight%20Log" className={s.sourceCard}>
+          <Link to="/documents?q=Flight%20Log" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Epstein Flight Logs
               <Icon name="Search" size="sm" className={s.searchLinkIcon} />
@@ -400,9 +403,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Pilot logs documenting travel on Epstein's private aircraft ("Lolita Express").
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Jeeproject" className={s.sourceCard}>
+          <Link to="/documents?q=Jeeproject" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               The Estate Emails ("Jeeproject")
               <span className={s.badgeEmerald}>26,020 MSGs</span>
@@ -410,9 +413,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Massive archive of Yahoo emails (2007-2019) from the "Jeeproject" account.
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Oversight" className={s.sourceCard}>
+          <Link to="/documents?q=Oversight" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               House Oversight Production
               <span className={s.badgeEmerald}>~15,500 FILES</span>
@@ -424,9 +427,9 @@ export const About: React.FC = () => {
               <span className={s.dotRose}></span>
               Average Redaction: 12.4% (Calculated via OCR)
             </div>
-          </a>
+          </Link>
 
-          <a href="/documents?q=DOJ%20VOL00001" className={s.sourceCard}>
+          <Link to="/documents?q=DOJ%20VOL00001" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               DOJ Evidence Vol. 1<span className={s.badgeAmber}>NEW</span>
             </h3>
@@ -437,9 +440,9 @@ export const About: React.FC = () => {
               <span className={s.dotEmerald}></span>
               99.8% Unredacted (Raw Evidence)
             </div>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Ehud%20Barak" className={s.sourceCard}>
+          <Link to="/documents?q=Ehud%20Barak" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Ehud Barak Emails
               <span className={s.badgeEmerald}>1,411 MSGs</span>
@@ -447,9 +450,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Correspondence exchanged with former Israeli PM Ehud Barak (2013-2016).
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Indictment" className={s.sourceCard}>
+          <Link to="/documents?q=Indictment" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Legal Indictments
               <Icon name="Search" size="sm" className={s.searchLinkIcon} />
@@ -457,9 +460,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               2019 SDNY Sex Trafficking Indictment and related federal filings.
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=FBI" className={s.sourceCard}>
+          <Link to="/documents?q=FBI" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               FBI Investigation Files
               <Icon name="Search" size="sm" className={s.searchLinkIcon} />
@@ -467,17 +470,17 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Bureau 'Phase 1' release files regarding Epstein's activities.
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Masseuse" className={s.sourceCard}>
+          <Link to="/documents?q=Masseuse" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Masseuse List
               <span className={s.badgeRed}>KEY</span>
             </h3>
             <p className={s.sourceCardDesc}>Detailed schedule and contact list of massage staff.</p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Incriminating" className={s.sourceCard}>
+          <Link to="/documents?q=Incriminating" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               "Incriminating" Docs
               <span className={s.badgeRed}>KEY</span>
@@ -485,9 +488,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Documents explicitly marked as incriminating in the archive.
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Deposition" className={s.sourceCard}>
+          <Link to="/documents?q=Deposition" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Civil Depositions
               <Icon name="Search" size="sm" className={s.searchLinkIcon} />
@@ -495,9 +498,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Testimony from Maxwell, Giuffre, Sjoberg, and others (2016).
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Katie%20Johnson" className={s.sourceCard}>
+          <Link to="/documents?q=Katie%20Johnson" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               Katie Johnson Lawsuit
               <Icon name="Search" size="sm" className={s.searchLinkIcon} />
@@ -505,9 +508,9 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Federal complaint alleging abuse by Epstein and Trump.
             </p>
-          </a>
+          </Link>
 
-          <a href="/documents?q=Birthday%20Book" className={s.sourceCard}>
+          <Link to="/documents?q=Birthday%20Book" state={backLinkState} className={s.sourceCard}>
             <h3 className={s.sourceCardTitle}>
               The Birthday Book
               <Icon name="Search" size="sm" className={s.searchLinkIcon} />
@@ -515,7 +518,7 @@ export const About: React.FC = () => {
             <p className={s.sourceCardDesc}>
               Photo book and messages given to Epstein for his 50th birthday.
             </p>
-          </a>
+          </Link>
         </div>
       </div>
 

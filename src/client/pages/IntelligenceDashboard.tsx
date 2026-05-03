@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { apiClient } from '@client/services/apiClient';
 import { Surface, Flex, Box, LqText } from '@client/design-system/lib';
 import styles from './IntelligenceDashboard.module.css';
@@ -115,6 +116,7 @@ function ReadinessTile({
 }
 
 function WeakProvenanceQueue({ items }: { items: WeakProvenanceDoc[] }) {
+  const backLinkState = useBackLinkState();
   if (items.length === 0) return <EmptyQueue />;
   return (
     <div className={styles.queueList}>
@@ -130,6 +132,7 @@ function WeakProvenanceQueue({ items }: { items: WeakProvenanceDoc[] }) {
           </div>
           <Link
             to={`/documents?highlight=${doc.documentId}`}
+            state={backLinkState}
             className={styles.queueRowLink}
             title="Open in Document Browser"
           >
@@ -142,6 +145,7 @@ function WeakProvenanceQueue({ items }: { items: WeakProvenanceDoc[] }) {
 }
 
 function LowOcrQueue({ items }: { items: LowOcrDoc[] }) {
+  const backLinkState = useBackLinkState();
   if (items.length === 0) return <EmptyQueue />;
   return (
     <div className={styles.queueList}>
@@ -160,6 +164,7 @@ function LowOcrQueue({ items }: { items: LowOcrDoc[] }) {
           </div>
           <Link
             to={`/documents?highlight=${doc.documentId}`}
+            state={backLinkState}
             className={styles.queueRowLink}
             title="Open in Document Browser"
           >
@@ -172,6 +177,7 @@ function LowOcrQueue({ items }: { items: LowOcrDoc[] }) {
 }
 
 function FuzzyAliasQueue({ items }: { items: FuzzyEntityAlias[] }) {
+  const backLinkState = useBackLinkState();
   if (items.length === 0) return <EmptyQueue />;
   return (
     <div className={styles.queueList}>
@@ -188,6 +194,7 @@ function FuzzyAliasQueue({ items }: { items: FuzzyEntityAlias[] }) {
           </div>
           <Link
             to={`/people?entity=${alias.entityId}`}
+            state={backLinkState}
             className={styles.queueRowLink}
             title="Open entity"
           >
@@ -200,6 +207,7 @@ function FuzzyAliasQueue({ items }: { items: FuzzyEntityAlias[] }) {
 }
 
 function ThinHighRiskQueue({ items }: { items: ThinHighRiskEntity[] }) {
+  const backLinkState = useBackLinkState();
   if (items.length === 0) return <EmptyQueue />;
   return (
     <div className={styles.queueList}>
@@ -214,6 +222,7 @@ function ThinHighRiskQueue({ items }: { items: ThinHighRiskEntity[] }) {
           </div>
           <Link
             to={`/people?entity=${entity.entityId}`}
+            state={backLinkState}
             className={styles.queueRowLink}
             title="Open entity"
           >

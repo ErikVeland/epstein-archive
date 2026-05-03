@@ -1,6 +1,8 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
+import { Link } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import s from './EntityFinancialTab.module.css';
 
 interface Transaction {
@@ -23,6 +25,7 @@ interface EntityFinancialTabProps {
 }
 
 export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId, entityName }) => {
+  const backLinkState = useBackLinkState();
   const { data, isLoading, isError } = useQuery<{
     transactions: Transaction[];
     entityName: string;
@@ -137,12 +140,13 @@ export const EntityFinancialTab: React.FC<EntityFinancialTabProps> = ({ entityId
                 {tx.description && <p className={s.description}>{tx.description}</p>}
 
                 {tx.source_document_id && (
-                  <a
-                    href={`/documents?id=${encodeURIComponent(tx.source_document_id)}`}
+                  <Link
+                    to={`/documents?id=${encodeURIComponent(tx.source_document_id)}`}
+                    state={backLinkState}
                     className={s.sourceLink}
                   >
                     <Icon name="FileText" size="xs" /> View Source Document
-                  </a>
+                  </Link>
                 )}
               </div>
             );

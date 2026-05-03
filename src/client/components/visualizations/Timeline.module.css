@@ -222,7 +222,7 @@
 .eventItem {
   position: relative;
   padding-left: var(--spacing-12);
-  margin-bottom: var(--spacing-4);
+  margin-bottom: var(--spacing-8);
 }
 
 .timelineDot {
@@ -238,7 +238,7 @@
 .eventCard {
   border-radius: var(--radius-xl);
   border: 1px solid var(--glass-border);
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-5);
   cursor: pointer;
   backdrop-filter: blur(8px);
   transition: all var(--transition-base);
@@ -338,8 +338,8 @@
 }
 
 .eventTitle {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   margin-bottom: var(--spacing-1);
   transition: color var(--transition-base);

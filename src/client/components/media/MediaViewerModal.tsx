@@ -19,6 +19,7 @@ import { useAuth } from '@client/contexts/AuthContext';
 import LocationMap from '../visualizations/LocationMap';
 import TagSelector, { TagData } from '../common/TagSelector';
 import PeopleSelector, { PersonData } from '../entities/PeopleSelector';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import styles from './MediaViewerModal.module.css';
 
@@ -43,6 +44,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   );
   const [isZoomed, setIsZoomed] = useState(false);
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const { isAdmin } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
@@ -498,7 +500,12 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                     size="sm"
                     style={{ width: '100%' }}
                     onClick={() =>
-                      navigate(`/documents/${encodeURIComponent(String(currentImage.documentId))}`)
+                      navigate(
+                        `/documents/${encodeURIComponent(String(currentImage.documentId))}`,
+                        {
+                          state: backLinkState,
+                        },
+                      )
                     }
                     className={styles.provenanceLink}
                   >
@@ -619,7 +626,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               isAdmin={isAdmin}
               onTagClick={(tag) => {
                 onClose();
-                navigate(`/media?tagId=${tag.id}`);
+                navigate(`/media?tagId=${tag.id}`, { state: backLinkState });
               }}
             />
           </Stack>
@@ -639,7 +646,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 });
               } else {
                 onClose();
-                navigate(`/media?personId=${person.id}`);
+                navigate(`/media?personId=${person.id}`, { state: backLinkState });
               }
             }}
           />

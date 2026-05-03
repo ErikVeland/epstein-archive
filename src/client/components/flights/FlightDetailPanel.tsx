@@ -5,6 +5,7 @@ import Icon from '@client/components/common/Icon';
 import { Surface, Flex, Box, Stack, LqText, Button, cn } from '@client/design-system/lib';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { RouteMap } from '../visualizations/RouteMap';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import type { Flight, AirportCoords } from './types';
@@ -24,6 +25,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
   formatDate,
 }) => {
   useScrollLock(!!flight);
+  const backLinkState = useBackLinkState();
   type FlightPassenger = NonNullable<Flight['passengers']>[number];
 
   const manifestsByRole = useMemo(() => {
@@ -183,7 +185,11 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                               <Icon name="Shield" size="xs" />
                             </Surface>
                             {p.entity_id ? (
-                              <Link to={`/entity/${p.entity_id}`} className={styles.passengerLink}>
+                              <Link
+                                to={`/entity/${p.entity_id}`}
+                                state={backLinkState}
+                                className={styles.passengerLink}
+                              >
                                 <LqText variant="xs" weight="medium">
                                   {p.passenger_name}
                                 </LqText>
@@ -415,7 +421,11 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                               <Icon name="Shield" size="xs" />
                             </Surface>
                             {p.entity_id ? (
-                              <Link to={`/entity/${p.entity_id}`} className={styles.passengerLink}>
+                              <Link
+                                to={`/entity/${p.entity_id}`}
+                                state={backLinkState}
+                                className={styles.passengerLink}
+                              >
                                 <LqText variant="xs" weight="medium">
                                   {p.passenger_name}
                                 </LqText>

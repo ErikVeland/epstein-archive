@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { Button, Surface } from '@client/design-system/lib';
 import s from './AboutPage.module.css';
 
@@ -121,6 +122,7 @@ const getImpactChipClass = (color: string): string => {
 };
 
 export const AboutPage: React.FC = () => {
+  const backLinkState = useBackLinkState();
   const [stats, setStats] = useState({
     documents: 0,
     entities: 0,
@@ -415,12 +417,13 @@ export const AboutPage: React.FC = () => {
                         <Icon name="Eye" size="sm" /> View
                       </a>
                     ) : (
-                      <a
-                        href={`/documents?search=${encodeURIComponent(source.search || '')}`}
+                      <Link
+                        to={`/documents?search=${encodeURIComponent(source.search || '')}`}
+                        state={backLinkState}
                         className={s.viewBtn}
                       >
                         <Icon name="Eye" size="sm" /> View
-                      </a>
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -471,13 +474,14 @@ export const AboutPage: React.FC = () => {
                             View
                           </a>
                         ) : (
-                          <a
-                            href={`/documents?search=${encodeURIComponent(source.search || '')}`}
+                          <Link
+                            to={`/documents?search=${encodeURIComponent(source.search || '')}`}
+                            state={backLinkState}
                             className={s.viewBtn}
                           >
                             <Icon name="Eye" size="sm" />
                             View
-                          </a>
+                          </Link>
                         )}
                         {source.title === 'Unredacted Black Book' && (
                           <a

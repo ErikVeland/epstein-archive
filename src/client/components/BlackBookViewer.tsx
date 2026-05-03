@@ -5,6 +5,7 @@ import { extractCleanName, formatPhoneNumber } from '@client/utils/prettifyOCR';
 import { Link } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
 import { useNavigate } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
 import styles from './BlackBookViewer.module.css';
@@ -139,6 +140,7 @@ export const BlackBookViewer: React.FC = () => {
       : 'Failed to load Black Book entries'
     : null;
   const fetchBlackBookEntries = refetch;
+  const backLinkState = useBackLinkState();
 
   const extractName = useCallback((entryText?: string | null): string => {
     const lines = String(entryText || '').split('\n');
@@ -148,9 +150,9 @@ export const BlackBookViewer: React.FC = () => {
   const handleEntityClick = useCallback(
     (personId: number) => {
       if (!personId) return;
-      navigate(`/entity/${personId}`);
+      navigate(`/entity/${personId}`, { state: backLinkState });
     },
-    [navigate],
+    [backLinkState, navigate],
   );
 
   const getCategoryBadgeClass = (category: BlackBookEntry['entry_category']) => {
@@ -358,6 +360,7 @@ export const BlackBookViewer: React.FC = () => {
                                       </h3>
                                       <Link
                                         to={`/documents?search=${encodeURIComponent(displayName)}`}
+                                        state={backLinkState}
                                         className={styles.searchEvidenceLink}
                                         title="Search evidence for this name"
                                       >
@@ -412,12 +415,14 @@ export const BlackBookViewer: React.FC = () => {
                                         <div key={idx} className={styles.emailRow}>
                                           <Link
                                             to={`/emails?search=${encodeURIComponent(email)}`}
+                                            state={backLinkState}
                                             className={styles.emailLink}
                                           >
                                             {email}
                                           </Link>
                                           <Link
                                             to={`/emails?search=${encodeURIComponent(email)}`}
+                                            state={backLinkState}
                                             className={styles.emailActions}
                                           >
                                             <Icon
@@ -471,6 +476,7 @@ export const BlackBookViewer: React.FC = () => {
                                 {entry.document_id && (
                                   <Link
                                     to={`/documents/${encodeURIComponent(String(entry.document_id))}`}
+                                    state={backLinkState}
                                     className={styles.documentLink}
                                   >
                                     <Icon name="FileText" className={styles.tinyExternal} />

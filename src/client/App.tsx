@@ -61,7 +61,11 @@ import { SEO } from './components/common/SEO';
 import { useSeoConfig } from './hooks/useSeoConfig';
 import { useAppNavigation, tabLabels } from './hooks/useAppNavigation';
 import { useIsMobile } from './hooks/useIsMobile';
-import { useReliableBackNavigation, useTrackRouteHistory } from './hooks/useReliableBackNavigation';
+import {
+  useBackLinkState,
+  useReliableBackNavigation,
+  useTrackRouteHistory,
+} from './hooks/useReliableBackNavigation';
 import { parseReleaseNotes } from './utils/releaseNotes';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 import { useApiStatus } from './contexts/ApiStatusContext';
@@ -193,6 +197,17 @@ const FinancialPage = lazyWithRetry(
   () => import('./pages/FinancialPage').then((module) => ({ default: module.FinancialPage })),
   'FinancialPage',
 );
+const ClaimDetailPage = lazyWithRetry(
+  () => import('./pages/ClaimDetailPage').then((module) => ({ default: module.ClaimDetailPage })),
+  'ClaimDetailPage',
+);
+const FinancialTransactionDetailPage = lazyWithRetry(
+  () =>
+    import('./pages/FinancialTransactionDetailPage').then((module) => ({
+      default: module.FinancialTransactionDetailPage,
+    })),
+  'FinancialTransactionDetailPage',
+);
 
 import releaseNotesRaw from '@root/release_notes.md?raw';
 import styles from './App.module.css';
@@ -209,6 +224,7 @@ function App() {
   const { filters, setFilters } = useFilters();
   const { activeTab, location } = useAppNavigation();
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const { goBack } = useReliableBackNavigation();
   const { user: currentUser, isAdmin } = useAuth();
   const isMobile = useIsMobile();
@@ -1039,7 +1055,7 @@ function App() {
 
       // Update URL via router so UI/state stays synchronized
       if (person.id) {
-        navigate(`/entity/${person.id}`);
+        navigate(`/entity/${person.id}`, { state: backLinkState });
       }
 
       // Announce navigation for screen readers
@@ -1051,7 +1067,7 @@ function App() {
       document.body.appendChild(announcement);
       setTimeout(() => document.body.removeChild(announcement), 1000);
     },
-    [navigate],
+    [backLinkState, navigate],
   );
 
   const handleDocumentSuggestionClick = useCallback(
@@ -1059,9 +1075,9 @@ function App() {
       setSelectedPerson(null);
       setDocumentModalInitial(null);
       setDocumentModalId(documentId);
-      navigate(`/documents/${encodeURIComponent(documentId)}`);
+      navigate(`/documents/${encodeURIComponent(documentId)}`, { state: backLinkState });
     },
-    [navigate],
+    [backLinkState, navigate],
   );
 
   const openSearchResultsRoute = useCallback(() => {
@@ -2022,6 +2038,11 @@ function App() {
                             }
                           />
                           <Route path="/timeline/*" element={<TimelinePage />} />
+                          <Route path="/claims/:id" element={<ClaimDetailPage />} />
+                          <Route
+                            path="/financial/:id"
+                            element={<FinancialTransactionDetailPage />}
+                          />
                           <Route path="/financial/*" element={<FinancialPage />} />
                           <Route path="/flights/:id" element={<FlightDetailPage />} />
                           <Route path="/flights/*" element={<FlightsPage />} />

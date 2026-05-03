@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { useAuth } from '@client/contexts/AuthContext';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { SEO } from '../common/SEO';
 import { cn } from '@client/utils/cn';
 import styles from './MediaAndArticlesTab.module.css';
@@ -21,6 +22,7 @@ const FaceGallery = React.lazy(() =>
 export const MediaAndArticlesTab: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const { isAdmin } = useAuth();
   const [shareMetadata, setShareMetadata] = useState<{
     title: string;
@@ -50,9 +52,15 @@ export const MediaAndArticlesTab: React.FC = () => {
     if (location.pathname === '/media') {
       const params = new URLSearchParams(location.search);
       const hasAudioHints = params.has('albumId') || params.has('id');
-      navigate(hasAudioHints ? '/media/audio' : '/media/photos', { replace: true });
+      navigate(
+        {
+          pathname: hasAudioHints ? '/media/audio' : '/media/photos',
+          search: location.search,
+        },
+        { replace: true, state: backLinkState },
+      );
     }
-  }, [location.pathname, location.search, navigate]);
+  }, [backLinkState, location.pathname, location.search, navigate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -152,7 +160,13 @@ export const MediaAndArticlesTab: React.FC = () => {
   }, [location.pathname, location.search]);
 
   const navigateToTab = (tab: string) => {
-    navigate(`/media/${tab}`);
+    navigate(
+      {
+        pathname: `/media/${tab}`,
+        search: location.search,
+      },
+      { state: backLinkState },
+    );
   };
 
   const tabClassName = (tab: 'articles' | 'photos' | 'audio' | 'video' | 'faces') =>

@@ -143,3 +143,11 @@ export const useReliableBackNavigation = (defaultFallback: To = '/') => {
 
   return { goBack };
 };
+
+export const useBackLinkState = () => {
+  const location = useLocation();
+
+  return {
+    backTo: toPath(location),
+  } satisfies BackNavigationState;
+};

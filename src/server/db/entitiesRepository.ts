@@ -1127,7 +1127,9 @@ export const entitiesRepository = {
     const pool = getApiPool();
 
     const params: Array<unknown> = [id];
-    const whereParts: string[] = ['em.entity_id = $1::bigint'];
+    const whereParts: string[] = [
+      'd.id IN (SELECT em.document_id FROM entity_mentions em WHERE em.entity_id = $1::bigint)',
+    ];
 
     if (filters?.search?.trim()) {
       params.push(`%${filters.search.trim()}%`);
@@ -1196,7 +1198,6 @@ export const entitiesRepository = {
           d.content_refined,
           d.metadata_json
         FROM documents d
-        INNER JOIN entity_mentions em ON d.id = em.document_id
         WHERE ${whereParts.join(' AND ')}
         ORDER BY d.id
       )

@@ -11,6 +11,7 @@ import {
   getSourceLabel,
 } from '@client/utils/documentUtils';
 import { useIsMobile } from '@client/hooks/useResponsive';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { cn } from '@client/utils/cn';
 import styles from './DocumentHoverPreview.module.css';
 
@@ -26,6 +27,7 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({
   onClose,
 }) => {
   const isMobile = useIsMobile();
+  const backLinkState = useBackLinkState();
   const displayTitle = doc.title || doc.filename || 'Untitled document';
   const previewText = getSafePreviewText(doc);
   const type = (doc.evidenceType || doc.fileType || '').toLowerCase();
@@ -225,7 +227,11 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({
                       className={styles.entityTag}
                     >
                       {entity.id ? (
-                        <Link to={`/entity/${entity.id}`} onClick={(ev) => ev.stopPropagation()}>
+                        <Link
+                          to={`/entity/${entity.id}`}
+                          state={backLinkState}
+                          onClick={(ev) => ev.stopPropagation()}
+                        >
                           <LqText variant="xs" color="secondary" weight="medium">
                             {entity.name}
                           </LqText>

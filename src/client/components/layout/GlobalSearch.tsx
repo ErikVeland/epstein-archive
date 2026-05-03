@@ -6,6 +6,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import Icon from '@client/components/common/Icon';
 import { Box, Button, SearchField, Select, TextInput } from '@client/design-system/lib';
 import { apiClient } from '@client/services/apiClient';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { Person } from '@client/types';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
@@ -86,6 +87,7 @@ const GlobalSearch: React.FC = () => {
     min_word_count: 0,
   });
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const [searchError, setSearchError] = useState<string | null>(null);
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
   useScrollLock(!!selectedResult || (isMobile && searchTerm.length > 2));
@@ -642,7 +644,11 @@ const GlobalSearch: React.FC = () => {
                 <div className={s.itemActions}>
                   <Button
                     type="button"
-                    onClick={() => navigate(`/documents/${encodeURIComponent(String(result.id))}`)}
+                    onClick={() =>
+                      navigate(`/documents/${encodeURIComponent(String(result.id))}`, {
+                        state: backLinkState,
+                      })
+                    }
                     variant="secondary"
                     size="sm"
                     iconOnly
@@ -776,13 +782,17 @@ const GlobalSearch: React.FC = () => {
                     const id = String(selectedResult.id);
                     setSelectedResult(null);
                     if (selectedResult.category === 'media') {
-                      navigate(`/media?id=${encodeURIComponent(id)}`);
+                      navigate(`/media?id=${encodeURIComponent(id)}`, { state: backLinkState });
                     } else if (selectedResult.category === 'investigation') {
-                      navigate(`/investigations/${encodeURIComponent(selectedResult.uuid || id)}`);
+                      navigate(`/investigations/${encodeURIComponent(selectedResult.uuid || id)}`, {
+                        state: backLinkState,
+                      });
                     } else if (selectedResult.category === 'article') {
-                      navigate(`/media?articleId=${encodeURIComponent(id)}`);
+                      navigate(`/media?articleId=${encodeURIComponent(id)}`, {
+                        state: backLinkState,
+                      });
                     } else {
-                      navigate(`/documents/${encodeURIComponent(id)}`);
+                      navigate(`/documents/${encodeURIComponent(id)}`, { state: backLinkState });
                     }
                   }}
                   variant="primary"
@@ -895,15 +905,18 @@ const GlobalSearch: React.FC = () => {
                       const id = String(selectedResult.id);
                       setSelectedResult(null);
                       if (selectedResult.category === 'media') {
-                        navigate(`/media?id=${encodeURIComponent(id)}`);
+                        navigate(`/media?id=${encodeURIComponent(id)}`, { state: backLinkState });
                       } else if (selectedResult.category === 'investigation') {
                         navigate(
                           `/investigations/${encodeURIComponent(selectedResult.uuid || id)}`,
+                          { state: backLinkState },
                         );
                       } else if (selectedResult.category === 'article') {
-                        navigate(`/media?articleId=${encodeURIComponent(id)}`);
+                        navigate(`/media?articleId=${encodeURIComponent(id)}`, {
+                          state: backLinkState,
+                        });
                       } else {
-                        navigate(`/documents/${encodeURIComponent(id)}`);
+                        navigate(`/documents/${encodeURIComponent(id)}`, { state: backLinkState });
                       }
                     }}
                     variant="primary"

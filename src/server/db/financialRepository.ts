@@ -25,6 +25,40 @@ export interface FinancialTransaction {
 }
 
 export const financialRepository = {
+  getTransactionById: async (id: string | number): Promise<FinancialTransaction | null> => {
+    const res = await getApiPool().query(
+      `
+      SELECT *
+      FROM financial_transactions
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [id],
+    );
+    const r = res.rows[0] as Record<string, unknown> | undefined;
+    if (!r) return null;
+    return {
+      id: Number(r.id),
+      from_entity: String(r.from_entity || ''),
+      to_entity: String(r.to_entity || ''),
+      amount: Number(r.amount || 0),
+      currency: String(r.currency || 'USD'),
+      transaction_date:
+        r.transaction_date instanceof Date
+          ? r.transaction_date.toISOString()
+          : String(r.transaction_date || ''),
+      transaction_type: String(r.transaction_type || 'transfer'),
+      method: String(r.method || 'wire'),
+      risk_level: String(r.risk_level || 'medium'),
+      description: String(r.description || ''),
+      investigation_id: r.investigation_id ? Number(r.investigation_id) : undefined,
+      source_document_id: r.source_document_id ? String(r.source_document_id) : undefined,
+      metadata_json: r.metadata_json ? JSON.stringify(r.metadata_json) : undefined,
+      created_at:
+        r.created_at instanceof Date ? r.created_at.toISOString() : String(r.created_at || ''),
+    };
+  },
+
   getTransactions: async (limit: number = 100): Promise<FinancialTransaction[]> => {
     const rows = await financialQueries.getTransactions.run({ limit }, getApiPool());
     return rows.map((r: IGetTransactionsResult) => ({

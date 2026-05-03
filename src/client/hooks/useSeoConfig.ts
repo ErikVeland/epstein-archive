@@ -115,6 +115,19 @@ export const useSeoConfig = (): SeoConfig => {
       };
     }
 
+    if (location.pathname.startsWith('/claims/')) {
+      return {
+        title: 'AI Claim Detail',
+        description:
+          'Review an AI-extracted subject-predicate-object claim with source provenance, confidence, and citation tools.',
+        url: canonical,
+        canonical,
+        type: 'article',
+        keywords: [...commonKeywords, 'AI claims', 'claim triples', 'evidence provenance'],
+        schema: [breadcrumb('AI Claim', canonical)],
+      };
+    }
+
     if (location.pathname.startsWith('/flights')) {
       return {
         title: 'Epstein Flight Logs',
@@ -135,6 +148,19 @@ export const useSeoConfig = (): SeoConfig => {
           },
           breadcrumb('Flight Logs', canonical),
         ],
+      };
+    }
+
+    if (location.pathname.startsWith('/financial/')) {
+      return {
+        title: 'Financial Transaction Detail',
+        description:
+          'Review an extracted financial transaction with parties, amount, source context, and citation tools.',
+        url: canonical,
+        canonical,
+        type: 'article',
+        keywords: [...commonKeywords, 'financial records', 'transaction detail', 'money flows'],
+        schema: [breadcrumb('Financial Transaction', canonical)],
       };
     }
 

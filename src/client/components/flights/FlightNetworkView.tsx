@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import Icon from '../common/Icon';
 import type { CoOccurrence } from './types';
 import s from './FlightNetworkView.module.css';
@@ -13,6 +14,7 @@ export const FlightNetworkView: React.FC<FlightNetworkViewProps> = ({
   coOccurrences,
   networkLoading,
 }) => {
+  const backLinkState = useBackLinkState();
   const nodes = useMemo(() => {
     const nodeMap = new Map<string, { name: string; connections: number; entityId?: number }>();
     coOccurrences.forEach((co) => {
@@ -72,7 +74,9 @@ export const FlightNetworkView: React.FC<FlightNetworkViewProps> = ({
               <div className={s.coPassengers}>
                 <span className={s.passengerName}>
                   {co.entity_id1 ? (
-                    <Link to={`/entity/${co.entity_id1}`}>{co.passenger1}</Link>
+                    <Link to={`/entity/${co.entity_id1}`} state={backLinkState}>
+                      {co.passenger1}
+                    </Link>
                   ) : (
                     co.passenger1
                   )}
@@ -83,7 +87,9 @@ export const FlightNetworkView: React.FC<FlightNetworkViewProps> = ({
                 </span>
                 <span className={s.passengerName}>
                   {co.entity_id2 ? (
-                    <Link to={`/entity/${co.entity_id2}`}>{co.passenger2}</Link>
+                    <Link to={`/entity/${co.entity_id2}`} state={backLinkState}>
+                      {co.passenger2}
+                    </Link>
                   ) : (
                     co.passenger2
                   )}
@@ -111,7 +117,9 @@ export const FlightNetworkView: React.FC<FlightNetworkViewProps> = ({
               <span className={s.rank}>#{i + 1}</span>
               <span className={s.name}>
                 {node.entityId ? (
-                  <Link to={`/entity/${node.entityId}`}>{node.name}</Link>
+                  <Link to={`/entity/${node.entityId}`} state={backLinkState}>
+                    {node.name}
+                  </Link>
                 ) : (
                   node.name
                 )}

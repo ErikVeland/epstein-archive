@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import s from './EnhancedAnalytics.module.css';
 import { SunburstChart } from '../visualizations/SunburstChart';
 import { DocumentBarChart } from '../visualizations/DocumentBarChart';
@@ -186,6 +187,7 @@ const StatCard: React.FC<{
 
 export const EnhancedAnalytics: React.FC = () => {
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const { filters, setFilters } = useFilters();
   const { onPersonSelect, filteredPeople } = useAnalytics();
 
@@ -197,7 +199,7 @@ export const EnhancedAnalytics: React.FC = () => {
   };
 
   const onTypeFilter = (type: string) => {
-    navigate(`/documents?search=${encodeURIComponent(type)}`);
+    navigate(`/documents?search=${encodeURIComponent(type)}`, { state: backLinkState });
   };
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -721,7 +723,7 @@ export const EnhancedAnalytics: React.FC = () => {
             loading={isEvidenceLoading}
             documents={edgeEvidence}
             onDocumentClick={(docId) => {
-              navigate(`/documents?doc=${encodeURIComponent(docId)}`);
+              navigate(`/documents?doc=${encodeURIComponent(docId)}`, { state: backLinkState });
             }}
           />
         </div>

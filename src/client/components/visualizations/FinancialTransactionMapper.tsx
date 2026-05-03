@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { Button, Select } from '@client/design-system/lib';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useIsMobile } from '@client/hooks/useIsMobile';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
@@ -132,6 +134,10 @@ function normalizeTransaction(tx: Record<string, unknown>): Transaction {
         ? (tx.sourceDocumentIds as string[])
         : [],
   };
+}
+
+function transactionRouteId(transactionId: string): string {
+  return transactionId.replace(/^tx-/, '');
 }
 
 async function loadFinancialSnapshot(): Promise<Transaction[]> {
@@ -270,6 +276,8 @@ function detectFinancialPatterns(transactions: Transaction[]): FinancialPattern[
 export default function FinancialTransactionMapper({
   investigationId,
 }: FinancialTransactionMapperProps = {}) {
+  const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const isMobile = useIsMobile();
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [viewMode, setViewMode] = useState<'flow' | 'network' | 'timeline' | 'patterns'>('flow');
@@ -643,6 +651,16 @@ export default function FinancialTransactionMapper({
                       </div>
 
                       <p className={styles.description}>{transaction.description}</p>
+                      <div className={styles.transactionMeta}>
+                        <Link
+                          className={styles.sourceButton}
+                          to={`/financial/${encodeURIComponent(transactionRouteId(transaction.id))}`}
+                          state={backLinkState}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          Open Transaction
+                        </Link>
+                      </div>
                     </div>
 
                     {transaction.suspiciousIndicators.length > 0 && (
@@ -774,6 +792,21 @@ export default function FinancialTransactionMapper({
 
                   <div className={`${styles.detailsHeader} ${styles.detailsHeaderCompact}`}>
                     {!isMobile && <h3 className={styles.sectionTitle}>Details</h3>}
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        navigate(
+                          `/financial/${encodeURIComponent(
+                            transactionRouteId(selectedTransaction.id),
+                          )}`,
+                          { state: backLinkState },
+                        );
+                      }}
+                    >
+                      <Icon name="ExternalLink" className={styles.closeIcon} />
+                      Open
+                    </Button>
                     <AddToInvestigationButton
                       item={{
                         id: selectedTransaction.id,
@@ -853,10 +886,12 @@ export default function FinancialTransactionMapper({
                                 if (!normalized) return;
                                 const docId = normalized.replace(/^doc[-_:]/i, '');
                                 const isLikelyId = /^[a-zA-Z0-9_-]+$/.test(docId);
-                                const target = isLikelyId
-                                  ? `/documents/${encodeURIComponent(docId)}`
-                                  : `/documents?search=${encodeURIComponent(normalized)}`;
-                                window.location.assign(target);
+                                navigate(
+                                  isLikelyId
+                                    ? `/documents/${encodeURIComponent(docId)}`
+                                    : `/documents?search=${encodeURIComponent(normalized)}`,
+                                  { state: backLinkState },
+                                );
                               }}
                               title={doc}
                             >

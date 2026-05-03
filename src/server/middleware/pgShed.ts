@@ -10,6 +10,7 @@ const WAITING_THRESHOLD = Math.max(1, Number(process.env.PG_SHED_WAITING_THRESHO
 
 function isBypassPath(pathname: string): boolean {
   return (
+    !pathname.startsWith('/api/') ||
     pathname === '/api/_meta/db' ||
     pathname.startsWith('/api/health') ||
     pathname.startsWith('/api/stats/health')

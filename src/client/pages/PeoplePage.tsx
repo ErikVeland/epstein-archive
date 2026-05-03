@@ -19,6 +19,7 @@ import {
   Stack,
   Surface,
 } from '@client/design-system/lib';
+import { ProgressiveIntelligencePanel } from '@client/components/intelligence/ProgressiveIntelligencePanel';
 import styles from './PeoplePage.module.css';
 
 interface DataStats {
@@ -144,6 +145,8 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
               onResetFilters={onResetFilters}
             />
           )}
+
+          <ProgressiveIntelligencePanel />
 
           <Surface variant="panel" className={styles.toolbarCard}>
             <Flex wrap="wrap" align="center" justify="between" gap="md" fullWidth>

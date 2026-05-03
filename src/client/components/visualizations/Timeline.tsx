@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../common/CloseButton';
 import { useFilters } from '@client/contexts/useFilters';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import { Button, cn } from '@client/design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
@@ -64,11 +65,12 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   useScrollLock(!!selectedEvent);
 
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const openEntity = React.useCallback(
     (entityId: string) => {
-      navigate(`/entity/${entityId}`);
+      navigate(`/entity/${entityId}`, { state: backLinkState });
     },
-    [navigate],
+    [backLinkState, navigate],
   );
 
   const filteredEvents = useMemo(() => {
@@ -510,6 +512,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                   {selectedEvent.related_document ? (
                     <Link
                       to={`/documents?id=${selectedEvent.related_document.id}`}
+                      state={backLinkState}
                       onClick={() => setSelectedEvent(null)}
                       className={styles.sourceLink}
                     >
@@ -553,6 +556,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                         <Link
                           key={doc.id}
                           to={`/documents?id=${doc.id}`}
+                          state={backLinkState}
                           onClick={() => setSelectedEvent(null)}
                           className={styles.supportingDocItem}
                         >
@@ -578,6 +582,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                             <Link
                               key={i}
                               to={`/entity/${(entity as EntityLink).id}`}
+                              state={backLinkState}
                               onClick={() => setSelectedEvent(null)}
                               className={`${styles.entityBadge} ${styles.entityBadgeInteractive}`}
                             >

@@ -16,6 +16,19 @@ const verifyClaimSchema = z.object({
   }),
 });
 
+// GET /api/claims/:id
+router.get('/:id', async (req, res, next) => {
+  try {
+    const claim = await claimTriplesRepository.getById(req.params.id);
+    if (!claim) {
+      return res.status(404).json({ error: 'Claim not found' });
+    }
+    return res.json(claim);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // POST /api/claims/:id/verify
 router.post(
   '/:id/verify',

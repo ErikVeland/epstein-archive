@@ -11,6 +11,7 @@ interface TransactionRowInput {
   amount?: unknown;
   currency?: unknown;
   date?: unknown;
+  transaction_date?: unknown;
   description?: unknown;
   transaction_type?: unknown;
   type?: unknown;
@@ -44,7 +45,7 @@ export const mapFinancialTransactionDto = (row: TransactionRowInput): FinancialT
   toEntityName: asNullableString(row.to_entity_name ?? row.to_entity),
   amount: Number(row.amount || 0),
   currency: String(row.currency || 'USD'),
-  date: String(row.date || ''),
+  date: String(row.transaction_date ?? row.date ?? ''),
   description: asNullableString(row.description),
   transactionType: asNullableString(row.transaction_type ?? row.type),
   riskRating: row.risk_rating != null ? Number(row.risk_rating) : null,

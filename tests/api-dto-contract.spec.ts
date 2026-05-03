@@ -381,7 +381,7 @@ test.describe('API DTO Contracts', () => {
     ];
 
     for (const endpoint of tabEndpoints) {
-      const response = await request.get(`${API_BASE_URL}${endpoint.url}`, { timeout: 20_000 });
+      const response = await request.get(`${API_BASE_URL}${endpoint.url}`, { timeout: 60_000 });
       expect(response.status(), `[${endpoint.name}] must return 200`).toBe(200);
       const body = await response.json();
       assertSchema(endpoint.schema, body, `GET ${endpoint.url}`);

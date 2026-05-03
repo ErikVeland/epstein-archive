@@ -16,6 +16,7 @@ import { Flex } from '@client/design-system/components/layout/Flex';
 import { Grid } from '@client/design-system/components/layout/Grid';
 import { Button } from '@client/design-system/lib';
 import { useIsTouch } from '@client/hooks/useIsTouch';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useLongPress } from '@client/hooks/useLongPress';
 import { useInvestigations } from '@client/contexts/InvestigationsContext';
 import styles from './SubjectCardV2.module.css';
@@ -28,6 +29,7 @@ interface SubjectCardV2Props {
 
 const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style, onClick }) => {
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const isTouch = useIsTouch();
   const { addToInvestigation, selectedInvestigation, investigations } = useInvestigations();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -64,7 +66,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
   const handleCardClick = () => {
     if (consumeClick()) return;
     if (onClick) onClick();
-    else navigate(`/entity/${subject.id}`);
+    else navigate(`/entity/${subject.id}`, { state: backLinkState });
   };
 
   const handleQuickAddToInvestigation = async () => {
@@ -85,7 +87,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/entity/${subject.id}`);
+    navigate(`/entity/${subject.id}`, { state: backLinkState });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
@@ -254,7 +256,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
           {
             label: 'View Profile',
             icon: 'User',
-            onClick: () => navigate(`/entity/${subject.id}`),
+            onClick: () => navigate(`/entity/${subject.id}`, { state: backLinkState }),
           },
           {
             label: 'Add to Investigation',

@@ -266,7 +266,13 @@ export const entityEvidenceRepository = {
        ORDER BY transaction_date DESC`,
       [entityName],
     );
-    return { transactions: result.rows, entityName };
+    const transactions = result.rows.map((row) => ({
+      ...row,
+      id: Number(row.id),
+      amount: Number(row.amount || 0),
+      source_document_id: row.source_document_id ? Number(row.source_document_id) : null,
+    }));
+    return { transactions, entityName };
   },
 
   async getPropertiesForEntity(entityId: string | number) {
@@ -307,11 +313,14 @@ export const entityEvidenceRepository = {
     );
     return result.rows.map((row) => ({
       ...row,
+      id: Number(row.id),
       total_tax_value: Number(row.total_tax_value || 0),
       acres: Number(row.acres || 0),
       year_built: row.year_built ? Number(row.year_built) : null,
       building_area: row.building_area ? Number(row.building_area) : 0,
       living_area: row.living_area ? Number(row.living_area) : 0,
+      is_epstein_property: row.is_epstein_property ? Number(row.is_epstein_property) : 0,
+      is_known_associate: row.is_known_associate ? Number(row.is_known_associate) : 0,
     }));
   },
 };

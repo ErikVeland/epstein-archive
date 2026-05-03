@@ -6,7 +6,10 @@ import { Surface, Flex, Box, Stack, LqText, cn, Button } from '@client/design-sy
 import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
 import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
 import { useIsTouch } from '@client/hooks/useIsTouch';
-import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
+import {
+  useBackLinkState,
+  useReliableBackNavigation,
+} from '@client/hooks/useReliableBackNavigation';
 const RouteMap = React.lazy(() =>
   import('@client/components/visualizations/RouteMap').then((m) => ({ default: m.RouteMap })),
 );
@@ -26,6 +29,7 @@ export const FlightDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { goBack } = useReliableBackNavigation('/flights');
+  const backLinkState = useBackLinkState();
   const isTouch = useIsTouch();
   const [showMap, setShowMap] = useState(false);
 
@@ -291,6 +295,7 @@ export const FlightDetailPage: React.FC = () => {
                           {p.entity_id ? (
                             <Link
                               to={`/entity/${p.entity_id}`}
+                              state={backLinkState}
                               className={panelStyles.passengerLink}
                             >
                               <LqText variant="xs" weight="medium">

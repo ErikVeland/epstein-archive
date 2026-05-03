@@ -4,7 +4,10 @@ import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EmailClient.module.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
 import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
-import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
+import {
+  useBackLinkState,
+  useReliableBackNavigation,
+} from '@client/hooks/useReliableBackNavigation';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import Icon from '@client/components/common/Icon';
 import { EmailMailboxDTO, EmailThreadDTO } from '@client/services/apiClient';
@@ -194,6 +197,7 @@ const MailboxRow = React.memo(
 
 export const EmailClient: React.FC = () => {
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const { goBack } = useReliableBackNavigation('/emails');
   const [searchParams, setSearchParams] = useSearchParams();
   const deepLinkedMessageId = searchParams.get('messageId') || searchParams.get('id');
@@ -962,7 +966,11 @@ export const EmailClient: React.FC = () => {
                                     History
                                   </Button>
                                   <Button
-                                    onClick={() => navigate(`/documents/${message.messageId}`)}
+                                    onClick={() =>
+                                      navigate(`/documents/${message.messageId}`, {
+                                        state: backLinkState,
+                                      })
+                                    }
                                     variant="primary"
                                     size="sm"
                                   >
@@ -1227,6 +1235,7 @@ export const EmailClient: React.FC = () => {
                                                   `/documents/${encodeURIComponent(
                                                     String(linkedDocumentId),
                                                   )}`,
+                                                  { state: backLinkState },
                                                 )
                                               }
                                               type="button"

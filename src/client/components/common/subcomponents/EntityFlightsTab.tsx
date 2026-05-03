@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { Link } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import s from './EntityFlightsTab.module.css';
 
 interface CoPassenger {
@@ -30,6 +31,7 @@ interface EntityFlightsTabProps {
 }
 
 export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) => {
+  const backLinkState = useBackLinkState();
   const { data, isLoading, isError } = useQuery<{ flights: EntityFlight[] }>({
     queryKey: ['entity-flights', entityId],
     queryFn: async () => {
@@ -101,7 +103,7 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
                   <Icon name="ArrowRight" size="sm" className={s.arrow} />
                   <span>{formatCity(flight.arrival_city, flight.arrival_airport)}</span>
                 </div>
-                <Link to={`/flights/${flight.id}`} className={s.viewLink}>
+                <Link to={`/flights/${flight.id}`} state={backLinkState} className={s.viewLink}>
                   View →
                 </Link>
               </div>
@@ -125,6 +127,7 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
                       <Link
                         key={i}
                         to={`/entity/${p.entity_id}`}
+                        state={backLinkState}
                         className={s.passengerPillLinked}
                         title={p.role}
                       >

@@ -7,6 +7,7 @@ import { LqText } from '@client/design-system/components/typography/Text';
 import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { ConfidenceBadge } from '@client/components/common/ConfidenceBadge';
 import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
+import { ShareCitationBar } from '@client/components/common/ShareCitationBar';
 import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
 import styles from './ClaimsTab.module.css';
 
@@ -74,6 +75,20 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
     if (typeof claim.sourceDocumentId === 'number') return claim.sourceDocumentId;
     const parsed = Number(claim.documentId);
     return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const getClaimTitle = (claim: ClaimTriple): string => {
+    const subject = claim.subjectName || 'Unknown Entity';
+    const predicate = claim.predicate || 'related to';
+    const object = claim.objectName || claim.objectText || 'unknown';
+    return `${subject} ${predicate} ${object}`;
+  };
+
+  const getCitation = (claim: ClaimTriple): string => {
+    const confidence = Math.round(Number(claim.confidence || 0) * 100);
+    return `Epstein Files Archive, AI claim ${claim.id}, source document ${
+      claim.documentId
+    }, confidence ${confidence}%, accessed ${new Date().toISOString().slice(0, 10)}.`;
   };
 
   const {
@@ -315,6 +330,18 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
                 )}
               </div>
             )}
+            <Box mt="sm">
+              <ShareCitationBar
+                title={getClaimTitle(claim)}
+                citation={getCitation(claim)}
+                url={`${window.location.origin}/claims/${encodeURIComponent(claim.id)}`}
+                sourceUrl={
+                  getClaimSourceDocumentId(claim) != null
+                    ? `/documents/${getClaimSourceDocumentId(claim)}`
+                    : undefined
+                }
+              />
+            </Box>
           </Surface>
         ))}
       </div>

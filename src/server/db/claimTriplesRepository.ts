@@ -23,6 +23,44 @@ export interface ClaimTriple {
 }
 
 export const claimTriplesRepository = {
+  async getById(id: string | number): Promise<ClaimTriple | null> {
+    try {
+      const res = await getApiPool().query(
+        `
+        SELECT
+          ct.id,
+          ct.document_id as "documentId",
+          ct.subject_entity_id as "subjectEntityId",
+          ct.object_entity_id as "objectEntityId",
+          ct.predicate,
+          ct.object_text as "objectText",
+          trim(concat_ws(' ', s.full_name, ct.predicate, COALESCE(o.full_name, ct.object_text))) as "claimText",
+          ct.confidence,
+          ct.modality,
+          ct.verified,
+          ct.verified_by as "verifiedBy",
+          ct.verified_at as "verifiedAt",
+          ct.rejection_reason as "rejectionReason",
+          ct.created_at as "createdAt",
+          s.full_name as "subjectName",
+          o.full_name as "objectName",
+          d.title as "documentTitle"
+        FROM claim_triples ct
+        LEFT JOIN entities s ON ct.subject_entity_id = s.id
+        LEFT JOIN entities o ON ct.object_entity_id = o.id
+        LEFT JOIN documents d ON ct.document_id = d.id
+        WHERE ct.id = $1
+        LIMIT 1
+        `,
+        [id],
+      );
+      return res.rows[0] ?? null;
+    } catch (error) {
+      logger.error({ err: error, id }, '[claimTriplesRepository] getById error');
+      throw error;
+    }
+  },
+
   async getByDocumentId(documentId: string | number): Promise<ClaimTriple[]> {
     try {
       const res = await getApiPool().query(

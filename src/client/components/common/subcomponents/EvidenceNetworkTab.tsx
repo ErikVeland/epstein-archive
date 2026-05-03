@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Icon from '@client/components/common/Icon';
 import { useNavigate } from 'react-router-dom';
 import { NetworkGraph } from '@client/components/visualizations/NetworkGraph';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useIsTouch } from '@client/hooks/useIsTouch';
 import s from './EvidenceNetworkTab.module.css';
 
@@ -51,11 +52,12 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
 }) => {
   const isTouch = useIsTouch();
   const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const [showGraph, setShowGraph] = useState(false);
 
   const handleDefaultEntityClick = (node: GraphNode) => {
     if (String(node.id) !== String(entity?.id)) {
-      navigate(`/entity/${node.id}`);
+      navigate(`/entity/${node.id}`, { state: backLinkState });
     }
   };
 
@@ -108,7 +110,7 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
               if (onEntityClick) {
                 onEntityClick(node);
               } else {
-                navigate(`/entity/${node.id}`);
+                navigate(`/entity/${node.id}`, { state: backLinkState });
               }
             };
             return (

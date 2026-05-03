@@ -18,6 +18,7 @@ import {
   highlightSearchTerm,
 } from '@client/utils/documentUtils';
 import { useIsMobile } from '@client/hooks/useResponsive';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import styles from './DocumentCard.module.css';
 
 interface DocumentCardProps {
@@ -61,6 +62,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
   forwardedRef,
 ) {
   const cardRef = useRef<HTMLElement | null>(null);
+  const backLinkState = useBackLinkState();
   const setRefs = useCallback(
     (node: HTMLElement | null) => {
       cardRef.current = node;
@@ -205,7 +207,11 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
                 <React.Fragment key={e.id || i}>
                   {i > 0 && ' · '}
                   {e.id ? (
-                    <Link to={`/entity/${e.id}`} onClick={(ev) => ev.stopPropagation()}>
+                    <Link
+                      to={`/entity/${e.id}`}
+                      state={backLinkState}
+                      onClick={(ev) => ev.stopPropagation()}
+                    >
                       {e.name}
                     </Link>
                   ) : (

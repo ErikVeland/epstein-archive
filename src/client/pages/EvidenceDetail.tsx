@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useIsTouch } from '@client/hooks/useIsTouch';
 import { useParams, Link } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import Icon from '@client/components/common/Icon';
 import { EmailViewer } from '@client/components/evidence/EmailViewer';
 import { DepositionViewer } from '@client/components/evidence/DepositionViewer';
@@ -64,6 +65,7 @@ interface Evidence {
 
 export function EvidenceDetail() {
   const { id } = useParams<{ id: string }>();
+  const backLinkState = useBackLinkState();
   const isTouch = useIsTouch();
   const [evidence, setEvidence] = useState<Evidence | null>(null);
   const [loading, setLoading] = useState(true);
@@ -422,6 +424,7 @@ export function EvidenceDetail() {
                       <Link
                         key={entity.id}
                         to={`/entities/${entity.id}`}
+                        state={backLinkState}
                         className={styles.entityLink}
                       >
                         <Flex align="start" justify="between">

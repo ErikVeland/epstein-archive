@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Investigation, EvidenceItem } from '@client/types/investigation';
 import { apiClient } from '@client/services/apiClient';
 import Icon from '@client/components/common/Icon';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 
 // UI Library
@@ -48,6 +50,8 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
   onCommunicationPatternDetected,
   mobileMode,
 }) => {
+  const navigate = useNavigate();
+  const backLinkState = useBackLinkState();
   const [communicationPatterns, setCommunicationPatterns] = useState<CommunicationPattern[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedPattern, setSelectedPattern] = useState<CommunicationPattern | null>(null);
@@ -269,7 +273,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
     const params = new URLSearchParams();
     params.set('investigationId', String(investigation.id));
     if (threadIds.length > 0) params.set('threadIds', threadIds.join(','));
-    window.location.assign(`/emails?${params.toString()}`);
+    navigate(`/emails?${params.toString()}`, { state: backLinkState });
   };
 
   return (

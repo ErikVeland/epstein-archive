@@ -72,6 +72,8 @@ import searchRoutes from './server/routes/searchRoutes.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
 import { evidenceRepository } from './server/db/evidenceRepository.js';
+import { claimTriplesRepository } from './server/db/claimTriplesRepository.js';
+import { financialRepository } from './server/db/financialRepository.js';
 import { purgeCacheByPattern } from './server/middleware/cache.js';
 import { validate } from './server/middleware/validate.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
@@ -200,7 +202,8 @@ export class App {
           }
         }),
     );
-    const isProduction = process.env.NODE_ENV === 'production';
+    configuredOrigins.add('https://epstein.academy');
+    configuredOrigins.add('https://www.epstein.academy');
     const localhostOriginPattern = /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
 
     return {
@@ -219,7 +222,7 @@ export class App {
           }
         })();
 
-        if (!isProduction && localhostOriginPattern.test(normalizedOrigin)) {
+        if (localhostOriginPattern.test(normalizedOrigin)) {
           return callback(null, true);
         }
 
@@ -304,9 +307,9 @@ export class App {
           directives: {
             defaultSrc: ["'self'"],
             scriptSrc,
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
             imgSrc: ["'self'", 'data:', 'blob:'],
-            fontSrc: ["'self'", 'data:'],
+            fontSrc: ["'self'", 'data:', 'https://fonts.gstatic.com'],
             connectSrc,
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],
@@ -813,6 +816,12 @@ export class App {
       if (await this.tryServeEntityShareMeta(req, res)) {
         return;
       }
+      if (await this.tryServeClaimShareMeta(req, res)) {
+        return;
+      }
+      if (await this.tryServeFinancialShareMeta(req, res)) {
+        return;
+      }
       res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
@@ -1094,6 +1103,94 @@ export class App {
       return true;
     } catch (error) {
       logger.warn({ err: error }, 'Failed to render entity OG metadata, falling back to SPA shell');
+      return false;
+    }
+  }
+
+  private async tryServeClaimShareMeta(req: Request, res: Response): Promise<boolean> {
+    try {
+      if (!req.path.startsWith('/claims/')) return false;
+      const rawId = req.path.replace('/claims/', '').split('/')[0].trim();
+      if (!rawId) return false;
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const canonical = `${baseUrl}${req.originalUrl}`;
+      const claim = await claimTriplesRepository.getById(rawId);
+
+      let title = `AI Claim ${rawId}`;
+      let description =
+        'AI-extracted subject-predicate-object claim from the Epstein Files archive.';
+      if (claim) {
+        const subject = claim.subjectName || 'Unknown entity';
+        const predicate = claim.predicate || 'related to';
+        const object = claim.objectName || claim.objectText || 'unknown';
+        title = `${subject} ${predicate} ${object}`;
+        description = `${claim.documentTitle || `Document ${claim.documentId}`} · confidence ${Math.round(
+          Number(claim.confidence || 0) * 100,
+        )}% · requires human verification.`;
+      }
+
+      let html = await this.loadIndexTemplate();
+      html = this.injectOgTags(html, {
+        title,
+        description,
+        image: `${baseUrl}/epstein-files.jpg`,
+        imageAlt: 'Epstein Files Archive claim preview',
+        canonical,
+      });
+
+      res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.status(200).type('html').send(html);
+      return true;
+    } catch (error) {
+      logger.warn({ err: error }, 'Failed to render claim OG metadata, falling back to SPA shell');
+      return false;
+    }
+  }
+
+  private async tryServeFinancialShareMeta(req: Request, res: Response): Promise<boolean> {
+    try {
+      if (!req.path.startsWith('/financial/')) return false;
+      const rawId = req.path.replace('/financial/', '').split('/')[0].trim();
+      if (!rawId || rawId === 'transactions') return false;
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const canonical = `${baseUrl}${req.originalUrl}`;
+      const transaction = await financialRepository.getTransactionById(rawId);
+
+      let title = `Financial Transaction ${rawId}`;
+      let description = 'Extracted financial record from the Epstein Files archive.';
+      if (transaction) {
+        const amount = new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: transaction.currency || 'USD',
+          maximumFractionDigits: 0,
+        }).format(Number(transaction.amount || 0));
+        title = `${transaction.from_entity} → ${transaction.to_entity}`;
+        description = `${amount} · ${transaction.transaction_type || 'transaction'} · ${transaction.risk_level || 'medium'} risk · source document ${transaction.source_document_id || 'pending'}.`;
+      }
+
+      let html = await this.loadIndexTemplate();
+      html = this.injectOgTags(html, {
+        title,
+        description,
+        image: `${baseUrl}/epstein-files.jpg`,
+        imageAlt: 'Epstein Files Archive financial preview',
+        canonical,
+      });
+
+      res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.status(200).type('html').send(html);
+      return true;
+    } catch (error) {
+      logger.warn(
+        { err: error },
+        'Failed to render financial OG metadata, falling back to SPA shell',
+      );
       return false;
     }
   }

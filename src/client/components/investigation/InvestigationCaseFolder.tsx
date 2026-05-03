@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Icon, { IconName } from '@client/components/common/Icon';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import type {
   InvestigationCaseEvidenceItemDto as EvidenceItem,
   InvestigationEvidenceByTypeResponseDto as EvidenceByType,
@@ -87,6 +88,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   caseFolderError,
   onReloadCaseFolder,
 }) => {
+  const backLinkState = useBackLinkState();
   const domainCaseFolder = useCaseFolder(String(investigationId), {
     enabled: !caseFolderData,
   });
@@ -485,7 +487,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                           )}
 
                           {link && (
-                            <Link to={link} className="ml-auto">
+                            <Link to={link} state={backLinkState} className="ml-auto">
                               <Button variant="ghost" size="sm">
                                 <Icon name="ExternalLink" size="xs" /> View Source
                               </Button>

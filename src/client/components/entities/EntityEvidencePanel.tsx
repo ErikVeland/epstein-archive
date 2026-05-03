@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '@client/components/common/Icon';
 import { Link, useNavigate } from 'react-router-dom';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { apiClient } from '@client/services/apiClient';
 import { EvidenceLadder } from '../evidence/EvidenceLadder';
 
@@ -78,6 +79,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
   entityName,
 }) => {
   const accessToNavigate = useNavigate();
+  const backLinkState = useBackLinkState();
   /* State for filtering and pagination */
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [stats, setStats] = useState<EntityEvidenceStats | null>(null);
@@ -312,7 +314,12 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             {viewMode === 'list' ? (
               <div className={styles.relatedGrid}>
                 {stats.relatedEntities.slice(0, 10).map((entity: RelatedEntity) => (
-                  <Link key={entity.id} to={`/entity/${entity.id}`} className={styles.relatedLink}>
+                  <Link
+                    key={entity.id}
+                    to={`/entity/${entity.id}`}
+                    state={backLinkState}
+                    className={styles.relatedLink}
+                  >
                     <span className={styles.relatedName}>{entity.fullName}</span>
                     <span className={styles.relatedShared}>
                       {entity.sharedEvidenceCount} shared
@@ -362,7 +369,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   interactive={true}
                   onNodeClick={(node) => {
                     if (node.id !== entityId && accessToNavigate) {
-                      accessToNavigate(`/entity/${node.id}`);
+                      accessToNavigate(`/entity/${node.id}`, { state: backLinkState });
                     }
                   }}
                 />
@@ -416,6 +423,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                       <div className={styles.commActions}>
                         <Link
                           to={`/emails?search=${encodeURIComponent(c.subject)}`}
+                          state={backLinkState}
                           className={styles.commActionLink}
                           title="View Thread"
                         >
@@ -601,7 +609,11 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     </span>
                   </div>
                   {documentId ? (
-                    <Link to={`/documents?id=${documentId}`} className={styles.viewLink}>
+                    <Link
+                      to={`/documents?id=${documentId}`}
+                      state={backLinkState}
+                      className={styles.viewLink}
+                    >
                       <span>View</span>
                       <Icon name="ExternalLink" className={styles.viewLinkIcon} />
                     </Link>

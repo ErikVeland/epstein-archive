@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import Icon from '../common/Icon';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import styles from './DocumentProvenance.module.css';
 
 // Design System
@@ -61,6 +63,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
   documentId,
   compact = false,
 }) => {
+  const backLinkState = useBackLinkState();
   const [expanded, setExpanded] = useState(!compact);
 
   const {
@@ -221,12 +224,13 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
               <LqText variant="xs" color="muted">
                 Extracted from:
               </LqText>
-              <a
-                href={`/documents/${encodeURIComponent(String(lineage.originalDocument.id))}`}
+              <Link
+                to={`/documents/${encodeURIComponent(String(lineage.originalDocument.id))}`}
+                state={backLinkState}
                 className={`link ${styles.documentLink}`}
               >
                 {lineage.originalDocument.fileName}
-              </a>
+              </Link>
             </Flex>
           </Box>
         )}

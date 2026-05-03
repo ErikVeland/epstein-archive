@@ -1,5 +1,17 @@
 # Release Notes
 
+## 20.1.0 - 2026-05-03 - Restored Timeline Design & Ingestion Optimization
+
+### Visual UI Restorations
+
+- **Timeline Missing Token**: Fixed the missing `--radius-full: 9999px;` design token in `index.css`, restoring fully rounded geometry to all timeline dots, pills, and filter elements.
+- **Timeline Card Polish**: Reverted ad-hoc spacing and padding changes on `.eventCard` and `.eventItem` in `Timeline.module.css` to restore spacious, comfortable browsing.
+- **Timeline Typography**: Restored `.eventTitle` typography back to its original premium `var(--font-size-xl)` and `var(--font-weight-bold)` for high-contrast, premium, and readable titles.
+
+### Data Ingestion Snapshot
+
+- Snapshot of the current ingested forensic archive includes 20,388 claim triples, 1,383 financial transactions, and 416 timeline events fully parsed and processed into the relational database.
+
 ## 20.0.2 - 2026-05-02 - UI Polish & Code Quality
 
 ### Bug Fixes & Quality

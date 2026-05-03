@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { PropertyLocationMap } from '../visualizations/PropertyLocationMap';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import { formatCurrency, formatNumber } from '@client/utils/formatters';
@@ -21,6 +22,7 @@ export function PropertyDetailPanel({
   onClose,
 }: PropertyDetailPanelProps): React.ReactElement | null {
   useScrollLock(!!property);
+  const backLinkState = useBackLinkState();
 
   if (!property) return null;
 
@@ -54,7 +56,11 @@ export function PropertyDetailPanel({
             </div>
             <h3 id="property-detail-title" className={styles.ownerName}>
               {property.linked_entity_id ? (
-                <Link to={`/entity/${property.linked_entity_id}`} onClick={onClose}>
+                <Link
+                  to={`/entity/${property.linked_entity_id}`}
+                  state={backLinkState}
+                  onClick={onClose}
+                >
                   {property.owner_name_1 || 'Unknown Owner'}
                 </Link>
               ) : (
@@ -193,6 +199,7 @@ export function PropertyDetailPanel({
               </div>
               <Link
                 to={`/entity/${property.linked_entity_id}`}
+                state={backLinkState}
                 onClick={onClose}
                 className={styles.entityLink}
               >

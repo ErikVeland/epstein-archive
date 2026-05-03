@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { formatCurrency, formatNumber } from '@client/utils/formatters';
 import { cn } from '@client/utils/cn';
 import type { Property } from './types';
@@ -13,6 +14,7 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property, onSelect }: PropertyCardProps): React.ReactElement {
+  const backLinkState = useBackLinkState();
   return (
     <div
       className={cn(styles.card, property.is_known_associate === 1 && styles.flagged)}
@@ -82,7 +84,11 @@ export function PropertyCard({ property, onSelect }: PropertyCardProps): React.R
         </div>
       </div>
       {property.is_known_associate === 1 && property.linked_entity_id !== null && (
-        <Link to={`/entity/${property.linked_entity_id}`} className={styles.associateLink}>
+        <Link
+          to={`/entity/${property.linked_entity_id}`}
+          state={backLinkState}
+          className={styles.associateLink}
+        >
           <Icon name="User" size="sm" />
           View Entity Profile
         </Link>
