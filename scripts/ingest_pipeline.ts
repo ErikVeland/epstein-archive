@@ -452,19 +452,19 @@ const COLLECTIONS: CollectionConfig[] = [
     name: 'DOJ Data Set 9',
     rootPath: 'data/ingest/DOJVOL00009/www.justice.gov/epstein/files/DataSet 9',
     description: '12,260 PDF files released Feb 1, 2026',
-    enabled: false,
+    enabled: true,
   },
   {
     name: 'DOJ Data Set 10',
     rootPath: 'data/ingest/DOJVOL00010',
     description: 'Data Set 10 from DOJ',
-    enabled: false,
+    enabled: true,
   },
   {
     name: 'DOJ Data Set 11',
     rootPath: 'data/ingest/DOJVOL00011/www.justice.gov/epstein/files/DataSet 11',
     description: 'Data Set 11 (Videos) from DOJ',
-    enabled: false,
+    enabled: true,
   },
   {
     name: 'Sascha Riley TikTok Q&A',
@@ -476,7 +476,7 @@ const COLLECTIONS: CollectionConfig[] = [
     name: 'DOJ Data Set 12',
     rootPath: 'data/ingest/DOJVOL00012',
     description: 'Data Set 12 from DOJ',
-    enabled: false,
+    enabled: true,
   },
 ];
 
