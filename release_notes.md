@@ -1,5 +1,14 @@
 # Release Notes
 
+## 20.1.3 - 2026-05-04 - Forensic Extraction & Popover Layout Refinements
+
+### Background & Forensic Profile Improvements
+
+- **Compact Header Spacing**: Optimized desktop header padding, gaps, photo ring size, and typography to significantly reduce whitespace.
+- **Forensic Profile Popover**: Relocated the large text forensic profile block behind a sleek, on-demand collapsible popover.
+- **Background Scroll Lock**: Unified scroll locking for background body and document elements on both mobile and desktop viewports.
+- **Extract Text Fallback**: Enabled standalone text extraction support directly from the `media_items` table for media images containing text.
+
 ## 20.1.2 - 2026-05-04 - Mobile Document Viewer Enhancements & 404 Resolution
 
 ### Mobile Fixes

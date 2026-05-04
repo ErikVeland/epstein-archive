@@ -191,20 +191,18 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
           />
         )}
 
-        <Button
-          unstyled
-          type="button"
-          onClick={() => setCollapsed(!collapsed)}
-          className={s.splitCollapseBtn}
-          aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
-          title={collapsed ? expandAriaLabel : collapseAriaLabel}
-        >
-          {collapsed ? (
-            <Icon name="ChevronLeft" size="sm" />
-          ) : (
+        {!collapsed && (
+          <Button
+            unstyled
+            type="button"
+            onClick={() => setCollapsed(true)}
+            className={s.splitCollapseBtn}
+            aria-label={collapseAriaLabel}
+            title={collapseAriaLabel}
+          >
             <Icon name="ChevronRight" size="sm" />
-          )}
-        </Button>
+          </Button>
+        )}
 
         <div className={s.splitRightContent}>{collapsed ? collapsedRight : right}</div>
       </div>
