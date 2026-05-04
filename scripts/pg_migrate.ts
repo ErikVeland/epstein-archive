@@ -38,7 +38,7 @@ async function runMigrations() {
       console.log('🩹 Reconciled investigation_leads migration entry.');
     }
 
-    const command = `npx node-pg-migrate --migrations-dir "${MIGRATIONS_DIR}" --database-url "${connectionString}" up`;
+    const command = `npx node-pg-migrate --migrations-dir "${MIGRATIONS_DIR}" --database-url "${connectionString}" --no-check-order up`;
     execSync(command, { stdio: 'inherit' });
     console.log('✅ Postgres migrations completed successfully.');
   } catch (err) {
