@@ -1,5 +1,11 @@
 # Release Notes
 
+## 20.1.4 - 2026-05-04 - Schema Baseline & Deployment Alignment
+
+### Database Schema Alignment
+
+- **Schema Hash Check**: Synchronized the expected database schema hash baseline to resolve schema drift issues and prevent silent schema drift in the deployment pipeline.
+
 ## 20.1.3 - 2026-05-04 - Forensic Extraction & Popover Layout Refinements
 
 ### Background & Forensic Profile Improvements
