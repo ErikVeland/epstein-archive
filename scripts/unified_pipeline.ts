@@ -768,9 +768,13 @@ async function main() {
     });
   });
 
-  // SIGTERM is ignored — the pipeline must not be interrupted by OS memory pressure events.
-  // Only SIGINT (Ctrl+C) stops the pipeline.
-  process.on('SIGTERM', () => {});
+  process.on('SIGTERM', () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log('\n🛑 Stopped via SIGTERM.');
+    pipelineRuntime.exitReason = 'Stopped by SIGTERM';
+    writeLiveStatus({ running: false, phase: 'Stopped', exitReason: pipelineRuntime.exitReason });
+  });
   process.on('SIGINT', () => {
     if (shuttingDown) return;
     shuttingDown = true;
@@ -817,10 +821,21 @@ async function main() {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('\n❌ Cycle error (will retry in 60s):', error);
       updateHeartbeat({ phase: 'Error', lastError: msg, blockedReason: msg });
-      await sleep(60_000);
+      if (!shuttingDown) {
+        for (let i = 0; i < 60; i++) {
+          if (shuttingDown) break;
+          await sleep(1000);
+        }
+      }
       continue;
     }
-    if (!shuttingDown) await sleep(30_000);
+    if (!shuttingDown) {
+      for (let i = 0; i < 30; i++) {
+        if (shuttingDown) break;
+        await sleep(1000);
+        updateHeartbeat({ phase: 'Idle' });
+      }
+    }
   }
   if (pipelineRuntime.watchdog) clearInterval(pipelineRuntime.watchdog);
   pipelineRuntime.exitReason = pipelineRuntime.exitReason || 'Pipeline stopped cleanly';

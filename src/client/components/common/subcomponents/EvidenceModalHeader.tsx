@@ -149,52 +149,12 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
                 )}
               </div>
             </div>
-
-            <div className={s.desktopActions}>
-              <div className={s.quickActions}>
-                <Button
-                  unstyled
-                  onClick={() => handleQuickAction('blackbook')}
-                  className={s.blackbookBtn}
-                >
-                  <Icon name="BookOpen" size="sm" />
-                  Black Book Entry
-                </Button>
-                <Button
-                  unstyled
-                  onClick={() => handleQuickAction('timeline')}
-                  className={s.timelineBtn}
-                >
-                  <Icon name="Calendar" size="xs" />
-                  Timeline
-                </Button>
-                <Button
-                  unstyled
-                  onClick={() => handleQuickAction('search')}
-                  className={s.searchBtn}
-                >
-                  <Icon name="Search" size="xs" />
-                  Search
-                </Button>
-              </div>
-
-              {activeQuickAction && (
-                <p className={s.actionContext}>
-                  Context:{' '}
-                  {activeQuickAction === 'blackbook'
-                    ? 'Black Book'
-                    : activeQuickAction === 'timeline'
-                      ? 'Timeline'
-                      : 'Search'}
-                </p>
-              )}
-            </div>
           </>
         )}
       </div>
 
       {!loading && (
-        <div className={s.mobileActions}>
+        <div className={s.actionsArea}>
           <div className={s.quickActions}>
             <Button
               unstyled
@@ -230,6 +190,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
           )}
         </div>
       )}
+
       <div className={s.mobileTabsDropdownContainer}>
         <label htmlFor="mobile-tabs-select" className={s.mobileTabsLabel}>
           Section:
