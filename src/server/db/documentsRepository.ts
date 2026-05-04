@@ -489,7 +489,40 @@ export const documentsRepository = {
   getDocumentById: async (id: string): Promise<Record<string, unknown> | null> => {
     const docId = Number(id);
     const rows = await documentsQueries.getDocumentById.run({ id: docId }, getApiPool());
-    const document = rows[0] ? ({ ...rows[0] } as DocumentRow) : undefined;
+    let document = rows[0] ? ({ ...rows[0] } as DocumentRow) : undefined;
+
+    if (!document) {
+      try {
+        const mediaRes = await getApiPool().query(
+          `SELECT id, file_name as "fileName", file_path as "filePath", file_type as "fileType", file_size as "fileSize", created_at as "dateCreated", metadata_json as "metadataJson"
+           FROM media_items WHERE id = $1`,
+          [docId],
+        );
+        if (mediaRes.rows.length > 0) {
+          const m = mediaRes.rows[0];
+          document = {
+            id: m.id,
+            fileName: m.fileName,
+            filePath: m.filePath,
+            fileType: m.fileType,
+            fileSize: m.fileSize,
+            dateCreated: m.dateCreated,
+            extractedDate: m.dateCreated,
+            metadataJson: m.metadataJson,
+            title: m.fileName,
+            evidenceType: 'media',
+            content:
+              m.metadataJson?.extracted_text ||
+              m.metadataJson?.ocr_text ||
+              m.metadataJson?.content ||
+              '',
+            contentRefined: m.metadataJson?.refined_text || m.metadataJson?.extracted_text || '',
+          } as unknown as DocumentRow;
+        }
+      } catch (_err) {
+        // graceful fallback
+      }
+    }
 
     if (!document) return null;
 
@@ -663,6 +696,46 @@ export const documentsRepository = {
           [docId],
         );
         derivedContent = (sentenceTextRes.rows[0]?.combined_text || '').trim();
+      }
+
+      if (!derivedContent) {
+        try {
+          const mediaRes = await getApiPool().query<{ text: string | null }>(
+            `
+            SELECT 
+              COALESCE(
+                metadata_json->>'extracted_text',
+                metadata_json->>'ocr_text',
+                metadata_json->>'ocrText',
+                metadata_json->>'content'
+              ) AS text
+            FROM media_items
+            WHERE id = $1 OR file_path = $2
+            `,
+            [docId, document.filePath],
+          );
+          derivedContent = (mediaRes.rows[0]?.text || '').trim();
+        } catch (_err) {
+          // graceful fallback
+        }
+      }
+
+      if (!derivedContent && document.metadataJson) {
+        try {
+          const parsedMeta =
+            typeof document.metadataJson === 'string'
+              ? JSON.parse(document.metadataJson)
+              : document.metadataJson;
+          derivedContent = (
+            parsedMeta?.extracted_text ||
+            parsedMeta?.ocr_text ||
+            parsedMeta?.ocrText ||
+            parsedMeta?.content ||
+            ''
+          ).trim();
+        } catch (_err) {
+          // ignore
+        }
       }
     }
 
