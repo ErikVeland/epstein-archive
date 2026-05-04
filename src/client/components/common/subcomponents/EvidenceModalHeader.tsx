@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../CloseButton';
 import { Tabs, TabItem } from '../Tabs';
@@ -53,6 +53,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
   isVisualMediaItem,
   headerPhoto,
 }) => {
+  const [showProfilePopover, setShowProfilePopover] = useState(false);
   const headerPhotoId = headerPhoto?.id ? String(headerPhoto.id) : 'header-photo';
 
   return (
@@ -121,11 +122,32 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
                   </span>
                 </>
               )}
-            </div>
 
-            <div className={s.forensicContainer}>
-              <span className={s.forensicLabel}>Forensic Profile</span>
-              <p className={s.forensicText}>{forensicSummary}</p>
+              <div className={s.forensicPopoverContainer}>
+                <Button
+                  unstyled
+                  onClick={() => setShowProfilePopover(!showProfilePopover)}
+                  className={s.forensicButton}
+                >
+                  <Icon name="FileText" size="xs" />
+                  <span>Profile Summary</span>
+                </Button>
+                {showProfilePopover && (
+                  <div className={s.forensicPopover}>
+                    <div className={s.forensicPopoverHeader}>
+                      <span>Forensic Profile</span>
+                      <Button
+                        unstyled
+                        onClick={() => setShowProfilePopover(false)}
+                        className={s.popoverCloseBtn}
+                      >
+                        <Icon name="X" size="xs" />
+                      </Button>
+                    </div>
+                    <p className={s.forensicText}>{forensicSummary}</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className={s.desktopActions}>

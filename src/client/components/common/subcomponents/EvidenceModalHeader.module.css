@@ -2,9 +2,9 @@
   composes: app-header-glass from global;
   display: flex;
   flex-wrap: wrap;
-  padding: var(--space-6);
+  padding: var(--space-4);
   align-items: flex-start;
-  gap: var(--space-6);
+  gap: var(--space-4);
   flex-shrink: 0;
   position: relative;
   z-index: var(--z-above);
@@ -19,8 +19,8 @@
 
 @media (min-width: 768px) {
   .header {
-    padding: var(--space-10);
-    gap: var(--space-10);
+    padding: var(--space-5);
+    gap: var(--space-5);
   }
 }
 
@@ -50,8 +50,8 @@
 
 @media (min-width: 768px) {
   .photoRing {
-    width: 8rem; /* 32 */
-    height: 8rem;
+    width: 5.5rem;
+    height: 5.5rem;
   }
 }
 
@@ -174,7 +174,7 @@
 
 @media (min-width: 768px) {
   .title {
-    font-size: 3rem; /* text-5xl */
+    font-size: 1.85rem;
   }
 }
 
@@ -214,9 +214,9 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-3);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-2);
   color: var(--accent);
-  font-size: 1.125rem; /* text-lg */
+  font-size: 1rem;
   font-weight: 300;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
@@ -233,7 +233,7 @@
 
 @media (min-width: 768px) {
   .subtitleRow {
-    font-size: 1.25rem; /* text-xl */
+    font-size: 1rem;
   }
 }
 
@@ -508,10 +508,93 @@
   }
 }
 
+.forensicPopoverContainer {
+  position: relative;
+  display: inline-block;
+  margin-left: var(--space-4);
+}
+
+.forensicButton {
+  composes: semantic-chip from global;
+  background-color: var(--glass-bg-highlight);
+  color: var(--accent);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--type-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  transition: all var(--duration-fast) var(--easing-liquid);
+  border-radius: var(--radius-full);
+}
+
+.forensicButton:hover {
+  background-color: var(--glass-bg-strong);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.forensicPopover {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  width: 24rem;
+  max-width: calc(100vw - var(--space-8));
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-hard);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  backdrop-filter: blur(var(--glass-blur));
+  z-index: 50;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.forensicPopoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--accent);
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: var(--space-1);
+}
+
+.popoverCloseBtn {
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--duration-fast);
+}
+
+.popoverCloseBtn:hover {
+  color: var(--text-primary);
+}
+
 .closeBtn {
   position: absolute;
-  top: var(--space-6);
-  right: var(--space-6);
+  top: var(--space-4);
+  right: var(--space-4);
   color: var(--text-muted);
   transition: color var(--duration-fast) var(--easing-liquid);
 }
