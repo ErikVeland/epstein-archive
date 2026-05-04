@@ -302,45 +302,38 @@
   }
 }
 
-.quickActions {
+/* Actions area — lifted out of infoColumn, sits top-right on desktop */
+.actionsArea {
+  flex: 0 0 auto;
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  margin-bottom: var(--space-2);
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: flex-start;
+  /* Reserve space so actions don't underlap the absolute close button */
+  margin-right: 3rem;
 }
 
-.mobileActions {
-  display: none;
+/* Wrap below info on narrow-desktop viewports before hitting mobile */
+@media (min-width: 768px) and (max-width: 920px) {
+  .actionsArea {
+    flex: 1 0 100%;
+    margin-right: 0;
+    /* Indent to align with the info column (past photo + gap) */
+    padding-left: calc(5.5rem + var(--space-5));
+  }
 }
 
 @media (max-width: 767px) {
-  .desktopActions {
+  .actionsArea {
     display: none;
   }
+}
 
-  .mobileActions {
-    display: block;
-    flex: 1 0 100%;
-    min-width: 0;
-  }
-
-  .quickActions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-    margin-bottom: var(--space-1);
-  }
-
-  .quickActions > * {
-    width: 100%;
-    min-width: 0;
-    justify-content: center;
-  }
-
-  .quickActions .blackbookBtn {
-    grid-column: 1 / -1;
-  }
+.quickActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
 }
 
 .blackbookBtn {
@@ -462,10 +455,6 @@
 
 @media (max-width: 767px) {
   .forensicContainer {
-    display: none !important;
-  }
-
-  .mobileActions {
     display: none !important;
   }
 

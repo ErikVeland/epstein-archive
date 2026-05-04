@@ -260,6 +260,8 @@ function App() {
 
   // Modal State
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
+  // Prevents the urlEntityData effect from re-opening the modal immediately after close
+  const closingEntityModal = useRef(false);
 
   const [, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
@@ -466,6 +468,10 @@ function App() {
   const [_prevUrlEntityDataId, _setPrevUrlEntityDataId] = useState<number | null>(null);
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track entityData changes to set selected person */
   useEffect(() => {
+    if (closingEntityModal.current) {
+      closingEntityModal.current = false;
+      return;
+    }
     if (urlEntityData?.id && (!selectedPerson || selectedPerson.id !== urlEntityData.id)) {
       const photos: Photo[] = Array.isArray(urlEntityData.photos)
         ? (urlEntityData.photos as unknown[])
@@ -2239,6 +2245,7 @@ function App() {
                       entityId={selectedPerson.id.toString()}
                       isOpen={!!selectedPerson}
                       onClose={() => {
+                        closingEntityModal.current = true;
                         setSelectedPerson(null);
                         goBack('/people');
                       }}
