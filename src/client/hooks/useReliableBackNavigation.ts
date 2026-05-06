@@ -123,15 +123,14 @@ export const useReliableBackNavigation = (defaultFallback: To = '/') => {
       const locationState = (location.state as BackNavigationState | null) ?? null;
       const explicitTarget =
         typeof locationState?.backTo === 'string' ? locationState.backTo : null;
-      const trackedPrevious = getTrackedPreviousPath();
-      const target = explicitTarget ?? trackedPrevious;
 
-      if (target && target !== currentPath) {
-        navigate(target);
+      if (explicitTarget && explicitTarget !== currentPath) {
+        navigate(explicitTarget);
         return;
       }
 
-      if (typeof window !== 'undefined' && window.history.length > 1) {
+      const trackedPrevious = getTrackedPreviousPath();
+      if (trackedPrevious) {
         navigate(-1);
         return;
       }

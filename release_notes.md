@@ -1,5 +1,16 @@
 # Release Notes
 
+## 20.1.7 - 2026-05-06 - Modal Navigation & Pipeline Backfill Fixes
+
+### Modal Navigation
+
+- **Infinite Loop Fix**: Solved an issue where sequentially opening Document and Entity modals built up a deep history stack. Using the "X" button or Escape key now correctly removes modal state parameters and returns you directly to the underlying page, rather than forcing you to traverse backward through every previously opened modal.
+
+### Data & Pipeline
+
+- **OCR Backfill Remediation**: Corrected a silent failure in the OCR image backfill script that prevented 35k pending images from being processed due to a Postgres schema change. Triggered a continuous background backfill task to process this backlog, and hooked it into `live_status.json` to properly reflect progress in the Übersicht widget.
+- **Pending Extraction UI State**: Fixed a display bug in `DocumentModal` where documents possessing full OCR records were incorrectly displaying the "Text extraction is pending for this record" empty state. The UI now securely issues a background fetch to retrieve the full text blobs if they are absent from the list-view previews.
+
 ## 20.1.6 - 2026-05-06 - Media Previews & Evidence Extraction Hotfix
 
 ### Evidence List Improvements
