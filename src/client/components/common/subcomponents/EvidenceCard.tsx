@@ -1,6 +1,11 @@
 import React from 'react';
 import Icon from '@client/components/common/Icon';
-import { highlightTerms, normalizeEvidenceSnippet } from '@client/utils/evidenceUtils';
+import {
+  highlightTerms,
+  normalizeEvidenceSnippet,
+  isVisualMediaItem,
+  resolveEntityPhotoUrl,
+} from '@client/utils/evidenceUtils';
 import s from './EvidenceCard.module.css';
 
 import { Button } from '@client/design-system/lib';
@@ -42,6 +47,12 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
     onOpen(doc.id);
   };
 
+  const isMedia = isVisualMediaItem({
+    sourceType: doc.evidenceType,
+    filename: doc.title || doc.fileName,
+  });
+  const mediaUrl = isMedia ? resolveEntityPhotoUrl({ id: doc.id }, true) : null;
+
   return (
     <article
       data-testid={testId}
@@ -71,9 +82,16 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
             Open <Icon name="ExternalLink" size="xs" />
           </Button>
         </div>
-        <p className={s.excerpt}>
-          {highlightTerms(excerpt, [entityName, doc.keyword], s.highlight)}
-        </p>
+        <div className={s.body}>
+          {isMedia && mediaUrl && (
+            <div className={s.mediaPreview}>
+              <img src={mediaUrl} loading="lazy" alt="Media preview" />
+            </div>
+          )}
+          <p className={s.excerpt}>
+            {highlightTerms(excerpt, [entityName, doc.keyword], s.highlight)}
+          </p>
+        </div>
       </div>
 
       <div className={s.footer}>

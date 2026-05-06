@@ -197,8 +197,15 @@ export const normalizeEvidenceDocument = (
   return {
     id: documentId,
     evidenceId: item.id,
-    title: item.title || item.fileName || item.filename,
-    fileName: item.fileName || item.filename,
+    title:
+      item.title ||
+      item.fileName ||
+      item.file_name ||
+      item.filename ||
+      item.sourcePath ||
+      item.source_path,
+    fileName:
+      item.fileName || item.file_name || item.filename || item.sourcePath || item.source_path,
     contentPreview: item.contentPreview || item.context_snippet || item.description,
     evidenceType: item.evidenceType || item.evidence_type || 'Document',
     redFlagRating: item.redFlagRating ?? item.red_flag_rating ?? item.risk_score ?? 0,

@@ -476,7 +476,15 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
           }
         }
 
-        setDocuments((prev) => (page === 1 ? newDocs : [...prev, ...newDocs]));
+        setDocuments((prev) => {
+          const combined = page === 1 ? newDocs : [...prev, ...newDocs];
+          const seen = new Set();
+          return combined.filter((d) => {
+            if (!d || !d.id || seen.has(d.id)) return false;
+            seen.add(d.id);
+            return true;
+          });
+        });
         setTotalDocs(total);
         setHasNextPage(newDocs.length > 0 && page * 50 < total);
       } catch (error) {

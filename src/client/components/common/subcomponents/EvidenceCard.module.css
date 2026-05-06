@@ -94,12 +94,35 @@
   opacity: 1;
 }
 
+.body {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.mediaPreview {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background-color: var(--glass-bg);
+}
+
+.mediaPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .excerpt {
+  flex: 1;
   font-size: 0.875rem; /* text-sm */
   color: var(--text-muted);
   line-height: 1.625; /* relaxed */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
