@@ -93,21 +93,24 @@ Use `semanticChartTokens` from `src/client/design-system/lib`.
 To maintain a premium, state-of-the-art forensic aesthetic, our "Liquid Glass" interfaces adhere strictly to Apple's Human Interface Guidelines (HIG):
 
 ### 1. Typographic Alignment & Grids (No Centering)
+
 - **Rule**: All textual content, metadata elements, action lists, and form inputs must be left-aligned (or right-aligned for numeric/status values in a row) to establish a strong, predictable reading axis.
 - **Rule**: Avoid centering body text or metadata elements in cards, lists, or headers.
 
 ### 2. Apple Settings Row Pattern (Key-Value Lists)
+
 - **Application**: Core metadata lists, settings panels, or key-value indices (such as those in `EvidenceDetail.tsx` or `ForensicDocumentAnalyzer.tsx`).
 - **Structure**:
   - Housed in an elegant unified group card (`.appleSettingsGroup`) with subtle borders and standard spacing.
   - Rows are laid out horizontally using `Flex` containers: light uppercase labels on the left, primary values or badges on the right.
 
 ### 3. Badged Stack Row Items (Master-Detail Rows)
+
 - **Application**: Related lists, entity lists, action feeds, search results, or anywhere hierarchical details are displayed.
 - **Structure**:
   - A circular left-aligned icon badge (`.docIconBadge` or `.entityIconBadge`) with subtle background coloring and centered glyph.
   - A vertical stack on the right: primary label/title on top, subdued secondary label on the bottom (left-aligned).
 
 ### 4. Interactive Micro-animations
-- Hover and active states on list items and buttons must use restrained, glassmorphic color-mix animations rather than aggressive color changes.
 
+- Hover and active states on list items and buttons must use restrained, glassmorphic color-mix animations rather than aggressive color changes.

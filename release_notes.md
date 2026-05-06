@@ -3,12 +3,14 @@
 ## 20.3.0 - 2026-05-06 - Document Viewer Redesign & Clamped Annotation Overlays
 
 ### Integrated Document Viewer Redesign
+
 - **Unified Tab View Switcher**: Launched a fully combined Document Unified Tab view-mode switcher supporting fast toggling between Clean Text, Raw OCR, Original PDF, and Side-by-Side views.
 - **Deep-Linked State Sync**: Integrated full React Router state synchronization for `viewMode` directly into the URL query parameters (`viewMode`), enabling direct deep-linking and state preservation across browser refreshes.
 - **Canonical AI Insights Drawer**: Fully consolidated the AI key insights and extracted entities panels into the robust, collapsible `<DocumentInsightsDrawer>` component, eliminating redundant code and enhancing UI aesthetics.
 - **Render Performance Optimization**: Refactored sub-views into standard high-performance helper rendering functions to prevent React component re-creation, state-reset issues, and Hook violations.
 
 ### Floating Annotation Overlays
+
 - **Viewport-Aware Clamping**: Engineered dynamic coordinate clamping for the floating annotation creation and detail menus, ensuring they never overflow, clip, or render outside the visible screen boundaries.
 - **Type-Hardened Related Docs**: Expanded the `DocRecord` model and resolved deep TypeScript compiler errors inside the metadata rail, achieving a robust 100% type-safe compilation baseline.
 
