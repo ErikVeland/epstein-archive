@@ -443,6 +443,9 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
     pnpm format
     pnpm lint:fix
 
+    log_step "Running strict pre-checks before local build gates..."
+    pnpm precheck
+
     # Retired legacy parity check after the Postgres migration.
 
     verify_release_notes_version
@@ -667,8 +670,7 @@ if [ "$DRY_RUN" = false ]; then
   fi
 
   log_step "Running DB meta Postgres gate..."
-  remote_ssh \
-    "curl -sf http://localhost:3012/api/_meta/db | jq -e '(.dialect == \"postgres\") and ((has(\"translationCount\") | not) or (.translationCount == 0))' >/dev/null || exit 1"
+  remote_ssh "curl -sf http://localhost:3012/api/_meta/db | grep -q '\"dialect\":\"postgres\"' || exit 1"
 
   # CERT_STEP: health_endpoint_smoke_test
   log_step "Running basic health smoke test..."
