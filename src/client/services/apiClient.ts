@@ -2,7 +2,8 @@
 import { z } from 'zod';
 import { Person } from '@client/types';
 import type { MediaImage, MediaTag } from '@client/types/media.types';
-import type { SearchFilters, PaginatedResponse } from './optimizedDataLoader';
+import type { SearchFilters, PaginatedResponse, RealPerson } from './optimizedDataLoader';
+import { mapEntityListItemToPerson } from '@client/mappers/entityMapper';
 import type {
   EmailMailboxesResponseDto,
   EmailMessageBodyDto,
@@ -23,7 +24,6 @@ import {
   documentsListResponseSchema,
   emailThreadDetailsResponseSchema,
   emailThreadsResponseSchema,
-  entityListResponseSchema,
   investigationEvidenceListResponseSchema,
   subjectsListResponseSchema,
 } from '@shared/contracts';
@@ -559,31 +559,24 @@ class ApiClient {
   ): Promise<PaginatedResponse> {
     const params = new URLSearchParams();
 
-    if ((filters as Record<string, unknown>).searchTerm as string)
-      params.append('search', (filters as Record<string, unknown>).searchTerm as string);
+    if (filters.searchTerm) params.append('search', filters.searchTerm);
     if (filters.evidenceTypes && filters.evidenceTypes.length > 0)
       params.append('role', filters.evidenceTypes[0]);
-    // Support both 'likelihood' and 'likelihoodScore' filter property names
-    const likelihoodValue =
-      (filters as Record<string, unknown>).likelihood ||
-      (filters as Record<string, unknown>).likelihoodScore;
+
+    const likelihoodValue = filters.likelihood ?? filters.likelihoodScore;
     if (likelihoodValue && Array.isArray(likelihoodValue) && likelihoodValue.length > 0) {
       params.append('likelihood', likelihoodValue[0]);
     } else if (likelihoodValue && typeof likelihoodValue === 'string') {
       params.append('likelihood', likelihoodValue);
     }
-    if ((filters as Record<string, unknown>).sortBy)
-      params.append('sortBy', (filters as Record<string, unknown>).sortBy as string);
+    if (filters.sortBy) params.append('sortBy', filters.sortBy);
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
     if (filters.minRedFlagIndex !== undefined)
       params.append('minRedFlagIndex', filters.minRedFlagIndex.toString());
     if (filters.maxRedFlagIndex !== undefined)
       params.append('maxRedFlagIndex', filters.maxRedFlagIndex.toString());
-    if (
-      (filters as Record<string, unknown>).entityType &&
-      (filters as Record<string, unknown>).entityType !== 'all'
-    )
-      params.append('type', (filters as Record<string, unknown>).entityType as string);
+    if (filters.entityType && filters.entityType !== 'all')
+      params.append('type', filters.entityType);
     if (page > 1) params.append('page', page.toString());
     if (limit !== 24) params.append('limit', limit.toString());
 
@@ -592,77 +585,67 @@ class ApiClient {
       const raw = await this.fetchWithErrorHandling<unknown>(url);
       const resp = parseWithSchema<EntityListResponseDto>(
         raw,
-        entityListResponseSchema,
+        entityListResponseDto,
         '/api/entities',
       );
       const data = Array.isArray(resp.data) ? resp.data : [];
-      const normalized = data.map((e: unknown) => ({
-        ...(e as object),
-        name: (e as Record<string, unknown>).name ?? (e as Record<string, unknown>).fullName,
-        fullName: (e as Record<string, unknown>).fullName ?? (e as Record<string, unknown>).name,
-        redFlagRating: (e as Record<string, unknown>).redFlagRating ?? 0,
-        files:
-          (e as Record<string, unknown>).files ?? (e as Record<string, unknown>).documentCount ?? 0,
-        blackBookEntry: (e as Record<string, unknown>).blackBookEntry || null,
-      }));
-      return { ...(resp as unknown as object), data: normalized } as unknown as PaginatedResponse;
+      const normalized: RealPerson[] = data.map((e) => {
+        const person = mapEntityListItemToPerson(e);
+        return {
+          ...person,
+          fullName: person.fullName || person.name,
+          primaryRole: person.primaryRole || person.title || 'Unknown',
+          secondaryRoles: person.secondaryRoles || [],
+          keyEvidence: 'No specific evidence available',
+          fileReferences: [],
+        };
+      });
+      return { ...resp, data: normalized } as unknown as PaginatedResponse;
     } catch (primaryError) {
       console.warn('Primary /api/entities failed, falling back to /api/subjects:', primaryError);
 
       const subjects = await this.getSubjects({
-        searchTerm: (filters as Record<string, unknown>).searchTerm as string,
+        searchTerm: filters.searchTerm || '',
         role:
           filters.evidenceTypes && filters.evidenceTypes.length > 0 ? filters.evidenceTypes[0] : '',
-        sortBy: ((filters as Record<string, unknown>).sortBy as string) || 'red_flag',
+        sortBy: filters.sortBy || 'red_flag',
         sortOrder: filters.sortOrder || 'desc',
         minRedFlagIndex: filters.minRedFlagIndex,
         maxRedFlagIndex: filters.maxRedFlagIndex,
-        entityType: (filters as Record<string, unknown>).entityType,
-        likelihood:
-          (filters as Record<string, unknown>).likelihood ||
-          (filters as Record<string, unknown>).likelihoodScore,
-      } as unknown as Record<string, unknown>);
+        entityType: filters.entityType,
+        likelihood: filters.likelihood || filters.likelihoodScore,
+      });
 
-      type SubjectFallback = {
-        id: string;
-        name?: string;
-        shortBio?: string;
-        role?: string;
-        redFlagRating?: number;
-        forensics?: { redFlagObjective?: number; redFlagSubjective?: number; riskLevel?: string };
-        stats?: { mentions?: number; documents?: number };
-      };
-
-      const fallbackData = (subjects.subjects || []).map((s: SubjectFallback) => {
+      const fallbackData: Person[] = (subjects.subjects || []).map((s: Record<string, unknown>) => {
+        const forensics = s.forensics as Record<string, unknown> | undefined;
+        const stats = s.stats as Record<string, unknown> | undefined;
         const redFlag =
-          s?.forensics?.redFlagObjective ??
-          s?.forensics?.redFlagSubjective ??
-          s?.redFlagRating ??
+          forensics?.redFlagObjective ??
+          forensics?.redFlagSubjective ??
+          (s.redFlagRating as number) ??
           0;
         return {
-          id: s.id,
-          name: s.name || 'Unknown',
-          fullName: s.name || 'Unknown',
-          bio: s.shortBio || '',
+          id: String(s.id || ''),
+          name: String(s.name || 'Unknown'),
+          fullName: String(s.name || 'Unknown'),
+          bio: String(s.shortBio || ''),
           entityType: 'Person',
-          primaryRole: s.role || 'Unknown',
+          primaryRole: String(s.role || 'Unknown'),
           secondaryRoles: [],
-          mentions: Number(s?.stats?.mentions || 0),
-          files: Number(s?.stats?.documents || 0),
+          mentions: Number(stats?.mentions || 0),
+          files: Number(stats?.documents || 0),
           contexts: [],
           evidenceTypes: [],
           photos: [],
           significantPassages: [],
-          keyEvidence: '',
-          fileReferences: [],
-          likelihoodScore: s?.forensics?.riskLevel || 'LOW',
+          likelihoodScore: String(forensics?.riskLevel || 'LOW'),
           redFlagScore: Number(redFlag || 0),
           redFlagRating: Number(redFlag || 0),
           redFlagPeppers: Number(redFlag || 0) > 0 ? '🚩'.repeat(Number(redFlag || 0)) : '🏳️',
           redFlagDescription: `Red Flag Index ${Number(redFlag || 0)}`,
           connectionsToEpstein: '',
-          blackBookEntry: null,
-        } as Person;
+          fileReferences: [],
+        };
       });
 
       return {
@@ -679,11 +662,11 @@ class ApiClient {
     const url = `${API_BASE_URL}/entities/${encodeURIComponent(id)}`;
     const e = await this.fetchWithErrorHandling<Record<string, unknown>>(url);
     return {
-      ...(e as object),
-      name: (e as Record<string, unknown>).name ?? (e as Record<string, unknown>).fullName,
-      fullName: (e as Record<string, unknown>).fullName ?? (e as Record<string, unknown>).name,
-      redFlagRating: (e as Record<string, unknown>).redFlagRating ?? 0,
-      blackBookEntry: (e as Record<string, unknown>).blackBookEntry || null,
+      id: String(e.id || ''),
+      name: String(e.name || e.fullName || ''),
+      fullName: String(e.fullName || e.name || ''),
+      redFlagRating: Number(e.redFlagRating || 0),
+      blackBookEntry: (e.blackBookEntry as Record<string, unknown> | null) || null,
     } as unknown as Person;
   }
 

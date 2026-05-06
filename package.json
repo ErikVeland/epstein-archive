@@ -38,6 +38,8 @@
     "black-book:enrich": "tsx scripts/enrich_black_book.ts",
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
     "lint": "eslint . --ext .ts,.tsx",
+    "precheck": "bash scripts/strict_prechecks.sh --full",
+    "precheck:staged": "bash scripts/strict_prechecks.sh --staged",
     "check:boundaries": "node scripts/check_client_server_boundary.mjs",
     "check:seed-conflict-policy": "node --import tsx/esm scripts/check_seed_conflict_policy.ts",
     "check:test-hygiene": "node --import tsx/esm scripts/check_test_hygiene.ts",

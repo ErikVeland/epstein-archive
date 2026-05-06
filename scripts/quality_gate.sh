@@ -10,6 +10,9 @@ pnpm install --frozen-lockfile
 echo "▶ Building shared packages"
 pnpm --filter @epstein/db build
 
+echo "▶ Running strict pre-checks"
+pnpm precheck
+
 echo "▶ Checking formatting"
 pnpm format:check
 
@@ -18,11 +21,6 @@ pnpm lint
 
 echo "▶ Type checking"
 pnpm type-check
-
-echo "▶ Enforcing repo integrity gates"
-pnpm check:seed-conflict-policy
-pnpm check:test-hygiene
-pnpm check:design-tokens
 
 echo "▶ Running unit tests"
 pnpm test:unit

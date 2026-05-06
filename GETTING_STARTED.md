@@ -130,11 +130,17 @@ pnpm run hygiene:clean
 
 # Verify you are not staging forbidden local-only artifacts
 pnpm run check:hygiene
+
+# Run the full strict pre-check contract used before CI/deploy gates
+pnpm run precheck
+
+# Run the staged-file version used by the commit hook
+pnpm run precheck:staged
 ```
 
 ### Recurring cleanup procedure (recommended)
 
-- Before opening a PR: run `pnpm run check:hygiene`
+- Before opening a PR: run `pnpm run precheck`
 - If you’ve been doing LLM-assisted work: run `pnpm run hygiene:clean`
 - If you see Rollup/Vite native module issues after switching machines/architectures:
   - delete `node_modules/` and reinstall via `pnpm install`

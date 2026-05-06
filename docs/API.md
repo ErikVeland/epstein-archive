@@ -1534,19 +1534,17 @@ All API responses are validated against Zod schemas in `src/shared/schemas/` and
 
 The CI workflow (`.github/workflows/ci.yml`) runs on every push/PR to `main`/`master` via `scripts/quality_gate.sh`, which executes:
 
-| Step                 | Command                           | What it covers                                  |
-| -------------------- | --------------------------------- | ----------------------------------------------- |
-| Format check         | `pnpm format:check`               | Prettier formatting                             |
-| Lint                 | `pnpm lint`                       | ESLint (TypeScript + React)                     |
-| Type check           | `pnpm type-check`                 | Full `tsc --noEmit`                             |
-| Seed conflict policy | `pnpm check:seed-conflict-policy` | Prevents seed data conflicts                    |
-| Test hygiene         | `pnpm check:test-hygiene`         | Enforces test organisation rules                |
-| Design tokens        | `pnpm check:design-tokens`        | Design system token compliance                  |
-| Unit tests           | `pnpm test:unit`                  | Vitest unit test suite (`src/test/`)            |
-| DB connectivity      | `pnpm db:check`                   | Verifies `DATABASE_URL` reachability (CI only)  |
-| Schema hash          | `pnpm schema:hash:check`          | Detects silent schema drift (CI only)           |
-| Production build     | `pnpm build:prod`                 | Full Vite + tsc server build                    |
-| Bundle smoke tests   | `pnpm test:bundle-smoke:only`     | Catches TDZ / ReferenceError crashes post-build |
+| Step               | Command                       | What it covers                                  |
+| ------------------ | ----------------------------- | ----------------------------------------------- |
+| Strict pre-checks  | `pnpm precheck`               | Repo contracts before heavier quality gates     |
+| Format check       | `pnpm format:check`           | Prettier formatting                             |
+| Lint               | `pnpm lint`                   | ESLint (TypeScript + React)                     |
+| Type check         | `pnpm type-check`             | Full `tsc --noEmit`                             |
+| Unit tests         | `pnpm test:unit`              | Vitest unit test suite (`src/test/`)            |
+| DB connectivity    | `pnpm db:check`               | Verifies `DATABASE_URL` reachability (CI only)  |
+| Schema hash        | `pnpm schema:hash:check`      | Detects silent schema drift (CI only)           |
+| Production build   | `pnpm build:prod`             | Full Vite + tsc server build                    |
+| Bundle smoke tests | `pnpm test:bundle-smoke:only` | Catches TDZ / ReferenceError crashes post-build |
 
 ### Performance budget tests
 
