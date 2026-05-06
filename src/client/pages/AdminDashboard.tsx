@@ -14,7 +14,17 @@ import { LqText } from '@client/design-system/components/typography/Text';
 import { Grid } from '@client/design-system/components/layout/Grid';
 import styles from './AdminDashboard.module.css';
 
-import { Button, Input, NativeSelect } from '@client/design-system/lib';
+import {
+  Button,
+  Input,
+  NativeSelect,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@client/design-system/lib';
+import { useToasts } from '@client/components/common/useToasts';
 
 interface User {
   id: string;
@@ -110,6 +120,9 @@ export const AdminDashboard: React.FC = () => {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showBackupConfirm, setShowBackupConfirm] = useState(false);
+  const [deleteTargetUserId, setDeleteTargetUserId] = useState<string | null>(null);
   useScrollLock(isModalOpen);
 
   // Form states
@@ -129,12 +142,11 @@ export const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const errorMessage = (err: unknown) => (err instanceof Error ? err.message : 'Unexpected error');
+  const { addToast } = useToasts();
 
   const handleLogout = async () => {
-    if (confirm('Are you sure you want to log out?')) {
-      await logout();
-      navigate('/login');
-    }
+    await logout();
+    navigate('/login');
   };
 
   // --- useQuery: users (seeded into mutable local state) ---
@@ -200,13 +212,12 @@ export const AdminDashboard: React.FC = () => {
   });
 
   const triggerBackup = async () => {
-    if (!confirm('Create a new database snapshot? This is a zero-downtime operation.')) return;
     try {
       await apiClient.post('/stats/backups/trigger');
-      alert('Backup created successfully.');
+      addToast({ text: 'Backup created successfully', type: 'success' });
       void queryClient.invalidateQueries({ queryKey: ['admin-backups'] });
     } catch (err) {
-      alert(errorMessage(err));
+      addToast({ text: errorMessage(err), type: 'error' });
     }
   };
 
@@ -218,7 +229,7 @@ export const AdminDashboard: React.FC = () => {
       setUsers([...users, data]);
       closeModal();
     } catch (err) {
-      alert(errorMessage(err));
+      addToast({ text: errorMessage(err), type: 'error' });
     }
   };
 
@@ -241,18 +252,16 @@ export const AdminDashboard: React.FC = () => {
       setUsers(users.map((u) => (u.id === editingUser.id ? { ...u, ...updateData } : u)));
       closeModal();
     } catch (err) {
-      alert(errorMessage(err));
+      addToast({ text: errorMessage(err), type: 'error' });
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this user? This cannot be undone.')) return;
-
     try {
       await apiClient.delete(`/users/${id}`);
       setUsers(users.filter((u) => u.id !== id));
     } catch (err) {
-      alert(errorMessage(err));
+      addToast({ text: errorMessage(err), type: 'error' });
     }
   };
 
@@ -321,7 +330,11 @@ export const AdminDashboard: React.FC = () => {
           </Box>
 
           <Flex align="center" gap={3}>
-            <Button unstyled onClick={handleLogout} className={styles.logoutButton}>
+            <Button
+              unstyled
+              onClick={() => setShowLogoutConfirm(true)}
+              className={styles.logoutButton}
+            >
               <Icon name="LogOut" size="md" />
               <span>Log Out</span>
             </Button>
@@ -522,7 +535,7 @@ export const AdminDashboard: React.FC = () => {
                               {user.id !== currentUser?.id && (
                                 <Button
                                   unstyled
-                                  onClick={() => handleDelete(user.id)}
+                                  onClick={() => setDeleteTargetUserId(user.id)}
                                   className={`${styles.iconButton} ${styles.deleteButton}`}
                                   title="Delete User"
                                 >
@@ -770,7 +783,11 @@ export const AdminDashboard: React.FC = () => {
                   Compressed database snapshots (Last 7 days retained)
                 </LqText>
               </Box>
-              <Button unstyled onClick={triggerBackup} className={styles.primaryButton}>
+              <Button
+                unstyled
+                onClick={() => setShowBackupConfirm(true)}
+                className={styles.primaryButton}
+              >
                 <Icon name="RefreshCw" size="md" />
                 Snapshot Now
               </Button>
@@ -913,6 +930,92 @@ export const AdminDashboard: React.FC = () => {
           </Surface>
         </Flex>
       )}
+
+      {/* Logout confirmation dialog */}
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Log out</DialogTitle>
+            <DialogDescription>Are you sure you want to end your session?</DialogDescription>
+          </DialogHeader>
+          <Flex gap="sm" justify="end" style={{ marginTop: 'var(--space-4)' }}>
+            <Button variant="ghost" size="sm" onClick={() => setShowLogoutConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                setShowLogoutConfirm(false);
+                await handleLogout();
+              }}
+            >
+              Log out
+            </Button>
+          </Flex>
+        </DialogContent>
+      </Dialog>
+
+      {/* Backup confirmation dialog */}
+      <Dialog open={showBackupConfirm} onOpenChange={setShowBackupConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create snapshot</DialogTitle>
+            <DialogDescription>
+              Create a new database snapshot? This is a zero-downtime operation.
+            </DialogDescription>
+          </DialogHeader>
+          <Flex gap="sm" justify="end" style={{ marginTop: 'var(--space-4)' }}>
+            <Button variant="ghost" size="sm" onClick={() => setShowBackupConfirm(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={async () => {
+                setShowBackupConfirm(false);
+                await triggerBackup();
+              }}
+            >
+              Create snapshot
+            </Button>
+          </Flex>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete user confirmation dialog */}
+      <Dialog
+        open={deleteTargetUserId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTargetUserId(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete user</DialogTitle>
+            <DialogDescription>
+              This will permanently delete the user account. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <Flex gap="sm" justify="end" style={{ marginTop: 'var(--space-4)' }}>
+            <Button variant="ghost" size="sm" onClick={() => setDeleteTargetUserId(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                if (deleteTargetUserId) {
+                  void handleDelete(deleteTargetUserId);
+                  setDeleteTargetUserId(null);
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </Flex>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

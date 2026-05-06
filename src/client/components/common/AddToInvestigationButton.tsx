@@ -277,7 +277,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
             <div className={s.modalBody}>
               {/* Item Preview */}
-              <div className={`${s.itemPreview} surface-panel`}>
+              <Surface variant="panel" className={s.itemPreview}>
                 <div className={s.itemPreviewHeader}>
                   <Icon name={ItemIcon} color="gray" />
                   <h4 className={s.itemTitle}>{item.title}</h4>
@@ -286,7 +286,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                 <div className={s.itemTypeBadge}>
                   <span className={s.itemTypeLabel}>{item.type}</span>
                 </div>
-              </div>
+              </Surface>
 
               {/* Investigation Selection or Creation */}
               <div>

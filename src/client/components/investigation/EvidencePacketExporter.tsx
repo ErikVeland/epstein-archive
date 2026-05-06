@@ -10,7 +10,17 @@ import type {
 import { apiClient } from '@client/services/apiClient';
 
 // UI Library
-import { Surface, Button, Flex, Box, Stack, LqText, Grid, cn } from '@client/design-system/lib';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  cn,
+  Badge,
+} from '@client/design-system/lib';
 import styles from './EvidencePacketExporter.module.css';
 
 interface ExportMeta {
@@ -87,6 +97,7 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<ExportResult | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const isExporting = exportStatus === 'preparing' || exportStatus === 'downloading';
 
@@ -161,6 +172,33 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
     return { filename, generatedAt: exportedAt, skippedFiles, limits };
   };
 
+  const [previewData, setPreviewData] = useState<{
+    included: Array<{ name: string; type: string; size?: number }>;
+    omitted: Array<{ name: string; reason: string }>;
+    skippedFiles: string[];
+    warnings: string[];
+    ready: boolean;
+  } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  const fetchPreview = async () => {
+    setPreviewLoading(true);
+    try {
+      const response = await apiClient.get<{
+        included: Array<{ name: string; type: string; size?: number }>;
+        omitted: Array<{ name: string; reason: string }>;
+        skippedFiles: string[];
+        warnings: string[];
+        ready: boolean;
+      }>(`/investigations/${encodeURIComponent(investigationId)}/export/preview`);
+      setPreviewData(response);
+    } catch (error) {
+      console.error('Preview fetch failed:', error);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const handleExport = async () => {
     const exportedAt = new Date().toISOString();
     setExportStatus('preparing');
@@ -189,12 +227,12 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
   };
 
   return (
-    <Box p="xxl" style={{ backgroundColor: 'var(--lq-surface-1)' }} className={styles.autoGen67}>
+    <Box p="xxl" style={{ backgroundColor: 'var(--lq-surface-1)' }} className={styles.exportShell}>
       <Stack gap="xl">
         {/* Header HUD */}
         <Stack gap="sm">
           <Flex align="center" gap="md">
-            <Icon name="Package" size="lg" className={styles.autoGen68} />
+            <Icon name="Package" size="lg" className={styles.packageIcon} />
             <LqText variant="h3" weight="bold">
               Evidence Packet Synthesis
             </LqText>
@@ -273,10 +311,190 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
           </Grid>
         </Stack>
 
+        {/* Preview Button */}
+        {!showPreview && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setShowPreview(true);
+              if (!previewData) fetchPreview();
+            }}
+          >
+            <Icon name="Eye" size="sm" className={styles.mr2} />
+            Preview Packet Contents
+          </Button>
+        )}
+
+        {/* Preview Panel */}
+        {showPreview && (
+          <Surface variant="glass-highlight" p="lg" className={styles.previewPanel}>
+            <Stack gap="md">
+              <Flex align="center" justify="between">
+                <Flex align="center" gap="md">
+                  <Icon name="FileSearch" size="md" className={styles.previewIcon} />
+                  <LqText variant="small" weight="bold">
+                    Export Preview
+                  </LqText>
+                </Flex>
+                <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)}>
+                  <Icon name="X" size="sm" />
+                </Button>
+              </Flex>
+
+              {previewLoading ? (
+                <Flex align="center" gap="sm">
+                  <Icon name="Loader2" className="animate-spin" size="sm" />
+                  <LqText variant="xs" color="muted">
+                    Loading preview...
+                  </LqText>
+                </Flex>
+              ) : previewData ? (
+                <>
+                  {/* Readiness */}
+                  <Flex align="center" gap="sm">
+                    {previewData.ready ? (
+                      <Badge variant="success" label="READY TO EXPORT" />
+                    ) : (
+                      <Badge variant="warning" label="NOT READY" />
+                    )}
+                    <LqText variant="xs" color="muted">
+                      {previewData.ready ? 'All checks passed' : 'Review warnings before exporting'}
+                    </LqText>
+                  </Flex>
+
+                  {/* Included Evidence */}
+                  {previewData.included.length > 0 && (
+                    <Box>
+                      <LqText
+                        variant="xs"
+                        weight="bold"
+                        color="muted"
+                        className={styles.previewSectionTitle}
+                      >
+                        INCLUDED ({previewData.included.length})
+                      </LqText>
+                      <Box className={styles.previewList}>
+                        {previewData.included.slice(0, 10).map((item, i) => (
+                          <Flex key={i} align="center" gap="sm" className={styles.previewItem}>
+                            <Icon
+                              name={
+                                item.type === 'document'
+                                  ? 'FileText'
+                                  : item.type === 'image'
+                                    ? 'Image'
+                                    : 'File'
+                              }
+                              size="xs"
+                              className={styles.previewItemIcon}
+                            />
+                            <LqText variant="xs">{item.name}</LqText>
+                            {item.size != null && (
+                              <LqText variant="xs" color="muted" ml="auto">
+                                {(item.size / 1024).toFixed(1)} KB
+                              </LqText>
+                            )}
+                          </Flex>
+                        ))}
+                        {previewData.included.length > 10 && (
+                          <LqText variant="xs" color="muted" className={styles.previewMore}>
+                            +{previewData.included.length - 10} more...
+                          </LqText>
+                        )}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Omitted Evidence */}
+                  {previewData.omitted.length > 0 && (
+                    <Box>
+                      <LqText
+                        variant="xs"
+                        weight="bold"
+                        color="warning"
+                        className={styles.previewSectionTitle}
+                      >
+                        OMITTED ({previewData.omitted.length})
+                      </LqText>
+                      <Box className={styles.previewList}>
+                        {previewData.omitted.map((item, i) => (
+                          <Flex key={i} align="center" gap="sm" className={styles.previewItem}>
+                            <Icon name="AlertTriangle" size="xs" className={styles.warningIcon} />
+                            <LqText variant="xs">{item.name}</LqText>
+                            <LqText variant="xs" color="muted" ml="auto">
+                              {item.reason}
+                            </LqText>
+                          </Flex>
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Skipped Files */}
+                  {previewData.skippedFiles.length > 0 && (
+                    <Box>
+                      <LqText
+                        variant="xs"
+                        weight="bold"
+                        color="warning"
+                        className={styles.previewSectionTitle}
+                      >
+                        SKIPPED FILES ({previewData.skippedFiles.length})
+                      </LqText>
+                      <Box className={styles.previewList}>
+                        {previewData.skippedFiles.slice(0, 5).map((file, i) => (
+                          <LqText
+                            key={i}
+                            variant="xs"
+                            color="muted"
+                            className={styles.previewSkipItem}
+                          >
+                            {file}
+                          </LqText>
+                        ))}
+                        {previewData.skippedFiles.length > 5 && (
+                          <LqText variant="xs" color="muted">
+                            +{previewData.skippedFiles.length - 5} more...
+                          </LqText>
+                        )}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Warnings */}
+                  {previewData.warnings.length > 0 && (
+                    <Surface variant="glass" p="sm" className={styles.warningPanel}>
+                      <Flex gap="sm" align="start">
+                        <Icon name="Info" size="sm" className={styles.infoIcon} />
+                        <Stack gap="xs">
+                          {previewData.warnings.map((warning, i) => (
+                            <LqText key={i} variant="xs" color="muted">
+                              {warning}
+                            </LqText>
+                          ))}
+                        </Stack>
+                      </Flex>
+                    </Surface>
+                  )}
+                </>
+              ) : (
+                <LqText variant="xs" color="muted">
+                  No preview data available. Click to refresh.
+                </LqText>
+              )}
+
+              <Button variant="ghost" size="sm" onClick={fetchPreview} disabled={previewLoading}>
+                <Icon name="RefreshCw" size="sm" className={styles.mr2} />
+                Refresh Preview
+              </Button>
+            </Stack>
+          </Surface>
+        )}
+
         {/* Security / Governance */}
-        <Surface variant="glass" p="md" className={styles.autoGen69}>
+        <Surface variant="glass" p="md" className={styles.governanceNotice}>
           <Flex gap="md" align="center">
-            <Icon name="ShieldCheck" size="md" className={styles.autoGen70} />
+            <Icon name="ShieldCheck" size="md" className={styles.shieldIcon} />
             <LqText variant="xs" color="muted">
               Export metadata is intended for reviewer traceability. Cryptographic integrity and
               skipped-file manifests are shown only when generated by the active export path.

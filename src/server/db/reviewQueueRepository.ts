@@ -1,9 +1,6 @@
 import { reviewQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
-import {
-  IGetMentionsQueueResult,
-  IGetClaimsQueueResult,
-} from '@epstein/db/src/queries/__generated__/review.js';
+import { IGetMentionsQueueResult } from '@epstein/db/src/queries/__generated__/review.js';
 
 export const reviewQueueRepository = {
   async getPendingItems(limit: number = 50) {
@@ -68,9 +65,10 @@ export const reviewQueueRepository = {
 
   async getClaimsQueue(limit: number = 50) {
     const rows = await reviewQueries.getClaimsQueue.run({ limit }, getApiPool());
-    return rows.map((r: IGetClaimsQueueResult) => ({
+    return rows.map((r) => ({
       id: r.id,
       subject_entity_id: r.subjectEntityId,
+      subject_entity_name: (r as unknown as Record<string, unknown>).subjectEntityName ?? null,
       predicate: r.predicate,
       object_text: r.objectText,
       confidence: r.confidence,

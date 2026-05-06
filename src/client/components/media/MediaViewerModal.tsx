@@ -6,13 +6,14 @@ import {
   Box,
   Button,
   Flex,
-  Grid as LqGrid,
   Input,
   LqText,
   Stack,
   Surface,
   TextArea,
   cn,
+  HIGSettingsGroup,
+  HIGSettingsRow,
 } from '@client/design-system/lib';
 import { MediaImage } from '@client/types/media.types';
 import { useAuth } from '@client/contexts/AuthContext';
@@ -482,66 +483,22 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 File Matrix
               </LqText>
             </Flex>
-            <LqGrid cols={2} gap="sm">
-              <Surface variant="glass-highlight" p="sm">
-                <Stack gap="xs">
-                  <LqText
-                    variant="xxs"
-                    weight="bold"
-                    color="muted"
-                    style={{ textTransform: 'uppercase' }}
-                  >
-                    Format
-                  </LqText>
-                  <LqText variant="xs">{currentImage.format || 'Unknown'}</LqText>
-                </Stack>
-              </Surface>
-              <Surface variant="glass-highlight" p="sm">
-                <Stack gap="xs">
-                  <LqText
-                    variant="xxs"
-                    weight="bold"
-                    color="muted"
-                    style={{ textTransform: 'uppercase' }}
-                  >
-                    Size
-                  </LqText>
-                  <LqText variant="xs">{formatFileSize(currentImage.fileSize)}</LqText>
-                </Stack>
-              </Surface>
-              <Surface variant="glass-highlight" p="sm">
-                <Stack gap="xs">
-                  <LqText
-                    variant="xxs"
-                    weight="bold"
-                    color="muted"
-                    style={{ textTransform: 'uppercase' }}
-                  >
-                    Dimensions
-                  </LqText>
-                  <LqText variant="xs">
-                    {currentImage.width && currentImage.height
-                      ? `${currentImage.width}×${currentImage.height}`
-                      : 'Unknown'}
-                  </LqText>
-                </Stack>
-              </Surface>
-              <Surface variant="glass-highlight" p="sm">
-                <Stack gap="xs">
-                  <LqText
-                    variant="xxs"
-                    weight="bold"
-                    color="muted"
-                    style={{ textTransform: 'uppercase' }}
-                  >
-                    Added
-                  </LqText>
-                  <LqText variant="xs">
-                    {currentImage.dateAdded || currentImage.created_at || 'Unknown'}
-                  </LqText>
-                </Stack>
-              </Surface>
-            </LqGrid>
+            <HIGSettingsGroup>
+              <HIGSettingsRow label="Format" value={currentImage.format || 'Unknown'} />
+              <HIGSettingsRow label="Size" value={formatFileSize(currentImage.fileSize)} />
+              <HIGSettingsRow
+                label="Dimensions"
+                value={
+                  currentImage.width && currentImage.height
+                    ? `${currentImage.width}×${currentImage.height}`
+                    : 'Unknown'
+                }
+              />
+              <HIGSettingsRow
+                label="Added"
+                value={currentImage.dateAdded || currentImage.created_at || 'Unknown'}
+              />
+            </HIGSettingsGroup>
           </Stack>
 
           {currentImage.documentId && (
@@ -624,34 +581,17 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 EXIF Intelligence
               </LqText>
             </Flex>
-            <Surface variant="glass-highlight" p="md">
-              <Stack gap="sm">
-                <Flex justify="between" align="center">
-                  <LqText variant="xs" color="muted">
-                    DATE CAPTURED
-                  </LqText>
-                  <LqText variant="xs" weight="bold">
-                    {formatDate(currentImage.dateTaken)}
-                  </LqText>
-                </Flex>
-                <Flex justify="between" align="center">
-                  <LqText variant="xs" color="muted">
-                    OPTICS
-                  </LqText>
-                  <LqText variant="xs" weight="bold">
-                    {currentImage.cameraMake} {currentImage.cameraModel || 'Generic'}
-                  </LqText>
-                </Flex>
-                <Flex justify="between" align="center">
-                  <LqText variant="xs" color="muted">
-                    RESOLUTION
-                  </LqText>
-                  <LqText variant="xs" weight="bold">
-                    {currentImage.width} × {currentImage.height}
-                  </LqText>
-                </Flex>
-              </Stack>
-            </Surface>
+            <HIGSettingsGroup>
+              <HIGSettingsRow label="Date Captured" value={formatDate(currentImage.dateTaken)} />
+              <HIGSettingsRow
+                label="Optics"
+                value={`${currentImage.cameraMake || ''} ${currentImage.cameraModel || 'Generic'}`}
+              />
+              <HIGSettingsRow
+                label="Resolution"
+                value={`${currentImage.width || 0} × ${currentImage.height || 0}`}
+              />
+            </HIGSettingsGroup>
           </Stack>
 
           {currentImage.latitude && currentImage.longitude && (

@@ -377,3 +377,79 @@ test.describe('Golden Path C: EmailClient threads, search, and add to investigat
     await expect(page.locator('[data-testid="email-thread-actions"]')).toBeVisible();
   });
 });
+
+test.describe('Golden Path E: Investigation workspace export panel', () => {
+  test('opens investigation, navigates to export tab, and export panel renders', async ({
+    page,
+    request,
+  }) => {
+    // Resolve an existing investigation or create one
+    const listRes = await request.get(`${API_BASE}/investigations?limit=5`);
+    if (!listRes.ok()) {
+      test.skip(true, 'Investigations API not available');
+      return;
+    }
+    const listBody = await listRes.json();
+    const items = Array.isArray(listBody?.data)
+      ? listBody.data
+      : Array.isArray(listBody)
+        ? listBody
+        : [];
+
+    let investigationId: string | null = null;
+    const first = items.find((i: Record<string, unknown>) => i?.id != null || i?.uuid != null);
+    if (first) {
+      investigationId = String(first.uuid ?? first.id);
+    }
+
+    if (!investigationId) {
+      test.skip(true, 'No investigations available for export test');
+      return;
+    }
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('firstRunOnboardingCompleted', 'true');
+      window.localStorage.setItem('board_onboarding_seen', 'true');
+    });
+    await page.setViewportSize({ width: 1440, height: 900 });
+
+    // Navigate directly to the investigation workspace export tab
+    await page.goto(`/investigations/${investigationId}?tab=export`);
+    await page
+      .waitForSelector('[data-testid="investigation-workspace"]', {
+        timeout: 20000,
+        state: 'attached',
+      })
+      .catch(() => {
+        // workspace may not have this exact testid — fall back to checking for the tab navigation
+      });
+
+    // The export panel should be visible — look for the export panel header text
+    const exportPanelVisible = await page
+      .getByText(/evidence packet synthesis/i)
+      .isVisible({ timeout: 20000 })
+      .catch(() => false);
+
+    if (!exportPanelVisible) {
+      // Try clicking an "Export" tab if the workspace loaded without the tab pre-selected
+      const exportTab = page.getByRole('tab', { name: /export/i }).first();
+      const hasExportTab = await exportTab.isVisible({ timeout: 5000 }).catch(() => false);
+      if (hasExportTab) {
+        await exportTab.click();
+        await expect(page.getByText(/evidence packet synthesis/i)).toBeVisible({ timeout: 10000 });
+      } else {
+        test.skip(true, 'Export tab not accessible in this fixture state');
+        return;
+      }
+    }
+
+    // The Generate button should be present and enabled
+    const generateButton = page.getByRole('button', { name: /generate/i }).first();
+    await expect(generateButton).toBeVisible({ timeout: 5000 });
+    await expect(generateButton).not.toBeDisabled();
+
+    // The format selector should be present (JSON and ZIP options)
+    await expect(page.getByText(/json stream/i)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/zip archive/i)).toBeVisible({ timeout: 5000 });
+  });
+});

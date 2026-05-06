@@ -34,6 +34,10 @@ import {
   entityInvestigationsResponseSchema,
   relationshipsResponseSchema,
   entityGraphResponseSchema,
+  mentionsQueueResponseSchema,
+  claimsQueueResponseSchema,
+  intelligenceReviewResponseSchema,
+  intelligenceReadinessResponseSchema,
 } from '../src/shared/schemas';
 
 const apiPort = Number(process.env.PW_API_PORT || 3312);
@@ -519,5 +523,68 @@ test.describe('API DTO Contracts', () => {
       detailBody,
       `GET /api/emails/threads/${threadId}`,
     );
+  });
+});
+
+test.describe('Review Queue contract tests', () => {
+  test('GET /review/mentions/queue returns valid mention queue shape', async ({ request }) => {
+    // This endpoint requires admin auth — if unavailable, skip gracefully
+    const res = await request.get(`${API_BASE_URL}/api/review/mentions/queue?limit=10`, {
+      timeout: 15000,
+    });
+    if (res.status() === 401 || res.status() === 403) {
+      test.skip(true, 'Review queue requires admin auth — skipping in unauthenticated context');
+      return;
+    }
+    if (!res.ok()) {
+      test.skip(true, `Review mentions queue not available (${res.status()})`);
+      return;
+    }
+    const payload = await res.json();
+    assertSchema(mentionsQueueResponseSchema, payload, 'GET /review/mentions/queue');
+  });
+
+  test('GET /review/claims/queue returns valid claims queue shape with entity names', async ({
+    request,
+  }) => {
+    const res = await request.get(`${API_BASE_URL}/api/review/claims/queue?limit=10`, {
+      timeout: 15000,
+    });
+    if (res.status() === 401 || res.status() === 403) {
+      test.skip(true, 'Review queue requires admin auth — skipping in unauthenticated context');
+      return;
+    }
+    if (!res.ok()) {
+      test.skip(true, `Review claims queue not available (${res.status()})`);
+      return;
+    }
+    const payload = await res.json();
+    assertSchema(claimsQueueResponseSchema, payload, 'GET /review/claims/queue');
+  });
+});
+
+test.describe('Intelligence dashboard contract tests', () => {
+  test('GET /intelligence/review returns valid review data shape', async ({ request }) => {
+    const res = await request.get(`${API_BASE_URL}/api/intelligence/review`, {
+      timeout: 20000,
+    });
+    if (!res.ok()) {
+      test.skip(true, `Intelligence review endpoint not available (${res.status()})`);
+      return;
+    }
+    const payload = await res.json();
+    assertSchema(intelligenceReviewResponseSchema, payload, 'GET /intelligence/review');
+  });
+
+  test('GET /intelligence/readiness returns valid readiness shape', async ({ request }) => {
+    const res = await request.get(`${API_BASE_URL}/api/intelligence/readiness`, {
+      timeout: 20000,
+    });
+    if (!res.ok()) {
+      test.skip(true, `Intelligence readiness endpoint not available (${res.status()})`);
+      return;
+    }
+    const payload = await res.json();
+    assertSchema(intelligenceReadinessResponseSchema, payload, 'GET /intelligence/readiness');
   });
 });

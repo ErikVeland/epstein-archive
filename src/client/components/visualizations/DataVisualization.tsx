@@ -5,7 +5,7 @@ import { Person } from '@client/types';
 import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '@client/utils/entityFilters';
 import { useAnalytics } from '@client/contexts/AnalyticsContextState';
-import { Button } from '@client/design-system/lib';
+import { Button, Surface } from '@client/design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import styles from './DataVisualization.module.css';
 
@@ -279,7 +279,7 @@ export const DataVisualization: React.FC = () => {
       {/* Charts Row 1 */}
       <div className={styles.chartsGrid}>
         {/* Top Entities Bar Chart - Enhanced */}
-        <div className={`${styles.glassCard} surface-panel`}>
+        <Surface variant="panel" className={styles.glassCard}>
           <div className={styles.overlayIcon}>
             <Icon
               name="Activity"
@@ -364,10 +364,10 @@ export const DataVisualization: React.FC = () => {
               })
             )}
           </div>
-        </div>
+        </Surface>
 
         {/* Risk Distribution Pie Chart */}
-        <div className={`${styles.glassCard} surface-panel`}>
+        <Surface variant="panel" className={styles.glassCard}>
           <div className={styles.overlayIcon}>
             <Icon
               name="ShieldAlert"
@@ -422,11 +422,11 @@ export const DataVisualization: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
+        </Surface>
       </div>
 
       {/* Interactive Tree Map */}
-      <div className={`${styles.glassCard} surface-panel`}>
+      <Surface variant="panel" className={styles.glassCard}>
         <div className={styles.treeHeader}>
           <h3 className={styles.cardTitle}>
             <Icon name="Activity" className={`${styles.titleIcon} ${styles.titlePurple}`} />
@@ -474,7 +474,7 @@ export const DataVisualization: React.FC = () => {
             />
           </ScopedErrorBoundary>
         </div>
-      </div>
+      </Surface>
 
       {/* Summary Statistics Footer */}
       <div className={styles.summaryGrid}>

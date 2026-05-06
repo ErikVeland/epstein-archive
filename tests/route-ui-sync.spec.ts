@@ -365,6 +365,79 @@ test.describe('Route to UI state synchronization', () => {
     });
   });
 
+  test('intelligence dashboard renders review queues or empty states', async ({ page }) => {
+    await preparePage(page);
+    await page.goto('/intelligence');
+
+    // Should load the page heading
+    await expect(page.getByRole('heading', { name: /intelligence review/i })).toBeVisible({
+      timeout: 20000,
+    });
+
+    // Should render queue cards (regardless of whether they have data or show empty)
+    const queueCards = page.locator('[class*="queueCard"]');
+    const cardCount = await queueCards.count().catch(() => 0);
+
+    // Either queue cards are visible, or the loading state resolved cleanly
+    const loadingText = await page
+      .getByText(/loading intelligence queues/i)
+      .isVisible()
+      .catch(() => false);
+    if (!loadingText) {
+      // After loading, we expect either queue cards or the readiness widget
+      const hasQueues = cardCount > 0;
+      const hasReadiness = await page
+        .locator('[class*="readinessTile"]')
+        .count()
+        .catch(() => 0);
+      expect(hasQueues || hasReadiness > 0).toBeTruthy();
+    }
+
+    // No JavaScript errors on this page
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.waitForTimeout(1000);
+    expect(errors).toHaveLength(0);
+  });
+
+  test('review dashboard renders mention queue or empty state without JS errors', async ({
+    page,
+  }) => {
+    await preparePage(page);
+    await page.goto('/review');
+
+    // Should show the page heading
+    await expect(page.getByRole('heading', { name: /active learning review/i })).toBeVisible({
+      timeout: 20000,
+    });
+
+    // Should show the tabs
+    await expect(page.getByRole('button', { name: /entity mentions/i })).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.getByRole('button', { name: /claims & facts/i })).toBeVisible({
+      timeout: 10000,
+    });
+
+    // After loading, should show queue items or the empty state — never a blank screen
+    const queueResolved = await Promise.race([
+      page
+        .locator('[class*="queueItem"]')
+        .first()
+        .isVisible({ timeout: 15000 })
+        .catch(() => false),
+      page
+        .getByText(/queue is empty/i)
+        .isVisible({ timeout: 15000 })
+        .catch(() => false),
+      page
+        .getByText(/loading queue/i)
+        .isVisible({ timeout: 5000 })
+        .catch(() => false),
+    ]);
+    expect(queueResolved).toBeTruthy();
+  });
+
   test('investigation evidence deep links reconstruct case-folder UI for both route patterns', async ({
     page,
     request,

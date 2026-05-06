@@ -4,6 +4,7 @@ import { CloseButton } from '../CloseButton';
 import { Tabs, TabItem } from '../Tabs';
 import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceModalHeader.module.css';
+import { FlagButton } from '@client/components/common/FlagButton';
 
 import { Button } from '@client/design-system/lib';
 
@@ -153,9 +154,16 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
         )}
       </div>
 
-      {!loading && (
+      {!loading && entity?.id && (
         <div className={s.actionsArea}>
           <div className={s.quickActions}>
+            <FlagButton
+              targetType="entity"
+              targetId={String(entity.id)}
+              variant="ghost"
+              size="sm"
+            />
+
             <Button
               unstyled
               onClick={() => handleQuickAction('blackbook')}

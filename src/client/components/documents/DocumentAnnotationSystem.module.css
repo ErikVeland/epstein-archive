@@ -79,10 +79,8 @@
 }
 
 /* Floating Menu */
+/* position, left, top, width, z-index are set via inline styles in the portal render */
 .floatingMenu {
-  position: absolute;
-  z-index: 50;
-  width: min(340px, calc(100vw - var(--space-6)));
   padding: var(--space-3);
   box-shadow: var(--glass-shadow);
 }

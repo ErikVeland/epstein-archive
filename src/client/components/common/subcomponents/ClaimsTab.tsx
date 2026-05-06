@@ -8,6 +8,7 @@ import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { ConfidenceBadge } from '@client/components/common/ConfidenceBadge';
 import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
 import { ShareCitationBar } from '@client/components/common/ShareCitationBar';
+import { FlagButton } from '@client/components/common/FlagButton';
 import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
 import styles from './ClaimsTab.module.css';
 
@@ -221,6 +222,12 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
                   <span>Rejected: {claim.rejectionReason}</span>
                 </div>
               )}
+              <FlagButton
+                targetType="claim"
+                targetId={String(claim.id)}
+                size="sm"
+                variant="ghost"
+              />
             </div>
 
             <div className={styles.triple}>

@@ -235,6 +235,7 @@ function ThinHighRiskQueue({ items }: { items: ThinHighRiskEntity[] }) {
 }
 
 function UnlinkedClaimsQueue({ items }: { items: UnlinkedClaim[] }) {
+  const backLinkState = useBackLinkState();
   if (items.length === 0) return <EmptyQueue />;
   return (
     <div className={styles.queueList}>
@@ -252,6 +253,14 @@ function UnlinkedClaimsQueue({ items }: { items: UnlinkedClaim[] }) {
                 : ''}
             </div>
           </div>
+          <Link
+            to={`/claims/${claim.claimId}`}
+            state={backLinkState}
+            className={styles.queueRowLink}
+            title="Open claim detail"
+          >
+            <Icon name="ExternalLink" size="sm" className={styles.linkIcon} />
+          </Link>
         </div>
       ))}
     </div>
@@ -272,7 +281,11 @@ function FinancialReviewQueue({ items }: { items: ReviewableFinancialItem[] }) {
               {item.entityName ?? 'No entity linked'} · {item.itemType}
             </div>
           </div>
-          <Link to="/financial" className={styles.queueRowLink} title="Open Financial page">
+          <Link
+            to={`/financial?highlight=${item.itemId}`}
+            className={styles.queueRowLink}
+            title="Open in Financial page"
+          >
             <Icon name="ExternalLink" size="sm" className={styles.linkIcon} />
           </Link>
         </div>

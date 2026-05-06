@@ -79,6 +79,11 @@ const createDocumentAnnotationSchema = z.object({
     end: z.number().int().min(1),
     contextBefore: z.string().max(500).optional(),
     contextAfter: z.string().max(500).optional(),
+    pdfPage: z.number().int().positive().optional(),
+    pdfX: z.number().min(0).max(1).optional(),
+    pdfY: z.number().min(0).max(1).optional(),
+    pdfWidth: z.number().positive().max(1).optional(),
+    pdfHeight: z.number().positive().max(1).optional(),
   }),
 });
 
@@ -232,6 +237,11 @@ router.get('/:id/annotations', validate(documentIdSchema), async (req, res, next
         contextBefore: annotation.context_before,
         contextAfter: annotation.context_after,
         author: annotation.author_label,
+        pdfPage: annotation.pdf_page,
+        pdfX: annotation.pdf_x,
+        pdfY: annotation.pdf_y,
+        pdfWidth: annotation.pdf_width,
+        pdfHeight: annotation.pdf_height,
         createdAt: annotation.created_at,
         updatedAt: annotation.updated_at,
       })),
@@ -253,7 +263,20 @@ router.post(
         return res.status(400).json({ error: 'Invalid document id' });
       }
 
-      const { type, selectedText, note, start, end, contextBefore, contextAfter } = req.body;
+      const {
+        type,
+        selectedText,
+        note,
+        start,
+        end,
+        contextBefore,
+        contextAfter,
+        pdfPage,
+        pdfX,
+        pdfY,
+        pdfWidth,
+        pdfHeight,
+      } = req.body;
       if (end <= start) {
         return res.status(400).json({ error: 'Invalid annotation span' });
       }
@@ -281,6 +304,11 @@ router.post(
         contextAfter,
         authorLabel: author,
         authorFingerprintHash: fingerprint,
+        pdfPage,
+        pdfX,
+        pdfY,
+        pdfWidth,
+        pdfHeight,
       });
 
       return res.status(201).json({
@@ -297,6 +325,11 @@ router.post(
           contextBefore: annotation.context_before,
           contextAfter: annotation.context_after,
           author: annotation.author_label,
+          pdfPage: annotation.pdf_page,
+          pdfX: annotation.pdf_x,
+          pdfY: annotation.pdf_y,
+          pdfWidth: annotation.pdf_width,
+          pdfHeight: annotation.pdf_height,
           createdAt: annotation.created_at,
           updatedAt: annotation.updated_at,
         },

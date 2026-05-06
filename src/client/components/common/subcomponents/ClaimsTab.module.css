@@ -226,3 +226,12 @@
   background: color-mix(in srgb, var(--glass-bg) 60%, transparent);
   color: var(--text-primary);
 }
+
+/* Flag Button Container */
+.flagContainer {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--glass-border);
+}

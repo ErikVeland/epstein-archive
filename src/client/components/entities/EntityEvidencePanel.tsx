@@ -9,7 +9,7 @@ import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './EntityEvidencePanel.module.css';
 
-import { Button, Input, NativeSelect } from '@client/design-system/lib';
+import { Button, Input, NativeSelect, Surface } from '@client/design-system/lib';
 
 interface Evidence {
   id: string | number;
@@ -237,7 +237,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       </div>
 
       {/* Type Breakdown */}
-      <div className="surface-panel">
+      <Surface variant="panel">
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <Icon name="BarChart3" className={styles.sectionIcon} />
@@ -260,11 +260,11 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             ))}
           </div>
         </div>
-      </div>
+      </Surface>
 
       {/* Role Breakdown */}
       {stats.roleBreakdown.length > 0 && (
-        <div className="surface-panel">
+        <Surface variant="panel">
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <Icon name="User" className={styles.sectionIcon} />
@@ -281,12 +281,12 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
               ))}
             </div>
           </div>
-        </div>
+        </Surface>
       )}
 
       {/* Related Entities */}
       {stats.relatedEntities.length > 0 && (
-        <div className="surface-panel">
+        <Surface variant="panel">
           <div className={styles.section}>
             <div className={styles.relatedHeader}>
               <div className={styles.sectionHeader} style={{ marginBottom: 0 }}>
@@ -376,12 +376,12 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
               </div>
             )}
           </div>
-        </div>
+        </Surface>
       )}
 
       {/* Email / Communications Activity */}
       {communications.length > 0 && (
-        <div className="surface-panel">
+        <Surface variant="panel">
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <Icon name="Mail" className={styles.sectionIcon} />
@@ -453,12 +453,12 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
               ))}
             </div>
           </div>
-        </div>
+        </Surface>
       )}
 
       {/* Relation Evidence (graph edges with quotes) */}
       {relationEdges.length > 0 && (
-        <div className={`surface-panel ${styles.sectionCard}`}>
+        <Surface variant="panel" className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <Icon name="Network" className={styles.sectionIcon} />
             <h3 className={styles.sectionTitle}>Relation Evidence</h3>
@@ -487,11 +487,11 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
               </div>
             ))}
           </div>
-        </div>
+        </Surface>
       )}
 
       {/* Filters & Search */}
-      <div className={`surface-panel ${styles.sectionCard}`}>
+      <Surface variant="panel" className={styles.sectionCard}>
         <div className={styles.evidenceHeader}>
           <div className={styles.evidenceHeaderTitleGroup}>
             <h3 className={styles.sectionTitle}>Evidence Items</h3>
@@ -638,7 +638,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             </Button>
           </div>
         )}
-      </div>
+      </Surface>
     </div>
   );
 };

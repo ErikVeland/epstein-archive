@@ -11,7 +11,7 @@ import { Flex } from '@client/design-system/components/layout/Flex';
 import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { LqText } from '@client/design-system/components/typography/Text';
 
-interface ProvenanceDocument {
+export interface ProvenanceDocument {
   id?: string | number;
   ingest_run_id?: string;
   ingestRunId?: string;

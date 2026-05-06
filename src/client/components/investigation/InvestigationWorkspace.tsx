@@ -65,6 +65,11 @@ import {
   Badge,
   Box,
   Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   Flex,
   Grid,
   Input,
@@ -173,6 +178,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const [showLeadsPanel, setShowLeadsPanel] = useState(false);
   const [showDossierPanel, setShowDossierPanel] = useState(false);
   const [custodyEvidenceId, setCustodyEvidenceId] = useState<string | null>(null);
+  const [purgeTargetId, setPurgeTargetId] = useState<string | null>(null);
+  const [isPurging, setIsPurging] = useState(false);
   const [networkNodes, setNetworkNodes] = useState<NetworkNode[]>([]);
   const [networkEdges, setNetworkEdges] = useState<NetworkEdge[]>([]);
   const [isNetworkLoading, setIsNetworkLoading] = useState(false);
@@ -424,6 +431,21 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         setShareCopied(true);
         setTimeout(() => setShareCopied(false), 2000);
       });
+    }
+  };
+
+  const handlePurgeInvestigation = async () => {
+    if (!purgeTargetId) return;
+    setIsPurging(true);
+    try {
+      await apiClient.delete(`/investigations/${encodeURIComponent(purgeTargetId)}`);
+      setPurgeTargetId(null);
+      addToast({ text: 'Investigation removed', type: 'success' });
+      void loadInvestigations();
+    } catch {
+      addToast({ text: 'Failed to remove investigation', type: 'error' });
+    } finally {
+      setIsPurging(false);
     }
   };
 
@@ -862,11 +884,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                                 variant="ghost"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  if (confirm('Purge this record?')) {
-                                    fetch(`/api/investigations/${encodeURIComponent(inv.id)}`, {
-                                      method: 'DELETE',
-                                    }).then(() => loadInvestigations());
-                                  }
+                                  setPurgeTargetId(String(inv.id));
                                 }}
                               >
                                 <Icon name="XCircle" size="sm" />
@@ -1373,6 +1391,40 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       {!hasSeenOnboarding && !selectedInvestigation && (
         <InvestigationOnboarding onComplete={markOnboardingAsSeen} onSkip={markOnboardingAsSeen} />
       )}
+
+      <Dialog
+        open={purgeTargetId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPurgeTargetId(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Investigation</DialogTitle>
+            <DialogDescription>
+              This will permanently remove the investigation record. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <Flex gap="sm" justify="end" style={{ marginTop: 'var(--space-4)' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setPurgeTargetId(null)}
+              disabled={isPurging}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handlePurgeInvestigation}
+              disabled={isPurging}
+            >
+              {isPurging ? 'Removing...' : 'Remove'}
+            </Button>
+          </Flex>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

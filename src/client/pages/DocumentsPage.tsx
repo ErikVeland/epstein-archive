@@ -15,13 +15,11 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({
 }) => {
   return (
     <ScopedErrorBoundary>
-      <div className="space-y-[var(--space-6)]">
-        <DocumentBrowser
-          searchTerm={searchTerm}
-          onSearchTermChange={onSearchTermChange}
-          selectedDocumentId={selectedDocumentId}
-        />
-      </div>
+      <DocumentBrowser
+        searchTerm={searchTerm}
+        onSearchTermChange={onSearchTermChange}
+        selectedDocumentId={selectedDocumentId}
+      />
     </ScopedErrorBoundary>
   );
 };

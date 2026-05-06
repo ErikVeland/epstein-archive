@@ -1,7 +1,5 @@
 import { Entity, Relationship } from '../components/entities/EntityRelationshipMapper';
-import { Investigation } from '@client/types/investigation';
 
-// Types for raw data input (mocking what we might get from the API/DB)
 export interface RawPerson {
   id: string;
   name: string;
@@ -23,7 +21,6 @@ export interface RawDocument {
 export const transformToNetwork = (
   people: RawPerson[],
   documents: RawDocument[],
-  _investigation?: Investigation,
 ): { entities: Entity[]; relationships: Relationship[] } => {
   const entities: Entity[] = [];
   const relationships: Relationship[] = [];
@@ -124,28 +121,4 @@ export const transformToNetwork = (
   });
 
   return { entities, relationships };
-};
-
-/**
- * Helper to generate a mock dataset for testing/development
- */
-export const generateMockNetworkData = (): {
-  entities: Entity[];
-  relationships: Relationship[];
-} => {
-  const people: RawPerson[] = [
-    { id: 'p1', name: 'Jeffrey Epstein', role: 'Financier', documents: ['d1', 'd2', 'd3'] },
-    { id: 'p2', name: 'Ghislaine Maxwell', role: 'Associate', documents: ['d1', 'd2'] },
-    { id: 'p3', name: 'Prince Andrew', role: 'Royal', documents: ['d2'] },
-    { id: 'p4', name: 'Alan Dershowitz', role: 'Lawyer', documents: ['d3'] },
-    { id: 'p5', name: 'Bill Clinton', role: 'Politician', documents: ['d1'] },
-  ];
-
-  const docs: RawDocument[] = [
-    { id: 'd1', title: 'Flight Log 1', mentionedEntities: ['p1', 'p2', 'p5'] },
-    { id: 'd2', title: 'Legal Deposition A', mentionedEntities: ['p1', 'p2', 'p3'] },
-    { id: 'd3', title: 'Settlement Agreement', mentionedEntities: ['p1', 'p4'] },
-  ];
-
-  return transformToNetwork(people, docs);
 };

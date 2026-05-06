@@ -272,9 +272,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         window.open(path, '_blank', 'noopener,noreferrer');
         return;
       }
-      navigateFromModal(path);
+      navigate(path, {
+        state: { backTo: `${location.pathname}${location.search}` },
+      });
     },
-    [navigateFromModal],
+    [navigate, location.pathname, location.search],
   );
 
   const { data: entity, isLoading: loading } = useQuery<EntityDetails>({
@@ -843,7 +845,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             {activeTab === 'claims' && (
               <ClaimsTab
                 entityId={entityId}
-                onOpenDocument={(docId) => navigateFromModal(`/documents?id=${docId}`)}
+                onOpenDocument={(docId) => openDocumentFromEvidence(docId)}
               />
             )}
 
@@ -987,7 +989,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             {activeTab === 'claims' && (
               <ClaimsTab
                 entityId={entityId}
-                onOpenDocument={(docId) => navigateFromModal(`/documents?id=${docId}`)}
+                onOpenDocument={(docId) => openDocumentFromEvidence(docId)}
               />
             )}
 

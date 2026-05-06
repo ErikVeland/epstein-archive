@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Icon, { IconName } from '@client/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@client/services/apiClient';
 import styles from './DocumentAnnotationSystem.module.css';
+import type { PublicDocumentAnnotation, AnnotationType } from '@shared/dto/annotations';
 
 // Design System
 import { LqText } from '@client/design-system/components/typography/Text';
@@ -12,22 +14,6 @@ import { Box } from '@client/design-system/components/layout/Box';
 
 import { Button, Input, TextArea } from '@client/design-system/lib';
 
-type AnnotationType = 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
-
-type PublicDocumentAnnotation = {
-  id: string;
-  documentId: string;
-  type: AnnotationType;
-  selectedText: string;
-  note: string;
-  position: { start: number; end: number };
-  contextBefore?: string | null;
-  contextAfter?: string | null;
-  author?: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 interface DocumentAnnotationSystemProps {
   documentId: string;
   content: string;
@@ -35,6 +21,11 @@ interface DocumentAnnotationSystemProps {
   renderHighlightedText?: (text: string, term?: string) => React.ReactNode;
   mode?: 'inline' | 'full';
   onAnnotationCreate?: (annotation: PublicDocumentAnnotation) => void;
+  showAnnotations?: boolean;
+  /** When provided, skip internal React Query fetch and use these annotations instead. */
+  externalAnnotations?: PublicDocumentAnnotation[];
+  /** Called when the user creates a new annotation, so the parent can update externalAnnotations. */
+  onAnnotationCreated?: (annotation: PublicDocumentAnnotation) => void;
 }
 
 type PendingSelection = {
@@ -115,13 +106,20 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
   renderHighlightedText,
   mode = 'inline',
   onAnnotationCreate,
+  showAnnotations = true,
+  externalAnnotations,
+  onAnnotationCreated,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(null);
   const [localAnnotations, setLocalAnnotations] = useState<PublicDocumentAnnotation[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pendingSelection, setPendingSelection] = useState<PendingSelection | null>(null);
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [menuPosition, setMenuPosition] = useState<{ x: number; y: number; anchorBottom: number }>({
+    x: 0,
+    y: 0,
+    anchorBottom: 0,
+  });
   const [draftType, setDraftType] = useState<AnnotationType>('highlight');
   const [draftNote, setDraftNote] = useState('');
   const [draftAuthor, setDraftAuthor] = useState('');
@@ -135,11 +133,12 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     queryKey: ['documentAnnotations', documentId],
     queryFn: () => apiClient.getPublicDocumentAnnotations(documentId),
     staleTime: 30_000,
+    enabled: !externalAnnotations, // skip query when parent owns the data
   });
 
   const annotations = useMemo(
-    () => [...fetchedAnnotations, ...localAnnotations],
-    [fetchedAnnotations, localAnnotations],
+    () => [...(externalAnnotations ?? fetchedAnnotations), ...localAnnotations],
+    [externalAnnotations, fetchedAnnotations, localAnnotations],
   );
 
   const displayError = fetchError instanceof Error ? fetchError.message : loadError;
@@ -191,10 +190,10 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     const safeEnd = clamp(end, safeStart + 1, Math.max(content.length, safeStart + 1));
 
     const rect = range.getBoundingClientRect();
-    const containerRect = contentRef.current.getBoundingClientRect();
     setMenuPosition({
-      x: rect.left - containerRect.left + rect.width / 2,
-      y: rect.top - containerRect.top - 16,
+      x: rect.left + rect.width / 2, // viewport-center-x of selection
+      y: rect.top, // viewport-top of selection
+      anchorBottom: rect.bottom, // viewport-bottom of selection (for flip)
     });
 
     setPendingSelection({
@@ -228,6 +227,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
       }
 
       setLocalAnnotations((prev) => [...prev, saved]);
+      onAnnotationCreated?.(saved);
       setActiveAnnotationId(saved.id);
       onAnnotationCreate?.(saved);
       clearSelectionDraft();
@@ -266,6 +266,10 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
 
   const renderedContent = useMemo(() => {
     if (!content) return null;
+
+    if (!showAnnotations) {
+      return renderSearchHighlighted(content, 'plain-all');
+    }
 
     const normalized = annotations
       .map((annotation) => ({
@@ -324,7 +328,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     }
 
     return fragments;
-  }, [annotations, content, activeAnnotationId, renderSearchHighlighted]);
+  }, [annotations, content, activeAnnotationId, renderSearchHighlighted, showAnnotations]);
 
   return (
     <Box className={`${styles.root} ${mode === 'full' ? styles.rootFull : ''}`}>
@@ -358,72 +362,92 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           </LqText>
         )}
 
-        {pendingSelection && (
-          <Surface
-            variant="glass-strong"
-            className={styles.floatingMenu}
-            style={{
-              left: `${menuPosition.x}px`,
-              top: `${menuPosition.y}px`,
-              transform: 'translate(-50%, -100%)',
-            }}
-          >
-            <LqText variant="xs" color="muted" className={styles.selectionPreview}>
-              "{pendingSelection.selectedText}"
-            </LqText>
-            <Box className={styles.typeGrid}>
-              {annotationTypes.map((option) => {
-                const active = draftType === option.type;
-                return (
-                  <Button
-                    unstyled
-                    key={option.type}
-                    type="button"
-                    className={`${styles.typeOption} ${active ? styles.typeOptionActive : ''}`}
-                    onClick={() => setDraftType(option.type)}
-                  >
-                    <Icon name={option.icon} className={styles.iconMicro} />
-                    {option.label}
-                  </Button>
-                );
-              })}
-            </Box>
-            <Input
-              value={draftAuthor}
-              onChange={(event) => setDraftAuthor(event.target.value)}
-              placeholder="Display name (optional)"
-              className={styles.inputField}
-              maxLength={32}
-            />
-            <TextArea
-              value={draftNote}
-              onChange={(event) => setDraftNote(event.target.value)}
-              placeholder="Add note (optional)"
-              className={styles.inputField}
-              rows={3}
-              maxLength={4000}
-            />
-            <Box className={styles.formFooter}>
-              <Button
-                unstyled
-                type="button"
-                onClick={clearSelectionDraft}
-                className={styles.secondaryButton}
-              >
-                Cancel
-              </Button>
-              <Button
-                unstyled
-                type="button"
-                onClick={createAnnotation}
-                disabled={isSaving}
-                className={styles.primaryButton}
-              >
-                {isSaving ? 'Saving…' : 'Save Annotation'}
-              </Button>
-            </Box>
-          </Surface>
-        )}
+        {pendingSelection &&
+          createPortal(
+            (() => {
+              const MENU_W = 288;
+              const MENU_H_EST = 360;
+              const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
+              const vh = typeof window !== 'undefined' ? window.innerHeight : 768;
+              const fitsAbove = menuPosition.y - MENU_H_EST > 8;
+              const rawTop = fitsAbove
+                ? menuPosition.y - MENU_H_EST - 8
+                : menuPosition.anchorBottom + 8;
+              const top = Math.min(Math.max(rawTop, 8), vh - MENU_H_EST - 8);
+              const rawLeft = menuPosition.x - MENU_W / 2;
+              const left = Math.min(Math.max(rawLeft, 8), vw - MENU_W - 8);
+
+              return (
+                <Surface
+                  variant="glass-strong"
+                  className={styles.floatingMenu}
+                  style={{
+                    position: 'fixed',
+                    left: `${left}px`,
+                    top: `${top}px`,
+                    width: `${MENU_W}px`,
+                    zIndex: 'var(--z-tooltip, 9999)' as React.CSSProperties['zIndex'],
+                  }}
+                >
+                  <LqText variant="xs" color="muted" className={styles.selectionPreview}>
+                    "{pendingSelection.selectedText}"
+                  </LqText>
+                  <Box className={styles.typeGrid}>
+                    {annotationTypes.map((option) => {
+                      const active = draftType === option.type;
+                      return (
+                        <Button
+                          unstyled
+                          key={option.type}
+                          type="button"
+                          className={`${styles.typeOption} ${active ? styles.typeOptionActive : ''}`}
+                          onClick={() => setDraftType(option.type)}
+                        >
+                          <Icon name={option.icon} className={styles.iconMicro} />
+                          {option.label}
+                        </Button>
+                      );
+                    })}
+                  </Box>
+                  <Input
+                    value={draftAuthor}
+                    onChange={(event) => setDraftAuthor(event.target.value)}
+                    placeholder="Display name (optional)"
+                    className={styles.inputField}
+                    maxLength={32}
+                  />
+                  <TextArea
+                    value={draftNote}
+                    onChange={(event) => setDraftNote(event.target.value)}
+                    placeholder="Add note (optional)"
+                    className={styles.inputField}
+                    rows={3}
+                    maxLength={4000}
+                  />
+                  <Box className={styles.formFooter}>
+                    <Button
+                      unstyled
+                      type="button"
+                      onClick={clearSelectionDraft}
+                      className={styles.secondaryButton}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      unstyled
+                      type="button"
+                      onClick={createAnnotation}
+                      disabled={isSaving}
+                      className={styles.primaryButton}
+                    >
+                      {isSaving ? 'Saving…' : 'Save Annotation'}
+                    </Button>
+                  </Box>
+                </Surface>
+              );
+            })(),
+            document.body,
+          )}
       </Box>
 
       {mode === 'full' && (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Person } from '@client/types';
 import Icon from '@client/components/common/Icon';
+import { Surface } from '@client/design-system/lib';
 import s from './StatsDashboard.module.css';
 
 interface StatsDashboardProps {
@@ -57,7 +58,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
   return (
     <div className={s.grid}>
       {cards.map((card, index) => (
-        <div key={index} className="surface-panel">
+        <Surface key={index} variant="panel">
           <div className={s.cardInner}>
             <div className={s.cardHeader}>
               <div>
@@ -76,7 +77,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
               <span className={s.trendBadge}>{card.trend}</span>
             </div>
           </div>
-        </div>
+        </Surface>
       ))}
     </div>
   );

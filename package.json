@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "20.2.0",
+  "version": "20.3.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -21,6 +21,7 @@
     "api": "pnpm exec tsx src/server.ts",
     "preview": "vite preview",
     "go:prod": "tsx scripts/go_prod.ts",
+    "snapshot:export": "tsx scripts/export_dashboard_snapshot.ts",
     "db:migrate:pg": "tsx scripts/pg_migrate.ts && tsx scripts/pg_analyze_after_migrate.ts",
     "db:backfill:pg": "tsx scripts/pg_backfill.ts",
     "provenance:backfill": "tsx scripts/backfill_document_provenance.ts",
@@ -68,7 +69,8 @@
     "prepare": "husky",
     "test": "playwright test",
     "test:bundle-smoke": "pnpm build:prod && playwright test --config playwright.config.bundle.ts",
-    "test:bundle-smoke:only": "node --import tsx/esm scripts/run_bundle_smoke.ts"
+    "test:bundle-smoke:only": "node --import tsx/esm scripts/run_bundle_smoke.ts",
+    "test:ci-budgets": "CI=true playwright test tests/ci-budgets.spec.ts --project=chromium"
   },
   "dependencies": {
     "@epstein/db": "workspace:*",

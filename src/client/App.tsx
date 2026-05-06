@@ -7,7 +7,7 @@ import {
   Suspense,
   useRef,
 } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { preloader } from './utils/ResourcePreloader';
 import { runDevAffordanceAudit } from './utils/devAffordanceAudit';
 import { createPortal } from 'react-dom';
@@ -221,6 +221,7 @@ import Footer from './components/layout/Footer';
 function App() {
   const { status: apiStatus } = useApiStatus();
   const apiEnabled = apiStatus !== 'down';
+  const queryClient = useQueryClient();
   const { filters, setFilters } = useFilters();
   const { activeTab, location } = useAppNavigation();
   const navigate = useNavigate();
@@ -263,7 +264,6 @@ function App() {
   // Prevents the urlEntityData effect from re-opening the modal immediately after close
   const closingEntityModal = useRef(false);
 
-  const [, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
   const [documentModalId, setDocumentModalId] = useState<string | null>(null);
   const [documentModalInitial, setDocumentModalInitial] = useState<DocRecord | null>(null);
@@ -398,18 +398,6 @@ function App() {
   const { shouldShowOnboarding, completeOnboarding, skipOnboarding } = useFirstRunOnboarding();
   const commandPalette = useCommandPalette();
   const { isOpen: isCommandPaletteOpen, close: closeCommandPalette } = commandPalette;
-
-  const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
-  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track tab changes to sync document modal state */
-  useEffect(() => {
-    if (activeTab !== prevActiveTab) {
-      setPrevActiveTab(activeTab);
-      if (activeTab !== 'documents') {
-        setSelectedDocumentId(null);
-      }
-    }
-  }, [activeTab, prevActiveTab]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const pathMatch = location.pathname.match(/^\/(?:documents|evidence)\/(.+)$/);
   const params = new URLSearchParams(location.search);
@@ -750,6 +738,7 @@ function App() {
     showKeyboardShortcuts,
     activeTab,
     location.pathname,
+    location.search,
     goBack,
   ]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -2281,13 +2270,18 @@ function App() {
                       onClose={() => {
                         setDocumentModalId('');
                         setDocumentModalInitial(null);
-                        const params = new URLSearchParams(location.search);
-                        params.delete('id');
-                        params.delete('modalTab');
-                        params.delete('textMode');
-                        navigate(
-                          `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`,
-                        );
+                        const docState = location.state as { backTo?: string } | null;
+                        if (docState?.backTo) {
+                          navigate(docState.backTo, { replace: true });
+                        } else {
+                          const params = new URLSearchParams(location.search);
+                          params.delete('id');
+                          params.delete('modalTab');
+                          params.delete('textMode');
+                          navigate(
+                            `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`,
+                          );
+                        }
                       }}
                     />
                   </ScopedErrorBoundary>
@@ -2316,7 +2310,10 @@ function App() {
                 <CreateEntityModal
                   onClose={() => setShowCreateEntityModal(false)}
                   onSuccess={() => {
-                    window.location.reload();
+                    setShowCreateEntityModal(false);
+                    void queryClient.invalidateQueries({ queryKey: ['entities'] });
+                    void queryClient.invalidateQueries({ queryKey: ['globalStats'] });
+                    void queryClient.invalidateQueries({ queryKey: ['initDataService'] });
                   }}
                 />
               )}

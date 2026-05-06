@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -26,14 +25,18 @@ import { Box } from '@client/design-system/components/layout/Box';
 
 // Sub-components
 import { DocumentHeader } from './subcomponents/DocumentHeader';
-import { DocumentMetadataRail } from './subcomponents/DocumentMetadataRail';
-import { DocumentPDFTab } from './subcomponents/DocumentPDFTab';
-import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
+import { DocumentMetadataRail, type EntityRecord } from './subcomponents/DocumentMetadataRail';
+import {
+  DocumentUnifiedTab,
+  type ViewMode,
+  VALID_VIEW_MODES,
+} from './subcomponents/DocumentUnifiedTab';
 import { DocumentAssetsTab } from './subcomponents/DocumentAssetsTab';
 import { ClaimsTab } from '../common/subcomponents/ClaimsTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '@client/utils/evidenceUtils';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
+import type { ProvenanceDocument } from './ProvenancePanel';
 
 import { Button, cn } from '@client/design-system/lib';
 
@@ -75,10 +78,10 @@ interface Props {
   initialDoc?: DocRecord;
 }
 
-type ViewerTab = 'analysis' | 'pdf' | 'provenance' | 'assets' | 'claims';
+type ViewerTab = 'viewer' | 'provenance' | 'assets' | 'claims';
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
-const VALID_VIEWER_TABS = new Set<ViewerTab>(['analysis', 'pdf', 'provenance', 'assets', 'claims']);
+const VALID_VIEWER_TABS = new Set<ViewerTab>(['viewer', 'provenance', 'assets', 'claims']);
 const VALID_TEXT_SUBVIEWS = new Set<TextSubview>(['clean', 'ocr', 'diff']);
 
 const BASE_VIEWER_TABS: Array<{
@@ -87,8 +90,7 @@ const BASE_VIEWER_TABS: Array<{
   icon?: React.ReactNode;
   count?: number;
 }> = [
-  { key: 'pdf', label: 'Original Document' },
-  { key: 'analysis', label: 'Summary & Analysis' },
+  { key: 'viewer', label: 'Document Viewer' },
   { key: 'claims', label: 'AI Claims' },
   { key: 'assets', label: 'Recovered Assets' },
   { key: 'provenance', label: 'Provenance' },
@@ -127,7 +129,7 @@ export const DocumentModal: React.FC<Props> = ({
     if (current && VALID_VIEWER_TABS.has(current as ViewerTab)) {
       return current as ViewerTab;
     }
-    return 'analysis';
+    return 'viewer';
   }, [urlParams]);
 
   const setActiveTab = useCallback(
@@ -137,17 +139,21 @@ export const DocumentModal: React.FC<Props> = ({
       }
       const params = new URLSearchParams(location.search);
       params.set('modalTab', tab);
-      navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+      navigate(`${location.pathname}?${params.toString()}`, {
+        replace: true,
+        state: location.state,
+      });
     },
-    [activeTab, location.pathname, location.search, navigate],
+    [activeTab, location.pathname, location.search, location.state, navigate],
   );
 
   const [selectedEntity, setSelectedEntity] = useState<DocEntityRecord | null>(null);
   const [entityModalId, setEntityModalId] = useState<string | null>(null);
-
-  useEffect(() => {
+  const [prevId, setPrevId] = useState(id);
+  if (prevId !== id) {
+    setPrevId(id);
     setEntityModalId(null);
-  }, [id]);
+  }
   const [showRecoveryHighlights, setShowRecoveryHighlights] = useState(true);
   const [expandedEntities, setExpandedEntities] = useState(false);
   const [rightPaneCollapsed, setRightPaneCollapsed] = useState(true);
@@ -160,6 +166,31 @@ export const DocumentModal: React.FC<Props> = ({
       : 'clean';
   });
 
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
+    // Prefer explicit ?viewMode param; fall back to legacy ?textMode for backwards compat
+    const vm = urlParams.get('viewMode');
+    if (vm && VALID_VIEW_MODES.has(vm as ViewMode)) return vm as ViewMode;
+    const tm = urlParams.get('textMode');
+    if (tm === 'ocr') return 'ocr';
+    if (tm === 'clean') return 'clean';
+    return 'clean';
+  });
+
+  const setViewMode = useCallback(
+    (mode: ViewMode) => {
+      setViewModeState(mode);
+      const params = new URLSearchParams(location.search);
+      params.set('viewMode', mode);
+      // Remove legacy param to avoid confusion
+      params.delete('textMode');
+      navigate(`${location.pathname}?${params.toString()}`, {
+        replace: true,
+        state: location.state,
+      });
+    },
+    [location.pathname, location.search, location.state, navigate],
+  );
+
   const getScrollKey = useCallback(
     (
       tab: ViewerTab = activeTab,
@@ -167,7 +198,7 @@ export const DocumentModal: React.FC<Props> = ({
       documentId: string = id,
       mobile: boolean = isMobile,
     ) =>
-      `${documentId}:${tab}:${tab === 'analysis' ? mode : 'static'}:${mobile ? 'mobile' : 'desktop'}`,
+      `${documentId}:${tab}:${tab === 'viewer' ? mode : 'static'}:${mobile ? 'mobile' : 'desktop'}`,
     [activeTab, id, isMobile, textSubview],
   );
 
@@ -190,12 +221,12 @@ export const DocumentModal: React.FC<Props> = ({
     [activeTab, getScrollContainer, getScrollKey, id, isMobile, textSubview],
   );
 
-  const setTextSubview = (mode: TextSubview) => {
+  const _setTextSubview = (mode: TextSubview) => {
     persistScrollPosition();
     setTextSubviewState(mode);
     const params = new URLSearchParams(location.search);
     params.set('textMode', mode);
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true, state: location.state });
   };
 
   const [localSearchTerm, setLocalSearchTerm] = useState(initialSearchTerm || '');
@@ -226,9 +257,15 @@ export const DocumentModal: React.FC<Props> = ({
       changed = true;
     }
 
+    const rawViewMode = params.get('viewMode');
+    if (rawViewMode && !VALID_VIEW_MODES.has(rawViewMode as ViewMode)) {
+      params.delete('viewMode');
+      changed = true;
+    }
+
     if (!changed) return;
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  }, [location.pathname, location.search, navigate]);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true, state: location.state });
+  }, [location.pathname, location.search, location.state, navigate]);
 
   const {
     data: fetchedDoc,
@@ -262,7 +299,7 @@ export const DocumentModal: React.FC<Props> = ({
   const viewerTabs = useMemo(
     () =>
       BASE_VIEWER_TABS.map((tab) => {
-        if (tab.key !== 'pdf' || hasAnyText) return tab;
+        if (tab.key !== 'viewer' || hasAnyText) return tab;
 
         const isVisual = isVisualMediaItem(doc as Parameters<typeof isVisualMediaItem>[0]);
         const badgeLabel = isVisual ? 'Processed Photo' : 'No text extracted';
@@ -272,7 +309,7 @@ export const DocumentModal: React.FC<Props> = ({
           label: (
             <Flex align="center" gap="sm">
               <LqText variant="small" as="span">
-                Original Document
+                Document Viewer
               </LqText>
               <Surface variant="glass-highlight" className={styles.pdfBadge}>
                 <LqText variant="xs" color="accent" weight="bold">
@@ -318,17 +355,12 @@ export const DocumentModal: React.FC<Props> = ({
     const params = new URLSearchParams(location.search);
     const hasExplicitTab = params.has('modalTab');
 
-    if (
-      hasExplicitTab ||
-      hasAnyText ||
-      hasAutoSwitchedNoOcrRef.current ||
-      activeTab !== 'analysis'
-    ) {
+    if (hasExplicitTab || hasAnyText || hasAutoSwitchedNoOcrRef.current || activeTab !== 'viewer') {
       return;
     }
 
     hasAutoSwitchedNoOcrRef.current = true;
-    setActiveTab('pdf');
+    setActiveTab('viewer');
   }, [activeTab, hasAnyText, location.search, setActiveTab]);
 
   useEffect(() => {
@@ -344,7 +376,7 @@ export const DocumentModal: React.FC<Props> = ({
   }, [doc?.title, doc?.fileName]);
 
   useEffect(() => {
-    if (!localSearchTerm || activeTab !== 'analysis') return;
+    if (!localSearchTerm || activeTab !== 'viewer') return;
     const timeout = setTimeout(() => {
       const firstMark = getScrollContainer(isMobile)?.querySelector('mark');
       if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -363,6 +395,12 @@ export const DocumentModal: React.FC<Props> = ({
   const modeFromUrl = urlParams.get('textMode') as TextSubview;
   if (modeFromUrl && VALID_TEXT_SUBVIEWS.has(modeFromUrl) && modeFromUrl !== textSubview) {
     setTextSubviewState(modeFromUrl);
+  }
+
+  // Sync viewMode from URL when navigating back/forward
+  const viewModeFromUrl = urlParams.get('viewMode') as ViewMode | null;
+  if (viewModeFromUrl && VALID_VIEW_MODES.has(viewModeFromUrl) && viewModeFromUrl !== viewMode) {
+    setViewModeState(viewModeFromUrl);
   }
 
   useEffect(() => {
@@ -544,52 +582,45 @@ export const DocumentModal: React.FC<Props> = ({
         )}
         {(() => {
           switch (activeTab) {
-            case 'pdf':
+            case 'viewer':
               return (
-                <DocumentPDFTab
-                  documentId={id}
-                  docId={String(doc.id ?? id)}
-                  content={cleanText || ocrText}
-                  searchTerm={localSearchTerm}
-                  openOriginalDocument={openOriginalDocument}
-                  isEmail={isEmail}
-                  metadata={doc.metadata as never}
-                  title={doc.title || doc.fileName || ''}
-                />
-              );
-            case 'analysis':
-              return (
-                <DocumentAnalysisTab
+                <DocumentUnifiedTab
                   doc={doc}
                   id={id}
-                  textSubview={textSubview}
-                  setTextSubview={setTextSubview}
                   localSearchTerm={localSearchTerm}
                   summary={summary}
-                  showRecoveryHighlights={showRecoveryHighlights}
-                  setShowRecoveryHighlights={setShowRecoveryHighlights}
-                  isReadingMode={isReadingMode}
-                  setIsReadingMode={setIsReadingMode}
                   setSelectedEntity={setSelectedEntity}
-                  setEntityModalId={setEntityModalId}
+                  setEntityModalId={setEntityModalId as (id: string) => void}
+                  cleanText={cleanText}
+                  ocrText={ocrText}
+                  openOriginalDocument={openOriginalDocument}
+                  isEmail={isEmail}
+                  metadata={doc.metadata as Record<string, unknown> | null | undefined}
+                  title={doc.title || doc.fileName || ''}
                   entities={entities}
                   groupedEntities={groupedEntities}
                   relatedDocs={(relatedDocs || []).filter(
                     (d): d is DocRecord => d.id !== undefined,
                   )}
                   isLoadingRelated={isLoadingRelated}
+                  showRecoveryHighlights={showRecoveryHighlights}
+                  setShowRecoveryHighlights={setShowRecoveryHighlights}
+                  isReadingMode={isReadingMode}
+                  setIsReadingMode={setIsReadingMode}
                   onNavigateToDoc={(newId) => {
                     persistScrollPosition();
                     const params = new URLSearchParams(location.search);
                     params.set('documentId', newId);
-                    navigate(`${location.pathname}?${params.toString()}`);
+                    navigate(`${location.pathname}?${params.toString()}`, {
+                      state: location.state,
+                    });
                   }}
-                  cleanText={cleanText}
-                  ocrText={ocrText}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
                 />
               );
             case 'provenance':
-              return <ProvenancePanel document={doc as never} />;
+              return <ProvenancePanel document={doc as ProvenanceDocument} />;
             case 'assets':
               return <DocumentAssetsTab documentId={id} />;
             case 'claims':
@@ -606,7 +637,12 @@ export const DocumentModal: React.FC<Props> = ({
 
   if (isMobile) {
     const isImmersive = scrollDirection === 'down' && rightPaneCollapsed;
-    const floatingMode = activeTab === 'pdf' ? 'pdf' : textSubview === 'clean' ? 'clean' : 'ocr';
+    const floatingMode: 'clean' | 'ocr' | 'pdf' =
+      viewMode === 'pdf' || viewMode === 'sidebyside'
+        ? 'pdf'
+        : viewMode === 'ocr'
+          ? 'ocr'
+          : 'clean';
 
     return (
       <LiquidSheet
@@ -640,15 +676,13 @@ export const DocumentModal: React.FC<Props> = ({
                     const labelStr =
                       typeof tab.label === 'string'
                         ? tab.label
-                        : tab.key === 'pdf'
-                          ? 'Original Document'
-                          : tab.key === 'analysis'
-                            ? 'Summary & Analysis'
-                            : tab.key === 'claims'
-                              ? 'AI Claims'
-                              : tab.key === 'assets'
-                                ? 'Recovered Assets'
-                                : 'Provenance';
+                        : tab.key === 'viewer'
+                          ? 'Document Viewer'
+                          : tab.key === 'claims'
+                            ? 'AI Claims'
+                            : tab.key === 'assets'
+                              ? 'Recovered Assets'
+                              : 'Provenance';
                     return (
                       <option key={tab.key} value={tab.key}>
                         {labelStr}
@@ -676,14 +710,11 @@ export const DocumentModal: React.FC<Props> = ({
             <FloatingReadingControls
               activeMode={floatingMode}
               onChange={(mode) => {
-                if (mode === 'pdf') {
-                  setActiveTab('pdf');
-                } else {
-                  setActiveTab('analysis');
-                  setTextSubview(mode);
-                }
+                if (mode === 'pdf') setViewMode('pdf');
+                else if (mode === 'ocr') setViewMode('ocr');
+                else setViewMode('clean');
               }}
-              isVisible={activeTab === 'pdf' || activeTab === 'analysis'}
+              isVisible={activeTab === 'viewer'}
               hasText={!!(doc.content || doc.contentRefined)}
             />
           </div>
@@ -775,9 +806,9 @@ export const DocumentModal: React.FC<Props> = ({
                   activeRailSection={activeRailSection}
                   expandedEntities={expandedEntities}
                   setExpandedEntities={setExpandedEntities}
-                  entities={entities as never[]}
-                  selectedEntity={selectedEntity as never}
-                  setSelectedEntity={setSelectedEntity as never}
+                  entities={entities as EntityRecord[]}
+                  selectedEntity={selectedEntity as EntityRecord | null}
+                  setSelectedEntity={setSelectedEntity as (value: EntityRecord | null) => void}
                   caseLinks={caseLinks}
                   timelineReferences={timelineReferences}
                   rightPaneScrollRef={rightPaneScrollRef as React.RefObject<HTMLDivElement>}
@@ -865,14 +896,26 @@ export const DocumentModal: React.FC<Props> = ({
                   activeRailSection={activeRailSection}
                   expandedEntities={expandedEntities}
                   setExpandedEntities={setExpandedEntities}
-                  entities={entities as never[]}
-                  selectedEntity={selectedEntity as never}
-                  setSelectedEntity={setSelectedEntity as never}
+                  entities={entities as EntityRecord[]}
+                  selectedEntity={selectedEntity as EntityRecord | null}
+                  setSelectedEntity={setSelectedEntity as (value: EntityRecord | null) => void}
                   caseLinks={caseLinks}
                   timelineReferences={timelineReferences}
                   rightPaneScrollRef={rightPaneScrollRef as React.RefObject<HTMLDivElement>}
                   onOpenDossier={setEntityModalId}
                   threadCount={thread?.messages?.length || 0}
+                  summary={summary}
+                  relatedDocs={(relatedDocs || []).filter(
+                    (d): d is DocRecord => d.id !== undefined,
+                  )}
+                  onNavigateToDoc={(newId) => {
+                    persistScrollPosition();
+                    const params = new URLSearchParams(location.search);
+                    params.set('documentId', newId);
+                    navigate(`${location.pathname}?${params.toString()}`, {
+                      state: location.state,
+                    });
+                  }}
                 />
               </aside>
             }

@@ -3,14 +3,14 @@ SELECT id, full_name, primary_role, entity_category, risk_level, red_flag_rating
 FROM entities
 WHERE id = :entityId!;
 
-/* @name getMentionDerivedEvidence */
+ /* @name getMentionDerivedEvidence */
 SELECT
   em.id as evidence_id,
   em.document_id,
   em.mention_context,
   em.confidence as score,
   em.id as mention_id,
-  d.title,
+  d.title AS document_title,
   d.file_path,
   d.evidence_type,
   d.red_flag_rating,

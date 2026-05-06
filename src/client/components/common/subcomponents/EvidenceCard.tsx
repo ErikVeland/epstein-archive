@@ -14,6 +14,7 @@ export interface EvidenceDocument {
   id?: string | number;
   title?: string;
   fileName?: string;
+  documentTitle?: string | null;
   content?: string;
   contentPreview?: string;
   evidenceType?: string;
@@ -69,7 +70,9 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
               <span className={s.typePill}>{doc.evidenceType || 'Document'}</span>
               <span className={s.docId}>#{doc.id}</span>
             </div>
-            <h4 className={s.title}>{doc.title || doc.fileName || `Document ${doc.id}`}</h4>
+            <h4 className={s.title}>
+              {doc.documentTitle || doc.title || doc.fileName || `Document ${doc.id}`}
+            </h4>
           </div>
           <Button
             unstyled

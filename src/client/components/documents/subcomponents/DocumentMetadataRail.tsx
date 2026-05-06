@@ -9,7 +9,7 @@ import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { Box } from '@client/design-system/components/layout/Box';
 import { LqText } from '@client/design-system/components/typography/Text';
 
-import { Button } from '@client/design-system/lib';
+import { Button, HIGSettingsGroup, HIGSettingsRow, HIGStackRow } from '@client/design-system/lib';
 
 interface DocRecord {
   id?: string | number;
@@ -27,9 +27,10 @@ interface DocRecord {
   reviewState?: ReviewState;
   lastVerifiedAt?: string | null;
   provenanceStatus?: ProvenanceStatus;
+  evidenceType?: string;
 }
 
-interface EntityRecord {
+export interface EntityRecord {
   id?: string | number;
   name?: string;
   fullName?: string;
@@ -51,6 +52,9 @@ interface DocumentMetadataRailProps {
   rightPaneScrollRef: React.RefObject<HTMLDivElement>;
   onOpenDossier: (id: string) => void;
   threadCount: number;
+  summary?: { bullets: string[]; sourceLabel: string } | null;
+  relatedDocs?: DocRecord[];
+  onNavigateToDoc?: (newId: string) => void;
 }
 
 export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
@@ -67,7 +71,12 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
   rightPaneScrollRef,
   onOpenDossier,
   threadCount,
+  summary = null,
+  relatedDocs = [],
+  onNavigateToDoc,
 }) => {
+  const [expandedSummary, setExpandedSummary] = React.useState(true);
+  const [expandedRelated, setExpandedRelated] = React.useState(false);
   return (
     <Box
       ref={rightPaneScrollRef as React.RefObject<HTMLDivElement>}
@@ -83,63 +92,77 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           Core Metadata
         </h3>
         <Box className={styles.metaFieldsStack}>
-          <Box className={styles.metaIdBox}>
-            <LqText variant="xs" className={styles.metaLabel}>
-              System Index ID
-            </LqText>
-            <LqText variant="xs" weight="medium" className={styles.metaIdValue}>
-              {String(doc.id || id)}
-            </LqText>
-          </Box>
-          <Box className={styles.metaGrid}>
-            <Box className={styles.metaField}>
-              <LqText variant="xs" className={styles.metaLabel}>
-                Provenance State
-              </LqText>
-              <ProvenanceBadge
-                sourceDocumentId={doc.sourceDocumentId}
-                sourceHash={doc.sourceHash}
-                reviewState={doc.reviewState}
-                confidence={doc.confidence}
-                extractionMethod={doc.extractionMethod}
-                provenanceStatus={doc.provenanceStatus}
-              />
-            </Box>
-            <Box className={styles.metaField}>
-              <LqText variant="xs" className={styles.metaLabel}>
-                Origin Collection
-              </LqText>
-              <LqText variant="xs" weight="medium" className={styles.metaValue}>
-                {(doc.metadata?.source_collection as string | undefined) || 'Classified / Internal'}
-              </LqText>
-            </Box>
-            <Box className={styles.metaField}>
-              <LqText variant="xs" className={styles.metaLabel}>
-                Source Hash
-              </LqText>
-              <LqText variant="xs" weight="medium" className={styles.metaValueMono}>
-                {doc.sourceHash || 'Source missing'}
-              </LqText>
-            </Box>
-            <Box className={styles.metaField}>
-              <LqText variant="xs" className={styles.metaLabel}>
-                Last Verified
-              </LqText>
-              <LqText variant="xs" weight="medium" className={styles.metaValue}>
-                {doc.lastVerifiedAt || 'Never verified'}
-              </LqText>
-            </Box>
-            <Box className={styles.metaField}>
-              <LqText variant="xs" className={styles.metaLabel}>
-                Thread Depth
-              </LqText>
-              <LqText variant="xs" weight="medium" className={styles.metaValueMono}>
-                {threadCount} Related Comms
-              </LqText>
-            </Box>
-          </Box>
+          <HIGSettingsGroup>
+            <HIGSettingsRow label="Index ID" value={String(doc.id || id)} isMono />
+            <HIGSettingsRow
+              label="Provenance"
+              value={
+                <ProvenanceBadge
+                  sourceDocumentId={doc.sourceDocumentId}
+                  sourceHash={doc.sourceHash}
+                  reviewState={doc.reviewState}
+                  confidence={doc.confidence}
+                  extractionMethod={doc.extractionMethod}
+                  provenanceStatus={doc.provenanceStatus}
+                />
+              }
+            />
+            <HIGSettingsRow
+              label="Collection"
+              value={(doc.metadata?.source_collection as string | undefined) || 'Classified'}
+            />
+            <HIGSettingsRow
+              label="Source Hash"
+              value={doc.sourceHash ? `${doc.sourceHash.slice(0, 8)}...` : 'N/A'}
+              isMono
+            />
+            <HIGSettingsRow label="Last Verified" value={doc.lastVerifiedAt || 'Never'} />
+            <HIGSettingsRow label="Thread Depth" value={`${threadCount} Messages`} />
+          </HIGSettingsGroup>
         </Box>
       </Surface>
+
+      {summary && (
+        <Surface variant="glass-highlight" className={`${styles.sectionCard} ${styles.section}`}>
+          <Button
+            unstyled
+            type="button"
+            onClick={() => setExpandedSummary(!expandedSummary)}
+            className={styles.sectionToggle}
+          >
+            <h3 className={styles.sectionToggleHeading}>
+              <Icon name="Sparkles" size="sm" className={styles.iconAccent} />
+              Key Insights & Summary
+            </h3>
+            <Icon
+              name="ChevronDown"
+              size="sm"
+              className={`${styles.chevronIcon} ${expandedSummary ? styles.chevronRotated : ''}`}
+            />
+          </Button>
+          {expandedSummary && (
+            <Box className={styles.summaryContent}>
+              {summary.bullets && summary.bullets.length > 0 ? (
+                <ul className={styles.insightList}>
+                  {summary.bullets.map((bullet, index) => (
+                    <li key={`summary-${index}`} className={styles.insightItem}>
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <LqText variant="xs" color="muted" className={styles.emptyText}>
+                  No summary insights available for this document.
+                </LqText>
+              )}
+              <Box className={styles.sourceMeta}>
+                <Box className={styles.sourceDot} />
+                {summary.sourceLabel}
+              </Box>
+            </Box>
+          )}
+        </Surface>
+      )}
 
       <Surface
         variant="glass-highlight"
@@ -167,21 +190,14 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
               </LqText>
             )}
             {entities.map((entity, index) => (
-              <Button
-                unstyled
+              <HIGStackRow
                 key={`${entity.id || entity.name}-${index}`}
-                className={`${styles.entityButton} ${
-                  selectedEntity?.name === entity.name
-                    ? styles.entityButtonActive
-                    : styles.entityButtonDefault
-                }`}
+                icon="User"
+                title={entity.name}
+                subtitle={entity.entityType || 'Entity'}
                 onClick={() => setSelectedEntity(entity)}
-              >
-                <Box className={styles.entityRow}>
-                  <span className={styles.entityName}>{entity.name}</span>
-                  <span className={styles.entityType}>{entity.entityType || 'ENT'}</span>
-                </Box>
-              </Button>
+                isActive={selectedEntity?.name === entity.name}
+              />
             ))}
           </Box>
         )}
@@ -216,6 +232,40 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           </Box>
         )}
       </Surface>
+
+      {relatedDocs && relatedDocs.length > 0 && (
+        <Surface variant="glass-highlight" className={`${styles.sectionCard} ${styles.section}`}>
+          <Button
+            unstyled
+            type="button"
+            onClick={() => setExpandedRelated(!expandedRelated)}
+            className={styles.sectionToggle}
+          >
+            <h3 className={styles.sectionToggleHeading}>
+              <Icon name="Link2" size="sm" className={styles.iconMuted} />
+              Related Documents ({relatedDocs.length})
+            </h3>
+            <Icon
+              name="ChevronDown"
+              size="sm"
+              className={`${styles.chevronIcon} ${expandedRelated ? styles.chevronRotated : ''}`}
+            />
+          </Button>
+          {expandedRelated && (
+            <Box className={styles.relatedList}>
+              {relatedDocs.map((relatedDoc, index) => (
+                <HIGStackRow
+                  key={`${relatedDoc.id}-${index}`}
+                  icon="FileText"
+                  title={relatedDoc.title || relatedDoc.fileName}
+                  subtitle={relatedDoc.evidenceType || 'Document'}
+                  onClick={() => onNavigateToDoc?.(String(relatedDoc.id))}
+                />
+              ))}
+            </Box>
+          )}
+        </Surface>
+      )}
 
       <Surface
         variant="glass-highlight"

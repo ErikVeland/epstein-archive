@@ -349,7 +349,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
               totalHighlights={totalHighlights}
               onNext={nextHighlight}
               onPrev={prevHighlight}
-              className={`surface-panel ${styles.highlightControl}`}
+              className={styles.highlightControl}
             />
           </div>
         )}

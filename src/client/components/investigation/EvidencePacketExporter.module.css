@@ -117,24 +117,24 @@
   margin-right: var(--space-2);
 }
 
-.autoGen67 {
+.exportShell {
   border-radius: var(--radius-xl);
   border-width: 1px;
   border-style: solid;
   border-color: var(--lq-surface-3);
 }
 
-.autoGen68 {
+.packageIcon {
   color: var(--lq-accent);
 }
 
-.autoGen69 {
+.governanceNotice {
   border-width: 1px;
   border-style: solid;
   border-color: var(--lq-surface-3);
 }
 
-.autoGen70 {
+.shieldIcon {
   color: var(--lq-success);
   /* Missing: opacity-50 */
 }
@@ -180,4 +180,53 @@
 
 .infoIcon {
   color: var(--lq-accent);
+}
+
+/* Preview Panel */
+.previewPanel {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.previewIcon {
+  color: var(--lq-accent);
+}
+
+.previewSectionTitle {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
+}
+
+.previewList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 200px;
+  overflow-y: auto;
+  padding: var(--space-2);
+  background: var(--lq-surface-2);
+  border-radius: var(--radius-md);
+}
+
+.previewItem {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--lq-surface-1);
+}
+
+.previewItemIcon {
+  color: var(--lq-text-dim);
+  flex-shrink: 0;
+}
+
+.previewMore {
+  text-align: center;
+  padding: var(--space-1);
+}
+
+.previewSkipItem {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-xxxs);
+  padding: var(--space-1) 0;
 }

@@ -144,6 +144,7 @@ export interface IGetClaimsQueueResult {
   predicate: string | null;
   signalScore: number | null;
   subjectEntityId: string | null;
+  subjectEntityName: string | null;
 }
 
 /** 'GetClaimsQueue' query type */
@@ -155,10 +156,10 @@ export interface IGetClaimsQueueQuery {
 const getClaimsQueueIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 372, b: 378 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 505, b: 511 }] },
   ],
   statement:
-    'SELECT \n  c.id, c.subject_entity_id as "subjectEntityId", c.predicate, c.object_text as "objectText", c.confidence,\n  ds.signal_score as "signalScore", d.file_name as "fileName"\nFROM claim_triples c\nJOIN documents d ON c.document_id = d.id\nLEFT JOIN document_sentences ds ON c.sentence_id = ds.id\nWHERE c.verified = 0\nORDER BY ds.signal_score DESC, c.confidence ASC\nLIMIT :limit!',
+    'SELECT \n  c.id, c.subject_entity_id as "subjectEntityId", c.predicate, c.object_text as "objectText", c.confidence,\n  ds.signal_score as "signalScore", d.file_name as "fileName",\n  e.full_name as "subjectEntityName"\nFROM claim_triples c\nJOIN documents d ON c.document_id = d.id\nLEFT JOIN document_sentences ds ON c.sentence_id = ds.id\nLEFT JOIN entities e ON c.subject_entity_id = e.id\nWHERE c.verified = 0\nORDER BY ds.signal_score DESC, c.confidence ASC\nLIMIT :limit!',
 };
 
 /**
@@ -166,10 +167,12 @@ const getClaimsQueueIR: any = {
  * ```
  * SELECT
  *   c.id, c.subject_entity_id as "subjectEntityId", c.predicate, c.object_text as "objectText", c.confidence,
- *   ds.signal_score as "signalScore", d.file_name as "fileName"
+ *   ds.signal_score as "signalScore", d.file_name as "fileName",
+ *   e.full_name as "subjectEntityName"
  * FROM claim_triples c
  * JOIN documents d ON c.document_id = d.id
  * LEFT JOIN document_sentences ds ON c.sentence_id = ds.id
+ * LEFT JOIN entities e ON c.subject_entity_id = e.id
  * WHERE c.verified = 0
  * ORDER BY ds.signal_score DESC, c.confidence ASC
  * LIMIT :limit!

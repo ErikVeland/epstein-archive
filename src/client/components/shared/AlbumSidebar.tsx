@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Flex, Box, LqText, Stack, Badge, cn } from '@client/design-system/lib';
+import { Box, Flex, LqText, Stack, HIGStackRow } from '@client/design-system/lib';
 import type { MediaAlbum } from '@client/hooks/useMediaBrowser';
 import styles from './AlbumSidebar.module.css';
 
@@ -27,45 +27,23 @@ export const AlbumSidebar: React.FC<AlbumSidebarProps> = ({
       </Flex>
 
       <Stack gap="xs" className={styles.sidebarList}>
-        <Button
-          variant={selectedAlbum === null ? 'glass-highlight' : 'ghost'}
-          size="sm"
-          onClick={() => onSelectAlbum(null)}
-          className={cn(styles.albumBtn, selectedAlbum === null && styles.albumBtnActive)}
+        <HIGStackRow
+          icon="FolderOpen"
           title={allLabel}
-        >
-          <Flex justify="between" align="center" grow className={styles.albumRow}>
-            <LqText
-              variant="small"
-              weight={selectedAlbum === null ? 'bold' : 'medium'}
-              className={styles.albumName}
-            >
-              {allLabel}
-            </LqText>
-            <Badge variant="muted" label={totalItemCount} />
-          </Flex>
-        </Button>
+          subtitle={`${totalItemCount} Items`}
+          onClick={() => onSelectAlbum(null)}
+          isActive={selectedAlbum === null}
+        />
 
         {albums.map((album) => (
-          <Button
+          <HIGStackRow
             key={album.id}
-            variant={selectedAlbum === album.id ? 'glass-highlight' : 'ghost'}
-            size="sm"
-            onClick={() => onSelectAlbum(album.id)}
-            className={cn(styles.albumBtn, selectedAlbum === album.id && styles.albumBtnActive)}
+            icon="Folder"
             title={album.name}
-          >
-            <Flex justify="between" align="center" grow className={styles.albumRow}>
-              <LqText
-                variant="small"
-                weight={selectedAlbum === album.id ? 'bold' : 'medium'}
-                className={styles.albumName}
-              >
-                {album.name}
-              </LqText>
-              <Badge variant="muted" label={album.itemCount || 0} />
-            </Flex>
-          </Button>
+            subtitle={`${album.itemCount || 0} Items`}
+            onClick={() => onSelectAlbum(album.id)}
+            isActive={selectedAlbum === album.id}
+          />
         ))}
       </Stack>
     </Box>

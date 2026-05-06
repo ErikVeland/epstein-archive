@@ -1,3 +1,4 @@
+export * from './annotations';
 export * from './entities';
 export * from './documents';
 export * from './investigations';

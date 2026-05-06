@@ -97,6 +97,28 @@ async function buildExportPreview(investigation: InvestigationRow, investigation
   const readiness =
     evidenceIds.length === 0 ? 'blocked' : warnings.length > 0 ? 'warning' : 'ready';
 
+  // Build preview-friendly response
+  const included = includedFiles
+    .filter((f): f is typeof f & { zipPath: string } => !!f.zipPath)
+    .map((f) => ({
+      name: f.zipPath,
+      type: f.zipPath.endsWith('.pdf')
+        ? 'document'
+        : f.zipPath.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i)
+          ? 'image'
+          : f.zipPath.match(/\.(mp4|avi|mov|mkv|webm)$/i)
+            ? 'video'
+            : f.zipPath.match(/\.(mp3|wav|ogg|m4a)$/i)
+              ? 'audio'
+              : 'file',
+      size: f.sizeBytes,
+    }));
+
+  const omitted = warnings.map((w) => ({
+    name: w.message,
+    reason: w.code,
+  }));
+
   const manifest = buildManifest({
     investigationId,
     title: investigation.title,
@@ -113,7 +135,11 @@ async function buildExportPreview(investigation: InvestigationRow, investigation
   });
 
   return {
-    readiness,
+    readiness: readiness === 'ready',
+    included,
+    omitted,
+    skippedFiles: skippedFiles.map((f) => f.reason),
+    warnings: warnings.map((w) => w.message),
     summary: {
       evidenceCount: evidenceIds.length,
       includedFileCount: includedFiles.length,
@@ -121,7 +147,6 @@ async function buildExportPreview(investigation: InvestigationRow, investigation
       timelineEventCount: timelineEvents.length,
       annotationCount: allAnnotations.length,
     },
-    warnings,
     manifest,
   };
 }

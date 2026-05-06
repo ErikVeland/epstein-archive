@@ -11,6 +11,11 @@ export type PublicDocumentAnnotationRow = {
   context_before: string | null;
   context_after: string | null;
   author_label: string;
+  pdf_page: number | null;
+  pdf_x: number | null;
+  pdf_y: number | null;
+  pdf_width: number | null;
+  pdf_height: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -26,6 +31,11 @@ type CreateAnnotationInput = {
   contextAfter?: string;
   authorLabel: string;
   authorFingerprintHash: string | null;
+  pdfPage?: number;
+  pdfX?: number;
+  pdfY?: number;
+  pdfWidth?: number;
+  pdfHeight?: number;
 };
 
 export const documentAnnotationsRepository = {
@@ -43,6 +53,11 @@ export const documentAnnotationsRepository = {
           context_before,
           context_after,
           author_label,
+          pdf_page,
+          pdf_x::float,
+          pdf_y::float,
+          pdf_width::float,
+          pdf_height::float,
           created_at::text,
           updated_at::text
         FROM document_annotations
@@ -68,9 +83,14 @@ export const documentAnnotationsRepository = {
           context_before,
           context_after,
           author_label,
-          author_fingerprint_hash
+          author_fingerprint_hash,
+          pdf_page,
+          pdf_x,
+          pdf_y,
+          pdf_width,
+          pdf_height
         )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
         RETURNING
           id::text,
           document_id,
@@ -82,6 +102,11 @@ export const documentAnnotationsRepository = {
           context_before,
           context_after,
           author_label,
+          pdf_page,
+          pdf_x::float,
+          pdf_y::float,
+          pdf_width::float,
+          pdf_height::float,
           created_at::text,
           updated_at::text
       `,
@@ -96,6 +121,11 @@ export const documentAnnotationsRepository = {
         input.contextAfter || null,
         input.authorLabel,
         input.authorFingerprintHash,
+        input.pdfPage || null,
+        input.pdfX || null,
+        input.pdfY || null,
+        input.pdfWidth || null,
+        input.pdfHeight || null,
       ],
     );
 

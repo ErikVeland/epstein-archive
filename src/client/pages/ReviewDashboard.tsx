@@ -2,7 +2,20 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { apiClient } from '@client/services/apiClient';
-import { Surface, Flex, Box, LqText, Button } from '@client/design-system/lib';
+import { useToasts } from '@client/components/common/useToasts';
+import {
+  Surface,
+  Flex,
+  Box,
+  LqText,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  Textarea,
+} from '@client/design-system/lib';
 import type { SpaceValue } from '@client/design-system/lib/resolveSpace';
 import styles from './ReviewDashboard.module.css';
 
@@ -19,6 +32,7 @@ interface MentionQueueItem {
 interface ClaimQueueItem {
   id: number;
   subject_entity_id: number;
+  subject_entity_name: string | null;
   predicate: string;
   object_text: string;
   confidence: number;
@@ -26,11 +40,20 @@ interface ClaimQueueItem {
   file_name: string;
 }
 
+interface RejectState {
+  id: number;
+  type: 'mentions' | 'claims';
+  reason: string;
+}
+
 export function ReviewDashboard() {
+  const { addToast } = useToasts();
   const [activeTab, setActiveTab] = useState<'mentions' | 'claims'>('mentions');
   const [mentions, setMentions] = useState<MentionQueueItem[]>([]);
   const [claims, setClaims] = useState<ClaimQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rejectState, setRejectState] = useState<RejectState | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   const fetchQueue = useCallback(async () => {
     setLoading(true);
@@ -43,11 +66,12 @@ export function ReviewDashboard() {
         setClaims(Array.isArray(json) ? json : []);
       }
     } catch (e) {
+      addToast({ text: 'Failed to load review queue', type: 'error' });
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, [activeTab]);
+  }, [activeTab, addToast]);
 
   useEffect(() => {
     fetchQueue();
@@ -58,20 +82,36 @@ export function ReviewDashboard() {
       await apiClient.post(`/review/${type}/${id}/verify`, {});
       if (type === 'mentions') setMentions((p) => p.filter((x) => x.id !== id));
       else setClaims((p) => p.filter((x) => x.id !== id));
+      addToast({ text: 'Item verified', type: 'success' });
     } catch (e) {
+      addToast({ text: 'Failed to verify item', type: 'error' });
       console.error(e);
     }
   };
 
-  const rejectItem = async (id: number, type: 'mentions' | 'claims') => {
-    const reason = prompt('Reason for rejection?');
-    if (!reason) return;
+  const openRejectDialog = (id: number, type: 'mentions' | 'claims') => {
+    setRejectState({ id, type, reason: '' });
+  };
+
+  const submitRejection = async () => {
+    if (!rejectState || !rejectState.reason.trim()) return;
+    setIsRejecting(true);
     try {
-      await apiClient.post(`/review/${type}/${id}/reject`, { rejection_reason: reason });
-      if (type === 'mentions') setMentions((p) => p.filter((x) => x.id !== id));
-      else setClaims((p) => p.filter((x) => x.id !== id));
+      await apiClient.post(`/review/${rejectState.type}/${rejectState.id}/reject`, {
+        rejection_reason: rejectState.reason.trim(),
+      });
+      if (rejectState.type === 'mentions') {
+        setMentions((p) => p.filter((x) => x.id !== rejectState.id));
+      } else {
+        setClaims((p) => p.filter((x) => x.id !== rejectState.id));
+      }
+      addToast({ text: 'Item rejected', type: 'success' });
+      setRejectState(null);
     } catch (e) {
+      addToast({ text: 'Failed to reject item', type: 'error' });
       console.error(e);
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -139,7 +179,7 @@ export function ReviewDashboard() {
                         </span>
                       </Flex>
                       <LqText as="p" variant="body" color="primary" className={styles.quoteBlock}>
-                        "...{item.mention_context}..."
+                        &ldquo;...{item.mention_context}...&rdquo;
                       </LqText>
                       <Flex align="center" gap={1.5 as SpaceValue} className={styles.metaRow}>
                         Source: <span className={styles.metaValue}>{item.file_name}</span>
@@ -159,7 +199,7 @@ export function ReviewDashboard() {
                       </Button>
                       <Button
                         unstyled
-                        onClick={() => rejectItem(item.id, 'mentions')}
+                        onClick={() => openRejectDialog(item.id, 'mentions')}
                         className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
@@ -189,7 +229,7 @@ export function ReviewDashboard() {
                         className={styles.claimStatement}
                       >
                         <span className={styles.claimSubject}>
-                          Subject (ID {item.subject_entity_id})
+                          {item.subject_entity_name ?? `Entity #${item.subject_entity_id}`}
                         </span>{' '}
                         <span className={styles.claimPredicate}>
                           {item.predicate.toLowerCase().replace(/_/g, ' ')}
@@ -211,7 +251,7 @@ export function ReviewDashboard() {
                       </Button>
                       <Button
                         unstyled
-                        onClick={() => rejectItem(item.id, 'claims')}
+                        onClick={() => openRejectDialog(item.id, 'claims')}
                         className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
@@ -243,6 +283,52 @@ export function ReviewDashboard() {
           )}
         </Surface>
       </Box>
+
+      {/* Rejection Dialog */}
+      <Dialog
+        open={rejectState !== null}
+        onOpenChange={(open) => {
+          if (!open) setRejectState(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Extraction</DialogTitle>
+            <DialogDescription>
+              Provide a reason for rejection. This helps calibrate the extraction model.
+            </DialogDescription>
+          </DialogHeader>
+          <Flex direction="column" gap="md" style={{ marginTop: 'var(--space-4)' }}>
+            <Textarea
+              value={rejectState?.reason ?? ''}
+              onChange={(e) =>
+                setRejectState((prev) => (prev ? { ...prev, reason: e.target.value } : prev))
+              }
+              placeholder="e.g. Entity name mismatch, out of context, incorrect attribution..."
+              rows={4}
+              autoFocus
+            />
+            <Flex gap="sm" justify="end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setRejectState(null)}
+                disabled={isRejecting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={submitRejection}
+                disabled={isRejecting || !rejectState?.reason.trim()}
+              >
+                {isRejecting ? 'Rejecting...' : 'Confirm Rejection'}
+              </Button>
+            </Flex>
+          </Flex>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

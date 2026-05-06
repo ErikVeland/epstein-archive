@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@client/utils/cn';
 import Icon, { IconName } from './Icon';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
-import { Button } from '@client/design-system/lib';
+import { Button, Surface } from '@client/design-system/lib';
 import s from './Card.module.css';
 
 interface CardProps {
@@ -47,9 +47,11 @@ export const Card: React.FC<CardProps> = ({
   actionButtons = [],
 }) => {
   return (
-    <div
+    <Surface
+      as={onClick ? 'button' : 'div'}
       onClick={onClick}
-      className={cn('surface-panel', s.root, onClick && s.clickable, className)}
+      variant="panel"
+      className={cn(s.root, onClick && s.clickable, className)}
     >
       {/* Header section with title, subtitle, and icon */}
       {(title || subtitle || icon || redFlagRating !== undefined) && (
@@ -129,6 +131,6 @@ export const Card: React.FC<CardProps> = ({
           ))}
         </div>
       )}
-    </div>
+    </Surface>
   );
 };

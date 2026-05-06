@@ -32,3 +32,4 @@ export * from '../components/interactive/DropdownMenu';
 export * from '../components/interactive/Tooltip';
 export * from '../components/interactive/Switch';
 export * from '../components/interactive/BottomSheet';
+export * from '../components/interactive/AppleHIGComponents';

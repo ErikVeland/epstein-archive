@@ -324,3 +324,223 @@
   color: var(--text-muted);
   font-style: italic;
 }
+
+.sectionToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.sectionToggleHeading {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  font-weight: var(--weight-bold);
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.summaryContent {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.insightList {
+  margin: 0;
+  padding-left: var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--type-small);
+  line-height: 1.5;
+}
+
+.insightItem {
+  margin-bottom: var(--space-2);
+}
+
+.sourceMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+  background-color: rgba(255, 255, 255, 0.04);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  width: fit-content;
+}
+
+.sourceDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+}
+
+.relatedList {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.relatedDocButton {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background-color: var(--glass-bg);
+  color: var(--text-muted);
+  font-size: var(--type-small);
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.relatedDocButton:hover {
+  background-color: var(--glass-bg-strong);
+  border-color: var(--glass-border);
+  color: var(--text-primary);
+}
+
+.relatedDocRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.relatedDocTitle {
+  font-weight: var(--weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-grow: 1;
+}
+
+.relatedDocType {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* Apple Style HIG Settings Panel */
+.appleSettingsGroup {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--glass-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+}
+
+.appleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+  gap: var(--space-4);
+  font-size: var(--type-small);
+}
+
+.appleRow:last-child {
+  border-bottom: none;
+}
+
+.appleLabel {
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.appleValue {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.appleValueMono {
+  color: var(--accent);
+  font-family: monospace;
+  font-size: var(--type-xs);
+  text-align: right;
+}
+
+.appleValueMonoTruncated {
+  color: var(--accent);
+  font-family: monospace;
+  font-size: var(--type-xs);
+  text-align: right;
+  cursor: pointer;
+}
+
+/* Icon Badges and Stack Containers */
+.entityIconBadge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.entityTextContainer {
+  flex-grow: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.entityTypeSub {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.docIconBadge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.docTextContainer {
+  flex-grow: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.relatedDocMeta {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}

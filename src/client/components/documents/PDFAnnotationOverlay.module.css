@@ -1,0 +1,21 @@
+/* PDFAnnotationOverlay.module.css */
+
+/*
+ * The overlay must be an exact inset cover of its containing page element.
+ * The page wrapper must be position: relative.
+ */
+.overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  overflow: hidden;
+}
+
+.highlight {
+  position: absolute;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 2px;
+  transition: opacity 0.12s ease;
+}

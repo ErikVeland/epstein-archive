@@ -170,10 +170,19 @@ async function main() {
     console.log(`\n     ${rows.map((r) => `${r.view_name}:${r.status}`).join(' ')}`);
   });
 
+  // ── 5b. Export dashboard snapshot ───────────────────────────────
+  await step('Export dashboard snapshot', async () => {
+    execSync('npm run snapshot:export', {
+      env: { ...process.env },
+      stdio: 'inherit',
+    });
+  });
+
   // ── 6. Git tag ───────────────────────────────────────────────────
   await step(`Git tag v${VERSION}`, async () => {
+    const tagMessage = process.env.TAG_MESSAGE || `release: v${VERSION}`;
     try {
-      execSync(`git tag -a v${VERSION} -m "release: v${VERSION} — Postgres hardening patch"`, {
+      execSync(`git tag -a v${VERSION} -m "${tagMessage}"`, {
         stdio: 'pipe',
       });
       console.log(`\n     Tagged v${VERSION}`);

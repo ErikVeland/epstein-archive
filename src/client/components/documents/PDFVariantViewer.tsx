@@ -7,6 +7,8 @@ import styles from './PDFVariantViewer.module.css';
 import { Button, SearchField } from '@client/design-system/lib';
 import { ensurePdfWorker } from '@client/utils/ensurePdfWorker';
 import { LqText } from '@client/design-system/components/typography/Text';
+import type { PublicDocumentAnnotation } from '@shared/dto/annotations';
+import { PDFAnnotationOverlay } from './PDFAnnotationOverlay';
 
 ensurePdfWorker();
 
@@ -14,12 +16,18 @@ interface PDFVariantViewerProps {
   documentId: string;
   className?: string;
   showToolbar?: boolean;
+  /** Annotations to render as translucent overlays on the current PDF page. */
+  annotations?: PublicDocumentAnnotation[];
+  /** When true, annotation overlays are visible. Defaults to false. */
+  showAnnotations?: boolean;
 }
 
 export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   documentId,
   className = '',
   showToolbar = true,
+  annotations = [],
+  showAnnotations = false,
 }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
@@ -261,15 +269,24 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             }
           >
             <div className={styles.pdfDocument}>
-              <Page
-                pageNumber={pageNumber}
-                width={viewerWidth ? Math.floor((viewerWidth - 64) * scale) : undefined}
-                rotate={rotation}
-                loading={<div className={`${styles.pdfPage} ${styles.animatePulse}`} />}
-                className={styles.pdfPage}
-                renderTextLayer={true}
-                renderAnnotationLayer={true}
-              />
+              <div className={styles.pageWrapper}>
+                <Page
+                  pageNumber={pageNumber}
+                  width={viewerWidth ? Math.floor((viewerWidth - 64) * scale) : undefined}
+                  rotate={rotation}
+                  loading={<div className={`${styles.pdfPage} ${styles.animatePulse}`} />}
+                  className={styles.pdfPage}
+                  renderTextLayer={true}
+                  renderAnnotationLayer={true}
+                />
+                {annotations && annotations.length > 0 && (
+                  <PDFAnnotationOverlay
+                    annotations={annotations}
+                    pageNumber={pageNumber}
+                    visible={showAnnotations}
+                  />
+                )}
+              </div>
             </div>
           </Document>
         )}

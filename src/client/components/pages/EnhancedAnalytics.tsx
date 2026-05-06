@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import s from './EnhancedAnalytics.module.css';
@@ -15,6 +16,7 @@ import { apiClient } from '@client/services/apiClient';
 import type { Evidence } from '../visualizations/EvidenceDrawer';
 import type { Person } from '@client/types';
 import { Button, Input, Surface } from '@client/design-system/lib';
+import { useToasts } from '@client/components/common/useToasts';
 /** Raw node shape returned by /graph/global and /graph/global?mode=path */
 interface GraphApiNode {
   id: string | number;
@@ -190,6 +192,7 @@ export const EnhancedAnalytics: React.FC = () => {
   const backLinkState = useBackLinkState();
   const { filters, setFilters } = useFilters();
   const { onPersonSelect, filteredPeople } = useAnalytics();
+  const { addToast } = useToasts();
 
   const onEntitySelect = (entityId: number) => {
     const person = filteredPeople.find((p) => Number(p.id) === entityId);
@@ -199,11 +202,36 @@ export const EnhancedAnalytics: React.FC = () => {
   };
 
   const onTypeFilter = (type: string) => {
-    navigate(`/documents?search=${encodeURIComponent(type)}`, { state: backLinkState });
+    navigate(`/documents?evidenceType=${encodeURIComponent(type)}`, { state: backLinkState });
   };
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+    refetch: refetchAnalytics,
+  } = useQuery<AnalyticsData>({
+    queryKey: ['enhanced-analytics', filters.timeRange],
+    queryFn: async () => {
+      const result = await apiClient.get<unknown>('/analytics/enhanced', { useCache: false });
+      const normalized = normalizeAnalyticsPayload(result);
+      if (normalized.topConnectedEntities) {
+        normalized.topConnectedEntities = filterPeopleOnly(
+          normalized.topConnectedEntities as unknown as Person[],
+        ) as unknown as AnalyticsData['topConnectedEntities'];
+      }
+      if (normalized.topRelationships && normalized.topConnectedEntities) {
+        const validIds = new Set(normalized.topConnectedEntities.map((e) => e.id));
+        normalized.topRelationships = normalized.topRelationships.filter(
+          (r) => validIds.has(r.sourceId) && validIds.has(r.targetId),
+        );
+      }
+      return normalized;
+    },
+    staleTime: 5 * 60 * 1000, // 5 min — analytics data doesn't change per-request
+    retry: 1,
+  });
+  const error =
+    queryError instanceof Error ? queryError.message : queryError ? 'Unknown error' : null;
 
   // LOD Graph State
   const [graphData, setGraphData] = useState<{
@@ -224,6 +252,9 @@ export const EnhancedAnalytics: React.FC = () => {
   const [pathMode, setPathMode] = useState(false);
   const [pathSource, setPathSource] = useState<MappedGraphNode | null>(null);
   const [pathTarget, setPathTarget] = useState<MappedGraphNode | null>(null);
+
+  // Junk Reset Confirmation State
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const handlePathNodeClick = (entity: MappedGraphNode) => {
     if (!pathSource) {
@@ -250,7 +281,7 @@ export const EnhancedAnalytics: React.FC = () => {
       }
 
       if (pathData.nodes.length === 0) {
-        alert('No path found between these entities (within 6 hops).');
+        addToast({ text: 'No path found between these entities (within 6 hops)', type: 'warning' });
         setPathSource(null);
         setPathTarget(null);
         return;
@@ -414,63 +445,35 @@ export const EnhancedAnalytics: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchAnalytics();
-  }, []);
-
-  // Update Graph when Time Range changes
-  useEffect(() => {
     if (data) {
       handleZoomLevelChange(1.0); // Trigger a refresh at current zoom
     }
   }, [filters.timeRange, data, handleZoomLevelChange]);
 
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true);
-      const result = await apiClient.get<unknown>('/analytics/enhanced', { useCache: false });
-      const normalized = normalizeAnalyticsPayload(result);
-
-      // Filter out junk entities from Network Graph
-      if (normalized.topConnectedEntities) {
-        normalized.topConnectedEntities = filterPeopleOnly(
-          normalized.topConnectedEntities as unknown as Person[],
-        ) as unknown as AnalyticsData['topConnectedEntities'];
-      }
-
-      // Filter relationships to only include valid entities
-      if (normalized.topRelationships && normalized.topConnectedEntities) {
-        const validIds = new Set(normalized.topConnectedEntities.map((e) => e.id));
-        normalized.topRelationships = normalized.topRelationships.filter(
-          (r) => validIds.has(r.sourceId) && validIds.has(r.targetId),
-        );
-      }
-
-      setData(normalized);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleReconcileJunk = async () => {
     try {
       await apiClient.post('/analytics/reconcile/junk');
-      alert('Junk entities re-classified.');
-      fetchAnalytics();
+      addToast({ text: 'Junk entities re-classified', type: 'success' });
+      void refetchAnalytics();
     } catch (error) {
+      addToast({ text: 'Failed to reconcile junk entities', type: 'error' });
       console.error('Error reconciling junk:', error);
     }
   };
 
   const handleResetJunk = async () => {
-    if (!confirm('Are you sure you want to reset all junk flags?')) return;
+    if (!showResetConfirm) {
+      setShowResetConfirm(true);
+      return;
+    }
+    setShowResetConfirm(false);
     try {
       await apiClient.post('/analytics/reconcile/reset');
-      alert('Junk classification reset.');
-      fetchAnalytics();
+      addToast({ text: 'Junk classification reset', type: 'success' });
+      void refetchAnalytics();
     } catch (error) {
-      console.error('Error resetting junk:', error);
+      addToast({ text: 'Failed to reset junk classification', type: 'error' });
+      console.error(error);
     }
   };
 
@@ -522,7 +525,7 @@ export const EnhancedAnalytics: React.FC = () => {
     return (
       <div className={s.errorWrapper}>
         <p className={s.errorText}>{error || 'No data available'}</p>
-        <Button unstyled onClick={fetchAnalytics} className={s.retryButton}>
+        <Button unstyled onClick={() => void refetchAnalytics()} className={s.retryButton}>
           Retry
         </Button>
       </div>
@@ -555,7 +558,7 @@ export const EnhancedAnalytics: React.FC = () => {
   return (
     <div className={`${s.page} ${s.fadeIn}`}>
       {/* Entity Network - Full Width - MOVED TO TOP */}
-      <div className={`surface-panel ${s.networkSection}`}>
+      <Surface variant="panel" className={s.networkSection}>
         {/* Archive Reconciliation Header Indicator */}
         {data && (
           <div className={s.archiveBadgeWrap}>
@@ -699,7 +702,9 @@ export const EnhancedAnalytics: React.FC = () => {
                   title="Reset Junk Flags"
                 >
                   <Icon name="RotateCcw" size="sm" />
-                  <span className={s.nodeActionTooltip}>Reset Junk Flags</span>
+                  <span className={s.nodeActionTooltip}>
+                    {showResetConfirm ? 'Click again to confirm reset' : 'Reset Junk Flags'}
+                  </span>
                 </Button>
               </>
             }
@@ -786,7 +791,7 @@ export const EnhancedAnalytics: React.FC = () => {
             <p className={s.mobileListMore}>+{topConnectedEntities.length - 20} more entities</p>
           )}
         </div>
-      </div>
+      </Surface>
 
       {/* Interactive Entity Map - NEW PHASE 12 */}
       <div className={s.entityMapSection}>
@@ -825,7 +830,7 @@ export const EnhancedAnalytics: React.FC = () => {
       {/* Secondary Visualizations Grid */}
       <div className={s.vizGrid}>
         {/* Document Types Sunburst */}
-        <div className={`surface-panel ${s.vizPanel}`}>
+        <Surface variant="panel" className={s.vizPanel}>
           <div className={s.vizPanelIconDecor}>
             <Icon name="Database" size="xl" className={s.iconAccent} />
           </div>
@@ -849,10 +854,10 @@ export const EnhancedAnalytics: React.FC = () => {
               onSegmentClick={(type) => onTypeFilter?.(type)}
             />
           </div>
-        </div>
+        </Surface>
 
         {/* Timeline */}
-        <div className={`surface-panel ${s.vizPanel}`}>
+        <Surface variant="panel" className={s.vizPanel}>
           <div className={s.vizPanelIconDecor}>
             <Icon name="TrendingUp" size="xl" className={s.vizPanelIconPurple} />
           </div>
@@ -875,7 +880,7 @@ export const EnhancedAnalytics: React.FC = () => {
           <div className={s.vizPanelBody}>
             <DocumentBarChart data={data.timelineData} />
           </div>
-        </div>
+        </Surface>
       </div>
     </div>
   );

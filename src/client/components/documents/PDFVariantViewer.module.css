@@ -141,6 +141,12 @@
   padding: var(--space-8);
 }
 
+.pageWrapper {
+  position: relative;
+  display: inline-block;
+  line-height: 0; /* prevents phantom gap below inline-block */
+}
+
 .pdfPage {
   box-shadow: var(--glass-shadow);
   border: 1px solid var(--glass-border);

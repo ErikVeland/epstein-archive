@@ -1,4 +1,5 @@
 import React from 'react';
+import { Surface } from '@client/design-system/lib';
 import s from './LegalPage.module.css';
 
 interface LegalPageProps {
@@ -48,7 +49,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ mode }) => {
   const sections = mode === 'privacy' ? PRIVACY_SECTIONS : TERMS_SECTIONS;
 
   return (
-    <div className={`surface-panel ${s.root}`}>
+    <Surface variant="panel" className={s.root}>
       <div className={s.titleBlock}>
         <h1 className={s.title}>{title}</h1>
         <p className={s.intro}>{intro}</p>
@@ -62,6 +63,6 @@ export const LegalPage: React.FC<LegalPageProps> = ({ mode }) => {
           </section>
         ))}
       </div>
-    </div>
+    </Surface>
   );
 };

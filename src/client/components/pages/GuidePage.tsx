@@ -216,7 +216,7 @@ const GuidePage = () => {
 
         <footer className={s.footer}>
           <p className={s.footerText}>
-            Epstein Archive Investigation System v2.4.0 • Confidential Investigative Resource
+            Epstein Archive v{__APP_VERSION__} • Open Investigative Research Platform
           </p>
         </footer>
       </div>

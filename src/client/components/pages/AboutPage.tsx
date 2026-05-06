@@ -1072,7 +1072,7 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* What's Next */}
-      <section className={`surface-panel ${s.whatsNextSection}`}>
+      <Surface as="section" variant="panel" className={s.whatsNextSection}>
         <div className={s.sectionHeader}>
           <Icon name="Image" size="xl" className={s.iconAccent} />
           <h2 className={s.sectionTitle}>Fully Ingested, Intelligence Ongoing</h2>
@@ -1116,7 +1116,7 @@ export const AboutPage: React.FC = () => {
             financial transactions.
           </p>
         </div>
-      </section>
+      </Surface>
 
       {/* Media Coverage */}
       <section className={s.section}>

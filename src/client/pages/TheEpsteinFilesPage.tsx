@@ -65,7 +65,7 @@ const copyByVariant: Record<
       'Connect media items to evidence records and entities.',
     ],
     ctaLabel: 'Open Media Browser',
-    ctaHref: '/media/photos',
+    ctaHref: '/media',
   },
   timeline: {
     title: 'Epstein Timeline',

@@ -30,7 +30,7 @@ import { LqText } from '@client/design-system/components/typography/Text';
 import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
 import styles from './EvidenceDetail.module.css';
 
-import { Button } from '@client/design-system/lib';
+import { Button, HIGSettingsGroup, HIGSettingsRow, HIGStackRow } from '@client/design-system/lib';
 
 interface Evidence {
   id: number;
@@ -466,42 +466,13 @@ export function EvidenceDetail() {
                         key={entity.id}
                         to={`/entities/${entity.id}`}
                         state={backLinkState}
-                        className={styles.entityLink}
+                        style={{ display: 'block', textDecoration: 'none' }}
                       >
-                        <Flex align="start" justify="between">
-                          <Box className={styles.entityContent}>
-                            <Flex align="center" gap={2} className={styles.entityNameRow}>
-                              <Icon name={iconName} size="xs" color="muted" />
-                              <LqText
-                                as="p"
-                                variant="body"
-                                color="primary"
-                                className={styles.entityName}
-                              >
-                                {entity.name}
-                              </LqText>
-                            </Flex>
-                            <LqText
-                              as="p"
-                              variant="small"
-                              color="muted"
-                              className={styles.entityMeta}
-                            >
-                              Role: {entity.role}
-                            </LqText>
-                            {entity.confidence < 1 && (
-                              <LqText
-                                as="p"
-                                variant="small"
-                                color="muted"
-                                className={styles.entityMeta}
-                              >
-                                Confidence: {(entity.confidence * 100).toFixed(0)}%
-                              </LqText>
-                            )}
-                          </Box>
-                          <Icon name={iconName} size="xs" className={styles.entityIcon} />
-                        </Flex>
+                        <HIGStackRow
+                          icon={iconName}
+                          title={entity.name}
+                          subtitle={`Role: ${entity.role}`}
+                        />
                       </Link>
                     );
                   })}
@@ -515,18 +486,17 @@ export function EvidenceDetail() {
                 <LqText as="h3" variant="h3" className={styles.metaSolidTitle}>
                   Metadata
                 </LqText>
-                <dl className={styles.metaList}>
+                <HIGSettingsGroup>
                   {Object.entries(evidence.metadata).map(([key, value]) => (
-                    <Box key={key}>
-                      <dt className={styles.metaTerm}>
-                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
-                      </dt>
-                      <dd className={styles.metaDesc}>
-                        {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                      </dd>
-                    </Box>
+                    <HIGSettingsRow
+                      key={key}
+                      label={key
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/^./, (str) => str.toUpperCase())}
+                      value={typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                    />
                   ))}
-                </dl>
+                </HIGSettingsGroup>
               </Surface>
             )}
           </Flex>

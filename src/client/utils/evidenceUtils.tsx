@@ -207,6 +207,11 @@ export const normalizeEvidenceDocument = (
       item.source_path,
     fileName:
       item.fileName || item.file_name || item.filename || item.sourcePath || item.source_path,
+    documentTitle:
+      item.documentTitle ||
+      item.document_title ||
+      (item.document as { title?: unknown } | null | undefined)?.title ||
+      null,
     contentPreview: item.contentPreview || item.context_snippet || item.description,
     evidenceType: item.evidenceType || item.evidence_type || 'Document',
     redFlagRating: item.redFlagRating ?? item.red_flag_rating ?? item.risk_score ?? 0,

@@ -8,6 +8,7 @@ import { getRiskClass, isVisualMediaItem } from '@client/utils/evidenceUtils';
 import { EntityPhoto } from '../EvidenceModal';
 import { SignalMetrics, DriverChip } from '@client/utils/forensics';
 import s from './EvidenceOverviewTab.module.css';
+import { FlagButton } from '@client/components/common/FlagButton';
 
 import { Button } from '@client/design-system/lib';
 
@@ -177,6 +178,13 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
           </div>
         </div>
       </div>
+
+      {/* FLAG ENTITY */}
+      {entity?.id && (
+        <div className={s.flagSection}>
+          <FlagButton targetType="entity" targetId={String(entity.id)} size="sm" />
+        </div>
+      )}
 
       {/* VERIFIED MEDIA PREVIEW */}
       {visualMediaItems.length > 0 && (
