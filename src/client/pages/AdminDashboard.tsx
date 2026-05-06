@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ReviewQueuePanel } from '@client/components/admin/ReviewQueuePanel';
 import { CloseButton } from '@client/components/common/CloseButton';
 import { useScrollLock } from '@client/hooks/useScrollLock';
+import { apiClient } from '@client/services/apiClient';
 import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { Flex } from '@client/design-system/components/layout/Flex';
 import { Box } from '@client/design-system/components/layout/Box';
@@ -139,15 +140,12 @@ export const AdminDashboard: React.FC = () => {
   // --- useQuery: users (seeded into mutable local state) ---
   const { data: fetchedUsers, isLoading: loading } = useQuery({
     queryKey: ['admin-users'],
-    queryFn: async () => {
-      const res = await fetch('/api/users');
-      if (!res.ok) throw new Error('Failed to fetch users');
-      return res.json() as Promise<User[]>;
-    },
+    queryFn: () => apiClient.get<User[]>('/users'),
   });
 
   useEffect(() => {
     if (!usersSeeded && fetchedUsers !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed mutable admin table state from the completed query once.
       setUsers(fetchedUsers);
       setUsersSeeded(true);
     }
@@ -160,31 +158,21 @@ export const AdminDashboard: React.FC = () => {
     refetch: refetchAuditLogs,
   } = useQuery({
     queryKey: ['admin-audit-logs'],
-    queryFn: async () => {
-      const res = await fetch('/api/admin/audit-logs?limit=200');
-      if (!res.ok) throw new Error('Failed to fetch audit logs');
-      return res.json() as Promise<AuditLogEntry[]>;
-    },
+    queryFn: () => apiClient.get<AuditLogEntry[]>('/admin/audit-logs?limit=200'),
     enabled: activeTab === 'audit',
   });
 
   // --- useQuery: system health (read-only) ---
   const { data: health = null } = useQuery({
     queryKey: ['admin-health'],
-    queryFn: async () => {
-      const res = await fetch('/api/health');
-      if (!res.ok) throw new Error('Failed to fetch health');
-      return res.json() as Promise<SystemHealth>;
-    },
+    queryFn: () => apiClient.get<SystemHealth>('/health'),
   });
 
   // --- useQuery: ingest runs (read-only, loaded on-demand) ---
   const { data: ingestRuns = [] } = useQuery<IngestRun[]>({
     queryKey: ['admin-ingest-runs'],
     queryFn: async () => {
-      const res = await fetch('/api/stats/ingest-runs');
-      if (!res.ok) throw new Error('Failed to fetch ingest runs');
-      const data = (await res.json()) as Array<Record<string, unknown>>;
+      const data = await apiClient.get<Array<Record<string, unknown>>>('/stats/ingest-runs');
       return data.map((run) => ({
         id: String(run.id || ''),
         status: String(run.status || 'failed'),
@@ -201,9 +189,7 @@ export const AdminDashboard: React.FC = () => {
   const { data: backups = [] } = useQuery<BackupSnapshot[]>({
     queryKey: ['admin-backups'],
     queryFn: async () => {
-      const res = await fetch('/api/stats/backups');
-      if (!res.ok) throw new Error('Failed to fetch backups');
-      const data = (await res.json()) as Array<Record<string, unknown>>;
+      const data = await apiClient.get<Array<Record<string, unknown>>>('/stats/backups');
       return data.map((backup) => ({
         filename: String(backup.filename || ''),
         size: Number(backup.size || 0),
@@ -216,27 +202,18 @@ export const AdminDashboard: React.FC = () => {
   const triggerBackup = async () => {
     if (!confirm('Create a new database snapshot? This is a zero-downtime operation.')) return;
     try {
-      const res = await fetch('/api/stats/backups/trigger', { method: 'POST' });
-      if (res.ok) {
-        alert('Backup created successfully.');
-        void queryClient.invalidateQueries({ queryKey: ['admin-backups'] });
-      }
-    } catch (_e) {
-      alert('Backup failed');
+      await apiClient.post('/stats/backups/trigger');
+      alert('Backup created successfully.');
+      void queryClient.invalidateQueries({ queryKey: ['admin-backups'] });
+    } catch (err) {
+      alert(errorMessage(err));
     }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create user');
+      const data = await apiClient.post<User>('/users', formData);
 
       setUsers([...users, data]);
       closeModal();
@@ -259,13 +236,7 @@ export const AdminDashboard: React.FC = () => {
         updateData.password = formData.password;
       }
 
-      const res = await fetch(`/api/users/${editingUser.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData),
-      });
-
-      if (!res.ok) throw new Error('Failed to update user');
+      await apiClient.put(`/users/${editingUser.id}`, updateData);
 
       setUsers(users.map((u) => (u.id === editingUser.id ? { ...u, ...updateData } : u)));
       closeModal();
@@ -278,11 +249,7 @@ export const AdminDashboard: React.FC = () => {
     if (!confirm('Are you sure you want to delete this user? This cannot be undone.')) return;
 
     try {
-      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to delete user');
-      }
+      await apiClient.delete(`/users/${id}`);
       setUsers(users.filter((u) => u.id !== id));
     } catch (err) {
       alert(errorMessage(err));

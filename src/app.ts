@@ -27,11 +27,7 @@ import type { SortOption } from './types';
 
 // Route imports
 import authRoutes from './server/auth/routes.js';
-import {
-  authenticateRequest,
-  optionalAuthenticate,
-  requireRole,
-} from './server/auth/middleware.js';
+import { optionalAuthenticate } from './server/auth/middleware.js';
 import statsRoutes from './server/routes/stats.js';
 import statusRoutes from './server/routes/statusRoutes.js';
 import relationshipsRoutes from './server/routes/relationships.js';
@@ -383,8 +379,9 @@ export class App {
     this.app.use(express.static(path.join(__dirname, '../dist')));
 
     // 7. Secure File Serving
-    // Both /files/* and /data/* serve from the data/ directory with path-traversal protection.
-    // /data/* is kept as a backward-compatible alias; /files/* is the canonical secure path.
+    // Both /files/* and /data/* expose only the explicitly public data subset.
+    // Authenticated/private corpus files are served by typed API routes such as
+    // /api/documents/:id/file and /api/media/* so policy stays attached to DB records.
     this.app.get(['/files/*', '/data/*'], (req, res) => {
       const prefix = req.path.startsWith('/files/') ? '/files/' : '/data/';
       const wildcardPath = req.path.slice(prefix.length);
@@ -397,25 +394,35 @@ export class App {
           return filePath;
         }
       })();
-      const dataRoot = path.resolve(process.cwd(), 'data');
-      const requestedPath = path.resolve(dataRoot, decodedPath);
-      const normalizedRoot = dataRoot.endsWith(path.sep) ? dataRoot : `${dataRoot}${path.sep}`;
+      const publicRoots = [
+        path.resolve(process.cwd(), 'data', 'public'),
+        path.resolve(process.cwd(), 'data', 'public', 'data'),
+      ]
+        .filter((root) => fs.existsSync(root))
+        .map((root) => fs.realpathSync(root));
 
-      if (requestedPath !== dataRoot && !requestedPath.startsWith(normalizedRoot)) {
-        return res.status(400).send('Invalid path');
+      const normalizedDecoded = decodedPath.replace(/^\/+/, '');
+      const candidatePaths = publicRoots.map((root) => path.resolve(root, normalizedDecoded));
+
+      let realRequestedPath: string | null = null;
+      for (const requestedPath of candidatePaths) {
+        if (!fs.existsSync(requestedPath)) continue;
+        const realCandidate = fs.realpathSync(requestedPath);
+        const allowed = publicRoots.some((root) => {
+          const normalizedRoot = root.endsWith(path.sep) ? root : `${root}${path.sep}`;
+          return realCandidate === root || realCandidate.startsWith(normalizedRoot);
+        });
+        if (allowed && fs.statSync(realCandidate).isFile()) {
+          realRequestedPath = realCandidate;
+          break;
+        }
       }
-      if (!fs.existsSync(requestedPath)) {
+
+      if (!realRequestedPath) {
         return res.status(404).send('File not found');
       }
-      const realDataRoot = fs.realpathSync(dataRoot);
-      const realRequestedPath = fs.realpathSync(requestedPath);
-      const normalizedRealRoot = realDataRoot.endsWith(path.sep)
-        ? realDataRoot
-        : `${realDataRoot}${path.sep}`;
-      if (realRequestedPath !== realDataRoot && !realRequestedPath.startsWith(normalizedRealRoot)) {
-        return res.status(400).send('Invalid path');
-      }
 
+      res.setHeader('X-Content-Type-Options', 'nosniff');
       res.sendFile(realRequestedPath, (err) => {
         if (err) {
           if (!res.headersSent) {
@@ -737,10 +744,12 @@ export class App {
     router.use('/auth', authRoutes);
     router.use(optionalAuthenticate);
     router.use((req, res, next) => {
-      if (req.path.startsWith('/auth')) {
-        return next();
-      }
-      if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+      if (
+        req.path.startsWith('/auth') ||
+        req.method === 'GET' ||
+        req.method === 'HEAD' ||
+        req.method === 'OPTIONS'
+      ) {
         return next();
       }
       // Purge only the cache keys relevant to the mutated resource so
@@ -755,10 +764,7 @@ export class App {
           }
         }
       });
-      return authenticateRequest(req, res, (authErr?: unknown) => {
-        if (authErr) return next(authErr);
-        return requireRole('admin')(req, res, next);
-      });
+      return next();
     });
     router.use('/entities', entitiesRoutes);
     router.use('/search', searchRoutes);

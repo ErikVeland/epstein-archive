@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateRequest, AuthRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { reviewQueueRepository } from '../db/reviewQueueRepository.js';
@@ -65,6 +65,7 @@ const FlagSchema = z.object({
 router.get(
   '/mentions/queue',
   authenticateRequest,
+  requireRole('admin'),
   validate(QueueSchema),
   async (req, res, next) => {
     try {
@@ -83,6 +84,7 @@ router.get(
 router.post(
   '/mentions/:id/verify',
   authenticateRequest,
+  requireRole('admin'),
   validate(IdParamSchema),
   validate(VerifySchema),
   async (req, res, next) => {
@@ -103,6 +105,7 @@ router.post(
 router.post(
   '/mentions/:id/reject',
   authenticateRequest,
+  requireRole('admin'),
   validate(IdParamSchema),
   validate(RejectSchema),
   async (req, res, next) => {
@@ -122,22 +125,29 @@ router.post(
 );
 
 // 2. Claims Queue
-router.get('/claims/queue', authenticateRequest, validate(QueueSchema), async (req, res, next) => {
-  try {
-    const { limit } = req.query as unknown as z.infer<typeof QueueSchema>['query'];
+router.get(
+  '/claims/queue',
+  authenticateRequest,
+  requireRole('admin'),
+  validate(QueueSchema),
+  async (req, res, next) => {
+    try {
+      const { limit } = req.query as unknown as z.infer<typeof QueueSchema>['query'];
 
-    const queue = await reviewQueueRepository.getClaimsQueue(limit);
+      const queue = await reviewQueueRepository.getClaimsQueue(limit);
 
-    res.json(queue);
-  } catch (e) {
-    next(e);
-  }
-});
+      res.json(queue);
+    } catch (e) {
+      next(e);
+    }
+  },
+);
 
 // Verify Claim
 router.post(
   '/claims/:id/verify',
   authenticateRequest,
+  requireRole('admin'),
   validate(IdParamSchema),
   validate(VerifySchema),
   async (req, res, next) => {
@@ -158,6 +168,7 @@ router.post(
 router.post(
   '/claims/:id/reject',
   authenticateRequest,
+  requireRole('admin'),
   validate(IdParamSchema),
   validate(RejectSchema),
   async (req, res, next) => {
@@ -176,44 +187,52 @@ router.post(
   },
 );
 
-router.post('/bulk', authenticateRequest, validate(BulkReviewSchema), async (req, res, next) => {
-  try {
-    const { items, reviewed_by } = req.body as unknown as z.infer<typeof BulkReviewSchema>['body'];
-    const reviewer = reviewed_by || (req as AuthRequest).user?.username || 'reviewer';
-    const results: Array<{ type: string; id: number; decision: string; success: boolean }> = [];
+router.post(
+  '/bulk',
+  authenticateRequest,
+  requireRole('admin'),
+  validate(BulkReviewSchema),
+  async (req, res, next) => {
+    try {
+      const { items, reviewed_by } = req.body as unknown as z.infer<
+        typeof BulkReviewSchema
+      >['body'];
+      const reviewer = reviewed_by || (req as AuthRequest).user?.username || 'reviewer';
+      const results: Array<{ type: string; id: number; decision: string; success: boolean }> = [];
 
-    for (const item of items) {
-      if (item.decision === 'accept') {
-        if (item.type === 'claim') {
-          await reviewQueueRepository.verifyClaim(item.id, reviewer);
+      for (const item of items) {
+        if (item.decision === 'accept') {
+          if (item.type === 'claim') {
+            await reviewQueueRepository.verifyClaim(item.id, reviewer);
+          } else {
+            await reviewQueueRepository.verifyMention(item.id, reviewer);
+          }
+        } else if (item.decision === 'reject') {
+          const reason = item.reason || 'Bulk rejected during review';
+          if (item.type === 'claim') {
+            await reviewQueueRepository.rejectClaim(item.id, reason, reviewer);
+          } else {
+            await reviewQueueRepository.rejectMention(item.id, reason, reviewer);
+          }
         } else {
-          await reviewQueueRepository.verifyMention(item.id, reviewer);
+          await dataQualityRepository.logAudit({
+            actorId: reviewer,
+            action: `review_${item.decision}`,
+            targetType: item.type,
+            targetId: String(item.id),
+            payload: { reason: item.reason || null, preservedSourceData: true },
+          });
         }
-      } else if (item.decision === 'reject') {
-        const reason = item.reason || 'Bulk rejected during review';
-        if (item.type === 'claim') {
-          await reviewQueueRepository.rejectClaim(item.id, reason, reviewer);
-        } else {
-          await reviewQueueRepository.rejectMention(item.id, reason, reviewer);
-        }
-      } else {
-        await dataQualityRepository.logAudit({
-          actorId: reviewer,
-          action: `review_${item.decision}`,
-          targetType: item.type,
-          targetId: String(item.id),
-          payload: { reason: item.reason || null, preservedSourceData: true },
-        });
+
+        results.push({ type: item.type, id: item.id, decision: item.decision, success: true });
       }
 
-      results.push({ type: item.type, id: item.id, decision: item.decision, success: true });
+      res.json({ success: true, processed: results.length, results });
+    } catch (e) {
+      next(e);
     }
-
-    res.json({ success: true, processed: results.length, results });
-  } catch (e) {
-    next(e);
-  }
-});
+  },
+);
 
 router.post('/flag', authenticateRequest, validate(FlagSchema), async (req, res, next) => {
   try {

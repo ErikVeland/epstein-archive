@@ -1,6 +1,6 @@
 import express from 'express';
 import { blackBookRepository } from '../db/blackBookRepository.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate, blackBookQuerySchema, blackBookReviewSchema } from '../middleware/validate.js';
 
@@ -102,6 +102,7 @@ router.get('/review', validate(z.object({})), async (_req, res, next) => {
 router.post(
   '/review/:id',
   authenticateRequest,
+  requireRole('admin'),
   validate(blackBookReviewSchema),
   async (req, res, next) => {
     try {
