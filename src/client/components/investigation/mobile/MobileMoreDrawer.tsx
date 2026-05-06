@@ -3,7 +3,13 @@ import styles from './MobileMoreDrawer.module.css';
 
 import { Button } from '@client/design-system/lib';
 
-export type MoreTool = 'timeline' | 'forensic' | 'communications' | 'hypotheses' | 'export';
+export type MoreTool =
+  | 'timeline'
+  | 'iceberg'
+  | 'forensic'
+  | 'communications'
+  | 'hypotheses'
+  | 'export';
 
 interface ToolEntry {
   id: MoreTool;
@@ -18,6 +24,12 @@ const TOOLS: ToolEntry[] = [
     title: 'Event Chronology',
     subtitle: 'Timeline of events',
     iconName: 'Calendar',
+  },
+  {
+    id: 'iceberg',
+    title: 'Iceberg Intelligence',
+    subtitle: 'Lead to proof drill-down',
+    iconName: 'Layers',
   },
   {
     id: 'forensic',

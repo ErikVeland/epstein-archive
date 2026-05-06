@@ -236,3 +236,60 @@
     opacity: 1;
   }
 }
+
+.rolesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  width: 100%;
+  margin-top: var(--space-2);
+}
+
+.roleCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  text-align: left;
+  transition: all var(--duration-fast, 150ms);
+  cursor: pointer;
+}
+
+.roleCard:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--glass-bg));
+  transform: translateY(-2px);
+}
+
+.roleCardActive {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--glass-bg-strong));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.roleEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.roleText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.roleName {
+  font-size: var(--type-small);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.roleDesc {
+  margin: 0;
+  font-size: var(--type-xs);
+  line-height: 1.4;
+  color: var(--text-secondary);
+}

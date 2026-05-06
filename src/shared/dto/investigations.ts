@@ -16,6 +16,19 @@ export interface InvestigativeLeadDto {
   resolutionNotes: string | null;
   createdAt: string;
   updatedAt: string;
+  leadKind?: 'motif' | 'relationship' | 'document' | 'manual';
+  motifType?: string | null;
+  harmType?: string | null;
+  confidence?: number | null;
+  riskScore?: number | null;
+  evidenceCount?: number;
+  pathLength?: number | null;
+  sourceSummary?: string | null;
+  primaryEntities?: unknown[];
+  supportingDocuments?: unknown[];
+  contradictionCount?: number;
+  reviewState?: string;
+  explainability?: unknown;
 }
 
 export interface InvestigationListItemDto {

@@ -14,3 +14,4 @@ export * from './analytics';
 export * from './graph';
 export * from './relationships';
 export * from './provenance';
+export * from './iceberg';

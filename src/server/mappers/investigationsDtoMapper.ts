@@ -28,6 +28,29 @@ export const mapInvestigativeLeadDto = (row: Record<string, unknown>): Investiga
   resolutionNotes: typeof row.resolutionNotes === 'string' ? row.resolutionNotes : null,
   createdAt: String(row.createdAt ?? row.created_at ?? ''),
   updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),
+  leadKind: (row.leadKind ?? row.lead_kind) as InvestigativeLeadDto['leadKind'],
+  motifType: (row.motifType ?? row.motif_type ?? null) as string | null,
+  harmType: (row.harmType ?? row.harm_type ?? null) as string | null,
+  confidence:
+    (row.confidence ?? null) !== null && Number.isFinite(Number(row.confidence))
+      ? Number(row.confidence)
+      : null,
+  riskScore:
+    (row.riskScore ?? row.risk_score ?? null) !== null &&
+    Number.isFinite(Number(row.riskScore ?? row.risk_score))
+      ? Number(row.riskScore ?? row.risk_score)
+      : null,
+  evidenceCount: Number(row.evidenceCount ?? row.evidence_count ?? 0),
+  pathLength:
+    (row.pathLength ?? row.path_length ?? null) !== null
+      ? Number(row.pathLength ?? row.path_length)
+      : null,
+  sourceSummary: (row.sourceSummary ?? row.source_summary ?? null) as string | null,
+  primaryEntities: Array.isArray(row.primaryEntities) ? row.primaryEntities : undefined,
+  supportingDocuments: Array.isArray(row.supportingDocuments) ? row.supportingDocuments : undefined,
+  contradictionCount: Number(row.contradictionCount ?? row.contradiction_count ?? 0),
+  reviewState: String(row.reviewState ?? row.review_state ?? 'unreviewed'),
+  explainability: row.explainability ?? row.explainability_json,
 });
 
 export const mapInvestigationListItemDto = (

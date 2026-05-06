@@ -14,3 +14,4 @@ export * from './relationships';
 export * from './provenance';
 export * from './reviewQueueSchema';
 export * from './intelligenceSchema';
+export * from './iceberg';

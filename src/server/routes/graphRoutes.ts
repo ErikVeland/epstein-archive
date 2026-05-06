@@ -12,6 +12,7 @@ import {
   getGraphPathEdges,
   getGraphPathNodes,
 } from '../db/routesDb.js';
+import { icebergRepository } from '../db/icebergRepository.js';
 
 const router = express.Router();
 
@@ -346,6 +347,47 @@ router.get(
     }
   },
 );
+
+router.get('/paths', async (req, res, next) => {
+  try {
+    const sourceId = String(req.query.sourceId || '').trim();
+    const targetId = String(req.query.targetId || '').trim();
+    if (!/^\d+$/.test(sourceId) || !/^\d+$/.test(targetId)) {
+      return res
+        .status(400)
+        .json({ error: 'sourceId and targetId are required numeric entity ids' });
+    }
+
+    const limit = Math.max(1, Math.min(5, Number(req.query.limit || 5)));
+    const minConfidence = Math.max(0, Math.min(1, Number(req.query.minConfidence || 0)));
+    const paths = await icebergRepository.getRankedPaths({
+      sourceId,
+      targetId,
+      limit,
+      minConfidence,
+      startDate: typeof req.query.startDate === 'string' ? req.query.startDate : undefined,
+      endDate: typeof req.query.endDate === 'string' ? req.query.endDate : undefined,
+    });
+
+    return res.json({ data: paths, total: paths.length, limit });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/edges/:sourceId/:targetId/explain', async (req, res, next) => {
+  try {
+    const { sourceId, targetId } = req.params;
+    if (!/^\d+$/.test(sourceId) || !/^\d+$/.test(targetId)) {
+      return res.status(400).json({ error: 'sourceId and targetId must be numeric entity ids' });
+    }
+
+    const explanation = await icebergRepository.explainRelationship(sourceId, targetId);
+    return res.json(explanation);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * Get Evidence for an Edge

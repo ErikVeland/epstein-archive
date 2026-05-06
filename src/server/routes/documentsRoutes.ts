@@ -10,6 +10,7 @@ import {
   mapDocumentDetailDto,
 } from '../mappers/documentsDtoMapper.js';
 import { searchRepository } from '../db/searchRepository.js';
+import { icebergRepository } from '../db/icebergRepository.js';
 import fs from 'fs';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
@@ -64,6 +65,17 @@ const documentsListQuerySchema = z.object({
 const documentIdSchema = z.object({
   params: z.object({
     id: z.string().min(1),
+  }),
+});
+
+const documentContextSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().positive(),
+  }),
+  query: z.object({
+    entityIds: z.string().optional(),
+    claimId: z.string().optional(),
+    page: z.coerce.number().int().positive().optional(),
   }),
 });
 
@@ -179,6 +191,28 @@ router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
         : undefined,
     });
     return res.json(mapDocumentsListResponseDto(result));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/documents/:id/context
+router.get('/:id/context', validate(documentContextSchema), async (req, res, next) => {
+  try {
+    const params = req.params as unknown as { id: number };
+    const query = req.query as unknown as z.infer<typeof documentContextSchema>['query'];
+    const entityIds = String(query.entityIds || '')
+      .split(',')
+      .map((value) => Number(value.trim()))
+      .filter((value) => Number.isFinite(value) && value > 0);
+
+    const context = await icebergRepository.getDocumentContext({
+      documentId: params.id,
+      entityIds,
+      page: query.page,
+    });
+    if (!context) return res.status(404).json({ error: 'Document context not found' });
+    return res.json(context);
   } catch (error) {
     next(error);
   }

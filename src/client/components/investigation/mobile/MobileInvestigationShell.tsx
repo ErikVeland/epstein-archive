@@ -23,6 +23,7 @@ import { CommunicationAnalysis } from '../CommunicationAnalysis';
 import { HypothesisTestingFramework } from '../HypothesisTestingFramework';
 import { InvestigationExportTools } from '../InvestigationExportTools';
 import { EvidencePacketExporter } from '../EvidencePacketExporter';
+import { IcebergIntelligence } from '../IcebergIntelligence';
 import styles from './MobileInvestigationShell.module.css';
 
 import { Button } from '@client/design-system/lib';
@@ -31,6 +32,7 @@ type ActiveDest = 'board' | 'evidence' | 'activity';
 const VALID_TABS = new Set<string>(['board', 'evidence', 'activity']);
 const VALID_TOOLS = new Set<string>([
   'timeline',
+  'iceberg',
   'forensic',
   'communications',
   'hypotheses',
@@ -39,6 +41,7 @@ const VALID_TOOLS = new Set<string>([
 
 const TOOL_LABELS: Record<MoreTool, string> = {
   timeline: 'Event Chronology',
+  iceberg: 'Iceberg Intelligence',
   forensic: 'Forensic Workbench',
   communications: 'Communications',
   hypotheses: 'Hypotheses',
@@ -160,6 +163,7 @@ export function MobileInvestigationShell({
             onEventsChanged={onTimelineChanged}
           />
         )}
+        {moreDest === 'iceberg' && <IcebergIntelligence investigationId={invId} />}
         {moreDest === 'forensic' && <MobileForensicView investigation={selectedInvestigation} />}
         {moreDest === 'communications' && (
           <CommunicationAnalysis

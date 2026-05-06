@@ -1,0 +1,244 @@
+.root {
+  min-height: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.headerIcon {
+  color: var(--lq-accent-3);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(360px, 1.35fr) minmax(320px, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.feedPanel,
+.pathPanel,
+.evidencePanel {
+  min-height: 620px;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.panelHeader {
+  min-height: 2.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.leadList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 560px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.leadCard,
+.pathCard,
+.documentCard {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.875rem;
+  cursor: pointer;
+}
+
+.leadCard:hover,
+.pathCard:hover,
+.documentCard:hover {
+  border-color: var(--lq-accent-3);
+}
+
+.leadCardActive,
+.pathCardActive {
+  border-color: var(--lq-accent-3);
+  background: var(--glass-bg-highlight);
+}
+
+.leadTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.leadSummary,
+.documentCard span,
+.pathEdges span {
+  display: block;
+  margin-top: 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.leadMeta,
+.entityRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.leadMeta span,
+.entityRow span {
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  padding: 0.2rem 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  text-transform: capitalize;
+}
+
+.selectedLeadBox {
+  border-radius: 8px;
+}
+
+.centerState,
+.notice {
+  min-height: 7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  border: 1px dashed var(--glass-border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.pathEdges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.explainerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.explainerGrid div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.explainerGrid strong,
+.documentCard strong {
+  font-size: 0.78rem;
+}
+
+.explainerGrid span,
+.documentCard small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.timelineStrip {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.timelineStrip div,
+.timelineStrip span {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.5rem;
+  align-items: center;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.contextBox {
+  border-radius: 8px;
+}
+
+.contextBox blockquote {
+  margin: 0;
+  border-left: 3px solid var(--lq-accent-3);
+  padding: 0.5rem 0.75rem;
+  color: var(--text-primary);
+  background: var(--glass-bg);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.contextBox blockquote small {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+@media (max-width: 1180px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feedPanel,
+  .pathPanel,
+  .evidencePanel {
+    min-height: auto;
+  }
+
+  .leadList {
+    max-height: 380px;
+  }
+}
+
+@media (max-width: 720px) {
+  .header,
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .filters {
+    display: grid;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

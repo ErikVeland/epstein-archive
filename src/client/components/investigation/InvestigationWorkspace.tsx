@@ -34,7 +34,7 @@ import { InvestigationBoard } from './InvestigationBoard';
 import { InvestigationLeadsPanel } from './InvestigationLeadsPanel';
 import { SubjectDossierPanel } from './SubjectDossierPanel';
 import { CommunicationAnalysis } from './CommunicationAnalysis';
-import { AgenticDiscoveryBoard } from './AgenticDiscoveryBoard';
+import { IcebergIntelligence } from './IcebergIntelligence';
 import { DocumentModal } from '../documents/DocumentModal';
 import { EvidenceModal } from '../common/EvidenceModal';
 
@@ -202,6 +202,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     | 'forensic'
     | 'export'
     | 'activity'
+    | 'iceberg'
     | 'intelligence'
     | 'casefolder';
 
@@ -224,10 +225,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       'forensic',
       'export',
       'activity',
+      'iceberg',
       'intelligence',
       'casefolder',
     ];
-    return tab && validTabs.includes(tab) ? tab : 'overview';
+    return tab && validTabs.includes(tab) ? tab : 'iceberg';
   }, [location.search]);
 
   const activeTab = getActiveTab();
@@ -973,6 +975,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <Stack gap="xs" className={styles.nav}>
                   {[
                     { id: 'board', label: 'Investigation Board', iconName: 'LayoutDashboard' },
+                    { id: 'iceberg', label: 'Iceberg Intelligence', iconName: 'Layers' },
                     { id: 'intelligence', label: 'Discovery Intelligence', iconName: 'Cpu' },
                     { id: 'overview', label: 'Intelligence Overview', iconName: 'Search' },
                     { id: 'activity', label: 'Activity Log', iconName: 'Activity' },
@@ -1020,8 +1023,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               {activeTab === 'board' && (
                 <InvestigationBoard investigationId={selectedInvestigation.id} />
               )}
+              {activeTab === 'iceberg' && (
+                <IcebergIntelligence
+                  investigationId={selectedInvestigation.id}
+                  onOpenDocument={(documentId) => setCaseFolderDocumentId(String(documentId))}
+                />
+              )}
               {activeTab === 'intelligence' && (
-                <AgenticDiscoveryBoard investigationId={selectedInvestigation.id} />
+                <IcebergIntelligence
+                  investigationId={selectedInvestigation.id}
+                  onOpenDocument={(documentId) => setCaseFolderDocumentId(String(documentId))}
+                />
               )}
               {activeTab === 'overview' && (
                 <Stack gap="xl">
