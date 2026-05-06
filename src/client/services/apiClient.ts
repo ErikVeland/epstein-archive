@@ -621,15 +621,12 @@ class ApiClient {
       });
 
       const fallbackData: Person[] = (subjects.subjects || []).map((s: SubjectCardListItemDto) => {
-        const forensics = s.forensics as Record<string, unknown> | undefined;
-        const stats = s.stats as Record<string, unknown> | undefined;
+        const forensics = s.forensics;
+        const stats = s.stats;
         const legacyRedFlag = (s as SubjectCardListItemDto & { redFlagRating?: number })
           .redFlagRating;
         const redFlag =
-          forensics?.redFlagObjective ??
-          forensics?.redFlagSubjective ??
-          legacyRedFlag ??
-          0;
+          forensics?.redFlagObjective ?? forensics?.redFlagSubjective ?? legacyRedFlag ?? 0;
         return {
           id: String(s.id || ''),
           name: String(s.name || 'Unknown'),
@@ -638,13 +635,13 @@ class ApiClient {
           entityType: 'Person',
           primaryRole: String(s.role || 'Unknown'),
           secondaryRoles: [],
-          mentions: Number(stats?.mentions || 0),
-          files: Number(stats?.documents || 0),
+          mentions: Number(stats.mentions || 0),
+          files: Number(stats.documents || 0),
           contexts: [],
           evidenceTypes: [],
           photos: [],
           significantPassages: [],
-          likelihoodScore: String(forensics?.riskLevel || 'LOW'),
+          likelihoodScore: String(forensics.riskLevel || 'LOW'),
           redFlagScore: Number(redFlag || 0),
           redFlagRating: Number(redFlag || 0),
           redFlagPeppers: Number(redFlag || 0) > 0 ? '🚩'.repeat(Number(redFlag || 0)) : '🏳️',
