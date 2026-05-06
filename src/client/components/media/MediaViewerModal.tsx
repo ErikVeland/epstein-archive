@@ -21,6 +21,8 @@ import TagSelector, { TagData } from '../common/TagSelector';
 import PeopleSelector, { PersonData } from '../entities/PeopleSelector';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useScrollLock } from '@client/hooks/useScrollLock';
+import { apiClient } from '@client/services/apiClient';
+import { useToasts } from '@client/components/common/useToasts';
 import styles from './MediaViewerModal.module.css';
 
 interface MediaViewerModalProps {
@@ -47,7 +49,9 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   const backLinkState = useBackLinkState();
   const { isAdmin } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
+  const { addToast } = useToasts();
 
   useScrollLock(true);
 
@@ -122,15 +126,19 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     if (!currentImage) return;
     let cancelled = false;
     Promise.all([
-      fetch(`/api/media/images/${currentImage.id}/tags`)
-        .then((res) => res.json())
-        .catch(() => []),
-      fetch(`/api/media/images/${currentImage.id}/people`)
-        .then((res) => res.json())
-        .catch(() => []),
+      apiClient.getImageTags(currentImage.id).catch(() => []),
+      apiClient.getImagePeople<PersonData>(currentImage.id).catch(() => []),
     ]).then(([tags, people]) => {
       if (cancelled) return;
-      setImageTags(Array.isArray(tags) ? tags : []);
+      setImageTags(
+        Array.isArray(tags)
+          ? tags.map((tag) => ({
+              id: tag.id,
+              name: tag.name,
+              color: (tag as Partial<TagData>).color || 'var(--accent-agentic)',
+            }))
+          : [],
+      );
       setImagePeople(Array.isArray(people) ? people : []);
     });
     return () => {
@@ -138,45 +146,52 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     };
   }, [currentImage]);
 
-  const handleRotate = async (direction: 'left' | 'right') => {
-    if (!currentImage) return;
-    try {
-      setRotation((prev) => (prev + (direction === 'right' ? 90 : -90)) % 360);
-      const res = await fetch(`/api/media/images/${currentImage.id}/rotate`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ direction }),
-      });
-      if (!res.ok) {
+  const handleRotate = useCallback(
+    async (direction: 'left' | 'right') => {
+      if (!currentImage) return;
+      try {
+        setRotation((prev) => (prev + (direction === 'right' ? 90 : -90)) % 360);
+        setIsSaving(true);
+        const updatedImage = await apiClient.rotateMediaImage(currentImage.id, direction);
+        setJustRotated(true);
+        onImageUpdate?.({ ...currentImage, ...updatedImage });
+        setImageLoading(true);
+        setImageVersion((v) => v + 1);
+        setRotation(0);
+        addToast({ text: 'Image rotated', type: 'success' });
+      } catch (e) {
+        console.error(e);
         setRotation((prev) => (prev - (direction === 'right' ? 90 : -90)) % 360);
-        return;
+        addToast({
+          text: e instanceof Error ? e.message : 'Failed to rotate image',
+          type: 'error',
+        });
+      } finally {
+        setIsSaving(false);
       }
-      const updatedImage = await res.json();
-      setJustRotated(true);
-      onImageUpdate?.({ ...currentImage, ...updatedImage });
-      setImageLoading(true);
-      setImageVersion((v) => v + 1);
-      setRotation(0);
-    } catch (e) {
-      console.error(e);
-      setRotation((prev) => (prev - (direction === 'right' ? 90 : -90)) % 360);
-    }
-  };
+    },
+    [addToast, currentImage, onImageUpdate],
+  );
 
   const handleSave = async () => {
     if (!currentImage) return;
     try {
-      const res = await fetch(`/api/media/images/${currentImage.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: editTitle, description: editDesc }),
+      setIsSaving(true);
+      const updatedImage = await apiClient.updateMediaImage(currentImage.id, {
+        title: editTitle,
+        description: editDesc,
       });
-      if (!res.ok) throw new Error('Save failed');
       setIsEditing(false);
-      onImageUpdate?.({ ...currentImage, title: editTitle, description: editDesc });
+      onImageUpdate?.({ ...currentImage, ...updatedImage });
+      addToast({ text: 'Image details saved', type: 'success' });
     } catch (e) {
       console.error(e);
-      alert('Error saving changes');
+      addToast({
+        text: e instanceof Error ? e.message : 'Error saving changes',
+        type: 'error',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -198,8 +213,15 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrev();
       if (e.key === 'i') setShowSidebar((v) => !v);
+      if (isAdmin && e.key.toLowerCase() === 'e') {
+        setShowSidebar(true);
+        setIsEditing(true);
+      }
+      if (isAdmin && e.key.toLowerCase() === 'r' && !isSaving) {
+        void handleRotate('right');
+      }
     },
-    [handleNext, handlePrev, onClose],
+    [handleNext, handlePrev, handleRotate, isAdmin, isSaving, onClose],
   );
 
   useEffect(() => {
@@ -292,6 +314,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 variant="glass"
                 size="sm"
                 onClick={() => handleRotate('right')}
+                disabled={isSaving}
                 title="Rotate 90° CW"
               >
                 <Icon name="RotateCw" size="md" />
@@ -400,7 +423,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               <Flex gap="sm">
                 <Button variant="secondary" size="sm" onClick={handleSave}>
                   <Icon name="Save" size="sm" />
-                  <span>Save Intelligence</span>
+                  <span>{isSaving ? 'Saving...' : 'Save'}</span>
                 </Button>
                 <Button variant="glass" size="sm" onClick={() => setIsEditing(false)}>
                   <Icon name="X" size="sm" />
@@ -408,6 +431,47 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               </Flex>
             )}
           </Stack>
+
+          <Stack gap="md">
+            <Flex align="center" gap="sm">
+              <Box className={styles.sectionIcon}>
+                <Icon name="Tag" size="sm" />
+              </Box>
+              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                Forensic Tags
+              </LqText>
+            </Flex>
+            <TagSelector
+              selectedTags={imageTags}
+              onTagsChange={setImageTags}
+              mediaId={currentImage.id}
+              isAdmin={isAdmin}
+              onTagClick={(tag) => {
+                onClose();
+                navigate(`/media?tagId=${tag.id}`, { state: backLinkState });
+              }}
+            />
+          </Stack>
+
+          <PeopleSelector
+            selectedPeople={imagePeople}
+            onPeopleChange={setImagePeople}
+            mediaId={currentImage.id}
+            isAdmin={isAdmin}
+            onPersonClick={(person) => {
+              if (onEntityClick) {
+                onEntityClick({
+                  id: person.id,
+                  name: person.name,
+                  role: person.role,
+                  redFlagRating: person.redFlagRating,
+                });
+              } else {
+                onClose();
+                navigate(`/media?personId=${person.id}`, { state: backLinkState });
+              }
+            }}
+          />
 
           <Stack gap="md">
             <Flex align="center" gap="sm">
@@ -609,47 +673,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               </Box>
             </Stack>
           )}
-
-          <Stack gap="md">
-            <Flex align="center" gap="sm">
-              <Box className={styles.sectionIcon}>
-                <Icon name="Tag" size="sm" />
-              </Box>
-              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                Forensic Tags
-              </LqText>
-            </Flex>
-            <TagSelector
-              selectedTags={imageTags}
-              onTagsChange={setImageTags}
-              mediaId={currentImage.id}
-              isAdmin={isAdmin}
-              onTagClick={(tag) => {
-                onClose();
-                navigate(`/media?tagId=${tag.id}`, { state: backLinkState });
-              }}
-            />
-          </Stack>
-
-          <PeopleSelector
-            selectedPeople={imagePeople}
-            onPeopleChange={setImagePeople}
-            mediaId={currentImage.id}
-            isAdmin={isAdmin}
-            onPersonClick={(person) => {
-              if (onEntityClick) {
-                onEntityClick({
-                  id: person.id,
-                  name: person.name,
-                  role: person.role,
-                  redFlagRating: person.redFlagRating,
-                });
-              } else {
-                onClose();
-                navigate(`/media?personId=${person.id}`, { state: backLinkState });
-              }
-            }}
-          />
         </Stack>
       </Surface>
     </Box>,

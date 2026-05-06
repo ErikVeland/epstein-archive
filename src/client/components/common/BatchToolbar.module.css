@@ -17,6 +17,8 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-2);
+  max-width: calc(100vw - 2rem);
+  overflow-x: auto;
 }
 
 /* ── Selected badge ───────────────────────────────────── */
@@ -130,6 +132,16 @@
 .dropdownSubtitle {
   font-size: 0.75rem;
   color: var(--text-secondary);
+}
+
+.segmented {
+  display: inline-flex;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  padding: 2px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
 }
 
 /* Dropdown body (scrollable list area) */

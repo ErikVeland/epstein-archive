@@ -1,10 +1,28 @@
 # Release Notes
 
+## 20.2.0 - 2026-05-06 - Media Tagging Release Hardening
+
+### Security & Authorization
+
+- **Authenticated Media Mutations**: Routed photo and video tagging, people assignment, rotation, metadata, risk rating, and batch updates through the centralized authenticated API client so admin-only media endpoints receive bearer authorization consistently.
+- **Admin Mutation Alignment**: Updated the media tagging interface to match the server-side admin gates added for moderation and review write actions.
+
+### Media Tagging UX
+
+- **Batch Result Feedback**: Added toast summaries for batch operations, including partial failure counts such as successful and failed item updates.
+- **Tag & People Workflow**: Added explicit add/remove modes for batch tag and people assignment, improved people search for large corpora, and moved tags/people higher in the image modal for faster review sessions.
+- **Viewer/Admin Affordances**: Split viewer behavior from admin editing behavior so non-admin users can navigate/filter by tags without seeing misleading edit controls.
+- **Risk Rating Clarity**: Renamed batch rating language to risk rating and clarified the 1-5 scale.
+- **Batch Selection Polish**: Added a select-loaded action and removed the misleading local-only undo control from persisted batch actions.
+- **Keyboard Review Flow**: Added modal shortcuts for edit, rotate, navigation, and info panel toggling to speed up repeated tagging work.
+
 ## 20.1.7 - 2026-05-06 - Modal Navigation & Pipeline Backfill Fixes
 
 ### Modal Navigation
 
 - **Infinite Loop Fix**: Solved an issue where sequentially opening Document and Entity modals built up a deep history stack. Using the "X" button or Escape key now correctly removes modal state parameters and returns you directly to the underlying page, rather than forcing you to traverse backward through every previously opened modal.
+- **EvidenceModal Navigation**: Removed a premature `onClose()` call that fired before navigation, which caused the modal to close and re-render before the route transition completed.
+- **Back Navigation Fallback**: Tightened the `useReliableBackNavigation` fallback logic — `navigate(-1)` now only fires if a tracked previous path actually exists, preventing the browser from navigating back into unrelated history entries outside the app.
 
 ### Data & Pipeline
 

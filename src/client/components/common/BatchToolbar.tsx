@@ -1,19 +1,23 @@
 import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button, TextInput, Textarea } from '@client/design-system/lib';
+import { apiClient } from '@client/services/apiClient';
 import Icon from './Icon';
 import s from './BatchToolbar.module.css';
 
 interface BatchToolbarProps {
   selectedCount: number;
+  loadedCount?: number;
+  isBusy?: boolean;
   onRotate: (direction: 'left' | 'right') => void;
-  onAssignTags: (tags: number[]) => void;
-  onAssignPeople: (people: number[]) => void;
+  onAssignTags: (tags: number[], action: 'add' | 'remove') => void;
+  onAssignPeople: (people: number[], action: 'add' | 'remove') => void;
   onAssignRating: (rating: number) => void;
   onEditMetadata: (field: string, value: string) => void;
   onSave?: () => void;
   onCancel: () => void;
   onDeselect?: () => void;
+  onSelectLoaded?: () => void;
   onUndo?: () => void;
   canUndo?: boolean;
   hasChanges?: boolean;
@@ -34,6 +38,8 @@ interface Person {
 
 export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   selectedCount,
+  loadedCount = 0,
+  isBusy = false,
   onRotate,
   onAssignTags,
   onAssignPeople,
@@ -42,6 +48,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   onSave,
   onCancel,
   onDeselect,
+  onSelectLoaded,
   onUndo,
   canUndo = false,
   hasChanges = false,
@@ -55,6 +62,8 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
 
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
+  const [tagAction, setTagAction] = useState<'add' | 'remove'>('add');
+  const [peopleAction, setPeopleAction] = useState<'add' | 'remove'>('add');
   const [peopleFilter, setPeopleFilter] = useState('');
 
   const metadataTitleRef = useRef<HTMLInputElement>(null);
@@ -63,27 +72,39 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   const { data: tags = [], isLoading: loadingTags } = useQuery<Tag[]>({
     queryKey: ['batch-toolbar-tags'],
     queryFn: async () => {
-      const response = await fetch('/api/media/tags');
-      const data = await response.json();
-      return Array.isArray(data) ? (data as Tag[]) : [];
+      const data = await apiClient.getMediaTags();
+      return Array.isArray(data)
+        ? data.map((tag) => ({
+            id: tag.id,
+            name: tag.name,
+            color: (tag as Partial<Tag>).color || fallbackTagColor,
+          }))
+        : [];
     },
     enabled: showTagsMenu,
   });
 
   const { data: people = [], isLoading: loadingPeople } = useQuery<Person[]>({
-    queryKey: ['batch-toolbar-people'],
+    queryKey: ['batch-toolbar-people', peopleFilter],
     queryFn: async () => {
-      const response = await fetch('/api/entities?limit=100');
-      const data = await response.json();
-      const entities = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
+      const trimmed = peopleFilter.trim();
+      const endpoint =
+        trimmed.length > 0
+          ? `/entities?search=${encodeURIComponent(trimmed)}&limit=25`
+          : '/entities?limit=25';
+      const data = await apiClient.get<
+        { data?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>
+      >(endpoint);
+      const entities = Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
       return (entities as Record<string, unknown>[]).map((e) => ({
-        id: e.id as number,
-        name: (e.fullName ?? e.name) as string,
-        role: (e.primaryRole ?? e.role ?? 'Unknown') as string,
-        redFlagRating: (e.redFlagRating as number) ?? 0,
+        id: Number(e.id),
+        name: String(e.fullName ?? e.name ?? `Entity ${e.id}`),
+        role: String(e.primaryRole ?? e.role ?? 'Unknown'),
+        redFlagRating: Number(e.redFlagRating ?? 0),
       }));
     },
     enabled: showPeopleMenu,
+    staleTime: 20_000,
   });
 
   const toggleTagSelection = (tagId: number) => {
@@ -99,13 +120,13 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   };
 
   const handleApplyTags = () => {
-    onAssignTags(selectedTags);
+    onAssignTags(selectedTags, tagAction);
     setShowTagsMenu(false);
     setSelectedTags([]);
   };
 
   const handleApplyPeople = () => {
-    onAssignPeople(selectedPeople);
+    onAssignPeople(selectedPeople, peopleAction);
     setShowPeopleMenu(false);
     setSelectedPeople([]);
   };
@@ -130,6 +151,21 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
           )}
         </div>
 
+        {onSelectLoaded && (
+          <Button
+            type="button"
+            onClick={onSelectLoaded}
+            variant="ghost"
+            size="sm"
+            className={s.menuTrigger}
+            disabled={isBusy || loadedCount === 0}
+            title={`Select ${loadedCount} loaded images`}
+          >
+            <Icon name="CheckSquare" size="sm" />
+            <span className={s.triggerLabel}>Select loaded</span>
+          </Button>
+        )}
+
         {/* Divider */}
         <div className={s.divider} />
 
@@ -141,6 +177,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
             variant="ghost"
             size="sm"
             className={s.menuTrigger}
+            disabled={isBusy || selectedCount === 0}
           >
             <Icon name="RotateCw" size="sm" />
             <span className={s.triggerLabel}>Rotate</span>
@@ -157,6 +194,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                 variant="ghost"
                 size="sm"
                 className={s.menuTrigger}
+                disabled={isBusy}
               >
                 <Icon name="RotateCcw" size="sm" />
                 Rotate Left
@@ -170,6 +208,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                 variant="ghost"
                 size="sm"
                 className={s.menuTrigger}
+                disabled={isBusy}
               >
                 <Icon name="RotateCw" size="sm" />
                 Rotate Right
@@ -186,6 +225,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
             variant="ghost"
             size="sm"
             className={s.menuTrigger}
+            disabled={isBusy || selectedCount === 0}
           >
             <Icon name="Tag" size="sm" />
             <span className={s.triggerLabel}>Tags</span>
@@ -196,6 +236,24 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
               <div className={s.dropdownHeader}>
                 <h3 className={s.dropdownTitle}>Assign Tags</h3>
                 <p className={s.dropdownSubtitle}>Select tags to apply to {selectedCount} images</p>
+                <div className={s.segmented}>
+                  <Button
+                    type="button"
+                    onClick={() => setTagAction('add')}
+                    variant={tagAction === 'add' ? 'primary' : 'secondary'}
+                    size="sm"
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setTagAction('remove')}
+                    variant={tagAction === 'remove' ? 'primary' : 'secondary'}
+                    size="sm"
+                  >
+                    Remove
+                  </Button>
+                </div>
                 {selectedTags.length > 0 && (
                   <div className={s.selectedTagsBar}>
                     {selectedTags.map((id) => {
@@ -278,13 +336,13 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                 <Button
                   type="button"
                   onClick={handleApplyTags}
-                  disabled={selectedTags.length === 0}
+                  disabled={isBusy || selectedTags.length === 0}
                   variant={selectedTags.length === 0 ? 'secondary' : 'primary'}
                   size="sm"
                   className={selectedTags.length === 0 ? s.applyBtnInactive : s.applyBtnActive}
                 >
                   <Icon name="Save" size="sm" />
-                  Save Tags ({selectedTags.length})
+                  {tagAction === 'add' ? 'Add' : 'Remove'} Tags ({selectedTags.length})
                 </Button>
               </div>
             </div>
@@ -299,6 +357,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
             variant="ghost"
             size="sm"
             className={s.menuTrigger}
+            disabled={isBusy || selectedCount === 0}
           >
             <Icon name="User" size="sm" />
             <span className={s.triggerLabel}>People</span>
@@ -309,9 +368,27 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
               <div className={s.dropdownHeader}>
                 <h3 className={s.dropdownTitle}>Assign People</h3>
                 <p className={s.dropdownSubtitle}>Select people to tag in {selectedCount} images</p>
+                <div className={s.segmented}>
+                  <Button
+                    type="button"
+                    onClick={() => setPeopleAction('add')}
+                    variant={peopleAction === 'add' ? 'primary' : 'secondary'}
+                    size="sm"
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setPeopleAction('remove')}
+                    variant={peopleAction === 'remove' ? 'primary' : 'secondary'}
+                    size="sm"
+                  >
+                    Remove
+                  </Button>
+                </div>
                 <TextInput
                   type="text"
-                  placeholder="Filter people..."
+                  placeholder="Search people..."
                   value={peopleFilter}
                   onChange={(e) => setPeopleFilter(e.target.value)}
                   density="compact"
@@ -377,7 +454,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                 <Button
                   type="button"
                   onClick={handleApplyPeople}
-                  disabled={selectedPeople.length === 0}
+                  disabled={isBusy || selectedPeople.length === 0}
                   variant={selectedPeople.length === 0 ? 'secondary' : 'primary'}
                   size="sm"
                   className={
@@ -385,7 +462,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   }
                 >
                   <Icon name="Save" size="sm" />
-                  Save People ({selectedPeople.length})
+                  {peopleAction === 'add' ? 'Add' : 'Remove'} People ({selectedPeople.length})
                 </Button>
               </div>
             </div>
@@ -400,6 +477,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
             variant="ghost"
             size="sm"
             className={s.menuTrigger}
+            disabled={isBusy || selectedCount === 0}
           >
             <Icon name="Star" size="sm" />
             <span className={s.triggerLabel}>Rating</span>
@@ -408,7 +486,8 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
           {showRatingMenu && (
             <div className={`${s.dropdown} ${s.dropdownNarrow} dropdown-surface`}>
               <div className={s.dropdownPad}>
-                <h3 className={s.dropdownTitle}>Assign Rating</h3>
+                <h3 className={s.dropdownTitle}>Assign Risk Rating</h3>
+                <p className={s.dropdownSubtitle}>1 is low concern; 5 is highest concern.</p>
                 <div className={s.starsRow}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Button
@@ -421,6 +500,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                       variant="ghost"
                       size="sm"
                       className={s.starBtn}
+                      title={`Set risk rating ${star}`}
                     >
                       <Icon name="Star" size="sm" />
                     </Button>
@@ -439,6 +519,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
             variant="ghost"
             size="sm"
             className={s.menuTrigger}
+            disabled={isBusy || selectedCount === 0}
           >
             <Icon name="Edit3" size="sm" />
             <span className={s.triggerLabel}>Edit</span>
@@ -494,6 +575,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   variant="primary"
                   size="sm"
                   className={s.applyBtnSmActive}
+                  disabled={isBusy}
                 >
                   Apply to All
                 </Button>

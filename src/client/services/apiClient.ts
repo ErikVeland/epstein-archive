@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { z } from 'zod';
 import { Person } from '@client/types';
+import type { MediaImage, MediaTag } from '@client/types/media.types';
 import type { SearchFilters, PaginatedResponse } from './optimizedDataLoader';
 import type {
   EmailMailboxesResponseDto,
@@ -72,6 +73,19 @@ export interface DownloadResponse {
   blob: Blob;
   filename: string | null;
   headers: Headers;
+}
+
+export interface MediaBatchResult<T = Record<string, unknown>> {
+  id: number;
+  success: boolean;
+  error?: string;
+  image?: MediaImage | null;
+  data?: T;
+}
+
+export interface MediaBatchResponse<T = Record<string, unknown>> {
+  ok?: boolean;
+  results: MediaBatchResult<T>[];
 }
 
 class ContractError extends Error {
@@ -1416,6 +1430,97 @@ class ApiClient {
       `/media/images/extract/${encodeURIComponent(String(documentId))}`,
       {},
     );
+  }
+
+  async getMediaTags(): Promise<MediaTag[]> {
+    return this.get<MediaTag[]>('/media/tags', { cacheTtl: 60_000 });
+  }
+
+  async createMediaTag(body: { name: string; color: string }): Promise<MediaTag> {
+    return this.post<MediaTag>('/media/tags', body);
+  }
+
+  async getImageTags(imageId: number): Promise<MediaTag[]> {
+    return this.get<MediaTag[]>(`/media/images/${encodeURIComponent(String(imageId))}/tags`);
+  }
+
+  async getImagePeople<T = unknown>(imageId: number): Promise<T[]> {
+    return this.get<T[]>(`/media/images/${encodeURIComponent(String(imageId))}/people`);
+  }
+
+  async updateMediaImage(
+    imageId: number,
+    updates: { title?: string; description?: string; redFlagRating?: number },
+  ): Promise<MediaImage> {
+    return this.put<MediaImage>(`/media/images/${encodeURIComponent(String(imageId))}`, updates);
+  }
+
+  async rotateMediaImage(imageId: number, direction: 'left' | 'right'): Promise<MediaImage> {
+    return this.put<MediaImage>(`/media/images/${encodeURIComponent(String(imageId))}/rotate`, {
+      direction,
+    });
+  }
+
+  async addTagToMediaImage(imageId: number, tagId: number): Promise<{ ok: true }> {
+    return this.post<{ ok: true }>(`/media/images/${encodeURIComponent(String(imageId))}/tags`, {
+      tagId,
+    });
+  }
+
+  async removeTagFromMediaImage(imageId: number, tagId: number): Promise<{ ok: true }> {
+    return this.delete<{ ok: true }>(
+      `/media/images/${encodeURIComponent(String(imageId))}/tags/${encodeURIComponent(String(tagId))}`,
+    );
+  }
+
+  async addPersonToMediaImage(imageId: number, personId: number): Promise<{ ok: true }> {
+    return this.post<{ ok: true }>(`/media/images/${encodeURIComponent(String(imageId))}/people`, {
+      personId,
+    });
+  }
+
+  async removePersonFromMediaImage(imageId: number, personId: number): Promise<{ ok: true }> {
+    return this.delete<{ ok: true }>(
+      `/media/images/${encodeURIComponent(String(imageId))}/people/${encodeURIComponent(String(personId))}`,
+    );
+  }
+
+  async batchRotateMediaImages(
+    imageIds: number[],
+    direction: 'left' | 'right',
+  ): Promise<MediaBatchResponse> {
+    return this.put<MediaBatchResponse>('/media/images/batch/rotate', { imageIds, direction });
+  }
+
+  async batchRateMediaImages(imageIds: number[], rating: number): Promise<MediaBatchResponse> {
+    return this.put<MediaBatchResponse>('/media/images/batch/rate', { imageIds, rating });
+  }
+
+  async batchUpdateMediaMetadata(
+    imageIds: number[],
+    updates: { title?: string; description?: string },
+  ): Promise<MediaBatchResponse> {
+    return this.put<MediaBatchResponse>('/media/images/batch/metadata', { imageIds, updates });
+  }
+
+  async batchTagMediaItems(
+    itemIds: number[],
+    tagIds: number[],
+    action: 'add' | 'remove',
+  ): Promise<MediaBatchResponse> {
+    return this.put<MediaBatchResponse>('/media/items/batch/tags', { itemIds, tagIds, action });
+  }
+
+  async batchPeopleMediaItems(
+    itemIds: number[],
+    personIds: number[],
+    action: 'add' | 'remove',
+  ): Promise<MediaBatchResponse> {
+    return this.put<MediaBatchResponse>('/media/items/batch/people', {
+      itemIds,
+      personIds,
+      action,
+    });
   }
   async getDocumentClaims<T = unknown>(documentId: string): Promise<T[]> {
     return this.get<T[]>(`/documents/${encodeURIComponent(documentId)}/claims`);

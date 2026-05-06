@@ -28,6 +28,8 @@ import LazyImage from '../common/LazyImage';
 import { SensitiveContent } from '../common/SensitiveContent';
 import { useAuth } from '@client/contexts/AuthContext';
 import { Person } from '@client/types';
+import { apiClient } from '@client/services/apiClient';
+import { useToasts } from '@client/components/common/useToasts';
 import {
   PhotoSortField as SortField,
   usePhotoBrowserData,
@@ -209,6 +211,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>('tiles');
   const { isAdmin } = useAuth();
+  const { addToast } = useToasts();
   const [viewerStartIndex, setViewerStartIndex] = useState<number | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [previewPerson, setPreviewPerson] = useState<Pick<Person, 'id' | 'name'> | null>(null);
@@ -217,9 +220,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [isBatchMode, setIsBatchMode] = useState(false);
 
-  const [undoStack, setUndoStack] = useState<
-    Array<{ action: string; imageIds: number[]; prevState: MediaImage[] }>
-  >([]);
+  const [batchBusy, setBatchBusy] = useState(false);
   const { initialScrollOffset: restoredScrollOffset, onScroll: handleListScroll } =
     useListScrollRestoration('/media/photos');
   const {
@@ -352,34 +353,33 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     }
   };
 
-  const handleUndo = () => {
-    if (undoStack.length === 0) return;
-    const lastAction = undoStack[undoStack.length - 1];
-    const updatedImages = [...images];
-    for (const prevImg of lastAction.prevState) {
-      const index = updatedImages.findIndex((img) => img.id === prevImg.id);
-      if (index !== -1) updatedImages[index] = prevImg;
+  const selectLoadedImages = () => {
+    setSelectedImages(new Set(images.map((image) => image.id)));
+    setLastSelectedIndex(images.length > 0 ? images.length - 1 : null);
+  };
+
+  const describeBatchResult = (
+    action: string,
+    results: Array<{ success: boolean; error?: string }>,
+  ) => {
+    const successful = results.filter((result) => result.success).length;
+    const failed = results.length - successful;
+    if (failed > 0) {
+      addToast({
+        text: `${action}: ${successful} updated, ${failed} failed`,
+        type: 'warning',
+      });
+      return;
     }
-    updateImages(() => updatedImages);
-    setUndoStack((prev) => prev.slice(0, -1));
+    addToast({ text: `${action}: ${successful} updated`, type: 'success' });
   };
 
   const handleBatchRotate = async (direction: 'left' | 'right') => {
     if (selectedImages.size === 0) return;
     const affectedImageIds = Array.from(selectedImages);
-    const prevState = images.filter((img) => selectedImages.has(img.id)).map((img) => ({ ...img }));
     try {
-      const response = await fetch('/api/media/images/batch/rotate', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageIds: affectedImageIds, direction }),
-      });
-      if (!response.ok) throw new Error('Failed to batch rotate');
-      const { results } = await response.json();
-      setUndoStack((prev) => [
-        ...prev.slice(-9),
-        { action: `rotate-${direction}`, imageIds: affectedImageIds, prevState },
-      ]);
+      setBatchBusy(true);
+      const { results } = await apiClient.batchRotateMediaImages(affectedImageIds, direction);
       const updatedImages = [...images];
       for (const result of results) {
         if (result.success) {
@@ -391,87 +391,119 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         }
       }
       updateImages(() => updatedImages);
+      describeBatchResult('Rotation', results);
     } catch (error) {
       console.error(error);
-      alert('Failed to rotate images');
+      addToast({
+        text: error instanceof Error ? error.message : 'Failed to rotate images',
+        type: 'error',
+      });
+    } finally {
+      setBatchBusy(false);
     }
   };
 
   const handleBatchRate = async (rating: number) => {
     if (selectedImages.size === 0) return;
     try {
-      const response = await fetch('/api/media/images/batch/rate', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageIds: Array.from(selectedImages), rating }),
-      });
-      if (!response.ok) throw new Error('Failed to batch rate');
-      const { results } = await response.json();
+      setBatchBusy(true);
+      const { results } = await apiClient.batchRateMediaImages(Array.from(selectedImages), rating);
       const updatedImages = [...images];
       for (const result of results) {
         if (result.success) {
           const index = updatedImages.findIndex((img) => img.id === result.id);
-          if (index !== -1) updatedImages[index] = { ...updatedImages[index], rating };
+          if (index !== -1) {
+            updatedImages[index] = {
+              ...updatedImages[index],
+              rating,
+              redFlagRating: rating,
+              ...(result.image || {}),
+            };
+          }
         }
       }
       updateImages(() => updatedImages);
+      describeBatchResult('Risk rating', results);
     } catch (error) {
       console.error(error);
-      alert('Failed to rate images');
+      addToast({
+        text: error instanceof Error ? error.message : 'Failed to rate images',
+        type: 'error',
+      });
+    } finally {
+      setBatchBusy(false);
     }
   };
 
   const handleBatchTag = async (tagIds: number[], action: 'add' | 'remove') => {
     if (selectedImages.size === 0) return;
     try {
-      const response = await fetch('/api/media/items/batch/tags', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds: Array.from(selectedImages), tagIds, action }),
-      });
-      if (!response.ok) throw new Error(`Failed to batch ${action} tags`);
+      setBatchBusy(true);
+      const { results } = await apiClient.batchTagMediaItems(
+        Array.from(selectedImages),
+        tagIds,
+        action,
+      );
+      describeBatchResult(action === 'add' ? 'Tags added' : 'Tags removed', results);
     } catch (error) {
       console.error(error);
-      alert(`Failed to ${action} tags`);
+      addToast({
+        text: error instanceof Error ? error.message : `Failed to ${action} tags`,
+        type: 'error',
+      });
+    } finally {
+      setBatchBusy(false);
     }
   };
 
   const handleBatchPeople = async (entityIds: number[], action: 'add' | 'remove') => {
     if (selectedImages.size === 0) return;
     try {
-      const response = await fetch('/api/media/items/batch/people', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds: Array.from(selectedImages), personIds: entityIds, action }),
-      });
-      if (!response.ok) throw new Error(`Failed to batch ${action} people`);
+      setBatchBusy(true);
+      const { results } = await apiClient.batchPeopleMediaItems(
+        Array.from(selectedImages),
+        entityIds,
+        action,
+      );
+      describeBatchResult(action === 'add' ? 'People added' : 'People removed', results);
     } catch (error) {
       console.error(error);
-      alert(`Failed to ${action} people`);
+      addToast({
+        text: error instanceof Error ? error.message : `Failed to ${action} people`,
+        type: 'error',
+      });
+    } finally {
+      setBatchBusy(false);
     }
   };
 
   const handleBatchMetadata = async (updates: { title?: string; description?: string }) => {
     if (selectedImages.size === 0) return;
     try {
-      const response = await fetch('/api/media/images/batch/metadata', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageIds: Array.from(selectedImages), updates }),
-      });
-      if (!response.ok) throw new Error('Failed to batch update metadata');
-      const { results } = await response.json();
+      setBatchBusy(true);
+      const { results } = await apiClient.batchUpdateMediaMetadata(
+        Array.from(selectedImages),
+        updates,
+      );
       const updatedImages = [...images];
       for (const result of results) {
         if (result.success) {
           const index = updatedImages.findIndex((img) => img.id === result.id);
-          if (index !== -1) updatedImages[index] = { ...updatedImages[index], ...updates };
+          if (index !== -1) {
+            updatedImages[index] = { ...updatedImages[index], ...updates, ...(result.image || {}) };
+          }
         }
       }
       updateImages(() => updatedImages);
+      describeBatchResult('Metadata', results);
     } catch (error) {
       console.error(error);
-      alert('Failed to update metadata');
+      addToast({
+        text: error instanceof Error ? error.message : 'Failed to update metadata',
+        type: 'error',
+      });
+    } finally {
+      setBatchBusy(false);
     }
   };
 
@@ -856,15 +888,16 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     <Surface variant="glass-container" className={styles.batchToolbarWrap}>
                       <BatchToolbar
                         selectedCount={selectedImages.size}
+                        loadedCount={images.length}
+                        isBusy={batchBusy}
                         onRotate={handleBatchRotate}
-                        onAssignTags={(tags) => handleBatchTag(tags, 'add')}
-                        onAssignPeople={(ppl) => handleBatchPeople(ppl, 'add')}
+                        onAssignTags={handleBatchTag}
+                        onAssignPeople={handleBatchPeople}
                         onAssignRating={handleBatchRate}
                         onEditMetadata={(field, val) => handleBatchMetadata({ [field]: val })}
                         onCancel={exitBatchMode}
                         onDeselect={clearSelection}
-                        onUndo={handleUndo}
-                        canUndo={undoStack.length > 0}
+                        onSelectLoaded={selectLoadedImages}
                       />
                     </Surface>
                   </Box>,

@@ -24,6 +24,8 @@ import { SEO } from '../common/SEO';
 import { usePaginatedMediaCollection } from '@client/hooks/usePaginatedMediaCollection';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
+import { apiClient } from '@client/services/apiClient';
+import { useToasts } from '@client/components/common/useToasts';
 import styles from './VideoBrowser.module.css';
 
 interface VideoItem {
@@ -248,6 +250,8 @@ export const VideoBrowser: React.FC = () => {
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [batchBusy, setBatchBusy] = useState(false);
+  const { addToast } = useToasts();
   const { initialScrollOffset: restoredScrollOffset, onScroll: handleGridScroll } =
     useListScrollRestoration('/media/videos');
 
@@ -299,31 +303,61 @@ export const VideoBrowser: React.FC = () => {
 
   const handleBatchTag = async (tagIds: number[], action: 'add' | 'remove') => {
     try {
-      await fetch('/api/media/items/batch/tags', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds: Array.from(selectedItems), tagIds, action }),
+      setBatchBusy(true);
+      const { results } = await apiClient.batchTagMediaItems(
+        Array.from(selectedItems),
+        tagIds,
+        action,
+      );
+      const failed = results.filter((result) => !result.success).length;
+      addToast({
+        text:
+          failed > 0
+            ? `Video tags: ${results.length - failed} updated, ${failed} failed`
+            : `Video tags: ${results.length} updated`,
+        type: failed > 0 ? 'warning' : 'success',
       });
       await refresh();
       setSelectedItems(new Set());
       setIsBatchMode(false);
     } catch (e) {
       console.error(e);
+      addToast({
+        text: e instanceof Error ? e.message : 'Failed to update video tags',
+        type: 'error',
+      });
+    } finally {
+      setBatchBusy(false);
     }
   };
 
-  const handleBatchPeople = async (personIds: number[]) => {
+  const handleBatchPeople = async (personIds: number[], action: 'add' | 'remove') => {
     try {
-      await fetch('/api/media/items/batch/people', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds: Array.from(selectedItems), personIds, action: 'add' }),
+      setBatchBusy(true);
+      const { results } = await apiClient.batchPeopleMediaItems(
+        Array.from(selectedItems),
+        personIds,
+        action,
+      );
+      const failed = results.filter((result) => !result.success).length;
+      addToast({
+        text:
+          failed > 0
+            ? `Video people: ${results.length - failed} updated, ${failed} failed`
+            : `Video people: ${results.length} updated`,
+        type: failed > 0 ? 'warning' : 'success',
       });
       await refresh();
       setSelectedItems(new Set());
       setIsBatchMode(false);
     } catch (e) {
       console.error(e);
+      addToast({
+        text: e instanceof Error ? e.message : 'Failed to update video people',
+        type: 'error',
+      });
+    } finally {
+      setBatchBusy(false);
     }
   };
 
@@ -551,8 +585,9 @@ export const VideoBrowser: React.FC = () => {
           <Box className={styles.batchToolbarWrap}>
             <BatchToolbar
               selectedCount={selectedItems.size}
+              isBusy={batchBusy}
               onRotate={() => {}}
-              onAssignTags={(tags) => handleBatchTag(tags, 'add')}
+              onAssignTags={handleBatchTag}
               onAssignPeople={handleBatchPeople}
               onAssignRating={() => {}}
               onEditMetadata={() => {}}

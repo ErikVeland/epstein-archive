@@ -3,6 +3,8 @@ import Icon from '@client/components/common/Icon';
 import styles from './PeopleSelector.module.css';
 
 import { Button, Input } from '@client/design-system/lib';
+import { apiClient } from '@client/services/apiClient';
+import { useToasts } from '@client/components/common/useToasts';
 
 export interface PersonData {
   id: number;
@@ -31,9 +33,11 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<PersonData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [savingPersonId, setSavingPersonId] = useState<number | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
+  const { addToast } = useToasts();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -53,51 +57,69 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (!searchTerm.trim()) return;
+    if (!searchTerm.trim()) {
+      setIsSearching(false);
+      return;
+    }
 
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const res = await fetch(`/api/entities?search=${encodeURIComponent(searchTerm)}&limit=10`);
-        const data = await res.json();
-        const people = (data.data || data).map((e: Record<string, unknown>) => ({
-          id: e.id,
-          name: e.fullName || e.name,
-          role: e.primaryRole || e.role || 'Unknown',
-          redFlagRating: e.redFlagRating ?? 0,
+        const data = await apiClient.get<
+          { data?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>
+        >(`/entities?search=${encodeURIComponent(searchTerm)}&limit=20`);
+        const rawPeople = Array.isArray(data) ? data : Array.isArray(data.data) ? data.data : [];
+        const people: PersonData[] = rawPeople.map((e: Record<string, unknown>) => ({
+          id: Number(e.id),
+          name: String(e.fullName || e.name || `Entity ${e.id}`),
+          role: String(e.primaryRole || e.role || 'Unknown'),
+          redFlagRating: Number(e.redFlagRating ?? 0),
         }));
         setSearchResults(
           people.filter((p: PersonData) => !selectedPeople.some((sp) => sp.id === p.id)),
         );
       } catch (error) {
         console.error('Failed to search entities:', error);
+        addToast({ text: 'Failed to search people', type: 'error' });
+      } finally {
+        setIsSearching(false);
       }
-      setIsSearching(false);
     }, 300);
-  }, [searchTerm, selectedPeople]);
+  }, [addToast, searchTerm, selectedPeople]);
 
   const handleAddPerson = async (person: PersonData) => {
     try {
-      await fetch(`/api/media/images/${mediaId}/people`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        // Server expects personId; keep payload explicit to avoid silent 400s.
-        body: JSON.stringify({ personId: person.id }),
-      });
+      setSavingPersonId(person.id);
+      await apiClient.addPersonToMediaImage(mediaId, person.id);
       onPeopleChange([...selectedPeople, person]);
       setSearchTerm('');
       setSearchResults([]);
+      addToast({ text: `Tagged ${person.name}`, type: 'success' });
     } catch (error) {
       console.error('Failed to add person:', error);
+      addToast({
+        text: error instanceof Error ? error.message : 'Failed to tag person',
+        type: 'error',
+      });
+    } finally {
+      setSavingPersonId(null);
     }
   };
 
   const handleRemovePerson = async (person: PersonData) => {
     try {
-      await fetch(`/api/media/images/${mediaId}/people/${person.id}`, { method: 'DELETE' });
+      setSavingPersonId(person.id);
+      await apiClient.removePersonFromMediaImage(mediaId, person.id);
       onPeopleChange(selectedPeople.filter((p) => p.id !== person.id));
+      addToast({ text: `Removed ${person.name}`, type: 'success' });
     } catch (error) {
       console.error('Failed to remove person:', error);
+      addToast({
+        text: error instanceof Error ? error.message : 'Failed to remove person',
+        type: 'error',
+      });
+    } finally {
+      setSavingPersonId(null);
     }
   };
 
@@ -127,12 +149,13 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
               <div className={styles.name}>{person.name}</div>
               <div className={`${styles.meta} ${getRedFlagColor(person.redFlagRating)}`}>
                 {person.role}
-                {person.redFlagRating ? ` • 🚩 ${person.redFlagRating}` : ''}
+                {person.redFlagRating ? ` • Risk ${person.redFlagRating}` : ''}
               </div>
             </div>
             {isAdmin && (
               <Button
                 unstyled
+                disabled={savingPersonId === person.id}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemovePerson(person);
@@ -173,6 +196,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                       unstyled
                       key={person.id}
                       onClick={() => handleAddPerson(person)}
+                      disabled={savingPersonId === person.id}
                       className={styles.resultButton}
                     >
                       <div>

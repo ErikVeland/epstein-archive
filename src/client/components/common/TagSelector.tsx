@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { Button, SearchField, TextInput } from '@client/design-system/lib';
+import { apiClient } from '@client/services/apiClient';
+import { useToasts } from './useToasts';
 import s from './TagSelector.module.css';
 
 const TAG_PRESET_COLORS = [
@@ -48,17 +50,22 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState(TAG_DEFAULT_COLOR);
+  const [savingTagId, setSavingTagId] = useState<number | null>(null);
+  const [createSaving, setCreateSaving] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { addToast } = useToasts();
 
   const { data: allTags = [] } = useQuery<TagData[]>({
     queryKey: ['media-tags'],
     queryFn: async () => {
-      const res = await fetch('/api/media/tags');
-      const data = await res.json();
+      const data = await apiClient.getMediaTags();
       if (Array.isArray(data)) {
-        return data as TagData[];
+        return data.map((tag) => ({
+          id: tag.id,
+          name: tag.name,
+          color: (tag as Partial<TagData>).color || TAG_DEFAULT_COLOR,
+        }));
       }
-      console.error('Invalid response from /api/media/tags - expected array:', data);
       return [];
     },
   });
@@ -82,24 +89,31 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const isTagSelected = (tagId: number) => selectedTags.some((t) => t.id === tagId);
 
   const handleToggleTag = async (tag: TagData) => {
+    if (!isAdmin) {
+      onTagClick?.(tag);
+      return;
+    }
     const isSelected = isTagSelected(tag.id);
 
     try {
+      setSavingTagId(tag.id);
       if (isSelected) {
-        // Remove tag
-        await fetch(`/api/media/images/${mediaId}/tags/${tag.id}`, { method: 'DELETE' });
+        await apiClient.removeTagFromMediaImage(mediaId, tag.id);
         onTagsChange(selectedTags.filter((t) => t.id !== tag.id));
+        addToast({ text: `Removed tag "${tag.name}"`, type: 'success' });
       } else {
-        // Add tag
-        await fetch(`/api/media/images/${mediaId}/tags`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tagId: tag.id }),
-        });
+        await apiClient.addTagToMediaImage(mediaId, tag.id);
         onTagsChange([...selectedTags, tag]);
+        addToast({ text: `Added tag "${tag.name}"`, type: 'success' });
       }
     } catch (error) {
       console.error('Failed to toggle tag:', error);
+      addToast({
+        text: error instanceof Error ? error.message : 'Failed to update tag',
+        type: 'error',
+      });
+    } finally {
+      setSavingTagId(null);
     }
   };
 
@@ -107,21 +121,28 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     if (!newTagName.trim()) return;
 
     try {
-      const res = await fetch('/api/media/tags', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newTagName.trim(), color: newTagColor }),
+      setCreateSaving(true);
+      const created = await apiClient.createMediaTag({
+        name: newTagName.trim(),
+        color: newTagColor,
       });
-
-      if (res.ok) {
-        const newTag = (await res.json()) as TagData;
-        await queryClient.invalidateQueries({ queryKey: ['media-tags'] });
-        handleToggleTag(newTag);
-        setNewTagName('');
-        setIsCreating(false);
-      }
+      const newTag: TagData = {
+        id: created.id,
+        name: created.name,
+        color: (created as Partial<TagData>).color || newTagColor,
+      };
+      await queryClient.invalidateQueries({ queryKey: ['media-tags'] });
+      await handleToggleTag(newTag);
+      setNewTagName('');
+      setIsCreating(false);
     } catch (error) {
       console.error('Failed to create tag:', error);
+      addToast({
+        text: error instanceof Error ? error.message : 'Failed to create tag',
+        type: 'error',
+      });
+    } finally {
+      setCreateSaving(false);
     }
   };
 
@@ -161,17 +182,29 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
         ))}
       </div>
 
-      {/* Add Tag Button */}
-      <Button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        variant="secondary"
-        size="sm"
-        className={s.addBtn}
-      >
-        <Icon name="Tag" size="sm" />
-        Add Tag
-      </Button>
+      {isAdmin ? (
+        <Button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          variant="secondary"
+          size="sm"
+          className={s.addBtn}
+        >
+          <Icon name="Tag" size="sm" />
+          Add Tag
+        </Button>
+      ) : onTagClick && selectedTags.length > 0 ? (
+        <Button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          variant="secondary"
+          size="sm"
+          className={s.addBtn}
+        >
+          <Icon name="Tag" size="sm" />
+          Filter by tag
+        </Button>
+      ) : null}
 
       {/* Dropdown */}
       {isOpen && (
@@ -197,6 +230,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 key={tag.id}
                 type="button"
                 onClick={() => handleToggleTag(tag)}
+                disabled={savingTagId === tag.id}
                 variant="ghost"
                 size="sm"
                 className={s.tagOption}
@@ -208,7 +242,11 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                   />
                   <span className={s.tagName}>{tag.name}</span>
                 </span>
-                {isTagSelected(tag.id) && <Icon name="Check" className={s.tagCheck} />}
+                {savingTagId === tag.id ? (
+                  <Icon name="Loader2" className={s.tagCheck} />
+                ) : isTagSelected(tag.id) ? (
+                  <Icon name="Check" className={s.tagCheck} />
+                ) : null}
               </Button>
             ))}
             {filteredTags.length === 0 && <p className={s.emptyMsg}>No tags found</p>}
@@ -248,8 +286,9 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                       variant="primary"
                       size="sm"
                       className={s.createBtn}
+                      disabled={createSaving}
                     >
-                      Create
+                      {createSaving ? 'Creating...' : 'Create'}
                     </Button>
                     <Button
                       type="button"

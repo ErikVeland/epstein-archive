@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiClient } from '@client/services/apiClient';
 
 /**
  * Configuration for the media browser hook
@@ -68,7 +69,7 @@ export interface MediaBrowserActions {
   loadMore: () => void;
   refresh: () => void;
   handleBatchTag: (tagIds: number[], action: 'add' | 'remove') => Promise<void>;
-  handleBatchPeople: (personIds: number[]) => Promise<void>;
+  handleBatchPeople: (personIds: number[], action?: 'add' | 'remove') => Promise<void>;
   getCurrentAlbum: () => MediaAlbum | undefined;
   showSensitiveWarning: () => boolean;
 }
@@ -185,15 +186,7 @@ export function useMediaBrowser<T extends BaseMediaItem>(
   const handleBatchTag = useCallback(
     async (tagIds: number[], action: 'add' | 'remove'): Promise<void> => {
       try {
-        await fetch('/api/media/items/batch/tags', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            itemIds: Array.from(selectedItems),
-            tagIds,
-            action,
-          }),
-        });
+        await apiClient.batchTagMediaItems(Array.from(selectedItems), tagIds, action);
         fetchItems(1);
         setSelectedItems(new Set());
         setIsBatchMode(false);
@@ -205,17 +198,9 @@ export function useMediaBrowser<T extends BaseMediaItem>(
   );
 
   const handleBatchPeople = useCallback(
-    async (personIds: number[]): Promise<void> => {
+    async (personIds: number[], action: 'add' | 'remove' = 'add'): Promise<void> => {
       try {
-        await fetch('/api/media/items/batch/people', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            itemIds: Array.from(selectedItems),
-            personIds,
-            action: 'add',
-          }),
-        });
+        await apiClient.batchPeopleMediaItems(Array.from(selectedItems), personIds, action);
         fetchItems(1);
         setSelectedItems(new Set());
         setIsBatchMode(false);
