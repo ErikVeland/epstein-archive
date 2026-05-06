@@ -561,8 +561,7 @@ class ApiClient {
 
     const f = filters as any;
     if (f.searchTerm) params.append('search', f.searchTerm);
-    if (f.evidenceTypes && f.evidenceTypes.length > 0)
-      params.append('role', f.evidenceTypes[0]);
+    if (f.evidenceTypes && f.evidenceTypes.length > 0) params.append('role', f.evidenceTypes[0]);
 
     const likelihoodValue = f.likelihood ?? f.likelihoodScore;
     if (likelihoodValue && Array.isArray(likelihoodValue) && likelihoodValue.length > 0) {
@@ -576,8 +575,7 @@ class ApiClient {
       params.append('minRedFlagIndex', f.minRedFlagIndex.toString());
     if (f.maxRedFlagIndex !== undefined)
       params.append('maxRedFlagIndex', f.maxRedFlagIndex.toString());
-    if (f.entityType && f.entityType !== 'all')
-      params.append('type', f.entityType);
+    if (f.entityType && f.entityType !== 'all') params.append('type', f.entityType);
     if (page > 1) params.append('page', page.toString());
     if (limit !== 24) params.append('limit', limit.toString());
 
@@ -604,8 +602,7 @@ class ApiClient {
 
       const subjects = await this.getSubjects({
         searchTerm: f.searchTerm || '',
-        role:
-          f.evidenceTypes && f.evidenceTypes.length > 0 ? f.evidenceTypes[0] : '',
+        role: f.evidenceTypes && f.evidenceTypes.length > 0 ? f.evidenceTypes[0] : '',
         sortBy: f.sortBy || 'red_flag',
         sortOrder: f.sortOrder || 'desc',
         minRedFlagIndex: f.minRedFlagIndex,
