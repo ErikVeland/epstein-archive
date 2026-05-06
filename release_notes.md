@@ -1,169 +1,60 @@
 # Release Notes
 
-## 20.3.1 - 2026-05-06 - Quality Gate Hardening & Enrichment Snapshot Refresh
+## 20.4.0 - 2026-05-06 - Iceberg Intelligence: Lead to Proof
 
-### Release Governance
+### For Investigators
 
-- **Strict Pre-Check Contract**: Centralized repo pre-checks behind reusable `pnpm precheck` and staged `pnpm precheck:staged` commands so commit, push, CI, and deploy gates all enforce the same quality contract before heavier checks run.
-- **Release Documentation Alignment**: Updated contributor and API documentation to reflect the strict pre-check workflow now expected before PRs, CI, and production deployment.
+- **Iceberg Intelligence Workspace**: Added a new default investigation tab that starts with surfaced leads and lets investigators drill into relationship paths, source documents, timeline context, and saveable evidence chains.
+- **Lead to Proof Flow**: Each surfaced lead now moves through a practical investigation sequence: lead card, connection path, relationship explainer, source evidence, timeline strip, and case-packet save.
+- **Relationship Explainers**: Entity connections now show why they exist, how many source documents support them, what the confidence looks like, and where provenance is missing.
+- **Ranked Connection Paths**: Investigators can inspect bounded, ranked graph paths between entities instead of relying on a single giant graph view or one shortest path.
+- **Document Context Drill-Down**: Source documents can now open with indexed snippets, provenance status, entity context, confidence, and direct “open source” actions.
+- **Case Packet Capture**: Iceberg findings can be saved into durable evidence-chain items so promising leads do not disappear after discovery.
+- **Mobile Access**: Iceberg Intelligence is available from the mobile investigation tools drawer, preserving the same lead-to-proof workflow on smaller screens.
 
-### Enrichment Snapshot
+### Why It Matters
 
-- **Current AI Enrichment Snapshot**: Refreshed `public/data/dashboard_snapshot.json` from Postgres so the release artifact reflects 713,123 claim triples, 315,332 refined documents, 1,383 financial transactions, and 314 pipeline timeline events.
+- The app now treats the knowledge graph as an investigative assistant, not just a visualization. It answers: what matters, who is connected, why we think that, what sources support it, and what still needs review.
+- The first release is deliberately source-first and bounded for the 1.4M-document corpus: broad scans are precomputed or paginated, while user actions inspect focused slices.
+- Findings are not presented as legal conclusions. The UI uses review state, confidence, provenance, source documents, and limitations to keep uncertainty visible.
 
-## 20.3.0 - 2026-05-06 - Document Viewer Redesign & Clamped Annotation Overlays
+## Version 20 History - User-Facing Feature Timeline
 
-### Integrated Document Viewer Redesign
+### 20.3.x - Better Reading, Review, and Archive Freshness
 
-- **Unified Tab View Switcher**: Launched a fully combined Document Unified Tab view-mode switcher supporting fast toggling between Clean Text, Raw OCR, Original PDF, and Side-by-Side views.
-- **Deep-Linked State Sync**: Integrated full React Router state synchronization for `viewMode` directly into the URL query parameters (`viewMode`), enabling direct deep-linking and state preservation across browser refreshes.
-- **Canonical AI Insights Drawer**: Fully consolidated the AI key insights and extracted entities panels into the robust, collapsible `<DocumentInsightsDrawer>` component, eliminating redundant code and enhancing UI aesthetics.
-- **Render Performance Optimization**: Refactored sub-views into standard high-performance helper rendering functions to prevent React component re-creation, state-reset issues, and Hook violations.
+- **Unified Document Reader**: Clean Text, Raw OCR, Original PDF, and Side-by-Side modes now live in one view switcher, making long source review faster and less disorienting.
+- **Deep-Linkable Reading State**: Document view mode is preserved in the URL, so investigators can share or return to the exact reading mode they were using.
+- **AI Insights Drawer**: Key insights and extracted entities are consolidated into a cleaner document-side drawer, reducing duplicate panels and making source review calmer.
+- **Safer Annotation Menus**: Floating annotation controls now stay inside the visible viewport, preventing clipped menus during document review.
+- **Current Archive Snapshot**: The public dashboard snapshot reflects 713,123 claim triples, 315,332 refined documents, 1,383 financial transactions, and 314 pipeline timeline events.
 
-### Floating Annotation Overlays
+### 20.2.x - Faster Media Review and Tagging
 
-- **Viewport-Aware Clamping**: Engineered dynamic coordinate clamping for the floating annotation creation and detail menus, ensuring they never overflow, clip, or render outside the visible screen boundaries.
-- **Type-Hardened Related Docs**: Expanded the `DocRecord` model and resolved deep TypeScript compiler errors inside the metadata rail, achieving a robust 100% type-safe compilation baseline.
+- **Authenticated Media Editing**: Photo and video tagging, people assignment, rotation, risk rating, and batch edits now use the same protected write flow.
+- **Batch Review Feedback**: Bulk media actions show clear success and partial-failure summaries instead of silently hiding failed updates.
+- **Tag and People Workflow**: Reviewers can explicitly add or remove tags/people in batches, with improved people search for large archives.
+- **Cleaner Reviewer Experience**: Non-admin users can browse and filter by tags without seeing edit controls they cannot use.
+- **Keyboard Media Review**: Modal shortcuts make repeated tagging, rotation, navigation, and info-panel review faster.
 
-## 20.2.0 - 2026-05-06 - Media Tagging Release Hardening
+### 20.1.x - Evidence, Timeline, Mobile, and Modal Polish
 
-### Security & Authorization
+- **Reliable Modal Navigation**: Closing document and entity modals now returns users to the underlying page instead of walking through a long accidental history stack.
+- **OCR Backfill Visibility**: The app now handles documents whose OCR exists but was not present in list previews, avoiding false “extraction pending” states.
+- **Deduplicated Evidence Lists**: Documents mentioned multiple times by the same entity no longer clutter evidence lists with duplicates.
+- **Media Evidence Previews**: Visual evidence cards now show inline thumbnails so investigators can recognize images and videos without opening every item.
+- **Better Evidence Titles**: Media and document cards pull clearer titles from file metadata and source paths instead of showing generic IDs.
+- **Evidence Modal Cleanup**: Evidence headers, black book links, dates, file names, and collection labels are easier to scan.
+- **Timeline Restoration**: Timeline dots, pills, spacing, and typography were restored for more comfortable chronological review.
+- **Mobile Document Improvements**: Mobile document/entity views use compact selectors and remove duplicated headers so more of the source stays visible.
+- **Forensic Profile Popovers**: Dense forensic profile blocks moved behind on-demand popovers, reducing page clutter while keeping detail accessible.
 
-- **Authenticated Media Mutations**: Routed photo and video tagging, people assignment, rotation, metadata, risk rating, and batch updates through the centralized authenticated API client so admin-only media endpoints receive bearer authorization consistently.
-- **Admin Mutation Alignment**: Updated the media tagging interface to match the server-side admin gates added for moderation and review write actions.
+### 20.0.x - Source-First Investigation Foundation
 
-### Media Tagging UX
-
-- **Batch Result Feedback**: Added toast summaries for batch operations, including partial failure counts such as successful and failed item updates.
-- **Tag & People Workflow**: Added explicit add/remove modes for batch tag and people assignment, improved people search for large corpora, and moved tags/people higher in the image modal for faster review sessions.
-- **Viewer/Admin Affordances**: Split viewer behavior from admin editing behavior so non-admin users can navigate/filter by tags without seeing misleading edit controls.
-- **Risk Rating Clarity**: Renamed batch rating language to risk rating and clarified the 1-5 scale.
-- **Batch Selection Polish**: Added a select-loaded action and removed the misleading local-only undo control from persisted batch actions.
-- **Keyboard Review Flow**: Added modal shortcuts for edit, rotate, navigation, and info panel toggling to speed up repeated tagging work.
-
-## 20.1.7 - 2026-05-06 - Modal Navigation & Pipeline Backfill Fixes
-
-### Modal Navigation
-
-- **Infinite Loop Fix**: Solved an issue where sequentially opening Document and Entity modals built up a deep history stack. Using the "X" button or Escape key now correctly removes modal state parameters and returns you directly to the underlying page, rather than forcing you to traverse backward through every previously opened modal.
-- **EvidenceModal Navigation**: Removed a premature `onClose()` call that fired before navigation, which caused the modal to close and re-render before the route transition completed.
-- **Back Navigation Fallback**: Tightened the `useReliableBackNavigation` fallback logic — `navigate(-1)` now only fires if a tracked previous path actually exists, preventing the browser from navigating back into unrelated history entries outside the app.
-
-### Data & Pipeline
-
-- **OCR Backfill Remediation**: Corrected a silent failure in the OCR image backfill script that prevented 35k pending images from being processed due to a Postgres schema change. Triggered a continuous background backfill task to process this backlog, and hooked it into `live_status.json` to properly reflect progress in the Übersicht widget.
-- **Pending Extraction UI State**: Fixed a display bug in `DocumentModal` where documents possessing full OCR records were incorrectly displaying the "Text extraction is pending for this record" empty state. The UI now securely issues a background fetch to retrieve the full text blobs if they are absent from the list-view previews.
-
-## 20.1.6 - 2026-05-06 - Media Previews & Evidence Extraction Hotfix
-
-### Evidence List Improvements
-
-- **Evidence Deduplication**: Resolved a bug where documents containing multiple mentions of the same entity were being duplicated in the UI list. The list is now accurately deduplicated by document ID.
-- **Media Thumbnails**: Added inline media preview thumbnails to the Evidence Card components for any visual media evidence (images/videos). Thumbnails are lazy-loaded to preserve application performance.
-- **Metadata Title Extraction**: Fixed a display issue where Media items appeared as "Document [ID]". The extraction logic now properly parses `file_name` and `source_path` properties generated by the database ingestion pipeline.
-
-## 20.1.5 - 2026-05-06 - Evidence UI Polish & Triplet Ingestion
-
-### Evidence Modal Refinements
-
-- **Header Alignment**: Finalized the vertical centering of the Evidence Modal header elements by matching heights across the quick actions container.
-- **Black Book CTA**: Converted the "Black Book Entry" call-to-action button into a streamlined text link so it visually matches the other navigation buttons (`.timelineBtn`, `.searchBtn`).
-- **Metadata Extraction Fixes**: Updated the data mapping logic in `EvidenceModal` and `EvidenceOverviewTab` to properly extract file names, dates, and collections, resolving the issue where items displayed as "Untitled source".
-
-### Data Ingestion Snapshot
-
-- Snapshot of the current ingested forensic archive includes 713,123 claim triples, 1,383 financial transactions, and 314 timeline events fully parsed and processed into the relational database.
-
-## 20.1.4 - 2026-05-04 - Schema Baseline & Deployment Alignment
-
-### Database Schema Alignment
-
-- **Schema Hash Check**: Synchronized the expected database schema hash baseline to resolve schema drift issues and prevent silent schema drift in the deployment pipeline.
-
-## 20.1.3 - 2026-05-04 - Forensic Extraction & Popover Layout Refinements
-
-### Background & Forensic Profile Improvements
-
-- **Compact Header Spacing**: Optimized desktop header padding, gaps, photo ring size, and typography to significantly reduce whitespace.
-- **Forensic Profile Popover**: Relocated the large text forensic profile block behind a sleek, on-demand collapsible popover.
-- **Background Scroll Lock**: Unified scroll locking for background body and document elements on both mobile and desktop viewports.
-- **Extract Text Fallback**: Enabled standalone text extraction support directly from the `media_items` table for media images containing text.
-
-## 20.1.2 - 2026-05-04 - Mobile Document Viewer Enhancements & 404 Resolution
-
-### Mobile Fixes
-
-- **404 Image Fix**: Re-mapped absolute local paths in the database to resolve seamlessly against the production environment cwd `data` folder.
-- **Header Duplicate Removal**: Eliminated redundant title headers on the mobile document modal.
-- **Mobile Styling Polish**: Decreased margins and improved spacing to optimize vertical layout on smaller screen sizes.
-
-## 20.1.1 - 2026-05-03 - Mobile Modal Space Optimization
-
-### Mobile Space Optimization
-
-- **Entity Card Headers (`EvidenceModal`)**: Replaced the long horizontal list of buttons with a compact single-line dropdown and hid unnecessary elements on mobile viewports to maximize viewable content.
-- **Document Viewer (`DocumentModal`)**: Migrated the tabs bar to a sleek select dropdown on mobile to save vertical space.
-
-### Spacing Improvements
-
-- **People Page**: Added spacing between Entity Type and Sort By dropdown filters.
-
-## 20.1.0 - 2026-05-03 - Restored Timeline Design & Ingestion Optimization
-
-### Visual UI Restorations
-
-- **Timeline Missing Token**: Fixed the missing `--radius-full: 9999px;` design token in `index.css`, restoring fully rounded geometry to all timeline dots, pills, and filter elements.
-- **Timeline Card Polish**: Reverted ad-hoc spacing and padding changes on `.eventCard` and `.eventItem` in `Timeline.module.css` to restore spacious, comfortable browsing.
-- **Timeline Typography**: Restored `.eventTitle` typography back to its original premium `var(--font-size-xl)` and `var(--font-weight-bold)` for high-contrast, premium, and readable titles.
-
-### Data Ingestion Snapshot
-
-- Snapshot of the current ingested forensic archive includes 20,388 claim triples, 1,383 financial transactions, and 416 timeline events fully parsed and processed into the relational database.
-
-## 20.0.2 - 2026-05-02 - UI Polish & Code Quality
-
-### Bug Fixes & Quality
-
-- **About Page**: Removed the "Audio & Video with Transcripts" credits section (Sascha Riley / Lisa Noelle Volding / Gareth Wright) and its associated CSS classes.
-- **Review Queue**: Wired the previously suppressed `refetch` to a new refresh button in the panel header — queue can now be manually refreshed without a full page reload.
-- **Evidence Chain Service**: Replaced the hardcoded `chainIntegrity: 50` placeholder with a value derived from the actual custody chain length returned by the server.
-- **Mapper Hardening**: Replaced `row: any` with `row: Record<string, unknown>` in `mapInvestigativeLeadDto` and `mapInvestigationListItemDto`, completing the `any`-free mapper surface.
-- **Lint Cleanup**: Removed duplicate `eslint-disable prettier/prettier` comment in `DocumentModal.tsx` and the stale `eslint-disable prettier/prettier` comment in `EvidenceModal.tsx`.
-
-## 20.0.1 - 2026-04-30 - Strict TypeScript Enforcement
-
-### Quality & Type Safety
-
-- **0-Error Baseline**: Achieved a 100% green `pnpm type-check` status across the entire client and server codebase.
-- **Strict API Hardening**: Defined robust interfaces for all `apiClient` response types, eliminating `unknown` and `any` return values.
-- **Service Standardization**: Migrated `OptimizedDataService` and the `About` page to strict statistics types.
-- **Forensic Signal Precision**: Fully typed the `SignalAnalysis` forensic parsing logic with explicit `SignalItem` interfaces.
-- **Generic Utility Refinement**: Enhanced `lazyWithRetry` with proper generic constraints to handle diverse component prop signatures safely.
-- **Environment Resolution**: Fixed global variable type errors for `__APP_VERSION__` and `__BUILD_DATE__` in production builds.
-
-### Infrastructure & Environment
-
-- **tsconfig.json**: Resolved a critical syntax error that previously blocked local type checking.
-- **Multer Types**: Added missing type references for `Express.Multer` in server-side services.
-- **React Import Resolution**: Fixed missing React namespace imports in `App.tsx` and navigation services to ensure stable JSX type inference.
-
-## 20.0.0 - 2026-04-29 - Hardening & Release Readiness
-
-### Quality & Reliability
-
-- **Golden Path E2E**: Expanded test coverage for fast entity switching (race conditions) and terminal state checks for all entity modal tabs.
-- **Icon Coverage**: Added 25+ missing icons to `Icon.tsx` mapping to eliminate runtime "missing icon" warnings.
-- **Type-Check**: Client and shared code TypeScript checks pass cleanly.
-
-### Developer Experience
-
-- **DTO Integrity**: Standardized client components to use `apiClient` + shared DTO/Zod parsing.
-- **Lint Gates**: Enforced deep-relative import prohibition and `lucide-react` restrictions.
-- **Build Pipeline**: Streamlined production build by separating client and server compilation steps.
-
-### Documentation
-
-- **HARDENING_20_0.md**: Tracking document for v20.0 reliability and data-integrity work.
+- **Investigation Readiness**: v20 established the reliability baseline for source-first investigation work, with cleaner entity switching, safer modal state, and stronger evidence surfaces.
+- **Review Queue Refresh**: Review queues can be refreshed directly, making uncertainty and follow-up work easier to manage.
+- **Evidence Chain Integrity**: Chain integrity now reflects actual custody chain data rather than a placeholder score.
+- **Cleaner Public Pages**: About-page and evidence-modal copy were tightened so the app reads more like an archive and less like an internal build.
+- **Stronger Shared Contracts**: Public data surfaces were made more predictable, reducing the chance that an entity, document, or evidence view fails mid-investigation.
 
 ## 19.9.0 - 2026-04-28 - Security Hardening & Breach Remediation
 
