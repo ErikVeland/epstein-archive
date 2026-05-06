@@ -14,7 +14,11 @@ import type {
   EmailThreadsResponseDto,
 } from '@shared/dto/emails';
 import type { DocumentsListResponseDto } from '@shared/dto/documents';
-import type { EntityListResponseDto, SubjectsListResponseDto } from '@shared/dto/entities';
+import type {
+  EntityListResponseDto,
+  SubjectCardListItemDto,
+  SubjectsListResponseDto,
+} from '@shared/dto/entities';
 import type {
   InvestigationEvidenceListResponseDto,
   InvestigationTaskDto,
@@ -87,6 +91,11 @@ export interface MediaBatchResponse<T = Record<string, unknown>> {
   ok?: boolean;
   results: MediaBatchResult<T>[];
 }
+
+type EntitySearchFilters = Omit<SearchFilters, 'likelihoodScore'> & {
+  likelihood?: string | string[];
+  likelihoodScore?: SearchFilters['likelihoodScore'] | string;
+};
 
 class ContractError extends Error {
   isContractError: boolean;
@@ -559,7 +568,7 @@ class ApiClient {
   ): Promise<PaginatedResponse> {
     const params = new URLSearchParams();
 
-    const f = filters as any;
+    const f = filters as EntitySearchFilters;
     if (f.searchTerm) params.append('search', f.searchTerm);
     if (f.evidenceTypes && f.evidenceTypes.length > 0) params.append('role', f.evidenceTypes[0]);
 
@@ -611,13 +620,15 @@ class ApiClient {
         likelihood: f.likelihood || f.likelihoodScore,
       });
 
-      const fallbackData: Person[] = (subjects.subjects || []).map((s: any) => {
+      const fallbackData: Person[] = (subjects.subjects || []).map((s: SubjectCardListItemDto) => {
         const forensics = s.forensics as Record<string, unknown> | undefined;
         const stats = s.stats as Record<string, unknown> | undefined;
+        const legacyRedFlag = (s as SubjectCardListItemDto & { redFlagRating?: number })
+          .redFlagRating;
         const redFlag =
           forensics?.redFlagObjective ??
           forensics?.redFlagSubjective ??
-          (s.redFlagRating as number) ??
+          legacyRedFlag ??
           0;
         return {
           id: String(s.id || ''),

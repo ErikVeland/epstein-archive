@@ -1,5 +1,16 @@
 # Release Notes
 
+## 20.3.1 - 2026-05-06 - Quality Gate Hardening & Enrichment Snapshot Refresh
+
+### Release Governance
+
+- **Strict Pre-Check Contract**: Centralized repo pre-checks behind reusable `pnpm precheck` and staged `pnpm precheck:staged` commands so commit, push, CI, and deploy gates all enforce the same quality contract before heavier checks run.
+- **Release Documentation Alignment**: Updated contributor and API documentation to reflect the strict pre-check workflow now expected before PRs, CI, and production deployment.
+
+### Enrichment Snapshot
+
+- **Current AI Enrichment Snapshot**: Refreshed `public/data/dashboard_snapshot.json` from Postgres so the release artifact reflects 713,123 claim triples, 315,332 refined documents, 1,383 financial transactions, and 314 pipeline timeline events.
+
 ## 20.3.0 - 2026-05-06 - Document Viewer Redesign & Clamped Annotation Overlays
 
 ### Integrated Document Viewer Redesign
