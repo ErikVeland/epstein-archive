@@ -41,6 +41,8 @@ interface SignificantPassage {
   passage?: string;
   source?: string;
   keyword?: string;
+  dateCreated?: string;
+  collection?: string;
 }
 
 interface EvidenceOverviewTabProps {
@@ -249,6 +251,8 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                   contentPreview: passage.passage,
                   evidenceType: passage.source,
                   keyword: passage.keyword,
+                  dateCreated: passage.dateCreated,
+                  source_collection: passage.collection,
                 }}
                 entityName={entity.fullName}
                 onOpen={openDocumentFromEvidence}

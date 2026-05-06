@@ -743,6 +743,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         .map((item) => ({
           documentId: (item.documentId || item.document_id) as string | number | undefined,
           filename: (item.title ||
+            item.fileName ||
+            item.file_name ||
+            item.filename ||
             item.sourcePath ||
             item.source_path ||
             'Untitled source') as string,
@@ -750,10 +753,15 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             item.contextSnippet ||
             item.context_snippet ||
             item.description ||
+            item.caption ||
             item.title ||
             '') as string,
           source: (item.evidenceType || item.evidence_type || 'Document') as string,
           keyword: (item.evidenceType || item.evidence_type) as string | undefined,
+          dateCreated: (item.dateCreated || item.created_at || item.last_processed_at) as
+            | string
+            | undefined,
+          collection: (item.source_collection || item.collection) as string | undefined,
         }));
     }
     return [];

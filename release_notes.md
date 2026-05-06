@@ -1,5 +1,17 @@
 # Release Notes
 
+## 20.1.5 - 2026-05-06 - Evidence UI Polish & Triplet Ingestion
+
+### Evidence Modal Refinements
+
+- **Header Alignment**: Finalized the vertical centering of the Evidence Modal header elements by matching heights across the quick actions container.
+- **Black Book CTA**: Converted the "Black Book Entry" call-to-action button into a streamlined text link so it visually matches the other navigation buttons (`.timelineBtn`, `.searchBtn`).
+- **Metadata Extraction Fixes**: Updated the data mapping logic in `EvidenceModal` and `EvidenceOverviewTab` to properly extract file names, dates, and collections, resolving the issue where items displayed as "Untitled source".
+
+### Data Ingestion Snapshot
+
+- Snapshot of the current ingested forensic archive includes 713,123 claim triples, 1,383 financial transactions, and 314 timeline events fully parsed and processed into the relational database.
+
 ## 20.1.4 - 2026-05-04 - Schema Baseline & Deployment Alignment
 
 ### Database Schema Alignment
