@@ -541,7 +541,7 @@ function App() {
   useEffect(() => {
     if (location.pathname !== prevPathname) {
       setPrevPathname(location.pathname);
-      if (!urlEntityId && selectedPerson && !location.pathname.startsWith('/blackbook')) {
+      if (!urlEntityId && selectedPerson) {
         setSelectedPerson(null);
       }
     }
@@ -666,8 +666,10 @@ function App() {
       if (e.key === 'Escape') {
         if (selectedPerson) {
           setSelectedPerson(null);
-          goBack('/people');
-          // Announce modal close for screen readers
+          const params = new URLSearchParams(location.search);
+          params.delete('entityId');
+          params.delete('entityTab');
+          navigate(`${location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
           // Announce modal close for screen readers
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
@@ -680,7 +682,11 @@ function App() {
         if (documentModalId) {
           setDocumentModalId('');
           setDocumentModalInitial(null);
-          goBack('/documents');
+          const params = new URLSearchParams(location.search);
+          params.delete('id');
+          params.delete('modalTab');
+          params.delete('textMode');
+          navigate(`${location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
           // Announce modal close for screen readers
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
@@ -2247,7 +2253,12 @@ function App() {
                       onClose={() => {
                         closingEntityModal.current = true;
                         setSelectedPerson(null);
-                        goBack('/people');
+                        const params = new URLSearchParams(location.search);
+                        params.delete('entityId');
+                        params.delete('entityTab');
+                        navigate(
+                          `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`,
+                        );
                       }}
                     />
                   </ScopedErrorBoundary>
@@ -2270,7 +2281,13 @@ function App() {
                       onClose={() => {
                         setDocumentModalId('');
                         setDocumentModalInitial(null);
-                        goBack('/documents');
+                        const params = new URLSearchParams(location.search);
+                        params.delete('id');
+                        params.delete('modalTab');
+                        params.delete('textMode');
+                        navigate(
+                          `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`,
+                        );
                       }}
                     />
                   </ScopedErrorBoundary>

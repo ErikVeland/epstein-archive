@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { logAudit } from '../utils/auditLogger.js';
 import bcrypt from 'bcryptjs';
-import { createUser, getUserById, listUsers, updateUser } from '../db/routesDb.js';
+import { createUser, deleteUser, getUserById, listUsers, updateUser } from '../db/routesDb.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
@@ -17,7 +17,7 @@ const createUserSchema = z.object({
     username: z.string().min(3),
     password: z.string().min(6),
     email: z.string().email().optional().nullable(),
-    role: z.enum(['admin', 'viewer', 'researcher']).optional().default('viewer'),
+    role: z.enum(['admin', 'investigator', 'viewer']).optional().default('viewer'),
   }),
 });
 
@@ -28,8 +28,14 @@ const updateUserSchema = z.object({
   body: z.object({
     username: z.string().min(3).optional(),
     email: z.string().email().optional().nullable(),
-    role: z.enum(['admin', 'viewer', 'researcher']).optional(),
+    role: z.enum(['admin', 'investigator', 'viewer']).optional(),
     password: z.string().min(6).optional(),
+  }),
+});
+
+const deleteUserSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
   }),
 });
 
@@ -146,6 +152,28 @@ router.put(
         undefined,
         req.requestId,
       );
+      res.json({ success: true });
+    } catch (e) {
+      next(e);
+    }
+  },
+);
+
+// Delete user (Admin only)
+router.delete(
+  '/:id',
+  authenticateRequest,
+  requireRole('admin'),
+  validate(deleteUserSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { id } = req.params;
+      if (req.user?.id === id) {
+        return res.status(400).json({ error: 'Admins cannot delete their own account' });
+      }
+
+      await deleteUser(id);
+      await logAudit('delete_user', req.user?.id || null, 'user', id, {}, undefined, req.requestId);
       res.json({ success: true });
     } catch (e) {
       next(e);

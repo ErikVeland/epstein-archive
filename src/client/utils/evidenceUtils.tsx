@@ -123,6 +123,7 @@ export const isVisualMediaItem = (
 export const resolveEntityPhotoUrl = (
   photo:
     | {
+        id?: string | number;
         url?: string;
         fullUrl?: string;
         imageUrl?: string;

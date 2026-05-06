@@ -1,6 +1,6 @@
 import express from 'express';
 import { claimTriplesRepository } from '../db/claimTriplesRepository.js';
-import { authenticateRequest, type AuthRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole, type AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
@@ -33,6 +33,7 @@ router.get('/:id', async (req, res, next) => {
 router.post(
   '/:id/verify',
   authenticateRequest,
+  requireRole('admin'),
   validate(verifyClaimSchema),
   async (req, res, next) => {
     try {

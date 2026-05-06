@@ -144,6 +144,10 @@ export const DocumentModal: React.FC<Props> = ({
 
   const [selectedEntity, setSelectedEntity] = useState<DocEntityRecord | null>(null);
   const [entityModalId, setEntityModalId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setEntityModalId(null);
+  }, [id]);
   const [showRecoveryHighlights, setShowRecoveryHighlights] = useState(true);
   const [expandedEntities, setExpandedEntities] = useState(false);
   const [rightPaneCollapsed, setRightPaneCollapsed] = useState(true);
@@ -233,7 +237,7 @@ export const DocumentModal: React.FC<Props> = ({
   } = useQuery<DocRecord | null>({
     queryKey: ['document', id],
     queryFn: () => apiClient.getDocument(id) as Promise<DocRecord>,
-    initialData: (initialDoc ?? undefined) as DocRecord | undefined,
+    placeholderData: (initialDoc ?? undefined) as DocRecord | undefined,
     staleTime: 30_000,
   });
   const doc = fetchedDoc ?? null;

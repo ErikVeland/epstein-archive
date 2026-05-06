@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { format } from 'date-fns';
 import { apiClient } from '@client/services/apiClient';
+import DOMPurify from 'isomorphic-dompurify';
 
 // UI Library
 import {
@@ -57,24 +58,31 @@ interface IncomingEvidenceAnnotation {
 
 const renderMarkdown = (text: string): string => {
   if (!text) return '';
+  const escapeHtml = (value: string): string =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+
   const codeBlockRegex = /```([\s\S]*?)```/g;
   const codeBlocks: string[] = [];
   let content = text.replace(codeBlockRegex, (_, code) => {
-    codeBlocks.push(code);
+    codeBlocks.push(escapeHtml(code));
     return `__CODE_BLOCK_${codeBlocks.length - 1}__`;
   });
-  const applyInlineMarkdown = (t: string) =>
-    t
+  const applyInlineMarkdown = (t: string) => {
+    const escaped = escapeHtml(t);
+    return escaped
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(
-        /`([^`]+)`/g,
-        '<code style="background: var(--lq-surface-3); padding: 0.125rem 0.25rem; border-radius: 0.25rem; font-size: 0.875em;">$1</code>',
-      )
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(
         /\[([^\]]+)\]\(([^)]+)\)/g,
-        '<a href="$2" style="color: var(--lq-accent); text-decoration: underline;">$1</a>',
+        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>',
       );
+  };
   const lines = content.split('\n');
   let inUl = false,
     inOl = false;
@@ -92,31 +100,25 @@ const renderMarkdown = (text: string): string => {
   for (const line of lines) {
     if (line.startsWith('# ')) {
       closeLists();
-      out.push(
-        `<h1 style="font-size: 1.5rem; font-weight: bold; margin: 1.5rem 0 1rem; color: var(--lq-text-primary);">${applyInlineMarkdown(line.slice(2))}</h1>`,
-      );
+      out.push(`<h1>${applyInlineMarkdown(line.slice(2))}</h1>`);
       continue;
     }
     if (line.startsWith('## ')) {
       closeLists();
-      out.push(
-        `<h2 style="font-size: 1.25rem; font-weight: bold; margin: 1.25rem 0 0.75rem; color: var(--lq-text-primary);">${applyInlineMarkdown(line.slice(3))}</h2>`,
-      );
+      out.push(`<h2>${applyInlineMarkdown(line.slice(3))}</h2>`);
       continue;
     }
     const hr = line.match(/^[-*_]{3,}$/);
     if (hr) {
       closeLists();
-      out.push(
-        '<hr style="border: none; border-top: 1px solid var(--lq-surface-3); margin: 1.5rem 0;" />',
-      );
+      out.push('<hr />');
       continue;
     }
     const unordered = line.match(/^[-*+]\s+(.+)$/);
     if (unordered) {
       if (!inUl) {
         closeLists();
-        out.push('<ul style="padding-left: 1.5rem; margin: 1rem 0; list-style: disc;">');
+        out.push('<ul>');
         inUl = true;
       }
       out.push(`<li>${applyInlineMarkdown(unordered[1])}</li>`);
@@ -126,23 +128,26 @@ const renderMarkdown = (text: string): string => {
     if (ordered) {
       if (!inOl) {
         closeLists();
-        out.push('<ol style="padding-left: 1.5rem; margin: 1rem 0; list-style: decimal;">');
+        out.push('<ol>');
         inOl = true;
       }
       out.push(`<li>${applyInlineMarkdown(ordered[2])}</li>`);
       continue;
     }
     closeLists();
-    out.push(
-      `<p style="line-height: 1.6; margin-bottom: 1rem; color: var(--lq-text-primary); text-align: justify;">${applyInlineMarkdown(line)}</p>`,
-    );
+    out.push(`<p>${applyInlineMarkdown(line)}</p>`);
   }
   closeLists();
   content = out.join('\n');
   codeBlocks.forEach((b, i) => {
-    content = content.replace(`__CODE_BLOCK_${i}__`, b);
+    content = content.replace(`__CODE_BLOCK_${i}__`, `<pre><code>${b}</code></pre>`);
   });
-  return content;
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: ['a', 'code', 'em', 'h1', 'h2', 'hr', 'li', 'ol', 'p', 'pre', 'strong', 'ul'],
+    ALLOWED_ATTR: ['href', 'rel', 'target'],
+    ALLOW_UNKNOWN_PROTOCOLS: false,
+    FORBID_TAGS: ['script', 'style'],
+  });
 };
 
 const mapEvidenceAnnotations = (

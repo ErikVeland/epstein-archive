@@ -254,10 +254,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   const navigateFromModal = useCallback(
     (path: string) => {
-      onClose();
       navigate(path);
     },
-    [navigate, onClose],
+    [navigate],
   );
 
   const openDocumentFromEvidence = useCallback(

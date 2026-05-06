@@ -6,7 +6,15 @@ const addPersonToItemMock = vi.fn(async () => undefined);
 
 vi.mock('../../../src/server/auth/middleware.js', () => {
   return {
-    authenticateRequest: (_req: unknown, _res: unknown, next: () => void) => next(),
+    authenticateRequest: (
+      req: { user?: { id: string; role: string } },
+      _res: unknown,
+      next: () => void,
+    ) => {
+      req.user = { id: 'test-admin', role: 'admin' };
+      next();
+    },
+    requireRole: () => (_req: unknown, _res: unknown, next: () => void) => next(),
   };
 });
 

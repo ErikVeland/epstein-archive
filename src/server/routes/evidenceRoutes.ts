@@ -14,7 +14,7 @@ import { searchRepository } from '../db/searchRepository.js';
 import { forensicRepository } from '../db/forensicRepository.js';
 import { getEvidenceTypes, insertUploadedDocument } from '../db/routesDb.js';
 import { logAudit } from '../utils/auditLogger.js';
-import { authenticateRequest, AuthRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { logger } from '../services/Logger.js';
@@ -418,6 +418,7 @@ router.get('/:id/custody', validate(evidenceIdSchema), async (req: Request, res:
 router.post(
   '/:id/analyze',
   authenticateRequest,
+  requireRole('admin'),
   validate(evidenceIdSchema),
   async (req: Request, res: Response) => {
     try {

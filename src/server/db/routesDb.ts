@@ -209,6 +209,10 @@ export async function updateUser(
   );
 }
 
+export async function deleteUser(id: string) {
+  await getApiPool().query('DELETE FROM users WHERE id = $1', [id]);
+}
+
 // DEPRECATED: Review Queue logic moved to reviewQueueRepository.ts
 
 export async function getMapEntities(minRisk: number, limit: number) {

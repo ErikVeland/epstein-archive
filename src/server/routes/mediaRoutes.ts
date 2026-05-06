@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { MediaService } from '../services/MediaService.js';
 import { ThumbnailService } from '../services/ThumbnailService.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { findFirstExistingPath } from '../utils/pathResolver.js';
 import { documentsRepository } from '../db/documentsRepository.js';
 import { MediaExtractionService } from '../services/MediaExtractionService.js';
@@ -219,6 +219,7 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
 router.post(
   '/images/extract/:id',
   authenticateRequest,
+  requireRole('admin'),
   validate(mediaIdParamSchema),
   async (req, res, next) => {
     try {
@@ -334,6 +335,7 @@ router.get('/images/:id/people', validate(mediaIdParamSchema), async (req, res, 
 router.put(
   '/images/:id',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageUpdateSchema),
   async (req, res, next) => {
     try {
@@ -362,6 +364,7 @@ router.put(
 router.put(
   '/images/:id/rotate',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageRotateSchema),
   async (req, res, next) => {
     try {
@@ -383,6 +386,7 @@ router.put(
 router.post(
   '/images/:id/tags',
   authenticateRequest,
+  requireRole('admin'),
   validate(mediaIdParamSchema),
   async (req, res, next) => {
     try {
@@ -399,6 +403,7 @@ router.post(
 router.delete(
   '/images/:id/tags/:tagId',
   authenticateRequest,
+  requireRole('admin'),
   validate(
     z.object({
       params: z.object({
@@ -419,6 +424,7 @@ router.delete(
 router.post(
   '/images/:id/people',
   authenticateRequest,
+  requireRole('admin'),
   validate(mediaIdParamSchema),
   async (req, res, next) => {
     try {
@@ -442,6 +448,7 @@ router.post(
 router.delete(
   '/images/:id/people/:personId',
   authenticateRequest,
+  requireRole('admin'),
   validate(
     z.object({
       params: z.object({
@@ -484,6 +491,7 @@ const runImageBatch = async <T>(
 router.put(
   '/images/batch/rotate',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageBatchRotateSchema),
   async (req, res, next) => {
     try {
@@ -505,6 +513,7 @@ router.put(
 router.post(
   '/images/batch/rotate',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageBatchRotateSchema),
   async (req, res, next) => {
     try {
@@ -526,6 +535,7 @@ router.post(
 router.put(
   '/images/batch/rate',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageBatchRateSchema),
   async (req, res, next) => {
     try {
@@ -543,6 +553,7 @@ router.put(
 router.post(
   '/images/batch/rate',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageBatchRateSchema),
   async (req, res, next) => {
     try {
@@ -560,6 +571,7 @@ router.post(
 router.put(
   '/images/batch/metadata',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageBatchMetadataSchema),
   async (req, res, next) => {
     try {
@@ -580,6 +592,7 @@ router.put(
 router.post(
   '/images/batch/metadata',
   authenticateRequest,
+  requireRole('admin'),
   validate(imageBatchMetadataSchema),
   async (req, res, next) => {
     try {
@@ -851,6 +864,7 @@ const handleBatchPeople = async (
 router.put(
   '/items/batch/tags',
   authenticateRequest,
+  requireRole('admin'),
   validate(batchTagsSchema),
   async (req, res, next) => {
     try {
@@ -870,6 +884,7 @@ router.put(
 router.put(
   '/items/batch/people',
   authenticateRequest,
+  requireRole('admin'),
   validate(batchPeopleSchema),
   async (req, res, next) => {
     try {
@@ -889,6 +904,7 @@ router.put(
 router.put(
   '/images/batch/tags',
   authenticateRequest,
+  requireRole('admin'),
   validate(batchImageTagsSchema),
   async (req, res, next) => {
     try {
@@ -909,6 +925,7 @@ router.put(
 router.post(
   '/images/batch/tags',
   authenticateRequest,
+  requireRole('admin'),
   validate(batchImageTagsSchema),
   async (req, res, next) => {
     try {
@@ -929,6 +946,7 @@ router.post(
 router.put(
   '/images/batch/people',
   authenticateRequest,
+  requireRole('admin'),
   validate(batchImagePeopleSchema),
   async (req, res, next) => {
     try {
@@ -954,6 +972,7 @@ router.put(
 router.post(
   '/images/batch/people',
   authenticateRequest,
+  requireRole('admin'),
   validate(batchImagePeopleSchema),
   async (req, res, next) => {
     try {
