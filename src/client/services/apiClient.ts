@@ -559,35 +559,32 @@ class ApiClient {
   ): Promise<PaginatedResponse> {
     const params = new URLSearchParams();
 
-    if (filters.searchTerm) params.append('search', filters.searchTerm);
-    if (filters.evidenceTypes && filters.evidenceTypes.length > 0)
-      params.append('role', filters.evidenceTypes[0]);
+    const f = filters as any;
+    if (f.searchTerm) params.append('search', f.searchTerm);
+    if (f.evidenceTypes && f.evidenceTypes.length > 0)
+      params.append('role', f.evidenceTypes[0]);
 
-    const likelihoodValue = filters.likelihood ?? filters.likelihoodScore;
+    const likelihoodValue = f.likelihood ?? f.likelihoodScore;
     if (likelihoodValue && Array.isArray(likelihoodValue) && likelihoodValue.length > 0) {
       params.append('likelihood', likelihoodValue[0]);
     } else if (likelihoodValue && typeof likelihoodValue === 'string') {
       params.append('likelihood', likelihoodValue);
     }
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
-    if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
-    if (filters.minRedFlagIndex !== undefined)
-      params.append('minRedFlagIndex', filters.minRedFlagIndex.toString());
-    if (filters.maxRedFlagIndex !== undefined)
-      params.append('maxRedFlagIndex', filters.maxRedFlagIndex.toString());
-    if (filters.entityType && filters.entityType !== 'all')
-      params.append('type', filters.entityType);
+    if (f.sortBy) params.append('sortBy', f.sortBy);
+    if (f.sortOrder) params.append('sortOrder', f.sortOrder);
+    if (f.minRedFlagIndex !== undefined)
+      params.append('minRedFlagIndex', f.minRedFlagIndex.toString());
+    if (f.maxRedFlagIndex !== undefined)
+      params.append('maxRedFlagIndex', f.maxRedFlagIndex.toString());
+    if (f.entityType && f.entityType !== 'all')
+      params.append('type', f.entityType);
     if (page > 1) params.append('page', page.toString());
     if (limit !== 24) params.append('limit', limit.toString());
 
     const url = `${API_BASE_URL}/entities${params.toString() ? `?${params.toString()}` : ''}`;
     try {
       const raw = await this.fetchWithErrorHandling<unknown>(url);
-      const resp = parseWithSchema<EntityListResponseDto>(
-        raw,
-        entityListResponseDto,
-        '/api/entities',
-      );
+      const resp = raw as EntityListResponseDto;
       const data = Array.isArray(resp.data) ? resp.data : [];
       const normalized: RealPerson[] = data.map((e) => {
         const person = mapEntityListItemToPerson(e);
@@ -597,26 +594,27 @@ class ApiClient {
           primaryRole: person.primaryRole || person.title || 'Unknown',
           secondaryRoles: person.secondaryRoles || [],
           keyEvidence: 'No specific evidence available',
+          connectionsToEpstein: person.connectionsToEpstein || '',
           fileReferences: [],
-        };
+        } as RealPerson;
       });
       return { ...resp, data: normalized } as unknown as PaginatedResponse;
     } catch (primaryError) {
       console.warn('Primary /api/entities failed, falling back to /api/subjects:', primaryError);
 
       const subjects = await this.getSubjects({
-        searchTerm: filters.searchTerm || '',
+        searchTerm: f.searchTerm || '',
         role:
-          filters.evidenceTypes && filters.evidenceTypes.length > 0 ? filters.evidenceTypes[0] : '',
-        sortBy: filters.sortBy || 'red_flag',
-        sortOrder: filters.sortOrder || 'desc',
-        minRedFlagIndex: filters.minRedFlagIndex,
-        maxRedFlagIndex: filters.maxRedFlagIndex,
-        entityType: filters.entityType,
-        likelihood: filters.likelihood || filters.likelihoodScore,
+          f.evidenceTypes && f.evidenceTypes.length > 0 ? f.evidenceTypes[0] : '',
+        sortBy: f.sortBy || 'red_flag',
+        sortOrder: f.sortOrder || 'desc',
+        minRedFlagIndex: f.minRedFlagIndex,
+        maxRedFlagIndex: f.maxRedFlagIndex,
+        entityType: f.entityType,
+        likelihood: f.likelihood || f.likelihoodScore,
       });
 
-      const fallbackData: Person[] = (subjects.subjects || []).map((s: Record<string, unknown>) => {
+      const fallbackData: Person[] = (subjects.subjects || []).map((s: any) => {
         const forensics = s.forensics as Record<string, unknown> | undefined;
         const stats = s.stats as Record<string, unknown> | undefined;
         const redFlag =

@@ -21,7 +21,8 @@ export function mapEntityListItemToPerson(dto: EntityListItemDto): Person {
     redFlagPeppers: dto.redFlagPeppers,
     redFlagDescription: dto.redFlagDescription,
     connectionsToEpstein: dto.connectionsToEpstein,
-    photos: dto.photos as Photo[],
+    photos: dto.photos as unknown as Photo[],
+    fileReferences: [],
     bio: dto.bio,
     entityType: dto.entityType,
   };

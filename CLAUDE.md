@@ -1,6 +1,9 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) and all agentic AI coders working with code in this repository.
+
+> [!IMPORTANT]
+> **STRICT CODING STANDARDS ENFORCEMENT**: You MUST read and strictly adhere to the guidelines defined in [CODING_STANDARDS.md](file:///Users/veland/Downloads/Epstein%20Files/epstein-archive/CODING_STANDARDS.md) before writing any code, making modifications, or committing files. No exceptions!
 
 ## Project overview
 
