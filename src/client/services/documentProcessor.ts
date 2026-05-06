@@ -107,7 +107,7 @@ export class DocumentProcessor {
     };
 
     this.documents.set(id, document);
-    console.log(`DocumentProcessor: Added document ${id}, total documents: ${this.documents.size}`);
+    // console.log(`DocumentProcessor: Added document ${id}, total documents: ${this.documents.size}`);
     this.buildSearchIndex(document);
     this.buildInvertedIndex(document);
     this.buildEntityIndex(document);
@@ -1287,7 +1287,7 @@ export class DocumentProcessor {
 
   // Load documents from an external source (e.g., API)
   async loadDocuments(documents: Document[]): Promise<void> {
-    console.log(`DocumentProcessor: Loading ${documents.length} documents...`);
+    // console.log(`DocumentProcessor: Loading ${documents.length} documents...`);
 
     const BATCH_SIZE = 50;
 
@@ -1323,6 +1323,6 @@ export class DocumentProcessor {
       }
     }
 
-    console.log(`DocumentProcessor: Loaded ${this.documents.size} total documents`);
+    // console.log(`DocumentProcessor: Loaded ${this.documents.size} total documents`);
   }
 }

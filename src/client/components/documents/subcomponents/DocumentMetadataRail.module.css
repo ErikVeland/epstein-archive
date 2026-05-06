@@ -363,6 +363,37 @@
   margin-bottom: var(--space-2);
 }
 
+/* AI Enrichment pending placeholder */
+.summaryPending {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+}
+
+.pendingPulse {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pendingGlow 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes pendingGlow {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 6px var(--accent);
+  }
+}
+
 .sourceMeta {
   display: inline-flex;
   align-items: center;

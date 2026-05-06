@@ -67,11 +67,9 @@ export class OptimizedDataService {
 
     try {
       // Test API connection
-      const healthCheck = await apiClient.healthCheck();
-      console.log('API connection successful:', healthCheck);
+      await apiClient.healthCheck();
 
       this.isInitialized = true;
-      console.log('OptimizedDataService initialized with API backend');
     } catch (error) {
       console.error('Error initializing OptimizedDataService:', error);
       throw error;
@@ -93,15 +91,6 @@ export class OptimizedDataService {
 
       // Transform API entities to RealPerson format
       const data = result.data.map((entity) => this.transformApiEntityToRealPerson(entity));
-
-      console.log('getPaginatedData debug:', {
-        filters,
-        page,
-        total: result.total,
-        pageSize: this.PAGE_SIZE,
-        totalPages: result.totalPages,
-        dataLength: data.length,
-      });
 
       return {
         data,

@@ -67,7 +67,6 @@ class PrefetchManagerV2 {
           connection.effectiveType === '2g'
         ) {
           this.enabled = false;
-          console.log('[PrefetchManager] Disabled due to slow connection or Save-Data');
         }
       }
     }

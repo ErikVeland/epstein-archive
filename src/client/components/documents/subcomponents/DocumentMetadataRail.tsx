@@ -122,7 +122,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
         </Box>
       </Surface>
 
-      {summary && (
+      {summary ? (
         <Surface variant="glass-highlight" className={`${styles.sectionCard} ${styles.section}`}>
           <Button
             unstyled
@@ -132,7 +132,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           >
             <h3 className={styles.sectionToggleHeading}>
               <Icon name="Sparkles" size="sm" className={styles.iconAccent} />
-              Key Insights & Summary
+              Key Insights &amp; Summary
             </h3>
             <Icon
               name="ChevronDown"
@@ -161,6 +161,22 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
               </Box>
             </Box>
           )}
+        </Surface>
+      ) : (
+        <Surface variant="glass-highlight" className={`${styles.sectionCard} ${styles.section}`}>
+          <h3 className={styles.sectionToggleHeading} style={{ pointerEvents: 'none' }}>
+            <Icon name="Sparkles" size="sm" className={styles.iconAccent} />
+            Key Insights &amp; Summary
+          </h3>
+          <Box className={styles.summaryContent}>
+            <Box className={styles.summaryPending}>
+              <Box className={styles.pendingPulse} />
+              <LqText variant="xs" color="muted">
+                AI enrichment pending — summaries will appear after the pipeline completes this
+                document.
+              </LqText>
+            </Box>
+          </Box>
         </Surface>
       )}
 

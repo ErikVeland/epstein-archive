@@ -28,7 +28,6 @@ class ResourcePreloader {
       if (response.ok) {
         const data = await response.json();
         this.cache.set(url, data);
-        console.log(`[Preloader] Prefetched JSON: ${url}`);
       }
     } catch (error) {
       console.warn(`[Preloader] Failed to prefetch JSON: ${url}`, error);

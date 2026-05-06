@@ -215,7 +215,7 @@ export class CompetitiveOCRService {
 
     // Log debug info if there was competition
     if (results.length > 1) {
-      console.log('    ⚖️  Judgement Scores:');
+      // console.log('    ⚖️  Judgement Scores:');
       scoredResults.forEach((sr) => {
         console.log(
           `      - ${sr.result.engine}: Score ${sr.score.toFixed(1)} (Conf: ${sr.result.confidence}%, WordDens: ${(sr.wordDensity * 100).toFixed(0)}%, Garbage: ${(sr.garbageRatio * 100).toFixed(0)}%)`,

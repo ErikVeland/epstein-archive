@@ -33,6 +33,22 @@
 
 /* ── Drawer body ──────────────────────────────────────────────── */
 
+.drawerBodyWrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.drawerBodyWrapper--open {
+  grid-template-rows: 1fr;
+}
+
+.drawerBodyInner {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .drawerBody {
   padding: var(--space-5);
   display: flex;

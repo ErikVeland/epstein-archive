@@ -51,7 +51,6 @@ export const exportData = {
   exportChart: (_chartElement: HTMLElement, _filename: string = 'chart.png') => {
     // This would require html2canvas or similar library
     // For now, we'll create a placeholder function
-    console.log('Chart export functionality requires html2canvas library');
   },
 };
 

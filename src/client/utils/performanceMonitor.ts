@@ -202,28 +202,25 @@ class PerformanceMonitorClass {
    * Print summary to console
    */
   printSummary(): void {
-    if (!this.enabled) {
-      console.log(
-        'Performance monitoring is disabled. Enable with: PerformanceMonitor.setEnabled(true)',
-      );
-      return;
-    }
+    if (!this.enabled) return;
 
     const summary = this.getSummary();
 
-    console.group('📊 Performance Summary');
-    console.log('API Calls:', {
-      count: summary.apiCalls.count,
-      avgDuration: `${summary.apiCalls.avgDuration.toFixed(0)}ms`,
-      p95Duration: `${summary.apiCalls.p95Duration.toFixed(0)}ms`,
-      avgPayloadSize: `${(summary.apiCalls.avgPayloadSize / 1024).toFixed(0)}KB`,
-    });
-    console.log('Renders:', {
-      count: summary.renders.count,
-      avgDuration: `${summary.renders.avgDuration.toFixed(2)}ms`,
-      p95Duration: `${summary.renders.p95Duration.toFixed(2)}ms`,
-    });
-    console.groupEnd();
+    if (import.meta.env.DEV) {
+      console.group('📊 Performance Summary');
+      console.info('API Calls:', {
+        count: summary.apiCalls.count,
+        avgDuration: `${summary.apiCalls.avgDuration.toFixed(0)}ms`,
+        p95Duration: `${summary.apiCalls.p95Duration.toFixed(0)}ms`,
+        avgPayloadSize: `${(summary.apiCalls.avgPayloadSize / 1024).toFixed(0)}KB`,
+      });
+      console.info('Renders:', {
+        count: summary.renders.count,
+        avgDuration: `${summary.renders.avgDuration.toFixed(2)}ms`,
+        p95Duration: `${summary.renders.p95Duration.toFixed(2)}ms`,
+      });
+      console.groupEnd();
+    }
   }
 }
 
