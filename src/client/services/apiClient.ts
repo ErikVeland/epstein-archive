@@ -1529,17 +1529,17 @@ class ApiClient {
     opts: { limit?: number; minScore?: number } = {},
   ): Promise<EntityConnectionsResponse> {
     const params = new URLSearchParams();
-    if (opts.limit) params.set('limit', String(opts.limit));
-    if (opts.minScore) params.set('minScore', String(opts.minScore));
+    if (opts.limit != null) params.set('limit', String(opts.limit));
+    if (opts.minScore != null) params.set('minScore', String(opts.minScore));
     const qs = params.toString() ? `?${params.toString()}` : '';
     return this.fetchWithErrorHandling<EntityConnectionsResponse>(
-      `${API_BASE_URL}/entities/${entityId}/connections${qs}`,
+      `${API_BASE_URL}/entities/${encodeURIComponent(entityId)}/connections${qs}`,
     );
   }
 
   async getShortestPath(sourceId: string, targetId: string): Promise<unknown> {
     return this.fetchWithErrorHandling<unknown>(
-      `${API_BASE_URL}/graph/path?source=${encodeURIComponent(sourceId)}&target=${encodeURIComponent(targetId)}`,
+      `${API_BASE_URL}/graph/paths?sourceId=${encodeURIComponent(sourceId)}&targetId=${encodeURIComponent(targetId)}`,
     );
   }
 }
