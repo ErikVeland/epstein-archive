@@ -1,5 +1,21 @@
 # Release Notes
 
+## 20.5.2 - 2026-05-08 - High-Fidelity OCR Backfills & High-Density Entity Views
+
+### For Investigators
+
+- **High-Fidelity OCR Backfills**: Upgraded the AI Enrichment pipeline to support high-fidelity re-summarization backfills. Low-confidence or MIME-corrupted documents undergo LLM OCR re-correction first, with the cleaned text then used to overwrite noisy summaries in metadata.
+- **High-Density Entity Overview**: Optimized the vertical layout and collapsed excessive whitespace in the Entity Overview tab. Removed redundant inline flag buttons to reclaim significant screen space, creating a beautifully tight forensic workbench.
+- **Dynamic Days Delayed Counter**: Added a real-time compliance tracker to the main stats dashboard calculating days elapsed since the unredacted Epstein Files release order (November 19, 2025).
+- **Bespoke Animated Loader**: Replaced all generic loaders with an custom dual-concentric orbital gradient pulsing node spinning in opposition.
+- **Übersicht Widget Polish**: Accurate pipeline phase indicators and mathematically capped progress stats with support for a new LLM Re-Corrected progress bar.
+
+### Why It Matters
+
+- Investigators now read summaries of fully corrected text instead of unreadable OCR cruft.
+- Improved vertical information density lets analysts scan entire entity summaries without excessive scrolling.
+- Real-time days-delayed tracker highlights ongoing compliance delays on the main dashboard.
+
 ## 20.5.1 - 2026-05-07 - Entity Network Navigator + Document Significance Scoring
 
 ### For Investigators
