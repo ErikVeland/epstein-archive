@@ -274,8 +274,8 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     const normalized = annotations
       .map((annotation) => ({
         ...annotation,
-        start: clamp(annotation.position.start, 0, content.length),
-        end: clamp(annotation.position.end, 0, content.length),
+        start: clamp(annotation.position?.start ?? 0, 0, content.length),
+        end: clamp(annotation.position?.end ?? 0, 0, content.length),
       }))
       .filter((annotation) => annotation.end > annotation.start)
       .sort((a, b) => a.start - b.start || a.end - b.end);
