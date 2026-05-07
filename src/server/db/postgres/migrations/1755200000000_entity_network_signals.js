@@ -62,6 +62,7 @@ export async function up(pgm) {
     JOIN flight_passengers fp2
       ON fp1.flight_id  = fp2.flight_id
      AND fp1.entity_id != fp2.entity_id
+    WHERE fp1.entity_id IS NOT NULL AND fp2.entity_id IS NOT NULL
     GROUP BY fp1.entity_id, fp2.entity_id
 
     UNION ALL
@@ -71,9 +72,10 @@ export async function up(pgm) {
       er.source_entity_id  AS entity_id,
       er.target_entity_id  AS other_id,
       'relationship'::text AS signal_type,
-      1.0::float           AS count,
-      COALESCE(er.confidence, 0.5)::float AS confidence
+      COUNT(*)::float      AS count,
+      MAX(COALESCE(er.confidence, 0.5))::float AS confidence
     FROM entity_relationships er
+    GROUP BY er.source_entity_id, er.target_entity_id
 
     WITH NO DATA;
   `);
