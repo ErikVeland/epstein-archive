@@ -28,6 +28,7 @@ interface Relationship {
   weight?: number;
   confidence?: number;
   classification?: 'EVIDENCE_BACKED' | 'INFERRED';
+  signalType?: string;
 }
 
 interface NetworkGraphProps {
@@ -55,6 +56,18 @@ interface GraphNode extends ServiceGraphNode {
   connectionCount: number;
   photoUrl?: string;
 }
+
+const SIGNAL_EDGE_COLORS: Record<string, string> = {
+  financial: '#d4a84b', // amber
+  flight: '#06b6d4', // teal/accent
+  communication: '#a78bfa', // purple
+  relationship: 'rgba(255,255,255,0.6)', // white-ish
+  inferred: 'rgba(255,255,255,0.2)', // faint
+  document: 'rgba(255,255,255,0.12)', // very faint
+};
+
+const getEdgeColor = (signalType?: string): string =>
+  SIGNAL_EDGE_COLORS[signalType ?? 'document'] ?? SIGNAL_EDGE_COLORS.document;
 
 // Risk-based colors with better visibility
 // Risk-based colors using Liquid Glass semantic tokens
@@ -297,6 +310,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         weight: r.weight || 0.1,
         confidence: r.confidence || 1.0,
         classification: r.classification,
+        signalType: r.signalType,
         normalizedWeight: (r.weight || 0.1) / maxWeight,
       }))
       .slice(0, 500);
@@ -893,11 +907,13 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               const type = String(link.type || '').toLowerCase();
               const isInferred = link.classification === 'INFERRED' || type.includes('infer');
               const isAgentic = type.includes('agentic') || type.includes('derived');
-              const stroke = isAgentic
-                ? 'var(--nav-media)'
-                : isInferred
-                  ? 'var(--nav-flights)'
-                  : 'var(--accent-info)';
+              const stroke = link.signalType
+                ? getEdgeColor(link.signalType)
+                : isAgentic
+                  ? 'var(--nav-media)'
+                  : isInferred
+                    ? 'var(--nav-flights)'
+                    : 'var(--accent-info)';
               // Dynamic width based on weight (1.0 to 3.5 base pixels since non-scaling-stroke is active)
               const weightBonus = (link.normalizedWeight || 0) * 2.5;
               const baseWidth = 1.0 + weightBonus;
