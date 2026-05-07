@@ -1,0 +1,158 @@
+/* ConnectionCard.module.css */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--duration-fast),
+    box-shadow var(--duration-fast);
+}
+
+.card:hover {
+  border-color: var(--glass-border-strong);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--bg-dark) 40%, transparent);
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+
+.headerRow {
+  min-width: 0;
+}
+
+.nameRow {
+  min-width: 0;
+  flex: 1;
+}
+
+.riskIcon {
+  flex-shrink: 0;
+  color: var(--accent-danger);
+}
+
+.entityName {
+  all: unset;
+  cursor: pointer;
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  transition: color var(--duration-fast);
+}
+
+.entityName:hover,
+.entityName:focus-visible {
+  color: var(--accent);
+}
+
+.entityName:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.totalScore {
+  flex-shrink: 0;
+  font-size: var(--type-xs);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  padding-left: var(--space-2);
+}
+
+/* ── Score bar ───────────────────────────────────────────── */
+
+.scoreBarTrack {
+  height: 3px;
+  background: color-mix(in srgb, var(--glass-border-strong) 60%, transparent);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.scoreBarFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-normal) var(--easing-swift);
+  min-width: 2px;
+}
+
+/* ── Pills row ───────────────────────────────────────────── */
+
+.pillsRow {
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.15em 0.45em;
+  border-radius: var(--radius-sm);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+/* Signal type colour variants */
+.pill_documents {
+  color: var(--accent-docs);
+  background: color-mix(in srgb, var(--accent-docs) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-docs) 25%, transparent);
+}
+
+.pill_financial {
+  color: var(--accent-success);
+  background: color-mix(in srgb, var(--accent-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-success) 25%, transparent);
+}
+
+.pill_flights {
+  color: var(--accent-info);
+  background: color-mix(in srgb, var(--accent-info) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-info) 25%, transparent);
+}
+
+.pill_communications {
+  color: var(--accent-emails);
+  background: color-mix(in srgb, var(--accent-emails) 15%, transparent);
+  border-color: color-mix(in srgb, var(--accent-emails) 28%, transparent);
+}
+
+.pill_relationship {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.pillRelType {
+  text-transform: capitalize;
+}
+
+.pillConfidence {
+  opacity: 0.7;
+  font-size: 0.7em;
+}
+
+/* ── Action buttons ──────────────────────────────────────── */
+
+.actions {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--glass-border);
+}
+
+.actionBtn {
+  gap: 0.25rem;
+  font-size: var(--type-xs);
+}
