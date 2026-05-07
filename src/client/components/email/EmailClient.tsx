@@ -246,14 +246,19 @@ export const EmailClient: React.FC = () => {
 
   const updateUrlState = useCallback(
     (updates: Record<string, string | null>) => {
-      const next = new URLSearchParams(searchParams);
-      for (const [key, value] of Object.entries(updates)) {
-        if (!value) next.delete(key);
-        else next.set(key, value);
-      }
-      setSearchParams(next, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          for (const [key, value] of Object.entries(updates)) {
+            if (!value) next.delete(key);
+            else next.set(key, value);
+          }
+          return next;
+        },
+        { replace: true },
+      );
     },
-    [searchParams, setSearchParams],
+    [setSearchParams],
   );
 
   useEffect(() => {
@@ -340,13 +345,18 @@ export const EmailClient: React.FC = () => {
     (threadId: string) => {
       baseHandleOpenThread(threadId);
       // Push a history entry so device-back returns to the thread list.
-      const next = new URLSearchParams(searchParams);
-      next.set('threadId', threadId);
-      next.delete('messageId');
-      next.set('pane', 'messages');
-      setSearchParams(next, { replace: false });
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set('threadId', threadId);
+          next.delete('messageId');
+          next.set('pane', 'messages');
+          return next;
+        },
+        { replace: false },
+      );
     },
-    [baseHandleOpenThread, searchParams, setSearchParams],
+    [baseHandleOpenThread, setSearchParams],
   );
 
   // j/k Navigation
