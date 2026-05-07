@@ -12,17 +12,10 @@ interface PathFinderModalProps {
   onClose: () => void;
 }
 
-export const PathFinderModal: React.FC<PathFinderModalProps> = ({ onClose }) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const PathFinderModal: React.FC<PathFinderModalProps> = (_props) => {
   // Stub: replaced by the full implementation in Task 10.
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Path finder"
-      style={{ display: 'none' }}
-      onClick={onClose}
-    />
-  );
+  return null;
 };
 
 export default PathFinderModal;
