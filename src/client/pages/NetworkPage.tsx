@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { NetworkGraph } from '@client/components/visualizations/NetworkGraph';
 import Icon from '@client/components/common/Icon';
+import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
 import { Button, Flex, Input, LqText, Surface } from '@client/design-system/lib';
 import { SignificanceBadge } from '@client/components/entities/SignificanceBadge';
 import { apiClient } from '@client/services/apiClient';
@@ -15,8 +16,7 @@ interface SelectedNode {
   id: string | number;
   name: string;
   type?: string;
-  riskLevel?: number;
-  risk?: number;
+  riskLevel: number;
 }
 
 interface GraphNode {
@@ -65,7 +65,7 @@ export const NetworkPage: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
 
   const { data: graphData, isLoading } = useQuery<GlobalGraphResponse>({
-    queryKey: ['globalNetwork', signalFilter],
+    queryKey: ['globalNetwork'],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: '500' });
       return await apiClient.get<GlobalGraphResponse>(`/graph/global?${params.toString()}`);
@@ -96,10 +96,12 @@ export const NetworkPage: React.FC = () => {
     : rawNodes;
 
   const signalTypes = SIGNAL_TYPE_MAP[signalFilter];
-  const visibleEdges =
-    signalTypes.length === 0
-      ? rawEdges
-      : rawEdges.filter((e) => signalTypes.includes(e.signalType ?? ''));
+  const visibleEdges = rawEdges.filter((e) => {
+    if (signalTypes.length > 0 && !signalTypes.includes(e.signalType ?? '')) return false;
+    if (filteredNodeIds && (!filteredNodeIds.has(e.source) || !filteredNodeIds.has(e.target)))
+      return false;
+    return true;
+  });
 
   const entities = visibleNodes.map((n) => ({
     id: n.id,
@@ -122,8 +124,13 @@ export const NetworkPage: React.FC = () => {
   }));
 
   const handleEntityClick = useCallback(
-    (entity: { id: string | number; name: string; type?: string }) => {
-      setSelectedNode({ id: entity.id, name: entity.name, type: entity.type });
+    (entity: { id: string | number; name: string; type?: string; riskLevel?: number }) => {
+      setSelectedNode({
+        id: entity.id,
+        name: entity.name,
+        type: entity.type,
+        riskLevel: entity.riskLevel ?? 0,
+      });
     },
     [],
   );
@@ -139,119 +146,120 @@ export const NetworkPage: React.FC = () => {
   }, []);
 
   const topConnections = connectionsData?.connections ?? [];
-  const nodeRiskScore = selectedNode?.riskLevel ?? selectedNode?.risk ?? 0;
 
   return (
-    <div className={styles.root}>
-      {/* Filter bar */}
-      <Flex align="center" gap="sm" className={styles.filterBar}>
-        <div className={styles.searchWrap}>
-          <Icon name="Search" size="sm" className={styles.searchIcon} />
-          <Input
-            type="text"
-            className={styles.searchInput}
-            placeholder="Search entities..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Search entities in network"
-          />
-        </div>
-
-        <div className={styles.signalFilters}>
-          {SIGNAL_FILTERS.map((filter) => (
-            <Button
-              key={filter.key}
-              unstyled
-              className={`${styles.filterBtn} ${signalFilter === filter.key ? styles.filterBtnActive : ''}`}
-              onClick={() => setSignalFilter(filter.key)}
-              aria-pressed={signalFilter === filter.key}
-            >
-              <Icon name={filter.icon as Parameters<typeof Icon>[0]['name']} size="sm" />
-              <span className={styles.signalLabel}>{filter.label}</span>
-            </Button>
-          ))}
-        </div>
-
-        <div className={styles.entityCount}>
-          <LqText variant="xs" color="muted">
-            {isLoading ? 'Loading...' : `${entities.length.toLocaleString()} entities`}
-          </LqText>
-        </div>
-      </Flex>
-
-      {/* Graph canvas */}
-      <div className={styles.graphArea}>
-        {isLoading ? (
-          <div className={styles.loadingState}>
-            <div className={styles.spinner} />
-            <p className={styles.loadingMessage}>Building global network...</p>
+    <ScopedErrorBoundary>
+      <div className={styles.root}>
+        {/* Filter bar */}
+        <Flex align="center" gap="sm" className={styles.filterBar}>
+          <div className={styles.searchWrap}>
+            <Icon name="Search" size="sm" className={styles.searchIcon} />
+            <Input
+              type="text"
+              className={styles.searchInput}
+              placeholder="Search entities..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search entities in network"
+            />
           </div>
-        ) : (
-          <NetworkGraph
-            entities={entities}
-            relationships={relationships}
-            onEntityClick={handleEntityClick}
-            maxNodes={500}
-          />
-        )}
 
-        {/* Selected entity panel */}
-        {selectedNode && (
-          <Surface variant="glass" className={styles.entityPanel}>
-            <div className={styles.entityPanelHeader}>
-              <div className={styles.entityPanelMeta}>
-                <LqText variant="small" weight="bold">
-                  {selectedNode.name}
-                </LqText>
-                {selectedNode.type && (
-                  <LqText variant="xs" color="muted" className={styles.entityPanelType}>
-                    {selectedNode.type}
-                  </LqText>
-                )}
-                {nodeRiskScore >= 3 && (
-                  <SignificanceBadge score={nodeRiskScore * 20} showLabel={false} />
-                )}
-              </div>
+          <div className={styles.signalFilters}>
+            {SIGNAL_FILTERS.map((filter) => (
               <Button
+                key={filter.key}
                 unstyled
-                className={styles.closeButton}
-                onClick={handleClosePanel}
-                aria-label="Close entity panel"
+                className={`${styles.filterBtn} ${signalFilter === filter.key ? styles.filterBtnActive : ''}`}
+                onClick={() => setSignalFilter(filter.key)}
+                aria-pressed={signalFilter === filter.key}
               >
-                <Icon name="X" size="sm" />
+                <Icon name={filter.icon as Parameters<typeof Icon>[0]['name']} size="sm" />
+                <span className={styles.signalLabel}>{filter.label}</span>
               </Button>
+            ))}
+          </div>
+
+          <div className={styles.entityCount}>
+            <LqText variant="xs" color="muted">
+              {isLoading ? 'Loading...' : `${entities.length.toLocaleString()} entities`}
+            </LqText>
+          </div>
+        </Flex>
+
+        {/* Graph canvas */}
+        <div className={styles.graphArea}>
+          {isLoading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.spinner} />
+              <p className={styles.loadingMessage}>Building global network...</p>
             </div>
+          ) : (
+            <NetworkGraph
+              entities={entities}
+              relationships={relationships}
+              onEntityClick={handleEntityClick}
+              maxNodes={500}
+            />
+          )}
 
-            {topConnections.length > 0 && (
-              <div className={styles.connectionsList}>
-                <p className={styles.connectionsTitle}>Top connections</p>
-                {topConnections.map((conn) => (
-                  <Flex
-                    key={conn.entityId}
-                    align="center"
-                    justify="between"
-                    className={styles.connectionItem}
-                  >
-                    <span className={styles.connectionName}>{conn.entityName}</span>
-                    <span className={styles.connectionType}>{conn.entityType}</span>
-                  </Flex>
-                ))}
+          {/* Selected entity panel */}
+          {selectedNode && (
+            <Surface variant="glass" className={styles.entityPanel}>
+              <div className={styles.entityPanelHeader}>
+                <div className={styles.entityPanelMeta}>
+                  <LqText variant="small" weight="bold">
+                    {selectedNode.name}
+                  </LqText>
+                  {selectedNode.type && (
+                    <LqText variant="xs" color="muted" className={styles.entityPanelType}>
+                      {selectedNode.type}
+                    </LqText>
+                  )}
+                  {selectedNode.riskLevel >= 3 && (
+                    <SignificanceBadge score={selectedNode.riskLevel * 20} showLabel={false} />
+                  )}
+                </div>
+                <Button
+                  unstyled
+                  className={styles.closeButton}
+                  onClick={handleClosePanel}
+                  aria-label="Close entity panel"
+                >
+                  <Icon name="X" size="sm" />
+                </Button>
               </div>
-            )}
 
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleOpenProfile}
-              className={styles.profileButton}
-            >
-              Open full profile
-              <Icon name="ArrowRight" size="sm" />
-            </Button>
-          </Surface>
-        )}
+              {topConnections.length > 0 && (
+                <div className={styles.connectionsList}>
+                  <p className={styles.connectionsTitle}>Top connections</p>
+                  {topConnections.map((conn) => (
+                    <Flex
+                      key={conn.entityId}
+                      align="center"
+                      justify="between"
+                      className={styles.connectionItem}
+                    >
+                      <span className={styles.connectionName}>{conn.entityName}</span>
+                      <span className={styles.connectionType}>{conn.entityType}</span>
+                    </Flex>
+                  ))}
+                </div>
+              )}
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleOpenProfile}
+                className={styles.profileButton}
+              >
+                Open full profile
+                <Icon name="ArrowRight" size="sm" />
+              </Button>
+            </Surface>
+          )}
+        </div>
       </div>
-    </div>
+    </ScopedErrorBoundary>
   );
 };
 
