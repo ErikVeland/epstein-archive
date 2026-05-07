@@ -27,6 +27,7 @@ import { EntityFlightsTab } from './subcomponents/EntityFlightsTab';
 import { EntityFinancialTab } from './subcomponents/EntityFinancialTab';
 import { EntityPropertiesTab } from './subcomponents/EntityPropertiesTab';
 import { ConnectionsList } from '@client/components/entities/ConnectionsList';
+import Icon from '@client/components/common/Icon';
 
 // Utilities
 import {
@@ -119,7 +120,7 @@ export interface SignificantPassage {
 
 const EVIDENCE_TABS: TabItem[] = [
   { key: 'overview', label: 'Overview' },
-  { key: 'connections', label: 'Connections' },
+  { key: 'connections', label: 'Connections', icon: <Icon name="Network" size="sm" /> },
   { key: 'evidence', label: 'Evidence' },
   { key: 'claims', label: 'AI Claims' },
   { key: 'investigations', label: 'Investigations' },
