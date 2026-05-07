@@ -11,30 +11,41 @@ test.describe('Entity Network Navigator', () => {
 
   test('clicking a signal filter updates the active state', async ({ page }) => {
     await page.goto('/network');
-    await page.getByText('Financial').click();
-    const financialBtn = page.getByRole('button', { name: /financial/i });
+    const financialBtn = page.getByRole('button', { name: /financial/i }).first();
+    await financialBtn.click();
     await expect(financialBtn).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('entity profile has Connections tab', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('firstRunOnboardingCompleted', 'true');
+      window.localStorage.setItem('board_onboarding_seen', 'true');
+    });
     await page.goto('/people');
     const firstCard = page.locator('[data-testid="subject-card"]').first();
     await firstCard.waitFor({ state: 'visible' });
     await firstCard.click();
+    await page.waitForSelector('[data-testid="evidence-modal"]', { timeout: 10_000 });
     await expect(page.getByRole('tab', { name: /connections/i })).toBeVisible();
   });
 
   test('connections tab renders list or empty state', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('firstRunOnboardingCompleted', 'true');
+      window.localStorage.setItem('board_onboarding_seen', 'true');
+    });
     await page.goto('/people');
     const firstCard = page.locator('[data-testid="subject-card"]').first();
     await firstCard.waitFor({ state: 'visible' });
     await firstCard.click();
+    await page.waitForSelector('[data-testid="evidence-modal"]', { timeout: 10_000 });
     await page.getByRole('tab', { name: /connections/i }).click();
-    const hasCards = (await page.locator('[class*="card"]').count()) > 0;
-    const hasEmpty = await page
-      .getByText('No connections found')
+    const modal = page.locator('[data-testid="evidence-modal"]');
+    const hasConnections = (await modal.getByLabel('Filter connections by name').count()) > 0;
+    const hasEmpty = await modal
+      .getByText(/no connections found/i)
       .isVisible()
       .catch(() => false);
-    expect(hasCards || hasEmpty).toBe(true);
+    expect(hasConnections || hasEmpty).toBe(true);
   });
 });
