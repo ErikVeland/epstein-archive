@@ -43,7 +43,7 @@ export const entityConnectionsRepository = {
     entityId: number,
     opts: { limit?: number; minScore?: number } = {},
   ): Promise<EntityConnection[]> {
-    const limit = opts.limit ?? 50;
+    const limit = Math.min(opts.limit ?? 50, 500);
     const minScore = opts.minScore ?? 0;
 
     const { rows } = await getApiPool().query<ConnectionRow>(
@@ -77,8 +77,14 @@ export const entityConnectionsRepository = {
         s.fin_count, s.comm_count, s.flight_count, s.doc_count
       FROM signals s
       JOIN entities e ON e.id = s.other_id
-      LEFT JOIN entity_relationships er
-        ON er.source_entity_id = $1::bigint AND er.target_entity_id = s.other_id
+      LEFT JOIN LATERAL (
+        SELECT relationship_type, confidence
+        FROM entity_relationships
+        WHERE (source_entity_id = $1::bigint AND target_entity_id = s.other_id)
+           OR (target_entity_id = $1::bigint AND source_entity_id = s.other_id)
+        ORDER BY confidence DESC NULLS LAST
+        LIMIT 1
+      ) er ON true
       WHERE (s.rel_score + s.fin_score + s.comm_score + s.flight_score + s.doc_score) >= $2
       ORDER BY total_score DESC
       LIMIT $3
@@ -91,13 +97,13 @@ export const entityConnectionsRepository = {
       entityName: r.entity_name,
       entityType: r.entity_type,
       riskRating: Number(r.risk_rating),
-      communityId: r.community_id ? Number(r.community_id) : null,
+      communityId: r.community_id != null ? Number(r.community_id) : null,
       totalScore: Number(r.total_score),
       signals: {
         relationship: {
           score: Number(r.rel_score),
           type: r.rel_type,
-          confidence: r.rel_confidence ? Number(r.rel_confidence) : null,
+          confidence: r.rel_confidence != null ? Number(r.rel_confidence) : null,
         },
         financial: { score: Number(r.fin_score), count: Number(r.fin_count) },
         communications: { score: Number(r.comm_score), count: Number(r.comm_count) },
