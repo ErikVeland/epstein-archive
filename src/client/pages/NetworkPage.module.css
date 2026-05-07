@@ -1,0 +1,259 @@
+.root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Filter bar ─────────────────────────────────────────────────────────── */
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-panel, rgba(15, 23, 42, 0.8));
+  border-bottom: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 180px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-2);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  background: var(--surface-inset, rgba(0, 0, 0, 0.3));
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 6px);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  padding: var(--space-1) var(--space-2) var(--space-1) calc(var(--space-2) + 1.25rem);
+  outline: none;
+  width: 100%;
+  transition: border-color 150ms ease;
+}
+
+.searchInput:focus {
+  border-color: var(--accent-info, #06b6d4);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+/* ── Signal filter buttons ──────────────────────────────────────────────── */
+
+.signalFilters {
+  display: flex;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.signalButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md, 6px);
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.signalButton:hover {
+  background: var(--surface-hover, rgba(255, 255, 255, 0.05));
+  color: var(--text-primary);
+}
+
+.signalButtonActive {
+  background: var(--surface-active, rgba(6, 182, 212, 0.1));
+  border-color: var(--accent-info, #06b6d4);
+  color: var(--accent-info, #06b6d4);
+}
+
+.signalLabel {
+  white-space: nowrap;
+}
+
+/* ── Entity count ───────────────────────────────────────────────────────── */
+
+.entityCount {
+  margin-left: auto;
+}
+
+.countText {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.loadingText {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* ── Graph area ─────────────────────────────────────────────────────────── */
+
+.graphArea {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Loading state ──────────────────────────────────────────────────────── */
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-3);
+}
+
+.loadingMessage {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  margin: 0;
+}
+
+/* ── Selected entity panel ──────────────────────────────────────────────── */
+
+.entityPanel {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 260px;
+  background: var(--surface-glass, rgba(15, 23, 42, 0.88));
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-lg, 10px);
+  backdrop-filter: blur(12px);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  z-index: 20;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.entityPanelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.entityPanelMeta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.entityPanelName {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.entityPanelType {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm, 4px);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color 150ms ease;
+}
+
+.closeButton:hover {
+  color: var(--text-primary);
+}
+
+/* ── Connections list ───────────────────────────────────────────────────── */
+
+.connectionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.connectionsTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--space-1);
+}
+
+.connectionItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.05));
+}
+
+.connectionItem:last-child {
+  border-bottom: none;
+}
+
+.connectionName {
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connectionType {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ── Profile button ─────────────────────────────────────────────────────── */
+
+.profileButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+}
