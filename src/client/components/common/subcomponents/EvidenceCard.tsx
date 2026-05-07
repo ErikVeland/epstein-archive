@@ -6,6 +6,7 @@ import {
   isVisualMediaItem,
   resolveEntityPhotoUrl,
 } from '@client/utils/evidenceUtils';
+import { SignificanceBadge } from '@client/components/entities/SignificanceBadge';
 import s from './EvidenceCard.module.css';
 
 import { Button } from '@client/design-system/lib';
@@ -22,6 +23,7 @@ export interface EvidenceDocument {
   keyword?: string;
   dateCreated?: string;
   source_collection?: string;
+  significanceScore?: number | null;
 }
 
 export interface EvidenceCardProps {
@@ -111,6 +113,9 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
             <Icon name="AlertTriangle" size="xs" />
             High risk score in source.
           </span>
+        )}
+        {doc.significanceScore != null && doc.significanceScore > 0 && (
+          <SignificanceBadge score={doc.significanceScore} showLabel />
         )}
       </div>
     </article>

@@ -87,6 +87,7 @@ export interface EvidenceDocument {
   id?: string | number;
   title?: string;
   fileName?: string;
+  documentTitle?: string | null;
   content?: string;
   contentPreview?: string;
   evidenceType?: string;
@@ -94,6 +95,7 @@ export interface EvidenceDocument {
   keyword?: string;
   dateCreated?: string;
   source_collection?: string;
+  significanceScore?: number | null;
 }
 
 export interface InvestigationEntity {
@@ -229,7 +231,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const [isNextPageLoading, setIsNextPageLoading] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [docsInitialized, setDocsInitialized] = useState(false);
-  const [docFilters, setDocFilters] = useState({ search: '', source: 'all', sort: 'relevance' });
+  const [docFilters, setDocFilters] = useState({ search: '', source: 'all', sort: 'significance' });
 
   // Lazy load tabs
   const [tabsLoaded, setTabsLoaded] = useState<Set<string>>(new Set(['overview']));
@@ -405,7 +407,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         let newDocs: EvidenceDocument[] = [];
         let total = 0;
         const canUseEvidenceSummary =
-          page === 1 && docFilters.source === 'all' && docFilters.sort === 'relevance';
+          page === 1 &&
+          docFilters.source === 'all' &&
+          (docFilters.sort === 'significance' || docFilters.sort === 'relevance');
 
         const getEvidenceSummaryDocs = async () => {
           const fallback =

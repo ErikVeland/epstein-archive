@@ -217,6 +217,12 @@ export const normalizeEvidenceDocument = (
     redFlagRating: item.redFlagRating ?? item.red_flag_rating ?? item.risk_score ?? 0,
     source_collection: item.source_collection || item.collection,
     dateCreated: item.dateCreated || item.created_at,
+    significanceScore:
+      item.significanceScore != null
+        ? Number(item.significanceScore)
+        : item.significance_score != null
+          ? Number(item.significance_score)
+          : null,
   };
 };
 

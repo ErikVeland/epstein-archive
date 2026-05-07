@@ -1175,6 +1175,14 @@ export const entitiesRepository = {
         order:
           "substring(COALESCE(title, file_name) from 'Part ([0-9]+)')::int ASC NULLS LAST, date_created DESC NULLS LAST",
       },
+      significance: {
+        select: 'significance_score',
+        order: 'significance_score DESC NULLS LAST, date_created DESC NULLS LAST',
+      },
+      relevance: {
+        select: 'significance_score',
+        order: 'significance_score DESC NULLS LAST, date_created DESC NULLS LAST',
+      },
     };
 
     const sortConfig =
@@ -1196,7 +1204,8 @@ export const entitiesRepository = {
           d.content_preview,
           LEFT(d.content, 500)                    AS content,
           d.content_refined,
-          d.metadata_json
+          d.metadata_json,
+          d.significance_score
         FROM documents d
         WHERE ${whereParts.join(' AND ')}
         ORDER BY d.id
@@ -1222,6 +1231,7 @@ export const entitiesRepository = {
       content: row.content ?? null,
       content_refined: row.content_refined ?? null,
       metadata: row.metadata_json ?? null,
+      significanceScore: row.significance_score != null ? Number(row.significance_score) : null,
     }));
   },
 };
