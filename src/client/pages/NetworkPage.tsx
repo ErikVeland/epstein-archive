@@ -7,7 +7,7 @@ import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
 import { Button, Flex, Input, LqText, Surface } from '@client/design-system/lib';
 import { SignificanceBadge } from '@client/components/entities/SignificanceBadge';
 import { apiClient } from '@client/services/apiClient';
-import { EntityConnectionsResponse } from '@client/types/api';
+import { EntityConnectionsResponse, GlobalGraphResponse } from '@client/types/api';
 import styles from './NetworkPage.module.css';
 
 type SignalFilter = 'all' | 'financial' | 'flights' | 'communications' | 'relationships';
@@ -17,29 +17,6 @@ interface SelectedNode {
   name: string;
   type?: string;
   riskLevel: number;
-}
-
-interface GraphNode {
-  id: string;
-  label: string;
-  type?: string;
-  risk?: number;
-  connectionCount?: number;
-}
-
-interface GraphRelationship {
-  source: string;
-  target: string;
-  type?: string;
-  weight?: number;
-  confidence?: number;
-  classification?: string;
-  signalType?: string;
-}
-
-interface GlobalGraphResponse {
-  nodes: GraphNode[];
-  edges: GraphRelationship[];
 }
 
 const SIGNAL_FILTERS: { key: SignalFilter; label: string; icon: string }[] = [
@@ -75,7 +52,10 @@ export const NetworkPage: React.FC = () => {
 
   const { data: connectionsData } = useQuery<EntityConnectionsResponse>({
     queryKey: ['entityConnections', selectedNode?.id],
-    queryFn: () => apiClient.getEntityConnections(String(selectedNode?.id ?? ''), { limit: 3 }),
+    queryFn: () => {
+      if (!selectedNode) throw new Error('selectedNode is required');
+      return apiClient.getEntityConnections(String(selectedNode.id), { limit: 3 });
+    },
     enabled: !!selectedNode,
     staleTime: 60_000,
   });

@@ -83,3 +83,26 @@ export interface EntityByIdResponse {
   type?: string;
   redFlagDescription?: string;
 }
+
+export interface GraphNode {
+  id: string;
+  label: string;
+  type?: string;
+  risk?: number;
+  connectionCount?: number;
+}
+
+export interface GraphRelationship {
+  source: string;
+  target: string;
+  type?: string;
+  weight?: number;
+  confidence?: number;
+  classification?: string;
+  signalType?: string;
+}
+
+export interface GlobalGraphResponse {
+  nodes: GraphNode[];
+  edges: GraphRelationship[];
+}
