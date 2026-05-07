@@ -1,28 +1,15 @@
 import React from 'react';
 import type { PublicDocumentAnnotation } from '@shared/dto/annotations';
+import { annotationTokens } from '@client/design-system/lib';
 import styles from './PDFAnnotationOverlay.module.css';
 
 /**
  * Colour palette for annotation overlay highlights.
  * Values are translucent — subtle enough not to obscure the page text.
  */
-const FILL: Record<string, string> = {
-  highlight: 'rgba(212, 168,  75, 0.22)',
-  note: 'rgba(  6, 182, 212, 0.18)',
-  evidence: 'rgba( 52, 211, 153, 0.18)',
-  question: 'rgba(167, 139, 250, 0.18)',
-  contradiction: 'rgba(239,  68,  68, 0.20)',
-  tag: 'rgba(  6, 182, 212, 0.18)',
-};
+const FILL: Record<string, string> = annotationTokens.overlayFill;
 
-const STROKE: Record<string, string> = {
-  highlight: 'rgba(212, 168,  75, 0.50)',
-  note: 'rgba(  6, 182, 212, 0.38)',
-  evidence: 'rgba( 52, 211, 153, 0.38)',
-  question: 'rgba(167, 139, 250, 0.38)',
-  contradiction: 'rgba(239,  68,  68, 0.42)',
-  tag: 'rgba(  6, 182, 212, 0.38)',
-};
+const STROKE: Record<string, string> = annotationTokens.overlayStroke;
 
 interface PDFAnnotationOverlayProps {
   annotations: PublicDocumentAnnotation[];
@@ -70,8 +57,8 @@ export const PDFAnnotationOverlay: React.FC<PDFAnnotationOverlayProps> = ({
             top: `${(a.pdfY ?? 0) * 100}%`,
             width: `${(a.pdfWidth ?? 0) * 100}%`,
             height: `${(a.pdfHeight ?? 0) * 100}%`,
-            backgroundColor: FILL[a.type] ?? 'rgba(255, 255, 0, 0.2)',
-            borderColor: STROKE[a.type] ?? 'rgba(255, 255, 0, 0.4)',
+            backgroundColor: FILL[a.type] ?? annotationTokens.overlayFill.fallback,
+            borderColor: STROKE[a.type] ?? annotationTokens.overlayStroke.fallback,
           }}
           title={a.note ? `${a.type}: ${a.note}` : a.selectedText}
         />

@@ -26,6 +26,7 @@ export * from '../components/forms/NativeSelect';
 export * from '../components/feedback/Badge';
 export * from '../components/feedback/EmptyState';
 export * from '../../components/common/Skeleton';
+export * from '../components/navigation/AppNavigation';
 export * from '../components/navigation/Pagination';
 export * from '../components/interactive/Dialog';
 export * from '../components/interactive/DropdownMenu';

@@ -1,0 +1,327 @@
+.ds-shellActionButton {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding-left: 10px;
+  padding-right: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  appearance: none;
+  transition: all var(--duration-normal) var(--easing-liquid);
+}
+
+.ds-shellActionButton:hover {
+  padding-right: 16px;
+  background: var(--glass-bg-highlight);
+}
+
+.ds-shellActionButton:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, white);
+  outline-offset: 2px;
+}
+
+.ds-shellActionButton__label {
+  max-width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm, 14px);
+  opacity: 0;
+  white-space: nowrap;
+  transition: all var(--duration-normal) var(--easing-liquid);
+}
+
+.ds-shellActionButton:hover .ds-shellActionButton__label {
+  max-width: 20rem;
+  margin-left: var(--space-2);
+  opacity: 1;
+}
+
+.ds-appSegmentedNav {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  flex: 1 1 auto;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, transparent);
+  border-radius: 9999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(148, 163, 184, 0.015)),
+    color-mix(in srgb, var(--glass-bg-strong) 94%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 24px rgba(2, 6, 23, 0.26);
+  transition: color 200ms ease;
+}
+
+.ds-appSegmentedNav--normal,
+.ds-appSegmentedNav--compact,
+.ds-appSegmentedNav--icons {
+  height: 2.75rem;
+}
+
+.ds-appSegmentedNav__item {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.ds-appSegmentedNav__control {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  line-height: 1;
+  white-space: nowrap;
+  appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: color var(--duration-fast) var(--easing-liquid);
+}
+
+.ds-appSegmentedNav__control svg {
+  display: block;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.ds-appSegmentedNav__control::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 0;
+  background: var(--nav-theme-bg, var(--glass-bg-highlight));
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleY(0.85);
+  transition: all var(--duration-fast) var(--easing-liquid);
+}
+
+.ds-appSegmentedNav__control:hover::before,
+.ds-appSegmentedNav__control.is-active::before {
+  border: 1px solid var(--nav-theme-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+    var(--nav-theme-bg);
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.ds-appSegmentedNav__control.is-active {
+  color: var(--text-strong);
+}
+
+.ds-appSegmentedNav__control.is-active::before {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 10px 18px rgba(2, 6, 23, 0.16);
+}
+
+.ds-appSegmentedNav__item:first-child .ds-appSegmentedNav__control::before {
+  border-radius: 9999px 0 0 9999px;
+}
+
+.ds-appSegmentedNav__item:last-child .ds-appSegmentedNav__control::before {
+  border-radius: 0 9999px 9999px 0;
+}
+
+.ds-appSegmentedNav__control:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, white);
+  outline-offset: -2px;
+}
+
+.ds-appSegmentedNav__control--normal {
+  gap: 0.375rem;
+  padding: 0 0.875rem;
+}
+
+@media (min-width: 1024px) {
+  .ds-appSegmentedNav__control--normal {
+    padding: 0 var(--space-4);
+  }
+}
+
+.ds-appSegmentedNav__control--compact {
+  gap: 0.375rem;
+  padding: 0 0.5625rem;
+}
+
+.ds-appSegmentedNav__control--icons {
+  gap: 0;
+  padding: 0 var(--space-2);
+}
+
+.ds-appSegmentedNav__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.ds-appSegmentedNav__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ds-appSegmentedNav__control--people {
+  --nav-theme-border: var(--nav-people-border);
+  --nav-theme-bg: var(--nav-people-bg-hover);
+}
+
+.ds-appSegmentedNav__control--documents {
+  --nav-theme-border: var(--nav-documents-border);
+  --nav-theme-bg: var(--nav-documents-bg-hover);
+}
+
+.ds-appSegmentedNav__control--investigations {
+  --nav-theme-border: var(--nav-investigations-border);
+  --nav-theme-bg: var(--nav-investigations-bg-hover);
+}
+
+.ds-appSegmentedNav__control--timeline {
+  --nav-theme-border: var(--nav-timeline-border);
+  --nav-theme-bg: var(--nav-timeline-bg-hover);
+}
+
+.ds-appSegmentedNav__control--flights {
+  --nav-theme-border: var(--nav-flights-border);
+  --nav-theme-bg: var(--nav-flights-bg-hover);
+}
+
+.ds-appSegmentedNav__control--properties {
+  --nav-theme-border: var(--nav-properties-border);
+  --nav-theme-bg: var(--nav-properties-bg-hover);
+}
+
+.ds-appSegmentedNav__control--media {
+  --nav-theme-border: var(--nav-media-border);
+  --nav-theme-bg: var(--nav-media-bg-hover);
+}
+
+.ds-appSegmentedNav__control--emails {
+  --nav-theme-border: var(--nav-emails-border);
+  --nav-theme-bg: var(--nav-emails-bg-hover);
+}
+
+.ds-appSegmentedNav__control--blackbook {
+  --nav-theme-border: var(--nav-blackbook-border);
+  --nav-theme-bg: var(--nav-blackbook-bg-hover);
+}
+
+.ds-appSegmentedNav__control--analytics {
+  --nav-theme-border: var(--nav-analytics-border);
+  --nav-theme-bg: var(--nav-analytics-bg-hover);
+}
+
+.ds-appSegmentedNav__control--financial {
+  --nav-theme-border: var(--nav-financial-border);
+  --nav-theme-bg: var(--nav-financial-bg-hover);
+}
+
+.ds-appSegmentedNav__control--about {
+  --nav-theme-border: var(--nav-about-border);
+  --nav-theme-bg: var(--nav-about-bg-hover);
+}
+
+.ds-bottomNav {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-header, 40);
+  display: none;
+  align-items: center;
+  justify-content: space-around;
+  height: 64px;
+  padding: var(--space-1) var(--space-2);
+  padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong, rgba(15, 23, 42, 0.88));
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.ds-bottomNav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: var(--touch-target-min, 44px);
+  padding: var(--space-2) var(--space-3);
+  gap: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    color var(--duration-fast) var(--easing-swift),
+    transform var(--duration-fast) var(--easing-swift);
+}
+
+.ds-bottomNav__item:active {
+  transform: scale(0.95);
+}
+
+.ds-bottomNav__item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, white);
+  outline-offset: -2px;
+}
+
+.ds-bottomNav__item.is-active {
+  color: var(--accent);
+}
+
+.ds-bottomNav__icon {
+  opacity: 0.7;
+}
+
+.ds-bottomNav__item.is-active .ds-bottomNav__icon {
+  opacity: 1;
+}
+
+.ds-bottomNav__label {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--weight-medium, 500);
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .ds-bottomNav {
+    display: flex;
+  }
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .ds-bottomNav {
+    padding-bottom: calc(var(--space-1) + env(safe-area-inset-bottom));
+  }
+}

@@ -41,6 +41,10 @@
   color: #a78bfa; /* violet-400 */
 }
 
+.aiCardDecorationIcon {
+  color: var(--nav-media);
+}
+
 .aiCard:hover .aiCardDecoration {
   opacity: 0.2;
 }

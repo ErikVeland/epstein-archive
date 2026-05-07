@@ -38,7 +38,7 @@ import { isVisualMediaItem } from '@client/utils/evidenceUtils';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import type { ProvenanceDocument } from './ProvenancePanel';
 
-import { Button, cn } from '@client/design-system/lib';
+import { Button, NativeSelect, cn } from '@client/design-system/lib';
 
 export interface DocEntityRecord {
   id?: string | number;
@@ -554,13 +554,7 @@ export const DocumentModal: React.FC<Props> = ({
     return (
       <>
         {isEmail && (
-          <Box
-            p="md"
-            style={{
-              backgroundColor: 'var(--glass-bg-highlight)',
-              borderBottom: '1px solid var(--glass-border)',
-            }}
-          >
+          <Box p="md" className={styles.emailViewerBanner}>
             <Flex align="center" justify="between" gap="sm">
               <LqText variant="small">
                 This document is an email. For the best experience, use the specialized Email
@@ -666,7 +660,7 @@ export const DocumentModal: React.FC<Props> = ({
                 <label htmlFor="doc-mobile-tabs-select" className={styles.mobileTabsLabel}>
                   Section:
                 </label>
-                <select
+                <NativeSelect
                   id="doc-mobile-tabs-select"
                   className={styles.mobileTabsSelect}
                   value={activeTab}
@@ -689,7 +683,7 @@ export const DocumentModal: React.FC<Props> = ({
                       </option>
                     );
                   })}
-                </select>
+                </NativeSelect>
               </div>
 
               <div className={styles.desktopTabsContainer}>

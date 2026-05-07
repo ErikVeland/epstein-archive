@@ -1,5 +1,10 @@
 /* DocumentModal.module.css */
 
+.emailViewerBanner {
+  background-color: var(--glass-bg-highlight);
+  border-bottom: 1px solid var(--glass-border);
+}
+
 /* Overlay / backdrop */
 .overlay {
   position: fixed;

@@ -381,6 +381,11 @@
   border-bottom-color: var(--accent);
 }
 
+.entityProfileLink {
+  display: block;
+  text-decoration: none;
+}
+
 .hiddenOnMobile {
   display: none;
 }

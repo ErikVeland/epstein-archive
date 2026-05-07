@@ -16,7 +16,7 @@ import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { Box } from '@client/design-system/components/layout/Box';
 import { Flex } from '@client/design-system/components/layout/Flex';
 import { LqText } from '@client/design-system/components/typography/Text';
-import { Button } from '@client/design-system/lib';
+import { Button, annotationTokens } from '@client/design-system/lib';
 import styles from './DocumentUnifiedTab.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,14 +70,7 @@ interface DocumentUnifiedTabProps {
 // Annotation list panel (not exported — rendered inside ocr/pdf views)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ANNOT_COLORS: Record<string, string> = {
-  highlight: '#d4a84b',
-  note: '#06b6d4',
-  evidence: '#34d399',
-  question: '#a78bfa',
-  contradiction: '#ef4444',
-  tag: '#06b6d4',
-};
+const ANNOT_COLORS: Record<string, string> = annotationTokens.dot;
 
 const AnnotationListPanel: React.FC<{ annotations: PublicDocumentAnnotation[] }> = ({
   annotations,
@@ -102,7 +95,7 @@ const AnnotationListPanel: React.FC<{ annotations: PublicDocumentAnnotation[] }>
           <Flex align="center" gap="xs">
             <span
               className={styles.annotDot}
-              style={{ backgroundColor: ANNOT_COLORS[a.type] ?? '#888' }}
+              style={{ backgroundColor: ANNOT_COLORS[a.type] ?? annotationTokens.dot.fallback }}
             />
             <LqText variant="xs" weight="semibold">
               {a.type}
@@ -233,7 +226,9 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
         ).map(({ mode, label, icon }) => (
           <Button
             key={mode}
-            unstyled
+            type="button"
+            variant={effectiveMode === mode ? 'secondary' : 'ghost'}
+            size="sm"
             onClick={() => setViewMode(mode)}
             className={cn(styles.modeBtn, effectiveMode === mode && styles.modeBtnActive)}
             aria-pressed={effectiveMode === mode}
@@ -255,7 +250,9 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
           </LqText>
         )}
         <Button
-          unstyled
+          type="button"
+          variant={showAnnotations ? 'secondary' : 'ghost'}
+          size="sm"
           onClick={() => setShowAnnotations((v) => !v)}
           className={cn(styles.annotToggle, showAnnotations && styles.annotToggleActive)}
           aria-pressed={showAnnotations}

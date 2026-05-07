@@ -88,6 +88,14 @@
   white-space: nowrap;
 }
 
+.inlineIcon {
+  display: inline;
+}
+
+.addressIcon {
+  margin-right: var(--space-1);
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;

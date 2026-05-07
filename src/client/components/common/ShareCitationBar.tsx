@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Button } from '@client/design-system/lib';
 import Icon from './Icon';
 import styles from './ShareCitationBar.module.css';
 
@@ -46,35 +47,53 @@ export function ShareCitationBar({ title, citation, url, sourceUrl }: ShareCitat
 
   return (
     <div className={styles.bar}>
-      <button className={styles.button} type="button" onClick={handleNativeShare}>
+      <Button
+        variant="secondary"
+        size="sm"
+        className={styles.button}
+        type="button"
+        onClick={handleNativeShare}
+      >
         <Icon name="Share2" size="sm" />
         Share
-      </button>
-      <button className={styles.button} type="button" onClick={() => handleCopy('link', shareUrl)}>
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        className={styles.button}
+        type="button"
+        onClick={() => handleCopy('link', shareUrl)}
+      >
         <Icon name="Link" size="sm" />
         Copy Link
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
         className={styles.button}
         type="button"
         onClick={() => handleCopy('citation', citation)}
       >
         <Icon name="Quote" size="sm" />
         Copy Citation
-      </button>
-      <button
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
         className={styles.button}
         type="button"
         onClick={() => handleCopy('share', shareText)}
       >
         <Icon name="Clipboard" size="sm" />
         Copy Share Text
-      </button>
+      </Button>
       {sourceUrl && (
-        <a className={styles.button} href={sourceUrl}>
-          <Icon name="ExternalLink" size="sm" />
-          Open Source
-        </a>
+        <Button asChild variant="secondary" size="sm" className={styles.button}>
+          <a href={sourceUrl}>
+            <Icon name="ExternalLink" size="sm" />
+            Open Source
+          </a>
+        </Button>
       )}
       {copied && <span className={styles.copied}>Copied {copied}</span>}
     </div>

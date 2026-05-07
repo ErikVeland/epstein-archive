@@ -519,7 +519,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                   <Button
                     variant="glass-highlight"
                     size="sm"
-                    style={{ width: '100%' }}
                     onClick={() =>
                       navigate(
                         `/documents/${encodeURIComponent(String(currentImage.documentId))}`,
@@ -531,9 +530,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                     className={styles.provenanceLink}
                   >
                     <Icon name="FileImage" size="sm" />
-                    <span
-                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
+                    <span className={styles.provenanceLinkText}>
                       {currentImage.metadata?.['source_document']
                         ? String(currentImage.metadata['source_document'])
                         : `Document ID: ${currentImage.documentId}`}

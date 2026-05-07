@@ -48,9 +48,12 @@ import {
   Box,
   Button,
   Flex,
+  AppSegmentedNav,
+  AppSegmentedNavItem,
   Input,
   LqText,
   SearchField,
+  ShellActionButton,
   Stack,
   Surface,
   TooltipProvider,
@@ -1220,47 +1223,6 @@ function App() {
     [clearDateFilter, filters.timeRange, setFilters],
   );
 
-  const navThemeClassByTab: Record<string, string> = {
-    people: styles.navThemePeople,
-    documents: styles.navThemeDocuments,
-    investigations: styles.navThemeInvestigations,
-    timeline: styles.navThemeTimeline,
-    flights: styles.navThemeFlights,
-    properties: styles.navThemeProperties,
-    media: styles.navThemeMedia,
-    emails: styles.navThemeEmails,
-    blackbook: styles.navThemeBlackbook,
-    analytics: styles.navThemeAnalytics,
-    financial: styles.navThemeFinancial,
-    about: styles.navThemeAbout,
-  };
-  const getNavSegmentClass = (
-    tab: keyof typeof navThemeClassByTab,
-    isActive: boolean,
-    extraClass: string = '',
-  ) =>
-    cn(
-      styles.navSegmentBase,
-      navLayoutMode === 'icons'
-        ? styles.navSegmentIcons
-        : navLayoutMode === 'compact'
-          ? styles.navSegmentCompact
-          : styles.navSegmentNormal,
-      navThemeClassByTab[tab],
-      isActive && styles.navSegmentActive,
-      extraClass,
-    );
-  const navItemClass = styles.navItem;
-  const navLabelClass = navLayoutMode === 'icons' ? styles.navLabelHidden : styles.navLabelInline;
-  const navPillClass = cn(
-    styles.navPill,
-    navLayoutMode === 'compact'
-      ? styles.navPillCompact
-      : navLayoutMode === 'icons'
-        ? styles.navPillIcons
-        : styles.navPillNormal,
-  );
-
   useEffect(() => {
     const track = navTrackRef.current;
     if (!track) return;
@@ -1345,58 +1307,47 @@ function App() {
                       {!isMobile && (
                         <>
                           <div className={styles.buttonGroup}>
-                            <Button
-                              unstyled
+                            <ShellActionButton
                               onClick={() => navigate('/investigations')}
-                              className={styles.controlButton}
+                              icon="Plus"
+                              iconColor="white"
+                              label="New"
                               title="New Investigation"
-                            >
-                              <Icon name="Plus" size="sm" color="white" />
-                              <span className={styles.buttonText}>New</span>
-                            </Button>
+                            />
 
-                            <Button
-                              unstyled
+                            <ShellActionButton
                               onClick={() => setShowKeyboardShortcuts(true)}
-                              className={styles.controlButton}
+                              icon="Command"
+                              iconColor="info"
+                              label="Shortcuts"
                               title="Keyboard Shortcuts"
-                            >
-                              <Icon name="Command" size="sm" color="info" />
-                              <span className={styles.buttonText}>Shortcuts</span>
-                            </Button>
+                            />
 
-                            <Button
-                              unstyled
+                            <ShellActionButton
                               onClick={() => navigate('/about')}
-                              className={styles.controlButton}
+                              icon="Shield"
+                              iconColor="success"
+                              label="Sources"
                               title="Verified Sources"
-                            >
-                              <Icon name="Shield" size="sm" color="success" />
-                              <span className={styles.buttonText}>Sources</span>
-                            </Button>
+                            />
 
-                            <Button
-                              unstyled
+                            <ShellActionButton
                               onClick={() => setShowReleaseNotes(true)}
-                              className={styles.controlButton}
+                              icon="Book"
+                              iconColor="info"
+                              label="What's New"
                               title="What's New"
-                            >
-                              <Icon name="Book" size="sm" color="info" />
-                              <span className={styles.buttonText}>What's New</span>
-                            </Button>
+                            />
 
                             {isAdmin && (
-                              <Button
-                                unstyled
+                              <ShellActionButton
                                 onClick={() => navigate('/admin')}
-                                className={styles.controlButton}
+                                icon="Shield"
+                                iconClassName={styles.adminIcon}
+                                label="Admin"
+                                labelClassName={styles.adminButtonText}
                                 title="Admin Dashboard"
-                              >
-                                <Icon name="Shield" size="sm" className={styles.adminIcon} />
-                                <span className={cn(styles.buttonText, styles.adminButtonText)}>
-                                  Admin
-                                </span>
-                              </Button>
+                              />
                             )}
                           </div>
 
@@ -1556,237 +1507,204 @@ function App() {
                 <Box id="navigation" mb={6} className={styles.navShell}>
                   <div className={styles.navWrap}>
                     <div ref={navTrackRef} className={styles.navTrack}>
-                      <div className={cn(styles.navPillContainer, navPillClass)}>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/people')}
-                            className={getNavSegmentClass('people', activeTab === 'people')}
-                          >
-                            <Icon name="Users" size="sm" />
-                            <span className={navLabelClass}>People</span>
-                          </Button>
-                        </div>
-                        <div className={cn(styles.navItemRelative, navItemClass)}>
-                          <Button
-                            unstyled
-                            onClick={() => {
-                              try {
-                                localStorage.setItem('investigate_attract_shown', 'true');
-                                localStorage.setItem('investigate_popover_dismissed', 'true');
-                              } catch {
-                                // Ignore localStorage access errors.
-                              }
-                              setInvestigateAttract(false);
-                              setInvestigatePopoverOpen(false);
-                              navigate('/investigations');
-                            }}
-                            className={getNavSegmentClass(
-                              'investigations',
-                              activeTab === 'investigations',
-                              investigateAttract && activeTab !== 'investigations'
-                                ? styles.investigationPulse
-                                : '',
-                            )}
-                            aria-haspopup="dialog"
-                            aria-expanded={investigatePopoverOpen}
-                            ref={investigateBtnRef}
-                            data-investigation-nav-top
-                          >
-                            <Icon name="Target" size="sm" />
-                            <span className={navLabelClass}>Investigations</span>
-                          </Button>
-                          {investigatePopoverOpen &&
-                            activeTab !== 'investigations' &&
-                            investigatePopoverPos.x !== 0 &&
-                            createPortal(
-                              <Surface
-                                variant="glass-strong"
-                                p={4}
-                                style={{
-                                  position: 'fixed',
-                                  width: '320px',
-                                  left: investigatePopoverPos.x,
-                                  top: investigatePopoverPos.y,
-                                  zIndex: 50,
-                                }}
-                                className={styles.popoverSurface}
-                              >
-                                <div
-                                  className={styles.popoverPointer}
-                                  style={{ left: `${investigateArrowLeft}px` }}
-                                >
-                                  <div className={styles.popoverPointerDiamond}></div>
-                                </div>
-                                <Box mb={1}>
-                                  <LqText weight="semibold">Investigations</LqText>
-                                </Box>
-                                <Box mb={3}>
-                                  <LqText variant="small" color="secondary">
-                                    Create and manage deep-dive investigations, link evidence, and
-                                    track findings.
-                                  </LqText>
-                                </Box>
-                                <Flex align="center" gap={2}>
-                                  <Button
-                                    unstyled
-                                    className={styles.popoverButton}
-                                    onClick={() => {
-                                      try {
-                                        localStorage.setItem(
-                                          'investigate_popover_dismissed',
-                                          'true',
-                                        );
-                                      } catch {
-                                        // Ignore localStorage access errors.
-                                      }
-                                      setInvestigatePopoverOpen(false);
-                                      setInvestigateAttract(false);
-                                    }}
-                                  >
-                                    Got it
-                                  </Button>
-                                  <Button
-                                    unstyled
-                                    className={cn(
-                                      styles.popoverButton,
-                                      styles.popoverButtonPrimary,
-                                    )}
-                                    onClick={() => {
-                                      try {
-                                        localStorage.setItem(
-                                          'investigate_popover_dismissed',
-                                          'true',
-                                        );
-                                        localStorage.setItem('investigate_attract_shown', 'true');
-                                      } catch {
-                                        // Ignore localStorage access errors.
-                                      }
-                                      setInvestigatePopoverOpen(false);
-                                      setInvestigateAttract(false);
-                                      navigate('/investigations');
-                                    }}
-                                  >
-                                    Try it
-                                  </Button>
-                                </Flex>
-                              </Surface>,
-                              document.body,
-                            )}
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/documents')}
-                            className={getNavSegmentClass('documents', activeTab === 'documents')}
-                          >
-                            <Icon name="FileText" size="sm" />
-                            <span className={navLabelClass}>Documents</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/media')}
-                            onMouseEnter={() => {
-                              preloader.prefetchJson('/api/media/albums');
-                              preloader.prefetchJson('/api/media/images?limit=24');
-                            }}
-                            className={getNavSegmentClass('media', activeTab === 'media')}
-                          >
-                            <Icon name="Newspaper" size="sm" />
-                            <span className={navLabelClass}>Media</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/emails')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/emails')}
-                            className={getNavSegmentClass('emails', activeTab === 'emails')}
-                          >
-                            <Icon name="Mail" size="sm" />
-                            <span className={navLabelClass}>Emails</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/flights')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/flights')}
-                            className={getNavSegmentClass('flights', activeTab === 'flights')}
-                          >
-                            <Icon name="Navigation" size="sm" />
-                            <span className={navLabelClass}>Flights</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/properties')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
-                            className={getNavSegmentClass('properties', activeTab === 'properties')}
-                          >
-                            <Icon name="Building" size="sm" />
-                            <span className={navLabelClass}>Properties</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/blackbook')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
-                            className={getNavSegmentClass('blackbook', activeTab === 'blackbook')}
-                          >
-                            <Icon name="BookOpen" size="sm" />
-                            <span className={navLabelClass}>Black Book</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/timeline')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
-                            className={getNavSegmentClass('timeline', activeTab === 'timeline')}
-                          >
-                            <Icon name="Clock" size="sm" />
-                            <span className={navLabelClass}>Timeline</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/financial')}
-                            onMouseEnter={() =>
-                              preloader.prefetchJson('/api/financial/transactions?limit=100')
+                      <AppSegmentedNav density={navLayoutMode}>
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/people')}
+                          tone="people"
+                          active={activeTab === 'people'}
+                          density={navLayoutMode}
+                          icon="Users"
+                          label="People"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => {
+                            try {
+                              localStorage.setItem('investigate_attract_shown', 'true');
+                              localStorage.setItem('investigate_popover_dismissed', 'true');
+                            } catch {
+                              // Ignore localStorage access errors.
                             }
-                            className={getNavSegmentClass('financial', activeTab === 'financial')}
-                          >
-                            <Icon name="DollarSign" size="sm" />
-                            <span className={navLabelClass}>Financial</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/analytics')}
-                            className={getNavSegmentClass('analytics', activeTab === 'analytics')}
-                          >
-                            <Icon name="BarChart3" size="sm" />
-                            <span className={navLabelClass}>Analytics</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/about')}
-                            className={getNavSegmentClass('about', activeTab === 'about')}
-                          >
-                            <Icon name="Shield" size="sm" />
-                            <span className={navLabelClass}>About</span>
-                          </Button>
-                        </div>
-                      </div>
+                            setInvestigateAttract(false);
+                            setInvestigatePopoverOpen(false);
+                            navigate('/investigations');
+                          }}
+                          tone="investigations"
+                          active={activeTab === 'investigations'}
+                          density={navLayoutMode}
+                          icon="Target"
+                          label="Investigations"
+                          wrapperClassName={styles.navItemRelative}
+                          className={cn(
+                            investigateAttract && activeTab !== 'investigations'
+                              ? styles.investigationPulse
+                              : '',
+                          )}
+                          aria-haspopup="dialog"
+                          aria-expanded={investigatePopoverOpen}
+                          ref={investigateBtnRef}
+                          data-investigation-nav-top
+                        />
+                        {investigatePopoverOpen &&
+                          activeTab !== 'investigations' &&
+                          investigatePopoverPos.x !== 0 &&
+                          createPortal(
+                            <Surface
+                              variant="glass-strong"
+                              p={4}
+                              style={{
+                                position: 'fixed',
+                                width: '320px',
+                                left: investigatePopoverPos.x,
+                                top: investigatePopoverPos.y,
+                                zIndex: 50,
+                              }}
+                              className={styles.popoverSurface}
+                            >
+                              <div
+                                className={styles.popoverPointer}
+                                style={{ left: `${investigateArrowLeft}px` }}
+                              >
+                                <div className={styles.popoverPointerDiamond}></div>
+                              </div>
+                              <Box mb={1}>
+                                <LqText weight="semibold">Investigations</LqText>
+                              </Box>
+                              <Box mb={3}>
+                                <LqText variant="small" color="secondary">
+                                  Create and manage deep-dive investigations, link evidence, and
+                                  track findings.
+                                </LqText>
+                              </Box>
+                              <Flex align="center" gap={2}>
+                                <Button
+                                  unstyled
+                                  className={styles.popoverButton}
+                                  onClick={() => {
+                                    try {
+                                      localStorage.setItem('investigate_popover_dismissed', 'true');
+                                    } catch {
+                                      // Ignore localStorage access errors.
+                                    }
+                                    setInvestigatePopoverOpen(false);
+                                    setInvestigateAttract(false);
+                                  }}
+                                >
+                                  Got it
+                                </Button>
+                                <Button
+                                  unstyled
+                                  className={cn(styles.popoverButton, styles.popoverButtonPrimary)}
+                                  onClick={() => {
+                                    try {
+                                      localStorage.setItem('investigate_popover_dismissed', 'true');
+                                      localStorage.setItem('investigate_attract_shown', 'true');
+                                    } catch {
+                                      // Ignore localStorage access errors.
+                                    }
+                                    setInvestigatePopoverOpen(false);
+                                    setInvestigateAttract(false);
+                                    navigate('/investigations');
+                                  }}
+                                >
+                                  Try it
+                                </Button>
+                              </Flex>
+                            </Surface>,
+                            document.body,
+                          )}
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/documents')}
+                          tone="documents"
+                          active={activeTab === 'documents'}
+                          density={navLayoutMode}
+                          icon="FileText"
+                          label="Documents"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/media')}
+                          onMouseEnter={() => {
+                            preloader.prefetchJson('/api/media/albums');
+                            preloader.prefetchJson('/api/media/images?limit=24');
+                          }}
+                          tone="media"
+                          active={activeTab === 'media'}
+                          density={navLayoutMode}
+                          icon="Newspaper"
+                          label="Media"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/emails')}
+                          onMouseEnter={() => preloader.prefetchJson('/api/emails')}
+                          tone="emails"
+                          active={activeTab === 'emails'}
+                          density={navLayoutMode}
+                          icon="Mail"
+                          label="Emails"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/flights')}
+                          onMouseEnter={() => preloader.prefetchJson('/api/flights')}
+                          tone="flights"
+                          active={activeTab === 'flights'}
+                          density={navLayoutMode}
+                          icon="Navigation"
+                          label="Flights"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/properties')}
+                          onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
+                          tone="properties"
+                          active={activeTab === 'properties'}
+                          density={navLayoutMode}
+                          icon="Building"
+                          label="Properties"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/blackbook')}
+                          onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
+                          tone="blackbook"
+                          active={activeTab === 'blackbook'}
+                          density={navLayoutMode}
+                          icon="BookOpen"
+                          label="Black Book"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/timeline')}
+                          onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
+                          tone="timeline"
+                          active={activeTab === 'timeline'}
+                          density={navLayoutMode}
+                          icon="Clock"
+                          label="Timeline"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/financial')}
+                          onMouseEnter={() =>
+                            preloader.prefetchJson('/api/financial/transactions?limit=100')
+                          }
+                          tone="financial"
+                          active={activeTab === 'financial'}
+                          density={navLayoutMode}
+                          icon="DollarSign"
+                          label="Financial"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/analytics')}
+                          tone="analytics"
+                          active={activeTab === 'analytics'}
+                          density={navLayoutMode}
+                          icon="BarChart3"
+                          label="Analytics"
+                        />
+                        <AppSegmentedNavItem
+                          onClick={() => navigate('/about')}
+                          tone="about"
+                          active={activeTab === 'about'}
+                          density={navLayoutMode}
+                          icon="Shield"
+                          label="About"
+                        />
+                      </AppSegmentedNav>
                     </div>
                     {navEdgeFade.left && (
                       <div className={cn(styles.navEdgeFade, styles.navEdgeFadeLeft)} />
@@ -1849,8 +1767,10 @@ function App() {
                         ) : (
                           <Surface
                             variant="panel"
-                            className={styles.mobileSearchEmptyState}
-                            style={{ marginTop: '1rem' }}
+                            className={cn(
+                              styles.mobileSearchEmptyState,
+                              styles.mobileSearchEmptyStateOffset,
+                            )}
                           >
                             <LqText variant="small" color="secondary">
                               Search people, evidence, and document excerpts.
@@ -1859,7 +1779,7 @@ function App() {
                         )}
                       </div>
 
-                      <div className={styles.divider} style={{ margin: '0.5rem 0' }} />
+                      <div className={cn(styles.divider, styles.mobileFilterDivider)} />
 
                       <div className={styles.mobileDateSection}>
                         <LqText

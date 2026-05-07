@@ -5,7 +5,7 @@ import './Button.css';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
-  /** When true, suppresses all DS classes/attributes — only the consumer's className is applied. */
+  /** Deprecated compatibility prop. DS button styling is always applied. */
   unstyled?: boolean;
   variant?:
     | 'primary'

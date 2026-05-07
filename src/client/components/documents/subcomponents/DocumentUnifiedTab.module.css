@@ -25,27 +25,12 @@
 }
 
 .modeBtn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  background: transparent;
   color: var(--text-muted);
-  font-size: var(--type-xs);
-  font-weight: var(--weight-medium);
   letter-spacing: 0.04em;
-  transition:
-    color 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease;
-  white-space: nowrap;
 }
 
 .modeBtn:hover {
   color: var(--text-primary);
-  background: color-mix(in srgb, var(--glass-bg-highlight) 60%, transparent);
 }
 
 .modeBtnActive {
@@ -69,24 +54,11 @@
 }
 
 .annotToggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1-5);
-  padding: var(--space-1-5) var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--glass-border);
-  background: transparent;
   color: var(--text-muted);
-  font-size: var(--type-xs);
-  transition:
-    color 0.15s ease,
-    background 0.15s ease,
-    border-color 0.15s ease;
 }
 
 .annotToggle:hover {
   color: var(--text-primary);
-  background: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
 }
 
 .annotToggleActive {

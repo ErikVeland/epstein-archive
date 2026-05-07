@@ -152,15 +152,33 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
 
   const exportActions = (
     <div className={styles.exportButtons}>
-      <button type="button" onClick={exportReport} className={styles.exportButton}>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={exportReport}
+        className={styles.exportButton}
+      >
         Export Report
-      </button>
-      <button type="button" onClick={exportCsv} className={styles.exportButton}>
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={exportCsv}
+        className={styles.exportButton}
+      >
         Export CSV
-      </button>
-      <button type="button" onClick={openPrintable} className={styles.exportButton}>
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        onClick={openPrintable}
+        className={styles.exportButton}
+      >
         Printable PDF
-      </button>
+      </Button>
     </div>
   );
 

@@ -561,6 +561,13 @@
   background: var(--glass-bg-highlight);
   border: 1px solid var(--glass-border);
   transition: all 0.2s ease;
+  width: 100%;
+}
+
+.provenanceLinkText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .provenanceLink:hover {

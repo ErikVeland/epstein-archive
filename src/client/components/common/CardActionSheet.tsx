@@ -1,5 +1,6 @@
 import { SheetDialog } from './SheetDialog';
 import Icon from './Icon';
+import { Button } from '@client/design-system/lib';
 import styles from './CardActionSheet.module.css';
 import type { IconName } from './Icon';
 
@@ -34,9 +35,11 @@ export function CardActionSheet({ open, onClose, title, actions }: CardActionShe
     >
       <div className={styles.list}>
         {actions.map((action) => (
-          <button
+          <Button
             key={action.label}
             type="button"
+            variant={action.destructive ? 'danger' : 'ghost'}
+            size="md"
             className={`${styles.row} ${action.destructive ? styles.destructive : ''}`}
             onClick={() => {
               onClose();
@@ -45,7 +48,7 @@ export function CardActionSheet({ open, onClose, title, actions }: CardActionShe
           >
             <Icon name={action.icon} size="sm" className={styles.rowIcon} />
             <span className={styles.rowLabel}>{action.label}</span>
-          </button>
+          </Button>
         ))}
       </div>
     </SheetDialog>

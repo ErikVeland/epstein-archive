@@ -225,8 +225,11 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
               );
             })}
             {remainingMediaCount > 0 && (
-              <button
+              <Button
                 type="button"
+                unstyled
+                variant="ghost"
+                size="sm"
                 className={s.moreMediaButton}
                 onClick={() =>
                   setVisibleMediaCount((count) =>
@@ -236,7 +239,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                 aria-label={`Load ${Math.min(remainingMediaCount, MEDIA_PREVIEW_BATCH_SIZE)} more media items`}
               >
                 +{remainingMediaCount} More
-              </button>
+              </Button>
             )}
           </div>
         </div>

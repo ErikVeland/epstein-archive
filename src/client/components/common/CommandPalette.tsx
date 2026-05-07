@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
+import { Button, Input } from '@client/design-system/lib';
 import styles from './CommandPalette.module.css';
 
 interface Command {
@@ -239,7 +240,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       <div className={styles.palette} onClick={(e) => e.stopPropagation()}>
         <div className={styles.searchBox}>
           <Icon name="Search" className={styles.searchIcon} />
-          <input
+          <Input
             ref={inputRef}
             type="text"
             placeholder="Type a command or search..."
@@ -264,7 +265,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                 {group.commands.map((cmd) => {
                   const currentIndex = commandIndex++;
                   return (
-                    <button
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="md"
                       key={cmd.id}
                       className={`${styles.commandItem} ${currentIndex === selectedIndex ? styles.commandItemSelected : ''}`}
                       onClick={() => {
@@ -282,7 +286,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                         )}
                       </div>
                       {currentIndex === selectedIndex && <kbd className={styles.kbd}>Enter</kbd>}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

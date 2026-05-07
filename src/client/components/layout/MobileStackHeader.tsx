@@ -57,13 +57,16 @@ export const MobileStackHeader: React.FC<MobileStackHeaderProps> = ({
                       </span>
                     )}
                     {item.onClick ? (
-                      <button
+                      <Button
                         type="button"
+                        unstyled
+                        variant="ghost"
+                        size="sm"
                         onClick={item.onClick}
                         className={styles.breadcrumbLink}
                       >
                         {item.label}
-                      </button>
+                      </Button>
                     ) : (
                       <span className={styles.breadcrumbCurrent}>{item.label}</span>
                     )}

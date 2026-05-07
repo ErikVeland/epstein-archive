@@ -6,7 +6,7 @@ import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceModalHeader.module.css';
 import { FlagButton } from '@client/components/common/FlagButton';
 
-import { Button } from '@client/design-system/lib';
+import { Button, NativeSelect } from '@client/design-system/lib';
 
 interface EvidenceEntity {
   id?: string | number;
@@ -203,7 +203,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
         <label htmlFor="mobile-tabs-select" className={s.mobileTabsLabel}>
           Section:
         </label>
-        <select
+        <NativeSelect
           id="mobile-tabs-select"
           className={s.mobileTabsSelect}
           value={activeTab}
@@ -214,7 +214,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
               {tab.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
 
       <div className={s.desktopTabsContainer}>

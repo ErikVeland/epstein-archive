@@ -101,11 +101,11 @@ export const EntityPropertiesTab: React.FC<EntityPropertiesTabProps> = ({ entity
             <div key={prop.id} className={s.card}>
               <div className={s.cardTop}>
                 <div className={s.address}>
-                  <Icon name="MapPin" size="xs" style={{ display: 'inline', marginRight: 4 }} />
+                  <Icon name="MapPin" size="xs" className={`${s.inlineIcon} ${s.addressIcon}`} />
                   {prop.site_address || prop.street_name || 'Address unavailable'}
                 </div>
                 <div className={s.value}>
-                  <Icon name="DollarSign" size="xs" style={{ display: 'inline' }} />
+                  <Icon name="DollarSign" size="xs" className={s.inlineIcon} />
                   {formatCurrency(prop.total_tax_value)}
                 </div>
               </div>

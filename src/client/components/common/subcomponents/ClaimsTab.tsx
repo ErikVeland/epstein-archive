@@ -5,6 +5,7 @@ import { apiClient } from '@client/services/apiClient';
 import { Box } from '@client/design-system/components/layout/Box';
 import { LqText } from '@client/design-system/components/typography/Text';
 import { Surface } from '@client/design-system/components/surfaces/Surface';
+import { Button, Input } from '@client/design-system/lib';
 import { ConfidenceBadge } from '@client/components/common/ConfidenceBadge';
 import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
 import { ShareCitationBar } from '@client/components/common/ShareCitationBar';
@@ -277,7 +278,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
               <div className={styles.actions}>
                 {rejectingId === claim.id ? (
                   <div className={styles.rejectInline}>
-                    <input
+                    <Input
                       className={styles.rejectInput}
                       type="text"
                       placeholder="Reason for rejection..."
@@ -296,7 +297,10 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
                       }}
                       autoFocus
                     />
-                    <button
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
                       className={styles.rejectBtn}
                       onClick={() => {
                         verifyMutation.mutate({ id: claim.id, status: 2, reason: rejectReason });
@@ -305,8 +309,11 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
                       }}
                     >
                       Confirm
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       className={styles.cancelBtn}
                       onClick={() => {
                         setRejectingId(null);
@@ -314,11 +321,14 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
                       }}
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <>
-                    <button
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
                       className={styles.rejectBtn}
                       onClick={() => {
                         setRejectingId(claim.id);
@@ -326,13 +336,16 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
                       }}
                     >
                       Reject
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
                       className={styles.verifyBtn}
                       onClick={() => verifyMutation.mutate({ id: claim.id, status: 1 })}
                     >
                       Verify Claim
-                    </button>
+                    </Button>
                   </>
                 )}
               </div>

@@ -225,7 +225,7 @@ const tailwindUtilityPattern =
   /className\s*=\s*(?:\{\s*)?["'`][^"'`\n\r]*\b(flex|grid|items-center|items-start|justify-between|justify-center|gap-\d|p-\d|px-\d|py-\d|pt-\d|pb-\d|m-\d|mx-\d|my-\d|mt-\d|mb-\d|w-full|h-\d|text-(?:xs|sm|base|lg|xl)|font-(?:medium|bold|semibold|mono)|rounded(?:-(?:md|lg|xl|full|sm))?|overflow-(?:hidden|auto|scroll)|absolute|relative|hidden|block|inline-flex|inline-block|truncate|uppercase|transition-)\b[^"'`\n\r]*["'`]/;
 const deprecatedUiImportPattern = /from\s+['"][^'"]*components\/ui(?:\/[^'"]+)?['"]/g;
 const bannedPresentationClassPattern =
-  /\b(surface-glass(?:-card|-header|-strong)?|glass-panel|app-header-glass|modal-header|control)\b/g;
+  /className\s*=\s*(?:\{\s*)?["'`][^"'`\n\r]*\b(surface-glass(?:-card|-header|-strong)?|glass-panel|app-header-glass|modal-header|control)\b/g;
 const rawInteractivePattern = /<(button|input|select|textarea)\b/g;
 const presentationalInlineStylePattern =
   /style\s*=\s*\{\{[^}]*\b(background|border|padding|margin|color|boxShadow|display|alignItems|justifyContent|textAlign|overflow)\b[^}]*\}\}/g;

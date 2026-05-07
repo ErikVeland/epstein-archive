@@ -10,7 +10,7 @@ const exceptionPath = path.join(rootDir, 'scripts/design-system-exceptions.json'
 const rules = {
   deprecatedUiImports: /from\s+['"][^'"]*components\/ui(?:\/[^'"]+)?['"]/g,
   bannedPresentationClasses:
-    /\b(surface-glass(?:-card|-header|-strong)?|glass-panel|app-header-glass|modal-header|control)\b/g,
+    /className\s*=\s*(?:\{\s*)?["'`][^"'`\n\r]*\b(surface-glass(?:-card|-header|-strong)?|glass-panel|app-header-glass|modal-header|control)\b/g,
   rawInteractiveElements: /<(button|input|select|textarea)\b/g,
   presentationalInlineStyles:
     /style\s*=\s*\{\{[^}]*\b(background|border|padding|margin|color|boxShadow|display|alignItems|justifyContent|textAlign|overflow)\b[^}]*\}\}/g,

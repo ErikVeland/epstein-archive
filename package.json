@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "20.4.0",
+  "version": "20.5.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -66,6 +66,7 @@
     "hygiene:clean": "bash scripts/cleanup_llm_artifacts.sh",
     "ci:pg:nuclear": "bash scripts/ci_pg_nuclear_gates.sh",
     "db:check": "node -e 'const { Client } = require(\"pg\"); const client = new Client({ connectionString: process.env.DATABASE_URL }); client.connect().then(() => { console.log(\"✅ DB OK\"); client.end(); process.exit(0); }).catch((e) => { console.error(\"❌ DB Fail:\", e.message); process.exit(1); });'",
+    "db:compute:significance": "tsx scripts/compute_document_significance.ts",
     "schema:hash:check": "tsx scripts/pg_schema_hash.ts check",
     "schema:hash:update": "tsx scripts/pg_schema_hash.ts update",
     "prepare": "husky",

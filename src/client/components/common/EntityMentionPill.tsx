@@ -1,5 +1,6 @@
 import React from 'react';
 import Icon from '@client/components/common/Icon';
+import { Button } from '@client/design-system/lib';
 import s from './EntityMentionPill.module.css';
 
 interface EntityMentionPillProps {
@@ -37,14 +38,16 @@ export const EntityMentionPill: React.FC<EntityMentionPillProps> = ({
   };
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="sm"
       className={`${s.pill}${className ? ` ${className}` : ''}`}
       onClick={handleClick}
       title={`View profile: ${entityName}`}
     >
       {showIcon && <Icon name="User" size="xs" className={s.icon} />}
       {entityName}
-    </button>
+    </Button>
   );
 };

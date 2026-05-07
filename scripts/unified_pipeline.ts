@@ -459,22 +459,81 @@ async function runGraphPhase(): Promise<{ subPhasesRun: number }> {
   console.log('🕸️  PHASE 4: GRAPH EXTRACTION (Relations, Timeline, Financial, Triples)');
   console.log('='.repeat(70));
 
+  // Each entry mirrors the WHERE clause used by the corresponding extraction script
+  // so we can accurately count pending docs before/after each sub-phase.
   const subPhases = [
-    { script: 'scripts/extract_directed_relations.ts', label: '4a: Directed Relations' },
-    { script: 'scripts/extract_timeline_events.ts', label: '4b: Timeline Events' },
-    { script: 'scripts/extract_financial_transactions.ts', label: '4c: Financial Transactions' },
-    { script: 'scripts/extract_claim_triples.ts', label: '4d: Claim Triples' },
+    {
+      script: 'scripts/extract_directed_relations.ts',
+      label: '4a: Directed Relations',
+      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
+                     AND (metadata_json IS NULL OR metadata_json->>'graph_relations_at' IS NULL)`,
+    },
+    {
+      script: 'scripts/extract_timeline_events.ts',
+      label: '4b: Timeline Events',
+      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
+                     AND (metadata_json IS NULL OR metadata_json->>'graph_timeline_at' IS NULL)`,
+    },
+    {
+      script: 'scripts/extract_financial_transactions.ts',
+      label: '4c: Financial Transactions',
+      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
+                     AND (metadata_json IS NULL OR metadata_json->>'graph_financial_at' IS NULL)`,
+    },
+    {
+      script: 'scripts/extract_claim_triples.ts',
+      label: '4d: Claim Triples',
+      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
+                     AND (metadata_json IS NULL OR metadata_json->>'graph_triples_at' IS NULL)`,
+    },
   ];
 
+  const pool = getIngestPool();
+  const graphStartedAt = new Date().toISOString();
+
+  // Sum all pending docs across all sub-phases to get the total scope
+  let graphTotal = 0;
+  for (const sp of subPhases) {
+    try {
+      const { rows } = await pool.query(sp.pendingQuery);
+      graphTotal += Number(rows[0]?.n ?? 0);
+    } catch {
+      /* non-fatal */
+    }
+  }
+
+  let graphProcessed = 0; // cumulative docs completed across finished sub-phases
+
   let ran = 0;
-  for (const { script, label } of subPhases) {
+  for (const { script, label, pendingQuery } of subPhases) {
     if (shuttingDown) break;
-    console.log(`\n   ▶ ${label}`);
-    updateHeartbeat({ phase: `Graph: ${label}` });
+
+    let subPhaseRemaining = 0;
+    try {
+      const { rows } = await pool.query(pendingQuery);
+      subPhaseRemaining = Number(rows[0]?.n ?? 0);
+    } catch {
+      /* non-fatal */
+    }
+
+    console.log(`\n   ▶ ${label} (${subPhaseRemaining.toLocaleString()} docs pending)`);
+    updateHeartbeat({ phase: `Graph: ${label}`, graphProcessed, graphTotal, graphStartedAt });
+
     const code = await runScript(script);
     if (code !== 0) {
       console.warn(`   ⚠️  ${label} exited with code ${code} — continuing`);
     }
+
+    // Measure actual progress by comparing before/after pending counts
+    try {
+      const { rows } = await pool.query(pendingQuery);
+      const stillPending = Number(rows[0]?.n ?? 0);
+      graphProcessed += Math.max(0, subPhaseRemaining - stillPending);
+    } catch {
+      graphProcessed += subPhaseRemaining; // best-effort fallback
+    }
+
+    updateHeartbeat({ graphProcessed, graphTotal, graphStartedAt });
     ran++;
   }
 

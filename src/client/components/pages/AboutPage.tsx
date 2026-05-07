@@ -760,7 +760,10 @@ export const AboutPage: React.FC = () => {
                   <div className={s.pipelineControlBar}>
                     <div className={s.controlButtons}>
                       {pipelineStatus.current_run.status === 'running' ? (
-                        <button
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
                           className={s.controlBtnPause}
                           onClick={() => handlePipelineControl('pause')}
                           disabled={pipelineStatus.current_run.control_signal === 'pause'}
@@ -769,17 +772,23 @@ export const AboutPage: React.FC = () => {
                           {pipelineStatus.current_run.control_signal === 'pause'
                             ? 'Pausing...'
                             : 'Pause Ingestion'}
-                        </button>
+                        </Button>
                       ) : pipelineStatus.current_run.status === 'paused' ? (
-                        <button
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
                           className={s.controlBtnResume}
                           onClick={() => handlePipelineControl('resume')}
                         >
                           <Icon name="Play" size="sm" /> Resume Ingestion
-                        </button>
+                        </Button>
                       ) : null}
 
-                      <button
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
                         className={s.controlBtnStop}
                         onClick={() => handlePipelineControl('stop')}
                         disabled={pipelineStatus.current_run.control_signal === 'stop'}
@@ -788,7 +797,7 @@ export const AboutPage: React.FC = () => {
                         {pipelineStatus.current_run.control_signal === 'stop'
                           ? 'Stopping...'
                           : 'Stop Pipeline'}
-                      </button>
+                      </Button>
                     </div>
                     {pipelineStatus.current_run.control_signal && (
                       <span className={s.signalPending}>

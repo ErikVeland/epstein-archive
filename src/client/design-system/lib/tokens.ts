@@ -57,3 +57,33 @@ export const semanticChartTokens = {
     hover: 'color-mix(in srgb, var(--glass-bg-strong) 84%, transparent)',
   },
 } as const;
+
+export const annotationTokens = {
+  dot: {
+    highlight: 'var(--accent)',
+    note: 'var(--accent-info)',
+    evidence: 'var(--accent-success)',
+    question: 'var(--nav-media)',
+    contradiction: 'var(--accent-danger)',
+    tag: 'var(--accent-info)',
+    fallback: 'var(--text-muted)',
+  },
+  overlayFill: {
+    highlight: 'color-mix(in srgb, var(--accent) 22%, transparent)',
+    note: 'color-mix(in srgb, var(--accent-info) 18%, transparent)',
+    evidence: 'color-mix(in srgb, var(--accent-success) 18%, transparent)',
+    question: 'color-mix(in srgb, var(--nav-media) 18%, transparent)',
+    contradiction: 'color-mix(in srgb, var(--accent-danger) 20%, transparent)',
+    tag: 'color-mix(in srgb, var(--accent-info) 18%, transparent)',
+    fallback: 'color-mix(in srgb, var(--accent-warning) 20%, transparent)',
+  },
+  overlayStroke: {
+    highlight: 'color-mix(in srgb, var(--accent) 50%, transparent)',
+    note: 'color-mix(in srgb, var(--accent-info) 38%, transparent)',
+    evidence: 'color-mix(in srgb, var(--accent-success) 38%, transparent)',
+    question: 'color-mix(in srgb, var(--nav-media) 38%, transparent)',
+    contradiction: 'color-mix(in srgb, var(--accent-danger) 42%, transparent)',
+    tag: 'color-mix(in srgb, var(--accent-info) 38%, transparent)',
+    fallback: 'color-mix(in srgb, var(--accent-warning) 40%, transparent)',
+  },
+} as const;

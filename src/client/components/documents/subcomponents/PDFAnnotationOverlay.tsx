@@ -1,4 +1,8 @@
 import React from 'react';
+import { annotationTokens } from '@client/design-system/lib';
+
+const FILL: Record<string, string> = annotationTokens.overlayFill;
+const STROKE: Record<string, string> = annotationTokens.overlayStroke;
 
 interface Annotation {
   id: string;
@@ -65,8 +69,10 @@ export const PDFAnnotationOverlay: React.FC<PDFAnnotationOverlayProps> = ({
               top: `${y * 100}%`,
               width: `${w * 100}%`,
               height: `${h * 100}%`,
-              backgroundColor: 'rgba(245, 158, 11, 0.25)', // Subtle translucent highlight
-              border: '1.5px solid rgba(245, 158, 11, 0.45)',
+              backgroundColor: FILL[ann.type] ?? annotationTokens.overlayFill.fallback,
+              borderColor: STROKE[ann.type] ?? annotationTokens.overlayStroke.fallback,
+              borderStyle: 'solid',
+              borderWidth: '1.5px',
               boxSizing: 'border-box',
             }}
             title={`${ann.type}: ${ann.note || ann.selectedText}`}

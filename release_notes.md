@@ -1,5 +1,19 @@
 # Release Notes
 
+## 20.5.0 - 2026-05-07 - Design System Controls and Document Source Polish
+
+### For Investigators
+
+- **Codified App Navigation**: Header controls, desktop segmented navigation, and mobile bottom navigation now live in shared design-system navigation patterns instead of one-off component styling.
+- **Consistent Control Surfaces**: Unique app-shell controls keep their intended visual behavior while using shared component contracts, reducing the risk of future design-system sweeps breaking the interface.
+- **Calmer Source Widgets**: Provenance/source chips now use muted dark glass styling instead of bright white backgrounds, keeping source metadata available without overpowering document headers.
+- **Document Review Polish**: Document viewing controls and source metadata were tuned to feel less visually noisy during source review.
+
+### Why It Matters
+
+- Investigators should be able to scan document headers quickly without provenance widgets competing with the file title.
+- Navigation is now a deliberate design-system pattern, so future UI work has a safer place to extend app-specific controls.
+
 ## 20.4.0 - 2026-05-06 - Iceberg Intelligence: Lead to Proof
 
 ### For Investigators

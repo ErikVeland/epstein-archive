@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { NetworkGraph } from '@client/components/visualizations/NetworkGraph';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useIsTouch } from '@client/hooks/useIsTouch';
+import { Button } from '@client/design-system/lib';
 import s from './EvidenceNetworkTab.module.css';
 
 export interface GraphNode {
@@ -90,15 +91,18 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
       <div className={s.container} data-testid="entity-modal-tab-network">
         <div className={s.listHeader}>
           <span className={s.listCount}>{peers.length} connections</span>
-          <button
+          <Button
             type="button"
+            unstyled
+            variant="secondary"
+            size="sm"
             className={s.viewGraphBtn}
             onClick={() => setShowGraph(true)}
             aria-label="View network graph"
           >
             <Icon name="Share2" size="sm" />
             View Graph
-          </button>
+          </Button>
         </div>
         <div className={s.list}>
           {peers.map((node) => {
@@ -114,9 +118,12 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
               }
             };
             return (
-              <button
+              <Button
                 key={String(node.id)}
                 type="button"
+                unstyled
+                variant="ghost"
+                size="md"
                 className={s.listRow}
                 onClick={handleTap}
                 aria-label={`View ${node.name ?? node.id}`}
@@ -128,7 +135,7 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
                 {rel?.type && (
                   <span className={s.listRelType}>{formatRelationshipType(rel.type)}</span>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -139,14 +146,17 @@ export const EvidenceNetworkTab: React.FC<EvidenceNetworkTabProps> = ({
   return (
     <div className={s.container} data-testid="entity-modal-tab-network">
       {isTouch && (
-        <button
+        <Button
           type="button"
+          unstyled
+          variant="ghost"
+          size="sm"
           className={s.backToListBtn}
           onClick={() => setShowGraph(false)}
           aria-label="Back to relationship list"
         >
           ← List
-        </button>
+        </Button>
       )}
       <NetworkGraph
         entities={graphData.entities as Parameters<typeof NetworkGraph>[0]['entities']}

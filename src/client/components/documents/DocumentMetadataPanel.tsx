@@ -1,7 +1,6 @@
 import React from 'react';
 import Icon from '@client/components/common/Icon';
 import { format } from 'date-fns';
-import { semanticChartTokens } from '@client/design-system/lib';
 import styles from './DocumentMetadataPanel.module.css';
 
 interface DocumentMetadata {
@@ -88,7 +87,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       {metadata.ai_summary && (
         <section className={styles.aiCard}>
           <div className={styles.aiCardDecoration}>
-            <Icon name="Bot" size="xl" style={{ color: semanticChartTokens.series.media }} />
+            <Icon name="Bot" size="xl" className={styles.aiCardDecorationIcon} />
           </div>
           <h3 className={styles.aiCardHeading}>
             <Icon name="Sparkles" size="xs" />

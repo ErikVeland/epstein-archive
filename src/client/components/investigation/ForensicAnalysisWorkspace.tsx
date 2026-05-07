@@ -639,7 +639,11 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
       {isMobile && (
         <div className={styles.mobileToolbelt}>
           {enabledToolsList.map((tool) => (
-            <button
+            <Button
+              type="button"
+              unstyled
+              variant={activeTool === tool.id ? 'secondary' : 'ghost'}
+              size="md"
               key={tool.id}
               className={cn(
                 styles.mobileToolItem,
@@ -649,7 +653,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
             >
               <Icon name={tool.icon} size="sm" />
               <span className={styles.mobileToolLabel}>{tool.name.split(' ')[0]}</span>
-            </button>
+            </Button>
           ))}
         </div>
       )}

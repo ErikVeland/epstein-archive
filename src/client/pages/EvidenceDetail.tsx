@@ -396,24 +396,30 @@ export function EvidenceDetail() {
       {/* Mobile viewer/info tab strip */}
       {isTouch && (
         <div className={styles.mobileTabStrip}>
-          <button
+          <Button
             type="button"
+            unstyled
+            variant={mobileTab === 'document' ? 'secondary' : 'ghost'}
+            size="sm"
             className={[styles.mobileTab, mobileTab === 'document' ? styles.mobileTabActive : '']
               .filter(Boolean)
               .join(' ')}
             onClick={() => setMobileTab('document')}
           >
             Document
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            unstyled
+            variant={mobileTab === 'info' ? 'secondary' : 'ghost'}
+            size="sm"
             className={[styles.mobileTab, mobileTab === 'info' ? styles.mobileTabActive : '']
               .filter(Boolean)
               .join(' ')}
             onClick={() => setMobileTab('info')}
           >
             Info &amp; Entities
-          </button>
+          </Button>
         </div>
       )}
 
@@ -466,7 +472,7 @@ export function EvidenceDetail() {
                         key={entity.id}
                         to={`/entities/${entity.id}`}
                         state={backLinkState}
-                        style={{ display: 'block', textDecoration: 'none' }}
+                        className={styles.entityProfileLink}
                       >
                         <HIGStackRow
                           icon={iconName}

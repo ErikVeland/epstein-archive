@@ -325,9 +325,12 @@ export const IcebergIntelligence = ({
               </div>
             ) : (
               leads.map((lead) => (
-                <button
+                <Button
                   key={lead.id}
                   type="button"
+                  unstyled
+                  variant={selectedLead?.id === lead.id ? 'secondary' : 'ghost'}
+                  size="md"
                   className={cn(
                     styles.leadCard,
                     selectedLead?.id === lead.id && styles.leadCardActive,
@@ -352,7 +355,7 @@ export const IcebergIntelligence = ({
                       <span key={entity.id}>{entity.name}</span>
                     ))}
                   </div>
-                </button>
+                </Button>
               ))
             )}
           </div>
@@ -407,9 +410,12 @@ export const IcebergIntelligence = ({
               ) : (
                 <Stack gap="md">
                   {paths.map((path) => (
-                    <button
+                    <Button
                       key={path.id}
                       type="button"
+                      unstyled
+                      variant={selectedPath?.id === path.id ? 'secondary' : 'ghost'}
+                      size="md"
                       className={cn(
                         styles.pathCard,
                         selectedPath?.id === path.id && styles.pathCardActive,
@@ -427,7 +433,7 @@ export const IcebergIntelligence = ({
                           </span>
                         ))}
                       </div>
-                    </button>
+                    </Button>
                   ))}
                 </Stack>
               )}
@@ -508,9 +514,12 @@ export const IcebergIntelligence = ({
                 </div>
               ) : (
                 evidenceDocs.map((doc) => (
-                  <button
+                  <Button
                     key={doc.documentId}
                     type="button"
+                    unstyled
+                    variant="ghost"
+                    size="md"
                     className={styles.documentCard}
                     onClick={() => loadDocumentContext(doc)}
                   >
@@ -519,7 +528,7 @@ export const IcebergIntelligence = ({
                     <small>
                       {doc.sourceType || 'document'} • {doc.date?.slice(0, 10) || 'date unknown'}
                     </small>
-                  </button>
+                  </Button>
                 ))
               )}
             </Stack>
