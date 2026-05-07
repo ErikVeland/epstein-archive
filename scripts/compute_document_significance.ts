@@ -74,90 +74,103 @@ async function computeBatch(
 
   const docIds = docs.map((d) => d.id);
 
-  // entity_pair_relationship_sum: sum of (er.confidence * er.strength) for entity pairs in this doc
-  const { rows: pairScores } = await pool.query<{ document_id: number; pair_score: number }>(
-    `
-    SELECT
-      em1.document_id,
-      SUM(COALESCE(er.confidence, 0) * COALESCE(er.strength, 1)) AS pair_score
-    FROM entity_mentions em1
-    JOIN entity_mentions em2
-      ON em1.document_id = em2.document_id AND em1.entity_id < em2.entity_id
-    JOIN entity_relationships er
-      ON er.source_entity_id = em1.entity_id AND er.target_entity_id = em2.entity_id
-    WHERE em1.document_id = ANY($1::bigint[])
-    GROUP BY em1.document_id
-    `,
-    [docIds],
-  );
+  // Use a dedicated client so we can disable the statement timeout only for the
+  // long-running batch SELECT/UPDATE queries without affecting other pool connections.
+  const client = await pool.connect();
+  try {
+    await client.query('SET statement_timeout = 0');
 
-  // entity_centrality_sum: sum of (mentions * red_flag_rating) for entities in doc
-  const { rows: centralityScores } = await pool.query<{
-    document_id: number;
-    centrality_sum: number;
-  }>(
-    `
-    SELECT
-      em.document_id,
-      SUM(COALESCE(e.mentions, 0) * COALESCE(e.red_flag_rating, 0)) AS centrality_sum
-    FROM entity_mentions em
-    JOIN entities e ON e.id = em.entity_id
-    WHERE em.document_id = ANY($1::bigint[])
-    GROUP BY em.document_id
-    `,
-    [docIds],
-  );
+    // entity_pair_relationship_sum: sum of (er.confidence * er.strength) for entity pairs in this doc
+    const { rows: pairScores } = await client.query<{ document_id: number; pair_score: number }>(
+      `
+      SELECT
+        em1.document_id,
+        SUM(COALESCE(er.confidence, 0) * COALESCE(er.strength, 1)) AS pair_score
+      FROM entity_mentions em1
+      JOIN entity_mentions em2
+        ON em1.document_id = em2.document_id AND em1.entity_id < em2.entity_id
+      JOIN entity_relationships er
+        ON (er.source_entity_id = em1.entity_id AND er.target_entity_id = em2.entity_id)
+        OR (er.source_entity_id = em2.entity_id AND er.target_entity_id = em1.entity_id)
+      WHERE em1.document_id = ANY($1::bigint[])
+      GROUP BY em1.document_id
+      `,
+      [docIds],
+    );
 
-  // community_bridge_bonus: count distinct community_ids for entities in doc
-  const { rows: bridgeScores } = await pool.query<{
-    document_id: number;
-    community_count: number;
-  }>(
-    `
-    SELECT
-      em.document_id,
-      COUNT(DISTINCT e.community_id) AS community_count
-    FROM entity_mentions em
-    JOIN entities e ON e.id = em.entity_id
-    WHERE em.document_id = ANY($1::bigint[]) AND e.community_id IS NOT NULL
-    GROUP BY em.document_id
-    `,
-    [docIds],
-  );
+    // entity_centrality_sum: sum of (mentions * red_flag_rating) for entities in doc
+    const { rows: centralityScores } = await client.query<{
+      document_id: number;
+      centrality_sum: number;
+    }>(
+      `
+      SELECT
+        em.document_id,
+        SUM(COALESCE(e.mentions, 0) * COALESCE(e.red_flag_rating, 0)) AS centrality_sum
+      FROM entity_mentions em
+      JOIN entities e ON e.id = em.entity_id
+      WHERE em.document_id = ANY($1::bigint[])
+      GROUP BY em.document_id
+      `,
+      [docIds],
+    );
 
-  // Build lookup maps
-  const pairMap = new Map(pairScores.map((r) => [r.document_id, Number(r.pair_score)]));
-  const centralityMap = new Map(
-    centralityScores.map((r) => [r.document_id, Number(r.centrality_sum)]),
-  );
-  const bridgeMap = new Map(bridgeScores.map((r) => [r.document_id, Number(r.community_count)]));
+    // community_bridge_bonus: count distinct community_ids for entities in doc
+    const { rows: bridgeScores } = await client.query<{
+      document_id: number;
+      community_count: number;
+    }>(
+      `
+      SELECT
+        em.document_id,
+        COUNT(DISTINCT e.community_id) AS community_count
+      FROM entity_mentions em
+      JOIN entities e ON e.id = em.entity_id
+      WHERE em.document_id = ANY($1::bigint[]) AND e.community_id IS NOT NULL
+      GROUP BY em.document_id
+      `,
+      [docIds],
+    );
 
-  // Normalise centrality to 0-10 range within this batch
-  const maxCentrality = Math.max(1, ...Array.from(centralityMap.values()));
+    // Build lookup maps
+    const pairMap = new Map(pairScores.map((r) => [r.document_id, Number(r.pair_score)]));
+    const centralityMap = new Map(
+      centralityScores.map((r) => [r.document_id, Number(r.centrality_sum)]),
+    );
+    const bridgeMap = new Map(bridgeScores.map((r) => [r.document_id, Number(r.community_count)]));
 
-  // Compute scores and bulk update
-  const updates = docs.map((doc) => {
-    const pairScore = pairMap.get(doc.id) ?? 0;
-    const centralityRaw = centralityMap.get(doc.id) ?? 0;
-    const centralityNorm = (centralityRaw / maxCentrality) * 10;
-    const communityCount = bridgeMap.get(doc.id) ?? 0;
-    const bridgeBonus = communityCount >= 2 ? 5.0 : 0;
-    const typeBonus = TYPE_BONUS[doc.evidence_type ?? ''] ?? 0;
+    // Normalise centrality to 0-10 range within this batch
+    let maxCentrality = 1;
+    for (const v of centralityMap.values()) {
+      if (v > maxCentrality) maxCentrality = v;
+    }
 
-    const score = pairScore * 3.0 + bridgeBonus * 2.5 + centralityNorm * 1.0 + typeBonus;
+    // Compute scores and bulk update
+    const updates = docs.map((doc) => {
+      const pairScore = pairMap.get(doc.id) ?? 0;
+      const centralityRaw = centralityMap.get(doc.id) ?? 0;
+      const centralityNorm = (centralityRaw / maxCentrality) * 10;
+      const communityCount = bridgeMap.get(doc.id) ?? 0;
+      const bridgeBonus = communityCount >= 2 ? 5.0 : 0;
+      const typeBonus = TYPE_BONUS[doc.evidence_type ?? ''] ?? 0;
 
-    return { id: doc.id, score: Math.round(score * 100) / 100 };
-  });
+      const score = pairScore * 3.0 + bridgeBonus * 2.5 + centralityNorm * 1.0 + typeBonus;
 
-  // Bulk update using unnest
-  await pool.query(
-    `
-    UPDATE documents d SET significance_score = v.score
-    FROM unnest($1::bigint[], $2::float[]) AS v(id, score)
-    WHERE d.id = v.id
-    `,
-    [updates.map((u) => u.id), updates.map((u) => u.score)],
-  );
+      return { id: doc.id, score: Math.round(score * 100) / 100 };
+    });
+
+    // Bulk update using unnest
+    await client.query(
+      `
+      UPDATE documents d SET significance_score = v.score
+      FROM unnest($1::bigint[], $2::float[]) AS v(id, score)
+      WHERE d.id = v.id
+      `,
+      [updates.map((u) => u.id), updates.map((u) => u.score)],
+    );
+  } finally {
+    client.release();
+  }
 
   return docs.length;
 }
