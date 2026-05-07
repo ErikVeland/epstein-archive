@@ -212,7 +212,7 @@ const FinancialTransactionDetailPage = lazyWithRetry(
   'FinancialTransactionDetailPage',
 );
 const NetworkPage = lazyWithRetry(
-  () => import('./pages/NetworkPage').then((m) => ({ default: m.default })),
+  () => import('./pages/NetworkPage').then((m) => ({ default: m.NetworkPage })),
   'NetworkPage',
 );
 
@@ -2004,14 +2004,7 @@ function App() {
                             path="/epstein-flights"
                             element={<TheEpsteinFilesPage variant="flights" />}
                           />
-                          <Route
-                            path="/network"
-                            element={
-                              <Suspense fallback={<LoadingIndicator isLoading={true} />}>
-                                <NetworkPage />
-                              </Suspense>
-                            }
-                          />
+                          <Route path="/network" element={<NetworkPage />} />
                           <Route path="/login" element={<LoginPage />} />
                           <Route path="/admin/*" element={<AdminDashboard />} />
                           <Route path="/intelligence" element={<IntelligenceDashboard />} />
