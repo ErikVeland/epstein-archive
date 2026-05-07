@@ -38,6 +38,29 @@ export interface SearchResponsePayload {
   documents: SearchDocumentPayload[];
 }
 
+export interface EntityConnectionSignal {
+  relationship: { score: number; type: string | null; confidence: number | null };
+  financial: { score: number; count: number };
+  communications: { score: number; count: number };
+  flights: { score: number; count: number };
+  documents: { score: number; count: number };
+}
+
+export interface EntityConnection {
+  entityId: string;
+  entityName: string;
+  entityType: string;
+  riskRating: number;
+  communityId: number | null;
+  totalScore: number;
+  signals: EntityConnectionSignal;
+}
+
+export interface EntityConnectionsResponse {
+  connections: EntityConnection[];
+  totalCount: number;
+}
+
 export interface EntityByIdResponse {
   id: number;
   fullName?: string;

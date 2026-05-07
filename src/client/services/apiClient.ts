@@ -33,7 +33,7 @@ import {
 } from '@shared/contracts';
 import { Semaphore, isHeavyRoute } from '@client/utils/semaphore';
 import { singleFlight, stableStringify } from '@client/utils/singleFlight';
-import { GlobalStatsPayload } from '@client/types/api';
+import { GlobalStatsPayload, EntityConnectionsResponse } from '@client/types/api';
 
 export interface ReadinessResponse {
   status: 'ok' | 'degraded' | 'down';
@@ -1522,6 +1522,25 @@ class ApiClient {
     rejectionReason?: string,
   ): Promise<{ success: boolean }> {
     return this.post(`/claims/${encodeURIComponent(id)}/verify`, { status, rejectionReason });
+  }
+
+  async getEntityConnections(
+    entityId: string,
+    opts: { limit?: number; minScore?: number } = {},
+  ): Promise<EntityConnectionsResponse> {
+    const params = new URLSearchParams();
+    if (opts.limit) params.set('limit', String(opts.limit));
+    if (opts.minScore) params.set('minScore', String(opts.minScore));
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return this.fetchWithErrorHandling<EntityConnectionsResponse>(
+      `${API_BASE_URL}/entities/${entityId}/connections${qs}`,
+    );
+  }
+
+  async getShortestPath(sourceId: string, targetId: string): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/graph/path?source=${encodeURIComponent(sourceId)}&target=${encodeURIComponent(targetId)}`,
+    );
   }
 }
 
