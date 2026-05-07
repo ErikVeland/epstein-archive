@@ -51,7 +51,7 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
 
   const modal = (
     <div className={styles.overlay} role="dialog" aria-modal="true" onClick={onClose}>
-      <div className={styles.panel} onClick={(e) => e.stopPropagation()} role="document">
+      <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerTitle}>
@@ -83,7 +83,7 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
             <p className={styles.noPath}>No path found between these entities.</p>
           )}
 
-          {!isLoading && bestPath !== null && (
+          {!isLoading && bestPath !== null && Array.isArray(bestPath.nodes) && (
             <div className={styles.pathRow} role="list" aria-label="Path nodes">
               {bestPath.nodes.map((node: IcebergEntityRefDto, idx: number) => {
                 const edge: GraphPathEdgeDto | undefined = bestPath.edges[idx - 1];
