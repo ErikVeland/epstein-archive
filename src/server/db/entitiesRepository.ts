@@ -1234,4 +1234,13 @@ export const entitiesRepository = {
       significanceScore: row.significance_score != null ? Number(row.significance_score) : null,
     }));
   },
+
+  async entityExists(id: number): Promise<boolean> {
+    const pool = getApiPool();
+    const result = await pool.query<{ exists: boolean }>(
+      'SELECT EXISTS(SELECT 1 FROM entities WHERE id = $1) AS exists',
+      [id],
+    );
+    return result.rows[0]?.exists ?? false;
+  },
 };

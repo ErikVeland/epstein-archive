@@ -94,9 +94,15 @@
 .sideBySide {
   display: flex;
   gap: 0;
-  min-height: 600px;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  /* Break out of contentArea's horizontal padding so panes span full modal width */
+  margin-left: calc(-1 * var(--space-5));
+  margin-right: calc(-1 * var(--space-5));
+  /* Also eat the top padding so the label row sits flush under the toolbar */
+  margin-top: calc(-1 * var(--space-4));
+  min-height: 680px;
+  border: none;
+  border-top: 1px solid var(--glass-border);
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -106,6 +112,11 @@
   flex-direction: column;
   min-width: 0;
   overflow: auto;
+}
+
+/* Add internal padding to the text content inside the clean-text pane */
+.sidePane > :not(.sidePaneLabel) {
+  padding: var(--space-4) var(--space-5);
 }
 
 .sidePaneLabel {

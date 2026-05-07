@@ -579,7 +579,9 @@ async function runEnrichPhase(
 
   let whereClause = 'content IS NOT NULL AND length(content) > 50';
   if (mode === 'backfill') {
-    whereClause += " AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_summary')";
+    // Backfill any document lacking a summary, OR any garbled/low-confidence document that has not been re-corrected yet.
+    whereClause +=
+      " AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_summary' OR (content LIKE '%=%' AND NOT metadata_json ? 'ocr_corrected') OR (coalesce((metadata_json->>'ocr_confidence')::float, 1.0) < 0.6 AND NOT metadata_json ? 'ocr_corrected'))";
   } else if (mode === 'new') {
     whereClause += " AND created_at > now() - interval '1 day'";
   }
@@ -669,10 +671,20 @@ async function runEnrichPhase(
         const subject =
           (meta.subject as string) || (meta.title as string) || doc.file_name || 'Unknown Document';
 
-        // Skip expensive MIME repair during backfill — it generates hundreds
-        // of LLM calls per large doc and overwhelms the inference backend.
-        // Use deterministic decode only; summarizer truncates to 2000 chars anyway.
-        const refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
+        let refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
+
+        // LLM OCR Re-Correction Pipeline Phase:
+        // Reconstruct highly garbled text (ocr_confidence < 0.6) into readable sentences using Ollama or Exo.
+        const ocrConf = meta.ocr_confidence;
+        const isLowLegibility = typeof ocrConf === 'number' && ocrConf < 0.6;
+        if (isLowLegibility && process.env.ENABLE_AI_ENRICHMENT === 'true') {
+          const cleanedText = await AIEnrichmentService.cleanOCRText(refinedText, subject);
+          if (cleanedText && cleanedText.length > 50) {
+            refinedText = cleanedText;
+            meta.ocr_corrected = true;
+          }
+        }
+
         // Release raw content from row object — refinedText is the only copy we need
         doc.content = null;
 

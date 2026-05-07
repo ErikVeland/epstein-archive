@@ -1,5 +1,20 @@
 # Release Notes
 
+## 20.5.1 - 2026-05-07 - Entity Network Navigator + Document Significance Scoring
+
+### For Investigators
+
+- **Entity Network Navigator**: A full-screen interactive graph at `/network` lets you explore every entity and their connections across the corpus. Filter edges by signal type — Financial, Flights, Communications, or Direct Links — and search to isolate entities of interest. Clicking a node opens an in-canvas panel showing top connections and a link to the full profile.
+- **Connections Tab in Entity Profiles**: Each entity profile now has a Connections tab listing all known connections with signal type, strength, and evidence count. A search field lets you filter by name when an entity has many connections.
+- **Document Significance Scoring**: Documents are now scored for investigative significance based on entity density, financial signals, flight records, and claim density. Scores appear as colour-coded badges on document cards. The Evidence tab defaults to sorting by significance so the most relevant documents surface first.
+- **Signal-Typed Graph Edges**: Network graph edges are now colour-coded by signal type — teal for financial, amber for flights, violet for communications, and neutral for direct links — making the structure of connections legible at a glance.
+
+### Why It Matters
+
+- The network graph makes it possible to answer relationship questions ("who was connected to whom, and through which signals?") without reading individual documents.
+- Significance scoring reduces the time spent triaging the 1.4M-document corpus: investigators see the highest-value documents first rather than most-recent or alphabetical.
+- Connections are backed by evidence counts and confidence scores, keeping the difference between a documented link and an inferred one visible at all times.
+
 ## 20.5.0 - 2026-05-07 - Design System Controls and Document Source Polish
 
 ### For Investigators

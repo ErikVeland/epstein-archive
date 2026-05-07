@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { entityConnectionsRepository } from '../db/entityConnectionsRepository.js';
+import { entitiesRepository } from '../db/entitiesRepository.js';
 import { logger } from '../services/Logger.js';
 import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
-import { getApiPool } from '../db/connection.js';
 
 const router = Router();
 
@@ -41,10 +41,8 @@ router.get('/:entityId/connections', async (req: Request, res: Response, next: N
     });
 
     if (connections.length === 0) {
-      const { rows } = await getApiPool().query('SELECT 1 FROM entities WHERE id = $1 LIMIT 1', [
-        entityId,
-      ]);
-      if (rows.length === 0) {
+      const exists = await entitiesRepository.entityExists(entityId);
+      if (!exists) {
         return res.status(404).json({ error: 'Entity not found' });
       }
     }

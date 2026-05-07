@@ -706,20 +706,33 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               </Stack>
 
               <Flex align="center" gap="sm">
-                <Surface variant="glass-highlight" p="xs" className={styles.scopeToggleSurface}>
-                  <Button
-                    variant={!useGlobalContext ? 'accent-solid' : 'ghost'}
-                    onClick={() => setUseGlobalContext(false)}
-                  >
-                    Investigation Scope
-                  </Button>
-                  <Button
-                    variant={useGlobalContext ? 'accent-solid' : 'ghost'}
-                    onClick={() => setUseGlobalContext(true)}
-                  >
-                    Global Context
-                  </Button>
-                </Surface>
+                <div className={styles.scopeContainer}>
+                  <span className={styles.scopeLabelText}>Scope:</span>
+                  <div className={styles.scopeToggleSurface}>
+                    <Button
+                      unstyled
+                      className={cn(
+                        styles.scopeBtn,
+                        !useGlobalContext ? styles.scopeBtnActive : styles.scopeBtnInactive,
+                      )}
+                      onClick={() => setUseGlobalContext(false)}
+                    >
+                      <Icon name="Briefcase" size="sm" />
+                      <span>This Case Only</span>
+                    </Button>
+                    <Button
+                      unstyled
+                      className={cn(
+                        styles.scopeBtn,
+                        useGlobalContext ? styles.scopeBtnActive : styles.scopeBtnInactive,
+                      )}
+                      onClick={() => setUseGlobalContext(true)}
+                    >
+                      <Icon name="Globe" size="sm" />
+                      <span>Global Archive</span>
+                    </Button>
+                  </div>
+                </div>
                 <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
                   <Icon name="Flag" size="sm" className={styles.iconWarning} /> Tasks
                 </Button>

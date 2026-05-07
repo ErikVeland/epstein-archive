@@ -26,12 +26,42 @@ export function StatsDisplay({
   onResetFilters,
 }: StatsDisplayProps) {
   const highRiskCount = useCountUp(stats.highRisk, 1400);
-  const mediumRiskCount = useCountUp(stats.mediumRisk, 1600);
   const mentionsCount = useCountUp(stats.totalMentions, 1800);
   const documentsCount = useCountUp(stats.totalFiles, 1900);
 
+  // Real-time counter of days since DOJ was ordered to release the files (Nov 19, 2025)
+  const startReleaseDate = new Date('2025-11-19T00:00:00Z');
+  const daysSinceOrder = Math.max(
+    0,
+    Math.floor((Date.now() - startReleaseDate.getTime()) / (1000 * 60 * 60 * 24)),
+  );
+  const daysCount = useCountUp(daysSinceOrder, 1200);
+
   return (
     <div className={s.grid}>
+      <Surface
+        className={s.card}
+        variant="glass"
+        title="Days since Epstein Files Transparency Act mandated full release"
+      >
+        <Stack gap="sm">
+          <div className={s.statHeader}>
+            <LqText variant="xs" color="muted" weight="bold" className={s.statLabel}>
+              DAYS DELAYED
+            </LqText>
+            <span className={cn('chip', s.chipIcon, s.chipInfo)}>
+              <Icon name="Calendar" />
+            </span>
+          </div>
+          <LqText variant="h2" weight="bold" className={s.statValue}>
+            {daysCount.toLocaleString()}
+          </LqText>
+          <LqText variant="xs" color="muted" className={s.statFooter}>
+            UNREDACTED ORDER
+          </LqText>
+        </Stack>
+      </Surface>
+
       <RiskStat
         label="High Risk"
         icon="AlertTriangle"
@@ -40,15 +70,9 @@ export function StatsDisplay({
         active={selectedRiskLevel === 'HIGH'}
         onClick={() => onRiskLevelClick?.('HIGH')}
       />
-      <RiskStat
-        label="Medium Risk"
-        icon="ShieldAlert"
-        rating={3}
-        value={mediumRiskCount}
-        active={selectedRiskLevel === 'MEDIUM'}
-        onClick={() => onRiskLevelClick?.('MEDIUM')}
-      />
+
       <MetricStat label="Mentions" icon="MessageSquare" value={mentionsCount} />
+
       <Surface
         onClick={onResetFilters}
         variant="glass"
