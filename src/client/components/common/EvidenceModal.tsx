@@ -26,6 +26,7 @@ import { ClaimsTab } from './subcomponents/ClaimsTab';
 import { EntityFlightsTab } from './subcomponents/EntityFlightsTab';
 import { EntityFinancialTab } from './subcomponents/EntityFinancialTab';
 import { EntityPropertiesTab } from './subcomponents/EntityPropertiesTab';
+import { ConnectionsList } from '@client/components/entities/ConnectionsList';
 
 // Utilities
 import {
@@ -118,6 +119,7 @@ export interface SignificantPassage {
 
 const EVIDENCE_TABS: TabItem[] = [
   { key: 'overview', label: 'Overview' },
+  { key: 'connections', label: 'Connections' },
   { key: 'evidence', label: 'Evidence' },
   { key: 'claims', label: 'AI Claims' },
   { key: 'investigations', label: 'Investigations' },
@@ -130,6 +132,7 @@ const EVIDENCE_TABS: TabItem[] = [
 
 type EvidenceModalTab =
   | 'overview'
+  | 'connections'
   | 'evidence'
   | 'claims'
   | 'media'
@@ -142,6 +145,7 @@ type EvidenceModalTab =
 const isEvidenceModalTab = (value: string): value is EvidenceModalTab =>
   [
     'overview',
+    'connections',
     'evidence',
     'claims',
     'media',
@@ -824,6 +828,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               />
             )}
 
+            {activeTab === 'connections' && (
+              <ConnectionsList
+                entityId={entityId}
+                entityName={String(entity?.fullName ?? entityId)}
+              />
+            )}
+
             {activeTab === 'evidence' && (
               <EvidenceDocumentsTab
                 docFilters={docFilters}
@@ -965,6 +976,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 openDocumentFromEvidence={openDocumentFromEvidence}
                 navigateFromModal={navigateFromModal}
                 blackBookSectionRef={blackBookSectionRef}
+              />
+            )}
+
+            {activeTab === 'connections' && (
+              <ConnectionsList
+                entityId={entityId}
+                entityName={String(entity?.fullName ?? entityId)}
               />
             )}
 
