@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 /* ── Filter bar ─────────────────────────────────────────────────────────── */
@@ -12,7 +13,8 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
-  background: var(--surface-panel, rgba(15, 23, 42, 0.8));
+  background: color-mix(in srgb, var(--glass-bg-strong) 92%, transparent);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
   flex-shrink: 0;
   flex-wrap: wrap;
@@ -60,7 +62,7 @@
   flex-wrap: wrap;
 }
 
-.signalButton {
+.filterBtn {
   display: flex;
   align-items: center;
   gap: var(--space-1);
@@ -77,15 +79,15 @@
     border-color 150ms ease;
 }
 
-.signalButton:hover {
+.filterBtn:hover {
   background: var(--surface-hover, rgba(255, 255, 255, 0.05));
   color: var(--text-primary);
 }
 
-.signalButtonActive {
-  background: var(--surface-active, rgba(6, 182, 212, 0.1));
-  border-color: var(--accent-info, #06b6d4);
-  color: var(--accent-info, #06b6d4);
+.filterBtnActive {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .signalLabel {
@@ -134,15 +136,28 @@
   margin: 0;
 }
 
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ── Selected entity panel ──────────────────────────────────────────────── */
 
 .entityPanel {
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
-  width: 260px;
-  background: var(--surface-glass, rgba(15, 23, 42, 0.88));
-  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.1));
+  width: 20rem;
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg, 10px);
   backdrop-filter: blur(12px);
   padding: var(--space-3);

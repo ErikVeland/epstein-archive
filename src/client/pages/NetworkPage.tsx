@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { NetworkGraph } from '@client/components/visualizations/NetworkGraph';
 import Icon from '@client/components/common/Icon';
-import { Button } from '@client/design-system/lib';
+import { Button, Flex, Input, LqText, Surface } from '@client/design-system/lib';
+import { SignificanceBadge } from '@client/components/entities/SignificanceBadge';
 import { apiClient } from '@client/services/apiClient';
 import { EntityConnectionsResponse } from '@client/types/api';
 import styles from './NetworkPage.module.css';
@@ -14,6 +15,8 @@ interface SelectedNode {
   id: string | number;
   name: string;
   type?: string;
+  riskLevel?: number;
+  risk?: number;
 }
 
 interface GraphNode {
@@ -24,7 +27,7 @@ interface GraphNode {
   connectionCount?: number;
 }
 
-interface GraphEdge {
+interface GraphRelationship {
   source: string;
   target: string;
   type?: string;
@@ -36,7 +39,7 @@ interface GraphEdge {
 
 interface GlobalGraphResponse {
   nodes: GraphNode[];
-  edges: GraphEdge[];
+  edges: GraphRelationship[];
 }
 
 const SIGNAL_FILTERS: { key: SignalFilter; label: string; icon: string }[] = [
@@ -62,9 +65,9 @@ export const NetworkPage: React.FC = () => {
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
 
   const { data: graphData, isLoading } = useQuery<GlobalGraphResponse>({
-    queryKey: ['globalGraph', signalFilter],
+    queryKey: ['globalNetwork', signalFilter],
     queryFn: async () => {
-      const params = new URLSearchParams({ limit: '300' });
+      const params = new URLSearchParams({ limit: '500' });
       return await apiClient.get<GlobalGraphResponse>(`/graph/global?${params.toString()}`);
     },
     staleTime: 120_000,
@@ -72,7 +75,7 @@ export const NetworkPage: React.FC = () => {
 
   const { data: connectionsData } = useQuery<EntityConnectionsResponse>({
     queryKey: ['entityConnections', selectedNode?.id],
-    queryFn: () => apiClient.getEntityConnections(String(selectedNode!.id), { limit: 3 }),
+    queryFn: () => apiClient.getEntityConnections(String(selectedNode?.id ?? ''), { limit: 3 }),
     enabled: !!selectedNode,
     staleTime: 60_000,
   });
@@ -80,7 +83,6 @@ export const NetworkPage: React.FC = () => {
   const rawNodes = graphData?.nodes ?? [];
   const rawEdges = graphData?.edges ?? [];
 
-  // Client-side search filter on nodes
   const filteredNodeIds = searchTerm
     ? new Set(
         rawNodes
@@ -93,14 +95,12 @@ export const NetworkPage: React.FC = () => {
     ? rawNodes.filter((n) => filteredNodeIds.has(n.id))
     : rawNodes;
 
-  // Signal filter on edges (client-side)
   const signalTypes = SIGNAL_TYPE_MAP[signalFilter];
   const visibleEdges =
     signalTypes.length === 0
       ? rawEdges
       : rawEdges.filter((e) => signalTypes.includes(e.signalType ?? ''));
 
-  // Map to NetworkGraph's EntityNode shape
   const entities = visibleNodes.map((n) => ({
     id: n.id,
     name: n.label,
@@ -109,7 +109,6 @@ export const NetworkPage: React.FC = () => {
     connectionCount: n.connectionCount ?? 0,
   }));
 
-  // Map to NetworkGraph's Relationship shape
   const relationships = visibleEdges.map((e) => ({
     sourceId: e.source,
     targetId: e.target,
@@ -131,7 +130,7 @@ export const NetworkPage: React.FC = () => {
 
   const handleOpenProfile = useCallback(() => {
     if (selectedNode) {
-      navigate(`/people/${selectedNode.id}`);
+      navigate(`/entity/${selectedNode.id}`);
     }
   }, [selectedNode, navigate]);
 
@@ -140,14 +139,15 @@ export const NetworkPage: React.FC = () => {
   }, []);
 
   const topConnections = connectionsData?.connections ?? [];
+  const nodeRiskScore = selectedNode?.riskLevel ?? selectedNode?.risk ?? 0;
 
   return (
     <div className={styles.root}>
       {/* Filter bar */}
-      <div className={styles.filterBar}>
+      <Flex align="center" gap="sm" className={styles.filterBar}>
         <div className={styles.searchWrap}>
           <Icon name="Search" size="sm" className={styles.searchIcon} />
-          <input
+          <Input
             type="text"
             className={styles.searchInput}
             placeholder="Search entities..."
@@ -159,32 +159,31 @@ export const NetworkPage: React.FC = () => {
 
         <div className={styles.signalFilters}>
           {SIGNAL_FILTERS.map((filter) => (
-            <button
+            <Button
               key={filter.key}
-              className={`${styles.signalButton} ${signalFilter === filter.key ? styles.signalButtonActive : ''}`}
+              unstyled
+              className={`${styles.filterBtn} ${signalFilter === filter.key ? styles.filterBtnActive : ''}`}
               onClick={() => setSignalFilter(filter.key)}
               aria-pressed={signalFilter === filter.key}
             >
               <Icon name={filter.icon as Parameters<typeof Icon>[0]['name']} size="sm" />
               <span className={styles.signalLabel}>{filter.label}</span>
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className={styles.entityCount}>
-          {isLoading ? (
-            <span className={styles.loadingText}>Loading...</span>
-          ) : (
-            <span className={styles.countText}>{entities.length.toLocaleString()} entities</span>
-          )}
+          <LqText variant="xs" color="muted">
+            {isLoading ? 'Loading...' : `${entities.length.toLocaleString()} entities`}
+          </LqText>
         </div>
-      </div>
+      </Flex>
 
       {/* Graph canvas */}
       <div className={styles.graphArea}>
         {isLoading ? (
           <div className={styles.loadingState}>
-            <Icon name="Network" size="xl" color="muted" />
+            <div className={styles.spinner} />
             <p className={styles.loadingMessage}>Building global network...</p>
           </div>
         ) : (
@@ -192,37 +191,50 @@ export const NetworkPage: React.FC = () => {
             entities={entities}
             relationships={relationships}
             onEntityClick={handleEntityClick}
-            maxNodes={300}
+            maxNodes={500}
           />
         )}
 
         {/* Selected entity panel */}
         {selectedNode && (
-          <div className={styles.entityPanel}>
+          <Surface variant="glass" className={styles.entityPanel}>
             <div className={styles.entityPanelHeader}>
               <div className={styles.entityPanelMeta}>
-                <span className={styles.entityPanelName}>{selectedNode.name}</span>
+                <LqText variant="small" weight="bold">
+                  {selectedNode.name}
+                </LqText>
                 {selectedNode.type && (
-                  <span className={styles.entityPanelType}>{selectedNode.type}</span>
+                  <LqText variant="xs" color="muted" className={styles.entityPanelType}>
+                    {selectedNode.type}
+                  </LqText>
+                )}
+                {nodeRiskScore >= 3 && (
+                  <SignificanceBadge score={nodeRiskScore * 20} showLabel={false} />
                 )}
               </div>
-              <button
+              <Button
+                unstyled
                 className={styles.closeButton}
                 onClick={handleClosePanel}
                 aria-label="Close entity panel"
               >
                 <Icon name="X" size="sm" />
-              </button>
+              </Button>
             </div>
 
             {topConnections.length > 0 && (
               <div className={styles.connectionsList}>
                 <p className={styles.connectionsTitle}>Top connections</p>
                 {topConnections.map((conn) => (
-                  <div key={conn.entityId} className={styles.connectionItem}>
+                  <Flex
+                    key={conn.entityId}
+                    align="center"
+                    justify="between"
+                    className={styles.connectionItem}
+                  >
                     <span className={styles.connectionName}>{conn.entityName}</span>
                     <span className={styles.connectionType}>{conn.entityType}</span>
-                  </div>
+                  </Flex>
                 ))}
               </div>
             )}
@@ -236,7 +248,7 @@ export const NetworkPage: React.FC = () => {
               Open full profile
               <Icon name="ArrowRight" size="sm" />
             </Button>
-          </div>
+          </Surface>
         )}
       </div>
     </div>
