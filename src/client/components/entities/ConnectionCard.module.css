@@ -69,7 +69,7 @@
 
 /* ── Score bar ───────────────────────────────────────────── */
 
-.scoreBarTrack {
+.scoreBar {
   height: 3px;
   background: color-mix(in srgb, var(--glass-border-strong) 60%, transparent);
   border-radius: var(--radius-full);
@@ -91,7 +91,7 @@
   row-gap: var(--space-1);
 }
 
-.pill {
+.signalPill {
   display: inline-flex;
   align-items: center;
   gap: 0.25em;
@@ -129,7 +129,7 @@
   border-color: color-mix(in srgb, var(--accent-emails) 28%, transparent);
 }
 
-.pill_relationship {
+.signalPillRel {
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   border-color: color-mix(in srgb, var(--accent) 25%, transparent);

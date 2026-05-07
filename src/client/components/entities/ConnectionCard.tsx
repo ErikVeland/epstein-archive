@@ -83,7 +83,7 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
       </Flex>
 
       {/* Score bar */}
-      <div className={styles.scoreBarTrack} aria-hidden="true">
+      <div className={styles.scoreBar} aria-hidden="true">
         <div className={styles.scoreBarFill} style={{ width: `${scoreBarWidth}%` }} />
       </div>
 
@@ -93,7 +93,7 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
           const sig = connection.signals[key];
           if (sig.count === 0) return null;
           return (
-            <span key={key} className={`${styles.pill} ${styles[`pill_${key}`]}`}>
+            <span key={key} className={`${styles.signalPill} ${styles[`pill_${key}`]}`}>
               <Icon name={iconName} size="xs" color="inherit" ariaHidden />
               <span>{sig.count}</span>
             </span>
@@ -101,10 +101,10 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
         })}
 
         {showRelationship && (
-          <span className={`${styles.pill} ${styles.pill_relationship}`}>
+          <span className={`${styles.signalPill} ${styles.signalPillRel}`}>
             <Icon name="Link2" size="xs" color="inherit" ariaHidden />
             <span className={styles.pillRelType}>
-              {relationshipSignal.type!.replace(/_/g, ' ')}
+              {(relationshipSignal.type ?? '').replace(/_/g, ' ')}
             </span>
             {relationshipSignal.confidence !== null && (
               <span className={styles.pillConfidence}>
