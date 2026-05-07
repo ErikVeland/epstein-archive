@@ -38,6 +38,7 @@ import {
   claimsQueueResponseSchema,
   intelligenceReviewResponseSchema,
   intelligenceReadinessResponseSchema,
+  entityConnectionsResponseSchema,
 } from '../src/shared/schemas';
 
 const apiPort = Number(process.env.PW_API_PORT || 3312);
@@ -590,22 +591,44 @@ test.describe('Intelligence dashboard contract tests', () => {
 });
 
 test.describe('Entity connections contract tests', () => {
-  test('GET /api/entities/:id/connections returns expected shape', async ({ request }) => {
-    // Use entity ID 1 as the probe — any valid entity will do
-    const res = await request.get(`${API_BASE_URL}/api/entities/1/connections?limit=5`);
+  test('GET /api/entities/:id/connections matches shared DTO schema', async ({ request }) => {
+    const entityId = await resolveHighMentionEntityId(request);
+    if (!entityId) {
+      test.skip(true, 'No entities available in test dataset');
+      return;
+    }
+
+    const res = await request.get(`${API_BASE_URL}/api/entities/${entityId}/connections?limit=5`, {
+      timeout: 20_000,
+    });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty('connections');
-    expect(body).toHaveProperty('totalCount');
-    expect(Array.isArray(body.connections)).toBe(true);
-    if (body.connections.length > 0) {
-      const c = body.connections[0];
-      expect(c).toHaveProperty('entityId');
-      expect(c).toHaveProperty('entityName');
-      expect(c).toHaveProperty('totalScore');
-      expect(c.signals).toHaveProperty('financial');
-      expect(c.signals).toHaveProperty('flights');
-      expect(c.signals).toHaveProperty('documents');
+    const parsed = assertSchema(
+      entityConnectionsResponseSchema,
+      body,
+      `GET /api/entities/${entityId}/connections`,
+    );
+
+    expect(Array.isArray(parsed.connections)).toBe(true);
+    expect(typeof parsed.totalCount).toBe('number');
+
+    if (parsed.connections.length > 0) {
+      const c = parsed.connections[0];
+      expect(typeof c.entityId).toBe('string');
+      expect(typeof c.entityName).toBe('string');
+      expect(typeof c.totalScore).toBe('number');
+      expect(typeof c.signals.financial.score).toBe('number');
+      expect(typeof c.signals.flights.score).toBe('number');
+      expect(typeof c.signals.documents.score).toBe('number');
     }
+  });
+
+  test('GET /api/entities/999999999/connections returns 404 for unknown entity', async ({
+    request,
+  }) => {
+    const res = await request.get(`${API_BASE_URL}/api/entities/999999999/connections`);
+    expect(res.status()).toBe(404);
+    const body = await res.json();
+    expect(body).toHaveProperty('error');
   });
 });

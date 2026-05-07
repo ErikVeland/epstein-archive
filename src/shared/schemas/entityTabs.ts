@@ -136,6 +136,39 @@ const claimTripleSchema = z.object({
 
 export const entityClaimsResponseSchema = z.array(claimTripleSchema);
 
+// Schema for GET /api/entities/:entityId/connections
+const entityConnectionSignalChannelSchema = z.object({
+  score: z.number(),
+  count: z.number(),
+});
+
+const entityConnectionSignalsSchema = z.object({
+  relationship: z.object({
+    score: z.number(),
+    type: z.string().nullable(),
+    confidence: z.number().nullable(),
+  }),
+  financial: entityConnectionSignalChannelSchema,
+  communications: entityConnectionSignalChannelSchema,
+  flights: entityConnectionSignalChannelSchema,
+  documents: entityConnectionSignalChannelSchema,
+});
+
+const entityConnectionItemSchema = z.object({
+  entityId: z.string(),
+  entityName: z.string(),
+  entityType: z.string(),
+  riskRating: z.number(),
+  communityId: z.number().nullable(),
+  totalScore: z.number(),
+  signals: entityConnectionSignalsSchema,
+});
+
+export const entityConnectionsResponseSchema = z.object({
+  connections: z.array(entityConnectionItemSchema),
+  totalCount: z.number(),
+});
+
 const entityInvestigationItemSchema = z.object({
   id: z.number(),
   uuid: z.string(),
