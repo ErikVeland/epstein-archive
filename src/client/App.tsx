@@ -211,6 +211,10 @@ const FinancialTransactionDetailPage = lazyWithRetry(
     })),
   'FinancialTransactionDetailPage',
 );
+const NetworkPage = lazyWithRetry(
+  () => import('./pages/NetworkPage').then((m) => ({ default: m.default })),
+  'NetworkPage',
+);
 
 import releaseNotesRaw from '@root/release_notes.md?raw';
 import styles from './App.module.css';
@@ -1999,6 +2003,14 @@ function App() {
                           <Route
                             path="/epstein-flights"
                             element={<TheEpsteinFilesPage variant="flights" />}
+                          />
+                          <Route
+                            path="/network"
+                            element={
+                              <Suspense fallback={<LoadingIndicator isLoading={true} />}>
+                                <NetworkPage />
+                              </Suspense>
+                            }
                           />
                           <Route path="/login" element={<LoginPage />} />
                           <Route path="/admin/*" element={<AdminDashboard />} />

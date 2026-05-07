@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, Profiler } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
 import Icon from '@client/components/common/Icon';
 import { StatsDisplay } from '@client/components/pages/StatsDisplay';
@@ -64,6 +65,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
   searchTerm,
   onPersonClick,
 }) => {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   usePageScrollRestoration(
     `/people:${searchTerm}:${entityType}:${sortBy}:${sortOrder}:${selectedRiskLevel || 'all'}:${page}`,
@@ -207,6 +209,11 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                     className={styles.fullWidth}
                   />
                 </div>
+
+                <Button onClick={() => navigate('/network')} variant="secondary" size="sm">
+                  <Icon name="Network" size="sm" />
+                  Network view
+                </Button>
 
                 <Button
                   onClick={onSortOrderToggle}
