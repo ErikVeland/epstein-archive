@@ -43,7 +43,9 @@ const documentsListQuerySchema = z.object({
       .optional(),
     minRedFlag: z.coerce.number().int().min(0).max(5).optional(),
     maxRedFlag: z.coerce.number().int().min(0).max(5).optional(),
-    sortBy: z.enum(['date', 'title', 'red_flag', 'size', 'relevance', 'fileType']).optional(),
+    sortBy: z
+      .enum(['date', 'title', 'red_flag', 'size', 'relevance', 'fileType', 'significance'])
+      .optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
     collectionId: z.string().optional(),
     includeMedia: z

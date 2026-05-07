@@ -233,6 +233,16 @@ router.get(
         });
       }
 
+      const edgeSignalType = (type: string | null | undefined): string => {
+        if (!type) return 'document';
+        const t = String(type).toLowerCase();
+        if (t.includes('financial') || t.includes('transaction')) return 'financial';
+        if (t.includes('flight') || t.includes('travel')) return 'flight';
+        if (t.includes('communication') || t.includes('email')) return 'communication';
+        if (t.includes('infer')) return 'inferred';
+        return 'relationship';
+      };
+
       // 1. Fetch Top Entities (Nodes) - Aggregated by Canonical ID
       // Deterministic Sort: Risk DESC, Degree DESC, ID ASC
       const rawNodes = await getGlobalGraphNodes({ minRisk, limit, startDate, endDate });
@@ -282,7 +292,12 @@ router.get(
         }
       }
 
-      const nodesArr = Array.from(groupedByLabel.values());
+      const allNodesArr = Array.from(groupedByLabel.values());
+      const minScore = Number(req.query.minScore ?? 0);
+      const nodesArr =
+        Number.isFinite(minScore) && minScore > 0
+          ? allNodesArr.filter((n) => Number(n.connectionCount ?? 0) >= minScore)
+          : allNodesArr;
       const canonicalIds = (rawNodes as unknown as GraphNodeRaw[])
         .map((n) => String(n.id))
         .filter((id) => id && id !== 'null' && /^\d+$/.test(id));
@@ -339,6 +354,7 @@ router.get(
           weight: e.weight || 0.1,
           confidence: e.confidence || 1.0,
           classification: e.classification,
+          signalType: edgeSignalType(e.type as string | null | undefined),
         })),
       });
     } catch (error) {

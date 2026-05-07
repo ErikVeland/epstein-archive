@@ -96,6 +96,7 @@ type DocumentRow = Record<string, unknown> & {
   metadataJson?: unknown;
   redFlagRating?: string | number | null;
   wordCount?: string | number | null;
+  significanceScore?: string | number | null;
   source_collection?: string | null;
   unredactionAttempted?: boolean | null;
   unredactionSucceeded?: boolean | null;
@@ -248,7 +249,9 @@ export const documentsRepository = {
               ? `file_type ${sortOrder} NULLS LAST, COALESCE(NULLIF(title, ''), file_name) ASC`
               : sortBy === 'size'
                 ? `file_size ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC`
-                : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
+                : sortBy === 'significance'
+                  ? `significance_score DESC NULLS LAST, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC`
+                  : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
 
     // Support indexed content search directly in the document browser.
     const docsSql = `
@@ -265,7 +268,8 @@ export const documentsRepository = {
         word_count as "wordCount",
         red_flag_rating as "redFlagRating",
         COALESCE(NULLIF(title, ''), file_name) as "title",
-        source_collection as "sourceCollection"
+        source_collection as "sourceCollection",
+        significance_score as "significanceScore"
       FROM documents
       WHERE (
           $1::text IS NULL
@@ -468,6 +472,7 @@ export const documentsRepository = {
         metadata,
         redFlagRating: Number(doc.redFlagRating || 0),
         wordCount: Number(doc.wordCount || 0),
+        significanceScore: doc.significanceScore != null ? Number(doc.significanceScore) : null,
         entitiesCount: entityCount,
         keyEntities,
         sourceType,
