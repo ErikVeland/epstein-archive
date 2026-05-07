@@ -41,6 +41,7 @@ import investigationsRouter from './server/routes/investigations.js';
 import evidenceRoutes from './server/routes/evidenceRoutes.js';
 import advancedAnalyticsRoutes from './server/routes/advancedAnalytics.js';
 import entityEvidenceRoutes from './server/routes/entityEvidenceRoutes.js';
+import entityConnectionsRoutes from './server/routes/entityConnectionsRoutes.js';
 import investigativeTasksRoutes from './server/routes/investigativeTasks.js';
 import investigationLeadsRouter from './server/routes/investigationLeads.js';
 import icebergRoutes from './server/routes/icebergRoutes.js';
@@ -781,6 +782,7 @@ export class App {
     router.use('/evidence', evidenceRoutes);
     router.use('/advanced-analytics', advancedAnalyticsRoutes);
     router.use('/entities', entityEvidenceRoutes);
+    router.use('/entities', entityConnectionsRoutes);
     router.use('/tasks', investigativeTasksRoutes);
     router.use('/articles', articlesRoutes);
     router.use('/emails', emailRoutes);

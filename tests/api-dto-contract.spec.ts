@@ -588,3 +588,24 @@ test.describe('Intelligence dashboard contract tests', () => {
     assertSchema(intelligenceReadinessResponseSchema, payload, 'GET /intelligence/readiness');
   });
 });
+
+test.describe('Entity connections contract tests', () => {
+  test('GET /api/entities/:id/connections returns expected shape', async ({ request }) => {
+    // Use entity ID 1 as the probe — any valid entity will do
+    const res = await request.get(`${API_BASE_URL}/api/entities/1/connections?limit=5`);
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveProperty('connections');
+    expect(body).toHaveProperty('totalCount');
+    expect(Array.isArray(body.connections)).toBe(true);
+    if (body.connections.length > 0) {
+      const c = body.connections[0];
+      expect(c).toHaveProperty('entityId');
+      expect(c).toHaveProperty('entityName');
+      expect(c).toHaveProperty('totalScore');
+      expect(c.signals).toHaveProperty('financial');
+      expect(c.signals).toHaveProperty('flights');
+      expect(c.signals).toHaveProperty('documents');
+    }
+  });
+});
