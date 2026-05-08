@@ -70,7 +70,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
     if (rating >= 3) return ['#2563eb', '#9333ea']; // blue-600 to purple-600
     if (rating >= 2) return ['#0891b2', '#2563eb']; // cyan-600 to blue-600
     if (rating >= 1) return ['#0d9488', '#0891b2']; // teal-600 to cyan-600
-    
+
     // Dynamically color code beautifully by rank/prominence index (heat map spectrum)
     if (index < 3) {
       return ['#f43f5e', '#be123c']; // Rose to dark red (Top prominence)

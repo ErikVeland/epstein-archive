@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
 import { useCountUp } from '@client/hooks/useCountUp';
@@ -31,6 +32,7 @@ export function StatsDisplay({
 
   // Real-time counter of days since DOJ was ordered to release the files (Nov 19, 2025)
   const startReleaseDate = new Date('2025-11-19T00:00:00Z');
+  // eslint-disable-next-line react-hooks/purity
   const daysSinceOrder = Math.max(
     0,
     Math.floor((Date.now() - startReleaseDate.getTime()) / (1000 * 60 * 60 * 24)),

@@ -361,11 +361,13 @@ export const EmailClient: React.FC = () => {
     [baseHandleOpenThread, setSearchParams],
   );
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (selectedThread) {
       setActiveMessageIndex(selectedThread.messages.length - 1);
     }
   }, [selectedThread?.threadId]); // eslint-disable-line react-hooks/exhaustive-deps
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Keyboard navigation
   useEffect(() => {

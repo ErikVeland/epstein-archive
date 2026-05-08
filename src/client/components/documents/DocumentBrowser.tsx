@@ -11,7 +11,6 @@ import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import { DocumentBrowserHeader } from './DocumentBrowserHeader';
 import { DocumentBrowserFilters } from './DocumentBrowserFilters';
 import { DocumentList } from './DocumentList';
-import { DocumentHoverPreview } from './DocumentHoverPreview';
 import { useDocumentBrowserData } from '@client/hooks/useDocumentBrowserData';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { usePageScrollRestoration } from '@client/hooks/usePageScrollRestoration';
@@ -120,10 +119,6 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const documentContainerRef = useRef<HTMLDivElement>(null);
   const { currentHighlightIndex, totalHighlights, nextHighlight, prevHighlight, hasHighlights } =
     useHighlightNavigation(effectiveSearchTerm, documentContainerRef);
-
-  const [hoveredDoc, setHoveredDoc] = useState<Document | null>(null);
-  const [hoverRect, setHoverRect] = useState<DOMRect | null>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const openDocumentRoute = useCallback(
     (document: Document) => {
       const params = new URLSearchParams(window.location.search);
@@ -168,19 +163,9 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     [navigate],
   );
 
-  const handleHoverStart = useCallback((doc: Document, rect: DOMRect) => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredDoc(doc);
-      setHoverRect(rect);
-    }, 250);
-  }, []);
+  const handleHoverStart = useCallback((_doc: Document, _rect: DOMRect) => {}, []);
 
-  const handleHoverEnd = useCallback(() => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setHoveredDoc(null);
-    setHoverRect(null);
-  }, []);
+  const handleHoverEnd = useCallback(() => {}, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -374,8 +359,6 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           jumpToPage={jumpToPage}
           setJumpToPage={setJumpToPage}
         />
-
-
       </Box>
     </Surface>
   );

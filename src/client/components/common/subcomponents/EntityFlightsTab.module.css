@@ -259,7 +259,8 @@
 }
 
 @keyframes planeFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(90deg) translateY(0);
   }
   50% {

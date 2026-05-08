@@ -502,9 +502,7 @@ export const DataVisualization: React.FC = () => {
           <div className={`${styles.summaryValue} ${styles.summaryValuePink}`}>
             {(() => {
               if (topEntities.length === 0) return '0';
-              return Math.max(
-                ...topEntities.map((e) => e.mentions)
-              ).toLocaleString();
+              return Math.max(...topEntities.map((e) => e.mentions)).toLocaleString();
             })()}
           </div>
           <div className={styles.summaryLabel}>Max Mentions</div>

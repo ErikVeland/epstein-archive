@@ -18,6 +18,7 @@
 ### AI Enrichment & DB Snapshot
 
 A fresh database and AI extraction snapshot has been compiled into the public client layer. The current archive contains:
+
 - **Documents**: 1,425,129 total files
 - **Refined Documents**: 315,332 semantic-repaired and OCR cleaned tranches
 - **Claim Triples**: 713,123 agentic extracted entity relationships

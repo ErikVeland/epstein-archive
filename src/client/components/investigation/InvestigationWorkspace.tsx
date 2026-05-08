@@ -787,7 +787,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       {!selectedInvestigation && (
         <Box grow p="xl" className={cn(styles.scrollArea, styles.dashboard)}>
           <Stack gap="xl" className={styles.dashboardContent}>
-
             <Grid cols={{ sm: 1, md: 2 }} gap="xl" className={styles.dashboardActions}>
               <Surface
                 variant="glass-highlight"

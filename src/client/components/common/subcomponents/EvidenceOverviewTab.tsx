@@ -141,7 +141,9 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                     </button>
                   </div>
                   <p className={s.popoverText}>
-                    Calculated from the frequency of deep connections, flight logs, financial transactions, and mentions in black books. A 5/5 indicates critical exposure and involvement in core circles.
+                    Calculated from the frequency of deep connections, flight logs, financial
+                    transactions, and mentions in black books. A 5/5 indicates critical exposure and
+                    involvement in core circles.
                   </p>
                 </div>
               )}
@@ -221,7 +223,9 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                     </button>
                   </div>
                   <p className={s.popoverText}>
-                    Cryptographically verified intelligence attribution system. Automatically traces and logs every claim back to original raw DOJ transcripts and estate source documents with zero-AI hallucination gates.
+                    Cryptographically verified intelligence attribution system. Automatically traces
+                    and logs every claim back to original raw DOJ transcripts and estate source
+                    documents with zero-AI hallucination gates.
                   </p>
                 </div>
               )}
