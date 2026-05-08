@@ -1,5 +1,15 @@
 # Release Notes
 
+## 20.5.3 - 2026-05-08 - Email Viewer Crash Fix
+
+### For Investigators
+
+- **Email Viewer Crash Fix**: Opening any email thread no longer causes a "Something went wrong" crash (browser history.replaceState throttle limit). The email workspace is fully stable again.
+
+### Why It Matters
+
+- Investigators can open and read email threads without the app crashing immediately on open.
+
 ## 20.5.2 - 2026-05-08 - High-Fidelity OCR Backfills & High-Density Entity Views
 
 ### For Investigators
