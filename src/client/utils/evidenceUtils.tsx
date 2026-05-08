@@ -4,15 +4,24 @@ import React from 'react';
  * Normalizes text by removing excessive whitespace and symbol-heavy gibberish.
  */
 export const normalizeEvidenceSnippet = (raw: string, fallbackTitle: string): string => {
-  if (!raw) return fallbackTitle;
+  if (!raw || raw.trim() === '' || raw === fallbackTitle) {
+    return 'No refined summary available. Raw document source is currently queued for LLM recorrection and forensic metadata parsing...';
+  }
   const cleaned = raw
     .replace(/\s+/g, ' ')
     .replace(/[_=]{3,}/g, ' ')
     .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '')
     .trim();
 
-  if (textLooksLikeGibberish(cleaned)) return fallbackTitle;
-  return cleaned.slice(0, 460);
+  if (cleaned.length < 10) {
+    return 'No refined summary available. Raw document source is currently queued for LLM recorrection and forensic metadata parsing...';
+  }
+
+  const maxLength = 240;
+  if (cleaned.length > maxLength) {
+    return cleaned.slice(0, maxLength).trim() + '...';
+  }
+  return cleaned;
 };
 
 /**

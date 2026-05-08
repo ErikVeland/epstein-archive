@@ -13,33 +13,33 @@
   background: var(--glass-bg-strong);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  padding: var(--spacing-3) 0;
+  padding: var(--space-3) 0;
   border-bottom: 1px solid var(--glass-border);
-  margin-left: calc(-1 * var(--spacing-6));
-  margin-right: calc(-1 * var(--spacing-6));
-  padding-left: var(--spacing-6);
-  padding-right: var(--spacing-6);
+  margin-left: calc(-1 * var(--space-6));
+  margin-right: calc(-1 * var(--space-6));
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
 }
 
 .filterRow {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--space-2);
 }
 
 .significanceFilters {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--space-2);
 }
 
 .filterButton {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1-5);
-  padding: var(--spacing-1) var(--spacing-3);
+  gap: 6px;
+  padding: var(--space-1) var(--space-3);
   border: 1px solid transparent;
   border-radius: var(--radius-full);
   transition: all 0.2s ease;
@@ -107,8 +107,8 @@
 .sortButton {
   display: flex;
   align-items: center;
-  gap: var(--spacing-1-5);
-  padding: var(--spacing-1) var(--spacing-3);
+  gap: 6px;
+  padding: var(--space-1) var(--space-3);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
@@ -551,7 +551,7 @@
   backdrop-filter: blur(8px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-8);
+  padding: var(--space-8);
 }
 
 .spinnerRow {
@@ -567,7 +567,7 @@
   width: 28px;
   border: 1px solid var(--glass-border);
   border-bottom-color: var(--accent);
-  margin-right: var(--spacing-3);
+  margin-right: var(--space-3);
 }
 
 @keyframes spin {
@@ -592,13 +592,13 @@
   color: var(--status-error);
   font-size: var(--font-size-sm);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-8);
+  padding: var(--space-8);
   text-align: center;
 }
 
 .errorTitle {
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-2);
+  margin-bottom: var(--space-2);
 }
 
 .mutedEmptyText {
@@ -613,7 +613,7 @@
   text-transform: capitalize;
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--space-2);
   font-family: var(--font-mono);
 }
 
@@ -638,7 +638,7 @@
   align-items: center;
   justify-content: center;
   z-index: var(--z-modal);
-  padding: var(--spacing-4);
+  padding: var(--space-4);
   animation: overlayIn 0.2s ease;
 }
 
@@ -676,12 +676,12 @@
 }
 
 .modalHeader {
-  padding: var(--spacing-5) var(--spacing-6);
+  padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--glass-border);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--spacing-4);
+  gap: var(--space-4);
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -694,10 +694,10 @@
 }
 
 .modalBody {
-  padding: var(--spacing-6);
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-5);
+  gap: var(--space-5);
   max-height: 70vh;
   overflow-y: auto;
 }
@@ -705,7 +705,7 @@
 .modalRow {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--spacing-3);
+  gap: var(--space-3);
 }
 
 @media (min-width: 480px) {
@@ -717,7 +717,7 @@
 .modalInfoBox {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  padding: var(--spacing-3);
+  padding: var(--space-3);
   border-radius: var(--radius-md);
 }
 
@@ -744,14 +744,14 @@
   font-size: 0.6rem;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  margin-bottom: var(--spacing-2);
+  margin-bottom: var(--space-2);
 }
 
 .modalDescription {
   color: var(--text-secondary);
   line-height: 1.65;
   background: rgba(255, 255, 255, 0.03);
-  padding: var(--spacing-4);
+  padding: var(--space-4);
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
   font-size: 0.875rem;
@@ -760,9 +760,9 @@
 .sourceLink {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: var(--space-3);
   background: var(--glass-bg);
-  padding: var(--spacing-3);
+  padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid rgba(var(--accent-rgb), 0.25);
   text-decoration: none;
@@ -802,15 +802,15 @@
 .supportingDocsList {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1-5);
+  gap: 6px;
 }
 
 .supportingDocItem {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2-5);
+  gap: 10px;
   background: var(--glass-bg);
-  padding: var(--spacing-2) var(--spacing-3);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
   text-decoration: none;
@@ -833,7 +833,7 @@
 .entityBadgeList {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-2);
+  gap: var(--space-2);
 }
 
 .entityBadge {
@@ -866,16 +866,16 @@
   .filterButton,
   .sortButton {
     min-height: 44px;
-    padding-left: var(--spacing-4);
-    padding-right: var(--spacing-4);
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
     height: auto;
   }
 
   .stickyHeader {
     margin-left: 0;
     margin-right: 0;
-    padding-left: var(--spacing-3);
-    padding-right: var(--spacing-3);
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
   }
 
   .timelineContainer {

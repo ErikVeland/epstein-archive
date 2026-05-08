@@ -32,6 +32,7 @@ import statsRoutes from './server/routes/stats.js';
 import statusRoutes from './server/routes/statusRoutes.js';
 import relationshipsRoutes from './server/routes/relationships.js';
 import analyticsRoutes from './server/routes/analytics.js';
+import { warmTopConnectedCache } from './server/db/analyticsRepository.js';
 import graphRoutes from './server/routes/graphRoutes.js';
 import mapRoutes from './server/routes/mapRoutes.js';
 import mediaRoutes from './server/routes/mediaRoutes.js';
@@ -1221,6 +1222,11 @@ export class App {
         if (typeof process.send === 'function') {
           process.send('ready');
         }
+        // Pre-warm the expensive top-connected analytics cache so the first
+        // request to /api/analytics/enhanced doesn't block waiting for it.
+        warmTopConnectedCache();
+        // Refresh every 30 minutes to keep the cache warm after it expires.
+        setInterval(warmTopConnectedCache, 30 * 60 * 1000).unref();
         resolve();
       });
     });

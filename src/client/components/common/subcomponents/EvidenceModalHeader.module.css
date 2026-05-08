@@ -234,6 +234,7 @@
 @media (min-width: 768px) {
   .subtitleRow {
     font-size: 1rem;
+    flex-wrap: nowrap;
   }
 }
 

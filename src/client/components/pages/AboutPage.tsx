@@ -531,7 +531,7 @@ export const AboutPage: React.FC = () => {
           <div className={s.analysisHeaderText}>
             <h2 className={s.analysisTitle}>The Epstein Files: Analysis</h2>
             <p className={s.analysisMeta}>
-              What Documents Exist and What They Prove | Updated Jan 21, 2026
+              What Documents Exist and What They Prove | Updated May 8, 2026
             </p>
           </div>
         </div>

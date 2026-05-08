@@ -259,6 +259,8 @@ router.get('/mailboxes', validate(mailboxesSchema), async (req, res, next) => {
                 : Number(row.topRisk) > 0
                   ? 'low'
                   : 'minimal',
+          isVip: row.isVip,
+          isVerified: row.isVerified,
           isJunkSuppressed: !showSuppressedJunk,
         })),
       ],

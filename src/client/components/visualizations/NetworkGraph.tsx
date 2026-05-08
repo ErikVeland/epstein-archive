@@ -7,6 +7,11 @@ import styles from './NetworkGraph.module.css';
 
 const avatarSemaphore = new Semaphore(2);
 
+const REL_TYPE_LABELS: Record<string, string> = {
+  co_mention: 'Co-Mention',
+  co_occurrence: 'Co-Occurrence',
+};
+
 interface EntityNode {
   id: string | number;
   name: string;
@@ -761,7 +766,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                         !excludedRelTypes.has(type) && styles.typeTagSelected,
                       )}
                     >
-                      {type}
+                      {REL_TYPE_LABELS[type] ?? type}
                     </Button>
                   ))}
                 </div>

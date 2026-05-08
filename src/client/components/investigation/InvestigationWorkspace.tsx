@@ -787,15 +787,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       {!selectedInvestigation && (
         <Box grow p="xl" className={cn(styles.scrollArea, styles.dashboard)}>
           <Stack gap="xl" className={styles.dashboardContent}>
-            <Stack gap="sm" className={styles.dashboardHero}>
-              <LqText variant="h1" weight="bold" className={styles.dashboardHeroTitle}>
-                Investigation Dashboard
-              </LqText>
-              <LqText variant="small" color="muted" className={styles.dashboardHeroSubtitle}>
-                Manage forensic intelligence, organize evidence, and coordinate analytical workflows
-                with the localized data baseline.
-              </LqText>
-            </Stack>
 
             <Grid cols={{ sm: 1, md: 2 }} gap="xl" className={styles.dashboardActions}>
               <Surface

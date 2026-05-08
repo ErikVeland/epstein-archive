@@ -286,6 +286,7 @@
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--glass-bg-strong) 45%, transparent);
   text-align: left;
+  justify-content: stretch !important;
   transition:
     background var(--duration-fast, 150ms),
     border-color var(--duration-fast, 150ms);
@@ -301,6 +302,7 @@
   grid-template-columns: 40px minmax(0, 1fr) 120px;
   align-items: center;
   gap: var(--space-3);
+  width: 100%;
 }
 
 .minWidthZero {

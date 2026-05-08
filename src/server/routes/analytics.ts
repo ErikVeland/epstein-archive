@@ -44,8 +44,8 @@ function isLikelyJunkTopConnectedName(name: string): boolean {
 router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, res, next) => {
   try {
     const pool = getApiPool();
+    const t0 = Date.now();
     logger.info('📊 [Analytics] Fetching from materialised views...');
-    console.time('analytics-total');
     const timelineLivePromise = analyticsRepository.getTimelineAnalytics();
     const topConnectedLivePromise = analyticsRepository.getTopConnectedPeople();
     const riskDistributionPromise = analyticsRepository.getRiskDistribution();
@@ -130,7 +130,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       },
       generatedAt: new Date().toISOString(),
     });
-    console.timeEnd('analytics-total');
+    logger.info(`[Analytics] Completed in ${Date.now() - t0}ms`);
   } catch (error) {
     logger.error({ err: error }, '❌ Error fetching enhanced analytics');
     next(error);

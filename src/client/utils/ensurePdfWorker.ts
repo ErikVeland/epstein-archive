@@ -6,10 +6,11 @@ let initialized = false;
 export function ensurePdfWorker(): void {
   if (initialized) return;
   initialized = true;
+  // Set workerSrc only — do NOT set workerPort. When workerPort is set to a
+  // manually-created Worker, react-pdf calls PDFWorker.destroy() on every
+  // Document unmount, which terminates the shared native Worker. The next
+  // Document mount then tries to create against a destroyed port and PDF.js
+  // throws "the worker is being destroyed". With only workerSrc, PDF.js owns
+  // the worker lifecycle and correctly reuses it across mount/unmount cycles.
   pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-  try {
-    pdfjs.GlobalWorkerOptions.workerPort = new Worker(pdfWorkerUrl, { type: 'module' });
-  } catch {
-    void 0;
-  }
 }

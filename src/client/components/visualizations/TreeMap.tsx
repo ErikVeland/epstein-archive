@@ -64,13 +64,25 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
   const layout = squarify(nodes, WIDTH, HEIGHT);
 
   // Hex colors for SVG gradients
-  const getGradientColors = (rating: number) => {
+  const getGradientColors = (rating: number, index: number) => {
     if (rating >= 5) return ['#db2777', '#dc2626']; // pink-600 to red-600
     if (rating >= 4) return ['#9333ea', '#db2777']; // purple-600 to pink-600
     if (rating >= 3) return ['#2563eb', '#9333ea']; // blue-600 to purple-600
     if (rating >= 2) return ['#0891b2', '#2563eb']; // cyan-600 to blue-600
     if (rating >= 1) return ['#0d9488', '#0891b2']; // teal-600 to cyan-600
-    return ['#475569', '#64748b']; // slate-600 to slate-500
+    
+    // Dynamically color code beautifully by rank/prominence index (heat map spectrum)
+    if (index < 3) {
+      return ['#f43f5e', '#be123c']; // Rose to dark red (Top prominence)
+    } else if (index < 10) {
+      return ['#9333ea', '#6d28d9']; // Purple to dark violet
+    } else if (index < 20) {
+      return ['#2563eb', '#1d4ed8']; // Blue to dark blue
+    } else if (index < 35) {
+      return ['#0891b2', '#0e7490']; // Cyan to dark teal
+    } else {
+      return ['#0d9488', '#115e59']; // Teal to darker forest teal
+    }
   };
 
   const handleWheel = (e: React.WheelEvent) => {
@@ -158,7 +170,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
           <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}>
             {layout.map((node, index) => {
               const isHovered = hoveredNode?.name === node.name;
-              const [stop1, stop2] = getGradientColors(node.redFlagRating);
+              const [stop1, stop2] = getGradientColors(node.redFlagRating, index);
 
               return (
                 <g

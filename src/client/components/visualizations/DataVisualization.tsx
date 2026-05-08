@@ -501,10 +501,9 @@ export const DataVisualization: React.FC = () => {
         <div className={`${styles.summaryCard} ${styles.glassPanel}`}>
           <div className={`${styles.summaryValue} ${styles.summaryValuePink}`}>
             {(() => {
-              const source = people.length > 0 ? people : analyticsData?.topConnectedEntities || [];
-              if (source.length === 0) return '0';
+              if (topEntities.length === 0) return '0';
               return Math.max(
-                ...(source as EntityRecord[]).map((p) => Number(p?.mentions || 0)),
+                ...topEntities.map((e) => e.mentions)
               ).toLocaleString();
             })()}
           </div>

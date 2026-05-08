@@ -103,6 +103,17 @@ export const EntityFlightsTab: React.FC<EntityFlightsTabProps> = ({ entityId }) 
                   <Icon name="ArrowRight" size="sm" className={s.arrow} />
                   <span>{formatCity(flight.arrival_city, flight.arrival_airport)}</span>
                 </div>
+
+                <div className={s.routeVisual}>
+                  <span className={s.airportCode}>{flight.departure_airport}</span>
+                  <div className={s.flightLine}>
+                    <span className={s.lineDotted} />
+                    <Icon name="Plane" size="xs" className={s.miniPlane} />
+                    <span className={s.lineDotted} />
+                  </div>
+                  <span className={s.airportCode}>{flight.arrival_airport}</span>
+                </div>
+
                 <Link to={`/flights/${flight.id}`} state={backLinkState} className={s.viewLink}>
                   View →
                 </Link>

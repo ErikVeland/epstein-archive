@@ -120,6 +120,20 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
                 <Icon name="Sparkles" className={styles.badgeIcon} />
               </Box>
             )}
+            <ProvenanceBadge
+              sourceDocumentId={document.sourceDocumentId}
+              sourceHash={document.sourceHash}
+              reviewState={document.reviewState}
+              confidence={document.confidence}
+              extractionMethod={document.extractionMethod}
+              provenanceStatus={document.provenanceStatus}
+              showLabel={false}
+            />
+            {document.provenanceStatus === 'missing' && (
+              <LqText variant="xxxs" color="muted" weight="medium" className={styles.missingSource}>
+                Source missing
+              </LqText>
+            )}
             <Surface
               variant="glass-highlight"
               className={`${styles.riskBadge} ${getRiskClass(risk)}`}
@@ -156,23 +170,6 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
             </LqText>
           </Flex>
         )}
-
-        <Flex align="center" gap="xs" className={styles.provenanceRow}>
-          <ProvenanceBadge
-            sourceDocumentId={document.sourceDocumentId}
-            sourceHash={document.sourceHash}
-            reviewState={document.reviewState}
-            confidence={document.confidence}
-            extractionMethod={document.extractionMethod}
-            provenanceStatus={document.provenanceStatus}
-            showLabel={false}
-          />
-          {document.provenanceStatus === 'missing' && (
-            <LqText variant="xxxs" color="muted" weight="medium" className={styles.missingSource}>
-              Source missing
-            </LqText>
-          )}
-        </Flex>
 
         {(() => {
           const type = (document.evidenceType || document.fileType || '').toLowerCase();

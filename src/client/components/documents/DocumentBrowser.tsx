@@ -375,11 +375,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           setJumpToPage={setJumpToPage}
         />
 
-        <AnimatePresence>
-          {hoveredDoc && hoverRect && (
-            <DocumentHoverPreview doc={hoveredDoc} rect={hoverRect} onClose={handleHoverEnd} />
-          )}
-        </AnimatePresence>
+
       </Box>
     </Surface>
   );

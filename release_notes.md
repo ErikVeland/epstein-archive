@@ -1,5 +1,36 @@
 # Release Notes
 
+## 20.6.0 - 2026-05-08 - Workspace Polish, Interactive Heatmaps & Layout Refinements
+
+### For Investigators
+
+- **Prominence-Based Heatmap Spectrum**: Transformed the monochrome interactive entity treemap into an advanced visual heatmap spectrum. The system dynamically assigns gorgeous, vibrant color gradients based on sorted prominence rank indexes, grouping top figures into distinct visual tiers (Rose-Red for Top 3, Purple for Top 10, Blue for Top 20, Cyan/Teal for Top 35, and Emerald-Teal for remaining entities).
+- **Corrected Max Mentions Display**: Fixed the metric source in the summary footer cards to pull from the active filtered `topEntities` list rather than the unpopulated empty array. Real-time stats now accurately display the actual highest frequency (e.g. Jeffrey Epstein's 11,154 mentions) instead of fallback `0`.
+- **Bookmarkable Black Book Searches**: Overhauled the contact search system inside `BlackBookViewer.tsx` to read and write terms directly via `useSearchParams()`. Search states are now fully persistent, shareable, and bookmarkable.
+- **Removed Duplicate Investigation Headers**: Cleaned up the navigation/header hierarchy in `InvestigationWorkspace.tsx` to eliminate redundant secondary headers, saving valuable vertical pixel estate on desktop screens.
+- **Smart Document Previews**: Updated document previews to prioritize rich AI Summaries. When not available, the cards automatically extract and display a clean OCR text snippet followed by ellipsis, ensuring investigators never see generic "OCR heavy document..." placeholders.
+- **Cleaned Card Popups & Repositioned Provenance**: Removed bulky, slow-to-appear hover popups from document cards. Repositioned the Provenance `[?]` indicator up next to the risk rating `[R1]` on the top line for a tighter, cleaner presentation.
+- **Caret Overlay Fixed**: Adjusted select dropdown styles across the client app to guarantee caret indicators never overlap active selection text.
+- **Renamed Photo Archive to Images & Fixed Grid Scaling**: Standardized terminology to "Images" across headers, buttons, and SEO tags. Corrected layout bugs in the photo album view where grid items would stretch awkwardly by forcing `object-fit: contain !important`.
+- **Flights and Timeline Layout Repairs**: Resolved padding, margins, and header alignment bugs within the Flights and Timeline view containers to keep data grids properly aligned and responsive.
+- **Desktop Grid Alignments**: Removed legacy center-alignments from desktop views to enforce a cleaner, professional left-aligned hierarchy that maximizes readability.
+
+### AI Enrichment & DB Snapshot
+
+A fresh database and AI extraction snapshot has been compiled into the public client layer. The current archive contains:
+- **Documents**: 1,425,129 total files
+- **Refined Documents**: 315,332 semantic-repaired and OCR cleaned tranches
+- **Claim Triples**: 713,123 agentic extracted entity relationships
+- **Financial Transactions**: 1,383 verified forensic transactions
+- **Direct Relations**: 11,721 validated graph connections
+- **Timeline Events**: 314 automated pipeline timeline extracts
+
+### Why It Matters
+
+- Investigators can spot key network nodes instantly via a rich visual heat spectrum instead of sorting through flat gray blocks.
+- Reliable summary metrics provide an accurate quantitative overview of the dataset's high-profile connections.
+- Clean left-alignment across lists prevents cognitive fatigue on wide screens, creating an extremely premium workspace.
+
 ## 20.5.3 - 2026-05-08 - Email Viewer Crash Fix
 
 ### For Investigators

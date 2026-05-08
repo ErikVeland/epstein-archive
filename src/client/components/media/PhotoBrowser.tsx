@@ -541,7 +541,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   return (
     <>
       <SEO
-        title={currentAlbum ? `${currentAlbum.name} — Photos` : 'Photo Archive'}
+        title={currentAlbum ? `${currentAlbum.name} — Images` : 'Images'}
         description="Forensic photo evidence from the Epstein files."
       />
       <Surface variant="glass-container" className={styles.browser}>
@@ -555,7 +555,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               </Box>
               <Stack gap="none">
                 <LqText variant="h2" weight="bold">
-                  Photo Archive
+                  Images
                 </LqText>
                 <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
                   Forensic Archive • {libraryTotalCount} Objects

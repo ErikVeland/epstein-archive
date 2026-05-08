@@ -14,7 +14,7 @@ interface MobileStackHeaderProps {
   onBack: () => void;
   onClose?: () => void;
   actions?: React.ReactNode;
-  /** Optional breadcrumb trail shown above the title, replacing the "Forensic Intelligence" eyebrow */
+  /** Optional breadcrumb trail shown above the title */
   breadcrumbItems?: BreadcrumbItem[];
 }
 
@@ -47,7 +47,7 @@ export const MobileStackHeader: React.FC<MobileStackHeaderProps> = ({
             <Icon name="ChevronLeft" size="md" />
           </Button>
           <div className={styles.titleStack}>
-            {breadcrumbItems && breadcrumbItems.length > 0 ? (
+            {breadcrumbItems && breadcrumbItems.length > 0 && (
               <nav aria-label="Breadcrumb" className={styles.breadcrumbTrail}>
                 {breadcrumbItems.map((item, i) => (
                   <span key={i} className={styles.breadcrumbItem}>
@@ -73,10 +73,6 @@ export const MobileStackHeader: React.FC<MobileStackHeaderProps> = ({
                   </span>
                 ))}
               </nav>
-            ) : (
-              <LqText variant="xs" weight="bold" color="accent" className={styles.eyebrow}>
-                Forensic Intelligence
-              </LqText>
             )}
             <LqText variant="small" weight="bold" className={styles.title}>
               {title}

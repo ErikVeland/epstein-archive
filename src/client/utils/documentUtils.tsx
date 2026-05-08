@@ -77,10 +77,24 @@ export const getSafePreviewText = (doc: Document): string => {
     return 'Evidence photo asset; open to view original image.';
   }
 
-  if (doc.previewKind === 'ai_summary') {
-    return 'AI Summary available; open document for full contextual evidence.';
+  const rawContent = (doc.content || '').trim();
+  if (rawContent) {
+    const cleaned = rawContent
+      .replace(/\s+/g, ' ')
+      .replace(/[_=]{3,}/g, ' ')
+      .replace(/[^\x09\x0A\x0D\x20-\x7E]/g, '')
+      .trim();
+
+    if (cleaned.length > 10) {
+      const maxLength = 240;
+      if (cleaned.length > maxLength) {
+        return cleaned.slice(0, maxLength).trim() + '...';
+      }
+      return cleaned;
+    }
   }
-  return 'OCR-heavy document; open to view extracted text.';
+
+  return 'No preview text available; open document to view full contents.';
 };
 
 export const getRiskLabel = (score: number): string => {

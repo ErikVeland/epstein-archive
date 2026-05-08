@@ -573,3 +573,86 @@
   border-color: var(--accent);
   color: var(--accent);
 }
+
+.interactiveBadge {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badgeContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.badgePopover {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  left: 0;
+  width: 22rem;
+  max-width: calc(100vw - var(--space-8));
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-hard);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  backdrop-filter: blur(var(--glass-blur));
+  z-index: 50;
+  animation: badgeFadeIn 0.2s ease-out;
+  text-transform: none;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-align: left;
+}
+
+@keyframes badgeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--accent);
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: var(--space-1);
+}
+
+.popoverCloseBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--duration-fast);
+  padding: var(--space-1);
+}
+
+.popoverCloseBtn:hover {
+  color: var(--text-primary);
+}
+
+.popoverText {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}

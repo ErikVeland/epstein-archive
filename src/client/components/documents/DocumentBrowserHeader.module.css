@@ -192,7 +192,7 @@
 .selectControl {
   min-height: var(--control-height-compact);
   padding-left: var(--space-3);
-  padding-right: var(--space-3);
+  padding-right: calc(var(--space-3) + var(--space-5));
   font-size: var(--type-small);
   line-height: 1;
   background: var(--glass-bg-strong);

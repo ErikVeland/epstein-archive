@@ -239,6 +239,8 @@ export const EmailClient: React.FC = () => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const desktopLayoutRef = useRef<HTMLDivElement | null>(null);
+  const searchRef = useRef<HTMLInputElement | null>(null);
+  const [activeMessageIndex, setActiveMessageIndex] = useState(0);
   const [mailboxWidth, setMailboxWidth] = useState(() => {
     const saved = window.localStorage.getItem('email-pane-mailbox-width');
     return saved ? Number(saved) : 320;
@@ -359,24 +361,111 @@ export const EmailClient: React.FC = () => {
     [baseHandleOpenThread, setSearchParams],
   );
 
-  // j/k Navigation
+  useEffect(() => {
+    if (selectedThread) {
+      setActiveMessageIndex(selectedThread.messages.length - 1);
+    }
+  }, [selectedThread?.threadId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeElement = document.activeElement;
-      if (activeElement?.tagName === 'INPUT' || activeElement?.tagName === 'TEXTAREA') return;
+      const inInput =
+        activeElement?.tagName === 'INPUT' ||
+        activeElement?.tagName === 'TEXTAREA' ||
+        (activeElement as HTMLElement | null)?.isContentEditable;
 
-      if (e.key === 'j') {
-        const index = threads.findIndex((t) => t.threadId === selectedThreadId);
-        if (index < threads.length - 1) handleOpenThread(threads[index + 1].threadId);
-      } else if (e.key === 'k') {
-        const index = threads.findIndex((t) => t.threadId === selectedThreadId);
-        if (index > 0) handleOpenThread(threads[index - 1].threadId);
+      // / focuses search regardless of context
+      if (e.key === '/') {
+        if (!inInput) {
+          e.preventDefault();
+          searchRef.current?.focus();
+          searchRef.current?.select();
+        }
+        return;
+      }
+
+      if (inInput) return;
+
+      const threadIndex = threads.findIndex((t) => t.threadId === selectedThreadId);
+
+      switch (e.key) {
+        case 'j':
+        case 'ArrowDown':
+          e.preventDefault();
+          if (threadIndex < threads.length - 1) handleOpenThread(threads[threadIndex + 1].threadId);
+          break;
+
+        case 'k':
+        case 'ArrowUp':
+          e.preventDefault();
+          if (threadIndex > 0) handleOpenThread(threads[threadIndex - 1].threadId);
+          break;
+
+        case 'Enter':
+        case 'o':
+          if (!selectedThreadId && threads.length > 0) handleOpenThread(threads[0].threadId);
+          break;
+
+        case 'Escape':
+        case 'u':
+          if (selectedThreadId) {
+            if (window.innerWidth < 768) {
+              updateUrlState({ pane: 'threads' });
+            } else {
+              setSelectedThreadId(null);
+              updateUrlState({ threadId: null, messageId: null });
+            }
+          }
+          break;
+
+        case 'n': {
+          if (!selectedThread) break;
+          const nextIdx = Math.min(activeMessageIndex + 1, selectedThread.messages.length - 1);
+          const nextMsg = selectedThread.messages[nextIdx];
+          if (nextMsg) {
+            setActiveMessageIndex(nextIdx);
+            handleToggleMessage(nextMsg.messageId, true);
+            setTimeout(() => {
+              document
+                .querySelector(`[data-message-id="${nextMsg.messageId}"]`)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+          }
+          break;
+        }
+
+        case 'p': {
+          if (!selectedThread) break;
+          const prevIdx = Math.max(activeMessageIndex - 1, 0);
+          const prevMsg = selectedThread.messages[prevIdx];
+          if (prevMsg) {
+            setActiveMessageIndex(prevIdx);
+            handleToggleMessage(prevMsg.messageId, true);
+            setTimeout(() => {
+              document
+                .querySelector(`[data-message-id="${prevMsg.messageId}"]`)
+                ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+          }
+          break;
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [threads, selectedThreadId, handleOpenThread]);
+  }, [
+    threads,
+    selectedThreadId,
+    selectedThread,
+    activeMessageIndex,
+    handleOpenThread,
+    handleToggleMessage,
+    setSelectedThreadId,
+    updateUrlState,
+  ]);
 
   useEffect(() => {
     updateUrlState({
@@ -557,6 +646,7 @@ export const EmailClient: React.FC = () => {
             </div>
             <div className={styles.searchWrap}>
               <SearchField
+                ref={searchRef}
                 data-testid="email-search-input"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}

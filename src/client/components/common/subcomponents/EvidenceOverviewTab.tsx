@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Icon from '@client/components/common/Icon';
 import { Skeleton } from '../Skeleton';
 import { SignalPanel } from '@client/components/entities/cards/SignalPanel';
@@ -75,6 +75,9 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
   blackBookSectionRef,
 }) => {
   const [visibleMediaCount, setVisibleMediaCount] = React.useState(INITIAL_MEDIA_PREVIEW_COUNT);
+  const [showRiskPopover, setShowRiskPopover] = useState(false);
+  const [showEvidencePopover, setShowEvidencePopover] = useState(false);
+  const [showProvenancePopover, setShowProvenancePopover] = useState(false);
   const visualMediaItems = React.useMemo(
     () => mediaItems.filter((media) => isVisualMediaItem(media)),
     [mediaItems],
@@ -110,26 +113,119 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
       <div className={s.forensicGrid}>
         <div className={s.metricsCard}>
           <div className={s.metricsBadges}>
-            <span className={`${s.riskBadge} ${s[getRiskClass(entity.redFlagRating || 0)]}`}>
-              <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
-              Risk {(entity.redFlagRating || 0).toFixed(0)}/5
-            </span>
-            <span
-              className={`${s.evidenceBadge} ${s[`evidence-${forensicData.ladder.level?.toLowerCase()}`]}`}
-            >
-              <Icon name="Sparkles" size="xs" className={s.badgeIcon} />
-              {forensicData.ladder.level === 'L1'
-                ? 'Direct Evidence'
-                : forensicData.ladder.level === 'L2'
-                  ? 'Inferred Evidence'
-                  : forensicData.ladder.level === 'L3'
-                    ? 'Agentic Evidence'
-                    : 'Evidence Unspecified'}
-            </span>
-            <span className={s.provenanceBadge}>
-              <Icon name="ShieldCheck" size="xs" className={s.badgeIcon} />
-              EXO-PROVENANCE v2
-            </span>
+            {/* 1. Risk Badge */}
+            <div className={s.badgeContainer}>
+              <button
+                className={`${s.interactiveBadge} ${s.riskBadge} ${s[getRiskClass(entity.redFlagRating || 0)]}`}
+                onClick={() => {
+                  setShowRiskPopover(!showRiskPopover);
+                  setShowEvidencePopover(false);
+                  setShowProvenancePopover(false);
+                }}
+              >
+                <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
+                Risk {(entity.redFlagRating || 0).toFixed(0)}/5
+              </button>
+              {showRiskPopover && (
+                <div className={s.badgePopover}>
+                  <div className={s.popoverHeader}>
+                    <span>Red Flag Risk Rating</span>
+                    <button
+                      className={s.popoverCloseBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowRiskPopover(false);
+                      }}
+                    >
+                      <Icon name="X" size="xs" />
+                    </button>
+                  </div>
+                  <p className={s.popoverText}>
+                    Calculated from the frequency of deep connections, flight logs, financial transactions, and mentions in black books. A 5/5 indicates critical exposure and involvement in core circles.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Evidence Ingestion Tier Badge */}
+            <div className={s.badgeContainer}>
+              <button
+                className={`${s.interactiveBadge} ${s.evidenceBadge} ${s[`evidence-${forensicData.ladder.level?.toLowerCase()}`]}`}
+                onClick={() => {
+                  setShowEvidencePopover(!showEvidencePopover);
+                  setShowRiskPopover(false);
+                  setShowProvenancePopover(false);
+                }}
+              >
+                <Icon name="Sparkles" size="xs" className={s.badgeIcon} />
+                {forensicData.ladder.level === 'L1'
+                  ? 'Direct Evidence'
+                  : forensicData.ladder.level === 'L2'
+                    ? 'Inferred Evidence'
+                    : forensicData.ladder.level === 'L3'
+                      ? 'Agentic Evidence'
+                      : 'Evidence Unspecified'}
+              </button>
+              {showEvidencePopover && (
+                <div className={s.badgePopover}>
+                  <div className={s.popoverHeader}>
+                    <span>Evidence Ingestion Tier</span>
+                    <button
+                      className={s.popoverCloseBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowEvidencePopover(false);
+                      }}
+                    >
+                      <Icon name="X" size="xs" />
+                    </button>
+                  </div>
+                  <p className={s.popoverText}>
+                    {forensicData.ladder.level === 'L1'
+                      ? 'Tier 1 Direct Evidence includes explicit records such as direct black book entries, primary flight manifests, and signed financial records.'
+                      : forensicData.ladder.level === 'L2'
+                        ? 'Tier 2 Inferred Evidence includes relationships derived via multi-source synthesis, travel associations, and verified metadata connections.'
+                        : forensicData.ladder.level === 'L3'
+                          ? 'Tier 3 Agentic Evidence includes relationships generated by deep LLM extraction, syntactic synthesis, and semantic link-analysis.'
+                          : 'Intelligence classification derived from cross-referenced document corpus.'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Exo-Provenance Badge */}
+            <div className={s.badgeContainer}>
+              <button
+                className={`${s.interactiveBadge} ${s.provenanceBadge}`}
+                onClick={() => {
+                  setShowProvenancePopover(!showProvenancePopover);
+                  setShowRiskPopover(false);
+                  setShowEvidencePopover(false);
+                }}
+              >
+                <Icon name="ShieldCheck" size="xs" className={s.badgeIcon} />
+                EXO-PROVENANCE v2
+              </button>
+              {showProvenancePopover && (
+                <div className={s.badgePopover}>
+                  <div className={s.popoverHeader}>
+                    <span>Exo-Provenance Engine</span>
+                    <button
+                      className={s.popoverCloseBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowProvenancePopover(false);
+                      }}
+                    >
+                      <Icon name="X" size="xs" />
+                    </button>
+                  </div>
+                  <p className={s.popoverText}>
+                    Cryptographically verified intelligence attribution system. Automatically traces and logs every claim back to original raw DOJ transcripts and estate source documents with zero-AI hallucination gates.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className={s.metricsGrid}>

@@ -10,8 +10,8 @@
 }
 
 .content {
-  height: var(--control-height);
-  padding: 0 var(--space-2);
+  min-height: 4.25rem;
+  padding: var(--space-2) var(--space-2);
 }
 
 .backButton {
@@ -37,7 +37,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px;
+  max-width: 100%;
 }
 
 .subtitle {
@@ -45,7 +45,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px;
+  max-width: 100%;
 }
 
 .closeButton {

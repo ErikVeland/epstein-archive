@@ -2,9 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { extractCleanName, formatPhoneNumber } from '@client/utils/prettifyOCR';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
-import { useNavigate } from 'react-router-dom';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
@@ -43,12 +42,29 @@ const parseStringList = (value: unknown): string[] => {
 };
 
 export const BlackBookViewer: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '');
   const [selectedLetter, setSelectedLetter] = useState<string>('ALL');
   const [hasPhone, setHasPhone] = useState<boolean>(false);
   const [hasEmail, setHasEmail] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+
+  React.useEffect(() => {
+    const q = searchParams.get('search') || '';
+    setSearchTerm(q);
+  }, [searchParams]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    const newParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      newParams.set('search', value);
+    } else {
+      newParams.delete('search');
+    }
+    setSearchParams(newParams, { replace: true });
+  };
   const [showRaw, setShowRaw] = useState<boolean>(false);
   const navigate = useNavigate();
 
@@ -211,7 +227,7 @@ export const BlackBookViewer: React.FC = () => {
           density="comfortable"
           placeholder="Search by name, phone, email, or address..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           rootClassName={styles.searchFieldRoot}
         />
       </div>
