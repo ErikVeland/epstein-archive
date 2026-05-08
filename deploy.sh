@@ -106,12 +106,19 @@ node --import tsx/esm scripts/pg_explain.ts || (echo "❌ Postgres Explain Plan 
 
 # 3. Application Restart
 echo "Restarting application..."
-pm2 stop epstein-archive || true
-pm2 delete epstein-archive || true
+pm2 stop epstein-archive 2>/dev/null || true
+pm2 delete epstein-archive 2>/dev/null || true
+# Belt-and-suspenders: delete any lingering entries by numeric PM2 id.
+# Handles a PM2 version quirk where delete-by-name silently fails on stopped procs,
+# which caused duplicate instances racing for port 3012 on the previous deploy.
+pm2 jlist 2>/dev/null \
+  | python3 -c "import sys,json; [print(p['pm_id']) for p in json.load(sys.stdin) if p.get('name')=='epstein-archive']" 2>/dev/null \
+  | xargs -r -I{} pm2 delete {} 2>/dev/null || true
 
 # Nuclear Option: Ensure port 3012 is free
 echo "Ensuring port 3012 is free..."
 lsof -t -i:3012 | xargs -r kill -9 || true
+sleep 1
 
 # --wait-ready blocks until process.send('ready') or listen_timeout
 pm2 start ecosystem.config.cjs --only epstein-archive --env production --wait-ready
