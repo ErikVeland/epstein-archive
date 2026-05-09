@@ -41,6 +41,34 @@ export const NetworkPage: React.FC = () => {
   const [signalFilter, setSignalFilter] = useState<SignalFilter>('all');
   const [selectedNode, setSelectedNode] = useState<SelectedNode | null>(null);
 
+  const [pathSource, setPathSource] = useState('');
+  const [pathTarget, setPathTarget] = useState('');
+  const [foundPath, setFoundPath] = useState<Array<{
+    id: string;
+    label: string;
+    type: string;
+  }> | null>(null);
+  const [findingPath, setFindingPath] = useState(false);
+
+  const handleFindPath = async () => {
+    if (!pathSource || !pathTarget) return;
+    setFindingPath(true);
+    setFoundPath(null);
+    try {
+      const res = await fetch(
+        `/api/relationships/path?source=${encodeURIComponent(pathSource)}&target=${encodeURIComponent(pathTarget)}`,
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setFoundPath(data.path);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setFindingPath(false);
+    }
+  };
+
   const { data: graphData, isLoading } = useQuery<GlobalGraphResponse>({
     queryKey: ['globalNetwork'],
     queryFn: async () => {
@@ -237,6 +265,99 @@ export const NetworkPage: React.FC = () => {
               </Button>
             </Surface>
           )}
+          {/* Pathfinder overlay */}
+          <Surface
+            variant="glass"
+            style={{
+              position: 'absolute',
+              top: 'var(--space-4)',
+              left: 'var(--space-4)',
+              width: '320px',
+              padding: 'var(--space-4)',
+              borderRadius: 'var(--radius-lg)',
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--space-3)',
+              border: '1px solid var(--glass-border)',
+            }}
+          >
+            <LqText variant="small" weight="bold" style={{ color: 'var(--accent)', margin: 0 }}>
+              Shortest Connection Path
+            </LqText>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+              <Input
+                type="text"
+                placeholder="Source Entity (e.g. Prince Andrew)"
+                value={pathSource}
+                onChange={(e) => setPathSource(e.target.value)}
+                style={{ fontSize: '0.85rem' }}
+              />
+              <Input
+                type="text"
+                placeholder="Target Entity (e.g. Ghislaine Maxwell)"
+                value={pathTarget}
+                onChange={(e) => setPathTarget(e.target.value)}
+                style={{ fontSize: '0.85rem' }}
+              />
+              <Button
+                unstyled
+                onClick={handleFindPath}
+                disabled={findingPath}
+                style={{
+                  width: '100%',
+                  background: 'var(--accent)',
+                  color: '#000',
+                  fontWeight: 'bold',
+                  padding: 'var(--space-2)',
+                  borderRadius: 'var(--radius-md)',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                }}
+              >
+                {findingPath ? 'Finding connection path...' : 'Calculate Path'}
+              </Button>
+            </div>
+
+            {foundPath && foundPath.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--space-2)',
+                  marginTop: 'var(--space-2)',
+                }}
+              >
+                <LqText variant="xs" color="muted">
+                  Path found:
+                </LqText>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+                  {foundPath.map((node, idx) => (
+                    <div
+                      key={node.id}
+                      style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '0.8rem',
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          padding: 'var(--space-1) var(--space-2)',
+                          borderRadius: 'var(--radius-sm)',
+                          color: 'var(--text-primary)',
+                          flex: 1,
+                        }}
+                      >
+                        {node.label}
+                      </span>
+                      {idx < foundPath.length - 1 && (
+                        <span style={{ color: 'var(--accent)', fontSize: '0.8rem' }}>➔</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Surface>
         </div>
       </div>
     </ScopedErrorBoundary>

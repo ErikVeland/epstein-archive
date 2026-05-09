@@ -6,6 +6,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import Icon from '@client/components/common/Icon';
 import { Box, Button, SearchField, Select, TextInput } from '@client/design-system/lib';
 import { apiClient, type SearchMode } from '@client/services/apiClient';
+import type { SemanticCapabilityDto } from '@shared/dto/connections';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { Person } from '@client/types';
 import { useScrollLock } from '@client/hooks/useScrollLock';
@@ -112,6 +113,14 @@ const GlobalSearch: React.FC = () => {
       const value = await apiClient.getStats();
       return asRecord(value);
     },
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: semanticCapabilityData } = useQuery<SemanticCapabilityDto>({
+    queryKey: ['search-capability'],
+    queryFn: () => apiClient.get<SemanticCapabilityDto>('/search/capability'),
+    staleTime: 60_000,
+    enabled: filters.mode === 'semantic' || filters.mode === 'hybrid',
   });
 
   const categories = [
@@ -445,6 +454,22 @@ const GlobalSearch: React.FC = () => {
               </Button>
             </div>
           </div>
+        </div>
+      )}
+
+      {(filters.mode === 'semantic' || filters.mode === 'hybrid') && semanticCapabilityData && (
+        <div
+          style={{
+            fontSize: '0.78rem',
+            marginTop: 'var(--space-1)',
+            color: semanticCapabilityData.available
+              ? 'var(--status-success)'
+              : 'var(--status-error)',
+          }}
+        >
+          {semanticCapabilityData.available
+            ? `Semantic active — ${semanticCapabilityData.documentEmbeddings.toLocaleString()} documents embedded`
+            : `Semantic unavailable${semanticCapabilityData.reason ? `: ${semanticCapabilityData.reason}` : ''} — using keyword fallback`}
         </div>
       )}
 

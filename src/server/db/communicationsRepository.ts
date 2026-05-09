@@ -1,5 +1,6 @@
 import { communicationsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import type { SharedCommunicationDto } from '@shared/dto/connections';
 import {
   IGetThreadsResult,
   ISearchThreadsResult,
@@ -247,6 +248,51 @@ export const communicationsRepository = {
         dateCreated: row.date_created,
       } as unknown as EmailRow),
     );
+  },
+
+  async getSharedCommunications(
+    entityAId: number,
+    entityBId: number,
+  ): Promise<SharedCommunicationDto[]> {
+    // Find email threads where BOTH entities appear (each in at least one message)
+    const res = await getApiPool().query(
+      `
+      WITH threads_a AS (
+        SELECT DISTINCT COALESCE(d.metadata_json->>'thread_id', d.id::text) as thread_id
+        FROM documents d
+        JOIN entity_mentions em ON em.document_id = d.id AND em.entity_id = $1
+        WHERE d.evidence_type = 'email'
+      ),
+      threads_b AS (
+        SELECT DISTINCT COALESCE(d.metadata_json->>'thread_id', d.id::text) as thread_id
+        FROM documents d
+        JOIN entity_mentions em ON em.document_id = d.id AND em.entity_id = $2
+        WHERE d.evidence_type = 'email'
+      ),
+      shared AS (
+        SELECT ta.thread_id FROM threads_a ta INNER JOIN threads_b tb ON ta.thread_id = tb.thread_id
+      )
+      SELECT
+        s.thread_id as "threadId",
+        MIN(d.metadata_json->>'subject') as subject,
+        COUNT(d.id) as "messageCount",
+        MIN(d.created_at)::text as "firstDate",
+        MAX(d.created_at)::text as "lastDate"
+      FROM shared s
+      JOIN documents d ON COALESCE(d.metadata_json->>'thread_id', d.id::text) = s.thread_id
+      GROUP BY s.thread_id
+      ORDER BY "lastDate" DESC
+      LIMIT 20
+      `,
+      [entityAId, entityBId],
+    );
+    return res.rows.map((r) => ({
+      threadId: String(r.threadId),
+      subject: r.subject ?? null,
+      messageCount: Number(r.messageCount ?? 0),
+      firstDate: r.firstDate ?? null,
+      lastDate: r.lastDate ?? null,
+    }));
   },
 
   async getCommunicationsMatrix(): Promise<

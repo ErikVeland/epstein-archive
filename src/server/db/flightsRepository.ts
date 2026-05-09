@@ -1,5 +1,6 @@
 import { flightsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import type { SharedFlightDto } from '@shared/dto/connections';
 
 interface FlightRow {
   id: string | number;
@@ -420,7 +421,7 @@ export const flightsRepository = {
   getPassengerDestinations: async (passengerName: string) => {
     const rows = await getApiPool().query(
       `
-      SELECT 
+      SELECT
         airport,
         city,
         COUNT(*) as "visitCount"
@@ -441,5 +442,37 @@ export const flightsRepository = {
       [`%${passengerName}%`],
     );
     return rows.rows;
+  },
+
+  getSharedFlights: async (entityAId: number, entityBId: number): Promise<SharedFlightDto[]> => {
+    // Flights where both entity A and entity B appear on the manifest
+    const res = await getApiPool().query(
+      `
+      SELECT
+        f.id,
+        f.date,
+        f.origin,
+        f.destination,
+        f.tail_number as "tailNumber",
+        array_remove(array_agg(DISTINCT fp_other.passenger_name), NULL) as "otherPassengers"
+      FROM flights f
+      JOIN flight_passengers fp_a ON fp_a.flight_id = f.id AND fp_a.entity_id = $1
+      JOIN flight_passengers fp_b ON fp_b.flight_id = f.id AND fp_b.entity_id = $2
+      LEFT JOIN flight_passengers fp_other ON fp_other.flight_id = f.id
+        AND fp_other.entity_id NOT IN ($1, $2)
+      GROUP BY f.id, f.date, f.origin, f.destination, f.tail_number
+      ORDER BY f.date DESC
+      LIMIT 50
+      `,
+      [entityAId, entityBId],
+    );
+    return res.rows.map((r) => ({
+      id: Number(r.id),
+      date: r.date ? String(r.date) : null,
+      origin: r.origin ?? null,
+      destination: r.destination ?? null,
+      tailNumber: r.tailNumber ?? null,
+      otherPassengers: r.otherPassengers ?? [],
+    }));
   },
 };

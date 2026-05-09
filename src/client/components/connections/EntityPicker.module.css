@@ -1,0 +1,84 @@
+.wrapper {
+  position: relative;
+  flex: 1;
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+}
+
+.spinner {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  list-style: none;
+  margin: 0;
+  padding: var(--space-1);
+  z-index: 50;
+  box-shadow: var(--shadow-md);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  gap: var(--space-2);
+}
+
+.option:hover,
+.option[aria-selected='true'] {
+  background: var(--surface-hover);
+}
+
+.optionName {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.optionType {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}

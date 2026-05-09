@@ -1,0 +1,122 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.row:hover {
+  background: var(--surface-hover);
+}
+
+.date {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.route {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.passengers {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+.claimRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 0.875rem;
+}
+
+.claimText {
+  flex: 1;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.corrobBadge {
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-muted);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.path {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) 0;
+}
+
+.pathNode {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pathLink {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--accent-muted);
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.pathLink:hover {
+  background: var(--accent);
+  color: var(--text-on-accent, #fff);
+}
+
+.pathArrow {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.pathEllipsis {
+  color: var(--text-muted);
+  padding: 0 var(--space-2);
+}
+
+.pathMeta {
+  margin-left: var(--space-3);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}

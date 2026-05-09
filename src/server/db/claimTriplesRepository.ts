@@ -1,6 +1,7 @@
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
+import type { SharedClaimDto } from '@shared/dto/connections';
 
 export interface ClaimTriple {
   id: string;
@@ -203,6 +204,53 @@ export const claimTriplesRepository = {
       return true;
     } catch (error) {
       logger.error({ err: error, id }, '[claimTriplesRepository] verify error');
+      throw error;
+    }
+  },
+
+  async getSharedClaims(
+    entityAId: string | number,
+    entityBId: string | number,
+  ): Promise<SharedClaimDto[]> {
+    try {
+      const res = await getApiPool().query(
+        `
+        SELECT
+          ct.id::text as id,
+          ct.predicate,
+          ct.object_text as "objectText",
+          ct.subject_entity_id::text as "subjectEntityId",
+          ct.object_entity_id::text as "objectEntityId",
+          s.full_name as "subjectName",
+          o.full_name as "objectName",
+          COUNT(DISTINCT ct.document_id) as "documentCount"
+        FROM claim_triples ct
+        LEFT JOIN entities s ON ct.subject_entity_id = s.id
+        LEFT JOIN entities o ON ct.object_entity_id = o.id
+        WHERE
+          (ct.subject_entity_id = $1 OR ct.object_entity_id = $1)
+          AND (ct.subject_entity_id = $2 OR ct.object_entity_id = $2)
+        GROUP BY ct.id, ct.predicate, ct.object_text, ct.subject_entity_id, ct.object_entity_id, s.full_name, o.full_name
+        ORDER BY "documentCount" DESC
+        LIMIT 50
+        `,
+        [BigInt(entityAId), BigInt(entityBId)],
+      );
+      return res.rows.map((r) => ({
+        id: String(r.id),
+        predicate: r.predicate ?? null,
+        objectText: r.objectText ?? null,
+        subjectEntityId: r.subjectEntityId ?? null,
+        objectEntityId: r.objectEntityId ?? null,
+        subjectName: r.subjectName ?? null,
+        objectName: r.objectName ?? null,
+        documentCount: Number(r.documentCount ?? 0),
+      }));
+    } catch (error) {
+      logger.error(
+        { err: error, entityAId, entityBId },
+        '[claimTriplesRepository] getSharedClaims error',
+      );
       throw error;
     }
   },

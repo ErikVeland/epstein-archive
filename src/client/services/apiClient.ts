@@ -14,6 +14,7 @@ import type {
   EmailThreadsResponseDto,
 } from '@shared/dto/emails';
 import type { DocumentsListResponseDto } from '@shared/dto/documents';
+import type { ConnectionDossierDto } from '@shared/dto/connections';
 import type {
   EntityListResponseDto,
   SubjectCardListItemDto,
@@ -1549,6 +1550,12 @@ class ApiClient {
   async getShortestPath(sourceId: string, targetId: string): Promise<unknown> {
     return this.fetchWithErrorHandling<unknown>(
       `${API_BASE_URL}/graph/paths?sourceId=${encodeURIComponent(sourceId)}&targetId=${encodeURIComponent(targetId)}`,
+    );
+  }
+
+  async getConnectionDossier(entityAId: string, entityBId: string): Promise<ConnectionDossierDto> {
+    return this.get<ConnectionDossierDto>(
+      `/connections?a=${encodeURIComponent(entityAId)}&b=${encodeURIComponent(entityBId)}`,
     );
   }
 }

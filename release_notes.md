@@ -1,5 +1,24 @@
 # Release Notes
 
+## 20.8.0 - 2026-05-10 - Intelligence & Co-Presence Release
+
+### For Investigators
+
+- **Unredaction Workbench UI (Gap 3)**: Exposed unredaction capabilities so investigators can view redacted spans, dynamic confidence metrics, and potential candidate guesses with manual override capabilities.
+- **Cross-Document Corroboration Engine (Gap 4)**: Aggregates claims represented across independent files, showcasing backed source documents with interactive preview snippets.
+- **Forensic Interaction Analytics (Gap 5)**: Deepens email research by adding visual pairwise communication matrices and thread heatmaps.
+- **Public Read-Only Guest Mode (Gap 6)**: Enables account-free read-only access utilizing a secure guest JWT session.
+- **Court Records & Legal Tracker (Gap 7)**: Introduces a dedicated legal tracker mapping trial transcripts, congressional hearings, depositions, and exhibits directly to active cases.
+- **Network Graph Shortest Path-Finder (Gap 8)**: Implements an optimized BFS shortest-path query and an interactive "Shortest Connection Path" autocomplete overlay inside the Network Page.
+- **Survivor & Witness testimonies (Gap 9)**: Surfaces a respectful, sensitive research layer gated by a high-visibility, professional content discretion warning banner.
+- **Real-Time Collaboration Presence (Gap 10)**: Displays an active co-presence heartbeat and a pulsing, animated indicator showing other active researchers collaborating on the same page.
+
+### Why It Matters
+
+- Investigators can work cooperatively across case files in real-time with precise awareness of team actions.
+- Multi-source claim aggregation and shortest-path graph calculations provide unprecedented analytical speed for uncovering key networks.
+- A respect-first, gated survivor testimony repository honors the individuals involved while maintaining airtight archival integrity.
+
 ## 20.7.0 - 2026-05-10 - Trust & Verification Release Candidate
 
 ### For Investigators

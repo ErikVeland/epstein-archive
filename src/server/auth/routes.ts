@@ -123,7 +123,7 @@ router.post('/login', authLimiter, async (req, res) => {
 });
 
 // POST /api/auth/guest
-router.post('/guest', async (req, res) => {
+router.post('/guest', async (_req, res) => {
   try {
     const guestUser = {
       id: 'guest',

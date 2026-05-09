@@ -78,6 +78,7 @@ import { lazyWithRetry } from './utils/lazyWithRetry';
 import { useApiStatus } from './contexts/ApiStatusContext';
 import { ApiUnavailableScreen } from './components/common/ApiUnavailableScreen';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
+import { CollaborationIndicator } from './components/common/CollaborationIndicator';
 const PeoplePage = lazyWithRetry(
   () => import('./pages/PeoplePage').then((m) => ({ default: m.PeoplePage })),
   'PeoplePage',
@@ -121,6 +122,10 @@ const CorroborationPage = lazyWithRetry(
 const LegalTrackerPage = lazyWithRetry(
   () => import('./pages/LegalTrackerPage').then((m) => ({ default: m.LegalTrackerPage })),
   'LegalTrackerPage',
+);
+const ConnectionDossierPage = lazyWithRetry(
+  () => import('./pages/ConnectionDossierPage').then((m) => ({ default: m.ConnectionDossierPage })),
+  'ConnectionDossierPage',
 );
 const SurvivorTrackingPage = lazyWithRetry(
   () => import('./pages/SurvivorTrackingPage').then((m) => ({ default: m.SurvivorTrackingPage })),
@@ -1997,6 +2002,7 @@ function App() {
                           <Route path="/redactions" element={<RedactionsPage />} />
                           <Route path="/timeline/*" element={<TimelinePage />} />
                           <Route path="/claims/corroborated" element={<CorroborationPage />} />
+                          <Route path="/connections" element={<ConnectionDossierPage />} />
                           <Route path="/legal-proceedings" element={<LegalTrackerPage />} />
                           <Route path="/survivors" element={<SurvivorTrackingPage />} />
                           <Route path="/claims/:id" element={<ClaimDetailPage />} />
@@ -2182,6 +2188,7 @@ function App() {
                           />
                         </Routes>
                       )}
+                      <CollaborationIndicator />
                     </Suspense>
                   </div>
                 </div>

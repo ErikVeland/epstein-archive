@@ -1,0 +1,76 @@
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.pickers {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.swapBtn {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  height: 38px;
+  align-self: flex-end;
+}
+
+.swapBtn:hover {
+  background: var(--surface-hover);
+}
+
+.summaryBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.summaryPill {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full, 999px);
+  background: var(--accent-muted);
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+
+.summaryPillEmpty {
+  composes: summaryPill;
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.emptyState {
+  padding: var(--space-10);
+  text-align: center;
+  border-radius: var(--radius-md);
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.noPath {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin: 0;
+  padding: var(--space-2) 0;
+}

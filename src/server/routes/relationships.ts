@@ -48,4 +48,18 @@ router.get('/', validate(getRelationshipsSchema), async (req, res, next) => {
   }
 });
 
+// GET /api/relationships/path
+router.get('/path', async (req, res, next) => {
+  try {
+    const { source, target } = req.query;
+    if (!source || !target) {
+      return res.status(400).json({ error: 'source and target parameters are required' });
+    }
+    const path = await relationshipsRepository.findShortestPath(String(source), String(target));
+    res.json({ path });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

@@ -406,4 +406,79 @@ export const relationshipsRepository = {
       documents: [], // To be populated by a separate documents search call if needed
     };
   },
+
+  async findShortestPath(
+    sourceId: number | string,
+    targetId: number | string,
+  ): Promise<Array<{ id: string; label: string; type: string }> | null> {
+    const pool = getApiPool();
+    const startRes = await resolveCanonicalEntityId(sourceId, pool);
+    const endRes = await resolveCanonicalEntityId(targetId, pool);
+    if (!startRes.found || !endRes.found) return null;
+
+    const start = Number(startRes.canonicalId);
+    const end = Number(endRes.canonicalId);
+
+    if (start === end) {
+      const entityRows = await pool.query(
+        'SELECT id, full_name, entity_type FROM entities WHERE id = $1',
+        [start],
+      );
+      const node = entityRows.rows[0];
+      return [
+        {
+          id: String(start),
+          label: String(node?.full_name || 'Start'),
+          type: String(node?.entity_type || 'person'),
+        },
+      ];
+    }
+
+    const queue: number[][] = [[start]];
+    const visited = new Set<number>([start]);
+
+    while (queue.length > 0) {
+      const path = queue.shift()!;
+      const node = path[path.length - 1];
+
+      if (node === end) {
+        const nameRows = await pool.query(
+          'SELECT id, full_name, entity_type FROM entities WHERE id = ANY($1::bigint[])',
+          [path],
+        );
+        const nameMap = new Map<number, { label: string; type: string }>();
+        for (const row of nameRows.rows) {
+          nameMap.set(Number(row.id), {
+            label: String(row.full_name),
+            type: String(row.entity_type),
+          });
+        }
+        return path.map((id) => ({
+          id: String(id),
+          label: nameMap.get(id)?.label || 'Entity',
+          type: nameMap.get(id)?.type || 'person',
+        }));
+      }
+
+      const neighborsRes = await pool.query(
+        `
+        SELECT DISTINCT CASE WHEN source_entity_id = $1::bigint THEN target_entity_id ELSE source_entity_id END AS neighbor
+        FROM entity_relationships
+        WHERE source_entity_id = $1::bigint OR target_entity_id = $1::bigint
+        LIMIT 50
+        `,
+        [node],
+      );
+
+      for (const row of neighborsRes.rows) {
+        const neighbor = Number(row.neighbor);
+        if (!visited.has(neighbor)) {
+          visited.add(neighbor);
+          queue.push([...path, neighbor]);
+        }
+      }
+    }
+
+    return null;
+  },
 };

@@ -34,7 +34,7 @@ import { communicationsRepository } from '../db/communicationsRepository.js';
 const router = express.Router();
 
 // GET /api/emails/analytics/matrix
-router.get('/analytics/matrix', async (req, res, next) => {
+router.get('/analytics/matrix', async (_req, res, next) => {
   try {
     const matrix = await communicationsRepository.getCommunicationsMatrix();
     res.json({ matrix });

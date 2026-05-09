@@ -1,6 +1,7 @@
 import { documentsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { CacheKeys, queryCache } from './cache.js';
+import type { SharedDocumentDto } from '@shared/dto/connections';
 
 const PREVIEW_MAX_CHARS = 320;
 
@@ -912,6 +913,35 @@ export const documentsRepository = {
         .split(',')
         .map((s: string) => s.trim())
         .slice(0, 5),
+    }));
+  },
+
+  getSharedDocuments: async (
+    entityAId: number,
+    entityBId: number,
+  ): Promise<SharedDocumentDto[]> => {
+    const res = await getApiPool().query(
+      `
+      SELECT DISTINCT
+        d.id::text as id,
+        COALESCE(d.title, d.file_name, 'Untitled') as title,
+        d.evidence_type as "evidenceType",
+        d.created_at as date,
+        d.word_count as "wordCount"
+      FROM documents d
+      JOIN entity_mentions em1 ON em1.document_id = d.id AND em1.entity_id = $1
+      JOIN entity_mentions em2 ON em2.document_id = d.id AND em2.entity_id = $2
+      ORDER BY d.created_at DESC
+      LIMIT 50
+      `,
+      [entityAId, entityBId],
+    );
+    return res.rows.map((r) => ({
+      id: String(r.id),
+      title: String(r.title ?? 'Untitled'),
+      evidenceType: r.evidenceType ?? null,
+      date: r.date ? String(r.date) : null,
+      wordCount: r.wordCount ? Number(r.wordCount) : null,
     }));
   },
 };

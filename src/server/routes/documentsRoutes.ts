@@ -391,7 +391,7 @@ router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next)
       hasFailedRedactions: redactionSpans.length > 0,
       count: redactionSpans.length,
       redactions: redactionSpans.map((s: Record<string, unknown>) => {
-        const text = s.original_text || '';
+        const text = String(s.original_text || '');
         const resolution = RedactionResolver.resolve(text);
         return {
           page: s.page_index || 1,
