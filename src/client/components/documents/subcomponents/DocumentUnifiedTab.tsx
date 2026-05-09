@@ -9,6 +9,8 @@ import { DocumentAnnotationSystem } from '../DocumentAnnotationSystem';
 import { PDFVariantViewer } from '../PDFVariantViewer';
 import { InvestigationTextRenderer } from '../InvestigationTextRenderer';
 import { DocumentInsightsDrawer } from './DocumentInsightsDrawer';
+import { AnimatedSegmentedControl } from '@client/components/common/AnimatedSegmentedControl';
+import type { IconName } from '@client/components/common/Icon';
 import type { PublicDocumentAnnotation } from '@shared/dto/annotations';
 import type { DocRecord, DocEntityRecord } from '../DocumentModal';
 // Design System
@@ -205,39 +207,34 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
 
   const hasText = Boolean((cleanText || ocrText).trim());
 
+  const viewModeOptions = [
+    { value: 'clean' as ViewMode, label: 'Clean Text', icon: 'Type' as IconName },
+    { value: 'ocr' as ViewMode, label: 'Raw OCR', icon: 'ScanText' as IconName },
+    { value: 'pdf' as ViewMode, label: 'Original PDF', icon: 'FileText' as IconName },
+    ...(!isMobile
+      ? [
+          {
+            value: 'sidebyside' as ViewMode,
+            label: 'Side by Side',
+            icon: 'Layout' as IconName,
+          },
+        ]
+      : []),
+  ];
+
   const renderViewModeToolbar = () => (
     <Flex align="center" justify="between" wrap="wrap" gap="sm" className={styles.toolbar}>
-      <Flex align="center" gap="xs" className={styles.modeGroup}>
-        {(
-          [
-            { mode: 'clean' as ViewMode, label: 'Clean Text', icon: 'Type' as const },
-            { mode: 'ocr' as ViewMode, label: 'Raw OCR', icon: 'ScanText' as const },
-            { mode: 'pdf' as ViewMode, label: 'Original PDF', icon: 'FileText' as const },
-            ...(!isMobile
-              ? [
-                  {
-                    mode: 'sidebyside' as ViewMode,
-                    label: 'Side by Side',
-                    icon: 'Layout' as const,
-                  },
-                ]
-              : []),
-          ] as Array<{ mode: ViewMode; label: string; icon: string }>
-        ).map(({ mode, label, icon }) => (
-          <Button
-            key={mode}
-            type="button"
-            variant={effectiveMode === mode ? 'secondary' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode(mode)}
-            className={cn(styles.modeBtn, effectiveMode === mode && styles.modeBtnActive)}
-            aria-pressed={effectiveMode === mode}
-          >
-            <Icon name={icon} size="sm" />
-            <span className={styles.modeBtnLabel}>{label}</span>
-          </Button>
-        ))}
-      </Flex>
+      <div className={styles.modeGroup}>
+        <AnimatedSegmentedControl
+          ariaLabel="Document view mode"
+          options={viewModeOptions}
+          value={effectiveMode}
+          onChange={setViewMode}
+          minItemWidth="8.75rem"
+          compact
+          className={styles.modeControl}
+        />
+      </div>
 
       <Flex align="center" gap="sm">
         {annotationsLoading ? (

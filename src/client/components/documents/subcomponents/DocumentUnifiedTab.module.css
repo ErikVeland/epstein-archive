@@ -21,32 +21,22 @@
 }
 
 .modeGroup {
-  flex-wrap: wrap;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.125rem;
 }
 
-.modeBtn {
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
+.modeGroup::-webkit-scrollbar {
+  height: 0.375rem;
 }
 
-.modeBtn:hover {
-  color: var(--text-primary);
+.modeGroup::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-border-highlight) 70%, transparent);
 }
 
-.modeBtnActive {
-  color: var(--accent, #06b6d4);
-  background: color-mix(in srgb, var(--accent, #06b6d4) 12%, transparent);
-  border-color: color-mix(in srgb, var(--accent, #06b6d4) 30%, transparent);
-}
-
-.modeBtnLabel {
-  /* Visible by default; hidden on very small screens via media query below */
-}
-
-@media (max-width: 479px) {
-  .modeBtnLabel {
-    display: none;
-  }
+.modeControl {
+  min-width: max-content;
 }
 
 .annotCount {

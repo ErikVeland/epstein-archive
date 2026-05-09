@@ -1,0 +1,118 @@
+.root {
+  --segment-count: 1;
+  --segment-active-index: 0;
+  --segment-min-width: 3.25rem;
+  --segment-padding: 0.25rem;
+  --segment-height: 3rem;
+  --segment-radius: var(--radius-lg);
+
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: repeat(var(--segment-count), minmax(var(--segment-min-width), 1fr));
+  align-items: stretch;
+  width: max-content;
+  min-height: var(--segment-height);
+  padding: var(--segment-padding);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
+  border-radius: calc(var(--segment-radius) + var(--segment-padding));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(148, 163, 184, 0.012)),
+    color-mix(in srgb, var(--glass-bg) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    var(--glass-shadow-soft);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.compact {
+  --segment-height: 2.5rem;
+  --segment-radius: var(--radius-md);
+}
+
+.blob {
+  position: absolute;
+  z-index: -1;
+  top: var(--segment-padding);
+  bottom: var(--segment-padding);
+  left: calc(
+    var(--segment-padding) + var(--segment-active-index) *
+      ((100% - (var(--segment-padding) * 2)) / var(--segment-count))
+  );
+  width: calc((100% - (var(--segment-padding) * 2)) / var(--segment-count));
+  border-radius: var(--segment-radius);
+  background:
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.28), transparent 36%), var(--accent);
+  box-shadow:
+    0 0.75rem 1.5rem color-mix(in srgb, var(--accent) 22%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  transition:
+    left 340ms cubic-bezier(0.2, 0.9, 0.2, 1),
+    width 340ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: calc(var(--segment-height) - (var(--segment-padding) * 2));
+  padding-inline: clamp(0.75rem, 1.8vw, 1.25rem);
+  border: 0;
+  border-radius: var(--segment-radius);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color 180ms var(--ease-out),
+    filter 180ms var(--ease-out);
+}
+
+.item:hover {
+  color: var(--text-primary);
+}
+
+.item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 80%, #fff 20%);
+  outline-offset: -2px;
+}
+
+.itemSelected {
+  color: var(--bg-dark);
+}
+
+.itemSelected:hover {
+  color: var(--bg-dark);
+  filter: brightness(0.98);
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blob {
+    transition: none;
+  }
+}
