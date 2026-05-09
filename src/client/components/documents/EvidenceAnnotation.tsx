@@ -619,7 +619,9 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         selectedTags.includes(tag) ? styles.tagButtonActive : styles.tagButton
                       }
                     >
-                      {selectedTags.includes(tag) && <span className={styles.tagCheck}>✓</span>}
+                      {selectedTags.includes(tag) && (
+                        <Icon name="Check" className={styles.tagCheck} />
+                      )}
                       {tag}
                     </Button>
                   ))}

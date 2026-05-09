@@ -84,7 +84,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
 
           <Flex align="center" className={styles.flightLineWrap}>
             <Box className={styles.dashedLine} />
-            <LqText className={styles.planeIcon}>✈</LqText>
+            <Icon name="Plane" className={styles.planeIcon} />
             <Box className={styles.dashedLine} />
           </Flex>
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@client/components/common/Icon';
 import type { FlightStats } from './types';
 
 interface FlightStatsViewProps {
@@ -8,13 +9,17 @@ interface FlightStatsViewProps {
 export const FlightStatsView: React.FC<FlightStatsViewProps> = ({ stats }) => (
   <div className="flight-stats-grid">
     <div className="stat-card primary">
-      <div className="stat-icon">✈</div>
+      <div className="stat-icon">
+        <Icon name="Plane" />
+      </div>
       <div className="stat-value">{stats?.totalFlights || 0}</div>
       <div className="stat-label">Total Flights</div>
     </div>
 
     <div className="stat-card">
-      <div className="stat-icon">👥</div>
+      <div className="stat-icon">
+        <Icon name="Users" />
+      </div>
       <div className="stat-value">{stats?.uniquePassengers || 0}</div>
       <div className="stat-label">Unique Passengers</div>
     </div>

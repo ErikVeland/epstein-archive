@@ -358,7 +358,7 @@ export const ArticlesTab: React.FC = () => {
                               {Array.from({ length: Math.min(article.redFlagRating, 5) }).map(
                                 (_, i) => (
                                   <Box key={i} className={styles.redFlag}>
-                                    🚩
+                                    <Icon name="Flag" size="xs" />
                                   </Box>
                                 ),
                               )}

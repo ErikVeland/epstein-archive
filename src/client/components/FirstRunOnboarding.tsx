@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Icon from '@client/components/common/Icon';
+import Icon, { type IconName } from '@client/components/common/Icon';
 import { CloseButton } from './common/CloseButton';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import styles from './FirstRunOnboarding.module.css';
@@ -12,6 +12,38 @@ interface FirstRunOnboardingProps {
 }
 
 type RoleType = 'investigator' | 'academic' | 'journalist' | 'sleuth';
+
+const roleOptions: Array<{
+  id: RoleType;
+  name: string;
+  desc: string;
+  icon: IconName;
+}> = [
+  {
+    id: 'investigator',
+    name: 'Forensic Investigator',
+    desc: 'Isolate financial flows, build court-ready portfolios, and run hypothesis tests.',
+    icon: 'SearchCheck',
+  },
+  {
+    id: 'academic',
+    name: 'Academic Researcher',
+    desc: 'Analyze macro influence structures, centrality bridge nodes, and multi-hop paths.',
+    icon: 'BookOpen',
+  },
+  {
+    id: 'journalist',
+    name: 'Investigative Journalist',
+    desc: 'Monitor anomaly lead feeds, read page-by-page AI briefs, and verify source hashes.',
+    icon: 'Newspaper',
+  },
+  {
+    id: 'sleuth',
+    name: 'Internet Sleuth',
+    desc: 'Fact-check primary DOJ records, browse contact books, and filter red-flags.',
+    icon: 'Globe',
+  },
+];
 
 export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComplete, onSkip }) => {
   const [step, setStep] = useState(1);
@@ -191,38 +223,15 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
         <div className={styles.content}>
           {step === 1 ? (
             <div className={styles.rolesGrid}>
-              {[
-                {
-                  id: 'investigator',
-                  name: 'Forensic Investigator',
-                  desc: 'Isolate financial flows, build court-ready portfolios, and run hypothesis tests.',
-                  emoji: '🕵️‍♂️',
-                },
-                {
-                  id: 'academic',
-                  name: 'Academic Researcher',
-                  desc: 'Analyze macro influence structures, centrality bridge nodes, and multi-hop paths.',
-                  emoji: '🎓',
-                },
-                {
-                  id: 'journalist',
-                  name: 'Investigative Journalist',
-                  desc: 'Monitor anomaly lead feeds, read page-by-page AI briefs, and verify source hashes.',
-                  emoji: '📰',
-                },
-                {
-                  id: 'sleuth',
-                  name: 'Internet Sleuth',
-                  desc: 'Fact-check primary DOJ records, browse contact books, and filter red-flags.',
-                  emoji: '🌐',
-                },
-              ].map((role) => (
+              {roleOptions.map((role) => (
                 <div
                   key={role.id}
-                  onClick={() => setSelectedRole(role.id as RoleType)}
+                  onClick={() => setSelectedRole(role.id)}
                   className={`${styles.roleCard} ${selectedRole === role.id ? styles.roleCardActive : ''}`}
                 >
-                  <span className={styles.roleEmoji}>{role.emoji}</span>
+                  <span className={styles.roleIconShell}>
+                    <Icon name={role.icon} className={styles.roleIcon} />
+                  </span>
                   <div className={styles.roleText}>
                     <span className={styles.roleName}>{role.name}</span>
                     <p className={styles.roleDesc}>{role.desc}</p>

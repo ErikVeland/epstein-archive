@@ -469,11 +469,6 @@
   text-transform: uppercase;
 }
 
-.keyEventBadge::before {
-  content: '★';
-  font-size: 0.55rem;
-}
-
 /* Event title */
 .eventTitle {
   font-family: var(--font-display);

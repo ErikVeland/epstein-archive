@@ -209,7 +209,7 @@ class WebVitalsMonitor {
     const metrics = this.getMetrics();
 
     console.log('\n' + '='.repeat(80));
-    console.log('📊 WEB VITALS SUMMARY');
+    console.log('WEB VITALS SUMMARY');
     console.log('='.repeat(80));
     console.log(`CLS: ${metrics.cls.toFixed(3)} (${metrics.clsRating})`);
     console.log(`LCP: ${metrics.lcp.toFixed(0)}ms (${metrics.lcpRating})`);
@@ -225,9 +225,9 @@ class WebVitalsMonitor {
     if (metrics.longTaskCount > 10) failures.push('Long tasks');
 
     if (failures.length > 0) {
-      console.warn(`⚠️  Performance issues detected: ${failures.join(', ')}`);
+      console.warn(`Performance issues detected: ${failures.join(', ')}`);
     } else {
-      console.log('✅ All Web Vitals within acceptable thresholds');
+      console.log('All Web Vitals within acceptable thresholds');
     }
   }
 

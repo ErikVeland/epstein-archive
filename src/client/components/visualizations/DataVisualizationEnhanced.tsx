@@ -17,6 +17,7 @@ import {
   type TooltipProps,
 } from 'recharts';
 import { Person } from '@client/types';
+import Icon from '@client/components/common/Icon';
 import styles from './DataVisualizationEnhanced.module.css';
 
 interface DataVisualizationProps {
@@ -299,25 +300,25 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
           value={people.filter((p) => p.likelihoodScore === 'HIGH').length}
           label="High Risk Individuals"
           color={styles.counterRiskHigh}
-          icon={<span className={styles.iconHigh}>⚠️</span>}
+          icon={<Icon name="AlertTriangle" className={styles.iconHigh} />}
         />
         <AnimatedCounter
           value={people.filter((p) => p.likelihoodScore === 'MEDIUM').length}
           label="Medium Risk Individuals"
           color={styles.counterRiskMedium}
-          icon={<span className={styles.iconMedium}>⚡</span>}
+          icon={<Icon name="Zap" className={styles.iconMedium} />}
         />
         <AnimatedCounter
           value={people.filter((p) => p.likelihoodScore === 'LOW').length}
           label="Low Risk Individuals"
           color={styles.counterRiskLow}
-          icon={<span className={styles.iconLow}>✓</span>}
+          icon={<Icon name="Check" className={styles.iconLow} />}
         />
         <AnimatedCounter
           value={people.reduce((sum, p) => sum + p.mentions, 0)}
           label="Total Mentions"
           color={styles.counterPrimary}
-          icon={<span className={styles.iconPrimary}>📊</span>}
+          icon={<Icon name="BarChart3" className={styles.iconPrimary} />}
         />
       </div>
 
@@ -603,7 +604,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
         <div className={`${styles.summaryCard} ${styles.summaryPurple}`}>
           <div className={styles.summaryHeader}>
             <div className={styles.summaryValue}>{people.length.toLocaleString()}</div>
-            <div className={styles.summaryEmoji}>👥</div>
+            <Icon name="Users" className={styles.summaryIcon} />
           </div>
           <div className={styles.summaryLabel}>Total Individuals</div>
           <div className={styles.summaryMeta}>Across all evidence files</div>
@@ -616,7 +617,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                 ? Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length)
                 : 0}
             </div>
-            <div className={styles.summaryEmoji}>📈</div>
+            <Icon name="TrendingUp" className={styles.summaryIcon} />
           </div>
           <div className={styles.summaryLabel}>Avg Mentions</div>
           <div className={styles.summaryMeta}>Per individual</div>
@@ -625,7 +626,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
         <div className={`${styles.summaryCard} ${styles.summaryPink}`}>
           <div className={styles.summaryHeader}>
             <div className={styles.summaryValue}>{roleData.length}</div>
-            <div className={styles.summaryEmoji}>🎭</div>
+            <Icon name="UserPlus" className={styles.summaryIcon} />
           </div>
           <div className={styles.summaryLabel}>Unique Roles</div>
           <div className={styles.summaryMeta}>Across all individuals</div>
@@ -636,7 +637,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
             <div className={styles.summaryValue}>
               {Math.max(...people.map((p) => p.mentions)).toLocaleString()}
             </div>
-            <div className={styles.summaryEmoji}>🔥</div>
+            <Icon name="Trophy" className={styles.summaryIcon} />
           </div>
           <div className={styles.summaryLabel}>Max Mentions</div>
           <div className={styles.summaryMeta}>Single individual</div>

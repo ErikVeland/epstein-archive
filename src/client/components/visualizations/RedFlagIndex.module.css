@@ -36,6 +36,24 @@
   gap: var(--space-1);
 }
 
+.flagStack {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  color: currentcolor;
+}
+
+.flagIcon,
+.flagIconMuted {
+  width: 1em;
+  height: 1em;
+  color: currentcolor;
+}
+
+.flagIconMuted {
+  opacity: 0.5;
+}
+
 .root {
   display: inline-flex;
   flex-direction: column;

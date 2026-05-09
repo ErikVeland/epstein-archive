@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon, { type IconName } from './Icon';
 import s from './ConfidenceBadge.module.css';
 
 export interface ConfidenceBadgeProps {
@@ -15,11 +16,11 @@ const getVariant = (confidence: number): string => {
   return 'very-low';
 };
 
-const variantLabels: Record<string, { label: string; icon: string }> = {
-  high: { label: 'High confidence', icon: '✓' },
-  medium: { label: 'Medium confidence', icon: '—' },
-  low: { label: 'Low confidence', icon: '⚠' },
-  'very-low': { label: 'Very low confidence', icon: '✗' },
+const variantLabels: Record<string, { label: string; icon: IconName }> = {
+  high: { label: 'High confidence', icon: 'Check' },
+  medium: { label: 'Medium confidence', icon: 'Circle' },
+  low: { label: 'Low confidence', icon: 'AlertTriangle' },
+  'very-low': { label: 'Very low confidence', icon: 'AlertCircle' },
 };
 
 export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
@@ -39,7 +40,7 @@ export const ConfidenceBadge: React.FC<ConfidenceBadgeProps> = ({
       role="status"
       aria-label={`${config.label}, ${percentage}%`}
     >
-      {showIcon && <span className={s.icon}>{config.icon}</span>}
+      {showIcon && <Icon name={config.icon} className={s.icon} />}
       {showPercentage && <span className={s.percentage}>{percentage}%</span>}
     </span>
   );

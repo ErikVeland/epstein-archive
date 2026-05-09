@@ -134,7 +134,7 @@ export class OptimizedDataService {
       likelihoodScore: entity.likelihoodScore || 'LOW',
       redFlagScore: entity.redFlagScore || entity.mentions || 0,
       redFlagRating: entity.redFlagRating || 1,
-      redFlagPeppers: entity.redFlagPeppers || '🚩',
+      redFlagPeppers: entity.redFlagPeppers || '',
       redFlagDescription: entity.redFlagDescription || 'Low',
       keyEvidence: entity.keyEvidence || 'No specific evidence available',
       fileReferences: entity.fileReferences || [],

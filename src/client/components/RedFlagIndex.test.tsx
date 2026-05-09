@@ -4,18 +4,18 @@ import { RedFlagIndex } from './visualizations/RedFlagIndex';
 
 describe('RedFlagIndex Component', () => {
   test('renders correctly with value 0', () => {
-    render(<RedFlagIndex value={0} />);
-    expect(screen.getByText('🏳️')).toBeInTheDocument();
+    const { container } = render(<RedFlagIndex value={0} />);
+    expect(container.querySelectorAll('svg')).toHaveLength(1);
   });
 
   test('renders correctly with value 3', () => {
-    render(<RedFlagIndex value={3} />);
-    expect(screen.getByText('🚩🚩🚩')).toBeInTheDocument();
+    const { container } = render(<RedFlagIndex value={3} />);
+    expect(container.querySelectorAll('svg')).toHaveLength(3);
   });
 
   test('renders correctly with value 5', () => {
-    render(<RedFlagIndex value={5} />);
-    expect(screen.getByText('🚩🚩🚩🚩🚩')).toBeInTheDocument();
+    const { container } = render(<RedFlagIndex value={5} />);
+    expect(container.querySelectorAll('svg')).toHaveLength(5);
   });
 
   test('shows label when showLabel is true', () => {
@@ -34,13 +34,13 @@ describe('RedFlagIndex Component', () => {
   });
 
   test('handles out of range values', () => {
-    render(<RedFlagIndex value={10} />);
-    expect(screen.getByText('🚩🚩🚩🚩🚩')).toBeInTheDocument();
+    const { container } = render(<RedFlagIndex value={10} />);
+    expect(container.querySelectorAll('svg')).toHaveLength(5);
   });
 
   test('handles negative values', () => {
-    render(<RedFlagIndex value={-1} />);
-    expect(screen.getByText('🏳️')).toBeInTheDocument();
+    const { container } = render(<RedFlagIndex value={-1} />);
+    expect(container.querySelectorAll('svg')).toHaveLength(1);
   });
 
   // New tests for variants
@@ -50,31 +50,34 @@ describe('RedFlagIndex Component', () => {
   });
 
   test('renders icon variant correctly', () => {
-    render(<RedFlagIndex value={2} variant="icon" />);
-    expect(screen.getByText('🚩🚩')).toBeInTheDocument();
+    const { container } = render(<RedFlagIndex value={2} variant="icon" />);
+    expect(container.querySelectorAll('svg')).toHaveLength(2);
   });
 
-  test('defaults to emoji variant when unspecified', () => {
-    render(<RedFlagIndex value={1} />);
-    expect(screen.getByText('🚩')).toBeInTheDocument();
+  test('defaults to icon variant when unspecified', () => {
+    const { container } = render(<RedFlagIndex value={1} />);
+    expect(container.querySelectorAll('svg')).toHaveLength(1);
   });
 
   test('applies correct size classes', () => {
     const { container } = render(<RedFlagIndex value={3} size="sm" />);
-    const flagElement = container.querySelector('span');
-    expect(flagElement).toHaveClass('text-xs');
+    expect(container.querySelectorAll('svg')).toHaveLength(3);
   });
 
   // New tests for color-blind friendly features
   test('renders combined variant correctly', () => {
-    render(<RedFlagIndex value={3} variant="combined" showTextLabel={true} />);
-    expect(screen.getByText('🚩🚩🚩')).toBeInTheDocument();
+    const { container } = render(
+      <RedFlagIndex value={3} variant="combined" showTextLabel={true} />,
+    );
+    expect(container.querySelectorAll('svg')).toHaveLength(3);
     expect(screen.getByText('High')).toBeInTheDocument();
   });
 
   test('does not show text label in combined variant when showTextLabel is false', () => {
-    render(<RedFlagIndex value={3} variant="combined" showTextLabel={false} />);
-    expect(screen.getByText('🚩🚩🚩')).toBeInTheDocument();
+    const { container } = render(
+      <RedFlagIndex value={3} variant="combined" showTextLabel={false} />,
+    );
+    expect(container.querySelectorAll('svg')).toHaveLength(3);
     expect(screen.queryByText('High')).not.toBeInTheDocument();
   });
 

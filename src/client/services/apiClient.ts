@@ -644,7 +644,7 @@ class ApiClient {
           likelihoodScore: String(forensics.riskLevel || 'LOW'),
           redFlagScore: Number(redFlag || 0),
           redFlagRating: Number(redFlag || 0),
-          redFlagPeppers: Number(redFlag || 0) > 0 ? '🚩'.repeat(Number(redFlag || 0)) : '🏳️',
+          redFlagPeppers: '',
           redFlagDescription: `Red Flag Index ${Number(redFlag || 0)}`,
           connectionsToEpstein: '',
           fileReferences: [],

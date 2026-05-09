@@ -494,14 +494,13 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
         ctx.stroke();
       }
 
-      // Draw node icon
+      // Draw compact node glyph
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 12px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      const icon = getNodeIcon(node.type);
-      ctx.fillText(icon, node.position.x, node.position.y);
+      ctx.fillText(getNodeGlyph(node.type), node.position.x, node.position.y);
 
       // Draw node label (only for important nodes or if zoomed in enough)
       const shouldDrawLabel = zoom > 0.6 || node.importance > 3 || isSelected;
@@ -527,14 +526,26 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
     ctx.restore();
   };
 
-  const getNodeIcon = (type: NetworkNode['type']): string => {
+  const getNodeGlyph = (type: NetworkNode['type']): string => {
+    const glyphs = {
+      person: 'P',
+      document: 'D',
+      organization: 'O',
+      location: 'L',
+      event: 'E',
+      evidence: 'S',
+    };
+    return glyphs[type];
+  };
+
+  const getNodeIconName = (type: NetworkNode['type']) => {
     const icons = {
-      person: '👤',
-      document: '📄',
-      organization: '🏢',
-      location: '📍',
-      event: '📅',
-      evidence: '🔍',
+      person: 'User',
+      document: 'FileText',
+      organization: 'Building2',
+      location: 'MapPin',
+      event: 'Calendar',
+      evidence: 'Search',
     };
     return icons[type];
   };
@@ -942,7 +953,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                                         color: node.color,
                                       }}
                                     >
-                                      {getNodeIcon(node.type)}
+                                      <Icon name={getNodeIconName(node.type)} size="xs" />
                                     </div>
                                     <span className={styles.entityName}>{node.label}</span>
                                   </div>

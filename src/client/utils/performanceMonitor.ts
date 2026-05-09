@@ -94,13 +94,13 @@ class PerformanceMonitorClass {
 
     // Log slow API calls
     if (duration > 1000) {
-      console.warn(`🐌 Slow API call: ${endpoint} took ${duration.toFixed(0)}ms`);
+      console.warn(`Slow API call: ${endpoint} took ${duration.toFixed(0)}ms`);
     }
 
     // Log large payloads
     if (payloadSize > 500000) {
       // 500KB
-      console.warn(`📦 Large payload: ${endpoint} returned ${(payloadSize / 1024).toFixed(0)}KB`);
+      console.warn(`Large payload: ${endpoint} returned ${(payloadSize / 1024).toFixed(0)}KB`);
     }
   }
 
@@ -127,7 +127,7 @@ class PerformanceMonitorClass {
     // Log slow renders
     if (duration > 16) {
       // > 1 frame at 60fps
-      console.warn(`🎨 Slow render: ${component} took ${duration.toFixed(2)}ms`);
+      console.warn(`Slow render: ${component} took ${duration.toFixed(2)}ms`);
     }
   }
 
@@ -207,7 +207,7 @@ class PerformanceMonitorClass {
     const summary = this.getSummary();
 
     if (import.meta.env.DEV) {
-      console.group('📊 Performance Summary');
+      console.group('Performance Summary');
       console.info('API Calls:', {
         count: summary.apiCalls.count,
         avgDuration: `${summary.apiCalls.avgDuration.toFixed(0)}ms`,

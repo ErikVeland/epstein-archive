@@ -804,8 +804,16 @@
 
 /* ── Mobile entity flags ── */
 .entityFlags {
-  font-size: 1.125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
   flex-shrink: 0;
+}
+
+.entityFlagIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent-danger);
 }
 
 /* ── Mobile progressive disclosure ── */

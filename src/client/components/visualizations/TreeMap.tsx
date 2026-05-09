@@ -260,7 +260,10 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
               <div className={styles.tooltipRow}>
                 <span className={styles.tooltipLabel}>Red Flag Index:</span>
                 <span className={styles.tooltipRating}>
-                  {hoveredNode.redFlagRating}/5 {'🚩'.repeat(hoveredNode.redFlagRating)}
+                  {hoveredNode.redFlagRating}/5
+                  {Array.from({ length: hoveredNode.redFlagRating }).map((_, index) => (
+                    <Icon key={index} name="Flag" className={styles.flagIcon} />
+                  ))}
                 </span>
               </div>
             </div>

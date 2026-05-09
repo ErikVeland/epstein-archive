@@ -17,7 +17,7 @@ export const parseReleaseNotes = (markdown: string): ParsedReleaseNote[] => {
 
     const isVersionHeading = (line: string): boolean =>
       /^##\s+(?:[Vv]ersion\s+|[Vv])?\d+\.\d+\.\d+\b/.test(line) ||
-      /^#\s*📣\s*Epstein Archive\s+[Vv]\d+\.\d+\.\d+\b/.test(line);
+      /^#\s*(?:Epstein Archive\s+)?[Vv]\d+\.\d+\.\d+\b/.test(line);
 
     for (const line of lines) {
       if (isVersionHeading(line)) {

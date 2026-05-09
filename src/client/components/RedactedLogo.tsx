@@ -31,7 +31,9 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
     let intervalId: NodeJS.Timeout;
 
     const runAnimation = () => {
-      const letterDelay = 45; // slightly faster and snappier for better tech feel
+      const letterDelay = 70;
+      const glitchLeadTime = 115;
+      const glitchClearTime = 190;
       animationCount.current += 1;
 
       // Odd intervals: Trigger alternate text animations
@@ -44,12 +46,14 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
         setTimeout(() => {
           setGlitchingIndex(i - 1);
           // Random global glitch on some letters
-          if (Math.random() > 0.65) setGlobalGlitch(true);
+          if (Math.random() > 0.4) setGlobalGlitch(true);
+          setTimeout(() => {
+            setRedactedCount(i);
+          }, glitchLeadTime);
           setTimeout(() => {
             setGlitchingIndex(null);
             setGlobalGlitch(false);
-          }, 50);
-          setRedactedCount(i);
+          }, glitchClearTime);
         }, i * letterDelay);
       }
 
@@ -71,12 +75,14 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
           setTimeout(
             () => {
               setGlitchingIndex(i);
-              if (Math.random() > 0.65) setGlobalGlitch(true);
+              if (Math.random() > 0.4) setGlobalGlitch(true);
+              setTimeout(() => {
+                setRedactedCount(i);
+              }, glitchLeadTime);
               setTimeout(() => {
                 setGlitchingIndex(null);
                 setGlobalGlitch(false);
-              }, 50);
-              setRedactedCount(i);
+              }, glitchClearTime);
             },
             (letterCount - i) * letterDelay,
           );
@@ -97,7 +103,12 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
             for (let i = 1; i <= letterCount; i++) {
               setTimeout(() => {
                 setGlitchingIndex(i - 1);
-                setRedactedCount(i);
+                setGlobalGlitch(true);
+                setTimeout(() => setRedactedCount(i), 70);
+                setTimeout(() => {
+                  setGlitchingIndex(null);
+                  setGlobalGlitch(false);
+                }, 130);
               }, i * 20);
 
               setTimeout(
@@ -107,7 +118,12 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
                     setTimeout(
                       () => {
                         setGlitchingIndex(j);
-                        setRedactedCount(j);
+                        setGlobalGlitch(true);
+                        setTimeout(() => setRedactedCount(j), 70);
+                        setTimeout(() => {
+                          setGlitchingIndex(null);
+                          setGlobalGlitch(false);
+                        }, 130);
                       },
                       (letterCount - j) * 20,
                     );
@@ -187,7 +203,9 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
           {isRedacted && !isGlitching ? (
             <span className={styles.redactedBlock}>█</span>
           ) : (
-            <span className={styles.normalChar}>{displayedChar}</span>
+            <span className={styles.normalChar} data-glitch={displayedChar}>
+              {displayedChar}
+            </span>
           )}
         </span>
       );
@@ -208,13 +226,16 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
         <h1
           className={styles.title}
           style={{
-            transform: globalGlitch ? `translateX(${Math.random() > 0.5 ? 2 : -2}px)` : 'none',
-            filter: globalGlitch ? 'hue-rotate(15deg)' : 'none',
+            transform: globalGlitch
+              ? `translateX(${(Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 4)}px) skewX(${(Math.random() > 0.5 ? 1 : -1) * Math.random() * 5}deg)`
+              : 'none',
+            filter: globalGlitch
+              ? `hue-rotate(${25 + Math.random() * 50}deg) saturate(3) brightness(1.5)`
+              : 'none',
           }}
         >
           {isAnimating ? renderText() : <span className={styles.staticText}>{currentText}</span>}
         </h1>
-        <div className={styles.subtitle}>CLASSIFIED SIGNAL</div>
       </div>
     </div>
   );

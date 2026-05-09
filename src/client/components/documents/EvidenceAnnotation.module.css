@@ -369,6 +369,8 @@
 }
 
 .tagCheck {
+  width: 0.875rem;
+  height: 0.875rem;
   margin-right: 0.375rem;
   opacity: 0.8;
 }

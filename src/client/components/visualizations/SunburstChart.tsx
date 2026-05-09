@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Button } from '@client/design-system/lib';
+import Icon from '@client/components/common/Icon';
 import styles from './SunburstChart.module.css';
 
 interface SunburstChartProps {
@@ -80,7 +81,9 @@ const CustomTooltip = ({
                       : styles.riskValueLow
                 }`}
               >
-                {'🚩'.repeat(Math.round(data.avgRisk))}
+                {Array.from({ length: Math.round(data.avgRisk) }).map((_, index) => (
+                  <Icon key={index} name="Flag" className={styles.flagIcon} />
+                ))}
               </span>
             </div>
           )}

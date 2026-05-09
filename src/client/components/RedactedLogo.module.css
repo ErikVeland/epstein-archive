@@ -2,19 +2,20 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-lg);
-  background: rgba(10, 15, 30, 0.4);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  gap: 0.8rem;
+  padding: 0.55rem 1rem 0.55rem 0.65rem;
+  border-radius: calc(var(--radius-lg) + 2px);
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.78), rgba(8, 13, 26, 0.62)), rgba(10, 15, 30, 0.46);
+  border: 1px solid rgba(226, 232, 240, 0.12);
   box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 0.7rem 1.5rem rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  width: 250px;
-  min-width: 250px;
-  max-width: 250px;
+  width: 270px;
+  min-width: 270px;
+  max-width: 270px;
 }
 
 .root:hover {
@@ -31,14 +32,24 @@
   inset: 0;
   z-index: 10;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 2px,
-    color-mix(in srgb, var(--glitch-cyan, #06b6d4) 10%, transparent) 2px,
-    color-mix(in srgb, var(--glitch-cyan, #06b6d4) 10%, transparent) 4px
-  );
-  opacity: 0.7;
+  mix-blend-mode: screen;
+  background:
+    linear-gradient(
+      90deg,
+      oklch(95% 0.37 196 / 0.3) 0%,
+      transparent 18%,
+      oklch(72% 0.38 330 / 0.34) 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 2px,
+      oklch(94% 0.4 136 / 0.24) 2px,
+      oklch(94% 0.4 136 / 0.24) 3px,
+      transparent 5px
+    );
+  opacity: 0.95;
+  animation: globalNeonTear 120ms steps(2, end) infinite;
 }
 
 /* Glowing Icon Badge */
@@ -79,13 +90,16 @@
 
 .title {
   font-family:
-    'Inter',
+    'Libre Baskerville',
+    'Iowan Old Style',
+    'Georgia',
+    'Times New Roman',
     -apple-system,
     BlinkMacSystemFont,
-    sans-serif;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+    serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.075em;
   white-space: nowrap;
   line-height: 1.1;
   text-transform: uppercase;
@@ -96,100 +110,218 @@
 
 .space {
   display: inline-block;
-  width: 4px;
+  width: 7px;
 }
 
 .letter {
   display: inline-block;
-  width: 9.5px;
+  width: 10.6px;
   text-align: center;
   position: relative;
 }
 
 .redactedBlock {
-  color: #0c0f1d;
-  background: #0c0f1d;
-  padding: 0 1px;
+  display: inline-block;
+  color: #01030a;
+  background:
+    linear-gradient(
+      90deg,
+      oklch(95% 0.37 196 / 0.22) 0%,
+      transparent 18%,
+      oklch(72% 0.38 330 / 0.24) 100%
+    ),
+    #02040a;
+  padding: 0 2px;
   border-radius: 1px;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 2px rgba(0, 0, 0, 0.7),
+    0 0 8px oklch(95% 0.37 196 / 0.28),
+    0 0 10px oklch(72% 0.38 330 / 0.18);
 }
 
+/* Base char — positioning context for CA pseudo-elements */
 .normalChar {
+  position: relative;
+  display: inline-block;
   color: var(--text-strong, #ffffff);
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
 }
 
+/* Invisible by default — activated only inside .letterGlitching */
+.normalChar::before,
+.normalChar::after {
+  content: attr(data-glitch);
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .staticText {
   color: var(--text-strong, #ffffff);
+  text-shadow: 0 0.35rem 1rem rgba(226, 232, 240, 0.14);
 }
 
-.subtitle {
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  color: rgba(59, 130, 246, 0.6);
-  text-transform: uppercase;
-  margin-top: 2px;
-  white-space: nowrap;
-}
+/* ── Main glitch on the letter container ──────────────────────────────── */
 
-.root:hover .subtitle {
-  color: rgba(59, 130, 246, 0.85);
-}
-
-/* High Speed Cyber Glitch Animation */
 @keyframes glitchFlicker {
   0% {
     opacity: 1;
-    transform: skewX(0deg) scale(1);
-    filter: hue-rotate(0deg);
+    transform: translate(0, 0) skewX(0deg) scale(1);
   }
-  20% {
+  8% {
+    opacity: 0.05;
+    transform: translate(-7px, 1px) skewX(-28deg) scaleY(1.35);
+  }
+  9% {
+    opacity: 1;
+    transform: translate(4px, 0) skewX(6deg);
+  }
+  18% {
     opacity: 0.8;
-    transform: skewX(-12deg) scaleY(1.1) translateX(-1px);
-    filter: hue-rotate(45deg) brightness(1.4);
-    text-shadow:
-      2px 0 #ec4899,
-      -2px 0 #06b6d4;
+    transform: translate(-3px, 1px) scaleY(0.82);
   }
-  40% {
-    opacity: 0.95;
-    transform: skewX(15deg) scaleX(0.9) translateY(1px);
-    filter: brightness(0.9);
+  19% {
+    opacity: 1;
+    transform: translate(6px, 0);
   }
-  60% {
-    opacity: 0.75;
-    transform: skewX(-6deg) scale(1.05) translateX(1px);
-    filter: invert(0.05) hue-rotate(-30deg);
-    text-shadow:
-      -2px 0 #ec4899,
-      2px 0 #06b6d4;
+  28% {
+    transform: skewX(22deg) scaleX(0.8) translate(-2px, 0);
   }
-  80% {
+  29% {
+    transform: none;
+  }
+  38% {
+    opacity: 0.08;
+    transform: translate(8px, -1px) skewX(-14deg);
+  }
+  39% {
+    opacity: 1;
+    transform: translate(-3px, 0);
+  }
+  52% {
     opacity: 0.9;
-    transform: skewY(4deg) scaleY(0.95);
-    filter: brightness(1.2);
+    transform: skewY(7deg) scaleY(1.14) translate(-5px, 0);
+  }
+  53% {
+    opacity: 1;
+    transform: none;
+  }
+  65% {
+    opacity: 0.05;
+    transform: translate(-6px, 2px) scaleX(1.2);
+  }
+  66% {
+    opacity: 1;
+    transform: translate(4px, 0);
+  }
+  78% {
+    transform: skewX(-8deg) translateY(2px);
+  }
+  79% {
+    transform: none;
+  }
+  90% {
+    opacity: 0.7;
+    transform: translate(5px, -1px) skewX(11deg);
+  }
+  91% {
+    opacity: 1;
+    transform: none;
   }
   100% {
     opacity: 1;
-    transform: skewX(0deg) scale(1);
-    filter: hue-rotate(0deg);
+    transform: translate(0, 0) skewX(0deg) scale(1);
   }
 }
 
 .letterGlitching {
-  animation: glitchFlicker 0.1s infinite;
-  color: #f43f5e !important;
+  z-index: 2;
+  animation: glitchFlicker 120ms steps(1, end) infinite;
+}
+
+/* ── Glitching character — HDR neon colour override ───────────────────── */
+
+.letterGlitching .normalChar {
+  color: oklch(95% 0.37 196) !important;
   text-shadow:
-    2px 0 #06b6d4,
-    -2px 0 #ec4899;
+    6px 0 0 oklch(72% 0.38 330),
+    -6px 0 0 oklch(95% 0.37 196),
+    0 0 12px oklch(90% 0.38 196 / 0.9),
+    0 0 24px oklch(90% 0.38 196 / 0.55),
+    0 0 40px oklch(72% 0.38 330 / 0.35);
+}
+
+/* ── Chromatic aberration — magenta channel, top slice ────────────────── */
+
+.letterGlitching .normalChar::before {
+  opacity: 1;
+  color: oklch(72% 0.38 330);
+  transform: translate(-5px, -1px);
+  clip-path: inset(0 0 48% 0);
+  text-shadow:
+    0 0 8px oklch(72% 0.38 330),
+    0 0 20px oklch(72% 0.38 330 / 0.7);
+  animation: channelMagenta 95ms steps(2, end) infinite;
+}
+
+/* ── Chromatic aberration — cyan channel, bottom slice ────────────────── */
+
+.letterGlitching .normalChar::after {
+  opacity: 1;
+  color: oklch(95% 0.37 196);
+  transform: translate(5px, 1px);
+  clip-path: inset(52% 0 0 0);
+  text-shadow:
+    0 0 8px oklch(95% 0.37 196),
+    0 0 20px oklch(94% 0.4 136 / 0.6);
+  animation: channelCyan 105ms steps(2, end) infinite;
+}
+
+@keyframes channelMagenta {
+  0%,
+  100% {
+    transform: translate(-5px, -1px);
+    clip-path: inset(0 0 54% 0);
+  }
+  50% {
+    transform: translate(-9px, 1px);
+    clip-path: inset(18% 0 22% 0);
+  }
+}
+
+@keyframes channelCyan {
+  0%,
+  100% {
+    transform: translate(5px, 1px);
+    clip-path: inset(52% 0 0 0);
+  }
+  50% {
+    transform: translate(9px, -1px);
+    clip-path: inset(8% 0 62% 0);
+  }
+}
+
+@keyframes globalNeonTear {
+  0% {
+    transform: translateX(-2px) skewX(-6deg);
+    filter: saturate(3) brightness(1.5);
+  }
+  50% {
+    transform: translateX(3px) skewX(8deg);
+    filter: saturate(4.5) brightness(2);
+  }
+  100% {
+    transform: translateX(0) skewX(0deg);
+    filter: saturate(3.5) brightness(1.6);
+  }
 }
 
 @media (max-width: 767px) {
   .root {
-    width: 200px;
-    min-width: 200px;
-    max-width: 200px;
+    width: 224px;
+    min-width: 224px;
+    max-width: 224px;
     padding: var(--space-1) var(--space-2);
     gap: var(--space-2);
   }
@@ -205,15 +337,11 @@
   }
 
   .title {
-    font-size: 0.8rem;
+    font-size: 0.84rem;
+    letter-spacing: 0.055em;
   }
 
   .letter {
-    width: 8px;
-  }
-
-  .subtitle {
-    font-size: 0.48rem;
-    letter-spacing: 0.12em;
+    width: 8.4px;
   }
 }

@@ -240,6 +240,17 @@
   z-index: var(--z-content);
 }
 
+.redFlagIconRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.redFlagIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
 /* Placeholder gradient variants */
 .gradientBlue {
   background-image: linear-gradient(135deg, #1e3a5f, #0f172a, #000000);

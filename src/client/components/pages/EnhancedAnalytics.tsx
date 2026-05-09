@@ -783,7 +783,11 @@ export const EnhancedAnalytics: React.FC = () => {
                     {entity.connectionCount} connections • {entity.mentions} mentions
                   </div>
                 </div>
-                <div className={s.entityFlags}>{'🚩'.repeat(Math.min(entity.riskLevel, 5))}</div>
+                <div className={s.entityFlags}>
+                  {Array.from({ length: Math.min(entity.riskLevel, 5) }).map((_, index) => (
+                    <Icon key={index} name="Flag" className={s.entityFlagIcon} />
+                  ))}
+                </div>
               </Button>
             ))}
           </div>

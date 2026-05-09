@@ -75,9 +75,7 @@ export class CompetitiveOCRService {
       };
     }
 
-    console.log(
-      `  🏁 Starting OCR Competition for ${filePath} (${applicableEngines.length} engines)`,
-    );
+    console.log(`  Starting OCR competition for ${filePath} (${applicableEngines.length} engines)`);
 
     // Run in parallel (competing!) with timeouts
     const promises = applicableEngines.map(async (engine) => {
@@ -91,7 +89,7 @@ export class CompetitiveOCRService {
 
         return result as OCRResult;
       } catch (error) {
-        console.warn(`    ⚠️ Engine ${engine.name} failed or timed out:`, error);
+        console.warn(`    Engine ${engine.name} failed or timed out:`, error);
         return null;
       }
     });
@@ -116,7 +114,7 @@ export class CompetitiveOCRService {
     winner.text = cleanedText;
 
     console.log(
-      `  🏆 Winner: ${winner.engine} (Confidence: ${winner.confidence.toFixed(1)}%, Length: ${winner.text.length}, Redactions: ${winner.hasRedactions}, Ratio: ${(winner.redactionRatio * 100).toFixed(2)}%)`,
+      `  Winner: ${winner.engine} (Confidence: ${winner.confidence.toFixed(1)}%, Length: ${winner.text.length}, Redactions: ${winner.hasRedactions}, Ratio: ${(winner.redactionRatio * 100).toFixed(2)}%)`,
     );
 
     // Log losers for analysis
@@ -125,7 +123,7 @@ export class CompetitiveOCRService {
       .forEach((r) => {
         const redacted = this.analyzeRedactions(r.text).hasRedactions;
         console.log(
-          `    ❌ Loser: ${r.engine} (Confidence: ${r.confidence.toFixed(1)}%, Length: ${r.text.length}, Redactions: ${redacted})`,
+          `    Loser: ${r.engine} (Confidence: ${r.confidence.toFixed(1)}%, Length: ${r.text.length}, Redactions: ${redacted})`,
         );
       });
 
@@ -215,7 +213,7 @@ export class CompetitiveOCRService {
 
     // Log debug info if there was competition
     if (results.length > 1) {
-      // console.log('    ⚖️  Judgement Scores:');
+      // console.log('    Judgement Scores:');
       scoredResults.forEach((sr) => {
         console.log(
           `      - ${sr.result.engine}: Score ${sr.score.toFixed(1)} (Conf: ${sr.result.confidence}%, WordDens: ${(sr.wordDensity * 100).toFixed(0)}%, Garbage: ${(sr.garbageRatio * 100).toFixed(0)}%)`,

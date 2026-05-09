@@ -412,6 +412,7 @@
 }
 
 .portraitShell {
+  position: relative;
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -425,12 +426,16 @@
 }
 
 .portraitImg {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 .portraitFallback {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   background: var(--lq-surface-3);
@@ -439,7 +444,8 @@
   justify-content: center;
 }
 
-.portraitFallback::before {
-  content: '👤';
-  font-size: 24px;
+.portraitFallbackIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--text-muted);
 }

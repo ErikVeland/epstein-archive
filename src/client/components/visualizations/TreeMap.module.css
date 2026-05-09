@@ -94,5 +94,14 @@
 }
 
 .tooltipRating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
   color: var(--text-primary);
+}
+
+.flagIcon {
+  width: 0.8rem;
+  height: 0.8rem;
+  color: var(--accent-danger);
 }

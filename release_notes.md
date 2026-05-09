@@ -1,5 +1,21 @@
 # Release Notes
 
+## 20.6.2 - 2026-05-09 - Black Book Card Modal, Dynamic Categories & Media Viewer Polish
+
+### For Investigators
+
+- **Dynamic Black Book Categories**: Eliminated blank filter states for Contact and Credential tabs. The system now dynamically analyzes entries on the fly to route credentials (passwords, PINs, usernames) and structured contact entries (emails, phones, addresses) to their respective category filters.
+- **Premium Address Book Modal**: Clicking any card in the Black Book directory now triggers a gorgeous, custom glassmorphic modal representing a true Contact Card. Features dedicated high-contrast grids for phone numbers, email addresses, and locations with instantaneous Copy, Call, and Mailto micro-interactions, alongside full provenance links to source documents.
+- **In-Modal OCR/Pretty View Slider**: Re-engineered the detailed Contact Modal with an integrated Pretty vs Raw OCR comparison toggle, allowing researchers to switch seamlessly between clean extracted information and raw transcoded OCR text inline.
+- **Responsive Category Filters**: Refined padding, margins, and flex-wrapping behaviors for the Black Book category segmented bar, guaranteeing perfect responsive alignment across small tablets and mobile devices.
+- **Media Viewer Close Button Fix**: Restructured stacking contexts by adjusting z-indices so that the document navigation toolbar stays unblocked and sits clearly above the image stage container, restoring full clickability to the Close button.
+
+### Why It Matters
+
+- Resolving blank filter states allows analysts to isolate sensitive credentials and contacts instantly across Jeffrey Epstein's entire directory.
+- The high-fidelity details modal replaces tedious card scrolling with an organized, interactive forensic card view.
+- Ensuring the Media Viewer close button remains unblocked improves general platform navigation and fluid review workflow loops.
+
 ## 20.6.1 - 2026-05-09 - Forensic Logo Overhaul, Glitch Redactions & Wired Press Ingestion
 
 ### For Investigators

@@ -1,4 +1,5 @@
 import React from 'react';
+import Icon from '@client/components/common/Icon';
 import styles from './RedFlagIndex.module.css';
 
 interface RedFlagIndexProps {
@@ -72,8 +73,17 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
   const textLabel = textLabels[normalizedValue as keyof typeof textLabels];
   const riskCategory = riskCategories[normalizedValue as keyof typeof riskCategories];
 
-  // Show white flag for 0, red flags for 1-5
-  const peppers = normalizedValue > 0 ? '🚩'.repeat(normalizedValue) : '🏳️';
+  const renderFlagIcons = () => (
+    <span className={styles.flagStack} aria-hidden="true">
+      {normalizedValue > 0 ? (
+        Array.from({ length: normalizedValue }).map((_, index) => (
+          <Icon key={index} name="Flag" className={`${sizeClasses[size]} ${styles.flagIcon}`} />
+        ))
+      ) : (
+        <Icon name="Flag" className={`${sizeClasses[size]} ${styles.flagIconMuted}`} />
+      )}
+    </span>
+  );
 
   // Render based on variant
   const renderContent = () => {
@@ -90,14 +100,14 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
       case 'icon':
         return (
           <span className={`${sizeClasses[size]} ${colorClass}`} aria-hidden="true">
-            {peppers}
+            {renderFlagIcons()}
           </span>
         );
       case 'combined':
         return (
           <div className={styles.combined}>
             <span className={`${sizeClasses[size]} ${colorClass}`} aria-hidden="true">
-              {peppers}
+              {renderFlagIcons()}
             </span>
             {showTextLabel && (
               <span
@@ -113,7 +123,7 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
       default:
         return (
           <span className={`${sizeClasses[size]} ${colorClass}`} aria-hidden="true">
-            {peppers}
+            {renderFlagIcons()}
           </span>
         );
     }

@@ -100,7 +100,11 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
       {/* Red Flag Badge (Top Right) */}
       {article.redFlagRating > 0 && (
         <div className={styles.redFlagBadge}>
-          <span>{'🚩'.repeat(article.redFlagRating)}</span>
+          <span className={styles.redFlagIconRow}>
+            {Array.from({ length: Math.min(article.redFlagRating, 5) }).map((_, index) => (
+              <Icon key={index} name="Flag" className={styles.redFlagIcon} />
+            ))}
+          </span>
         </div>
       )}
     </div>

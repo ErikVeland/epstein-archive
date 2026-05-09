@@ -250,14 +250,11 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent && !parent.querySelector(`.${styles.portraitFallback}`)) {
-                            const fallback = document.createElement('div');
-                            fallback.className = styles.portraitFallback;
-                            parent.appendChild(fallback);
-                          }
                         }}
                       />
+                      <div className={styles.portraitFallback} aria-hidden="true">
+                        <Icon name="User" className={styles.portraitFallbackIcon} />
+                      </div>
                     </Box>
                     <Stack gap="none">
                       <LqText variant="h2" weight="bold">

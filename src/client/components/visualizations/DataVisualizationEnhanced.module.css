@@ -303,8 +303,9 @@
   font-weight: var(--font-weight-bold);
 }
 
-.summaryEmoji {
-  font-size: 1.5rem;
+.summaryIcon {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .summaryLabel {
@@ -328,7 +329,7 @@
 }
 
 .summaryPurple .summaryMeta,
-.summaryPurple .summaryEmoji {
+.summaryPurple .summaryIcon {
   color: #d8b4fe;
 }
 
@@ -342,7 +343,7 @@
 }
 
 .summaryIndigo .summaryMeta,
-.summaryIndigo .summaryEmoji {
+.summaryIndigo .summaryIcon {
   color: var(--accent);
 }
 
@@ -356,7 +357,7 @@
 }
 
 .summaryPink .summaryMeta,
-.summaryPink .summaryEmoji {
+.summaryPink .summaryIcon {
   color: #f9a8d4;
 }
 
@@ -370,7 +371,7 @@
 }
 
 .summaryTeal .summaryMeta,
-.summaryTeal .summaryEmoji {
+.summaryTeal .summaryIcon {
   color: #5eead4;
 }
 

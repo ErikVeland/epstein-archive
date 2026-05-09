@@ -43,7 +43,15 @@
 }
 
 .riskValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
   font-family: var(--font-mono);
+}
+
+.flagIcon {
+  width: 0.8rem;
+  height: 0.8rem;
 }
 
 .riskValueHigh {

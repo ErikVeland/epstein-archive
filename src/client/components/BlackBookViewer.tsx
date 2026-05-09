@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { extractCleanName, formatPhoneNumber } from '@client/utils/prettifyOCR';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
+import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
+import { useScrollLock } from '@client/hooks/useScrollLock';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
 import styles from './BlackBookViewer.module.css';
@@ -69,6 +72,7 @@ export const BlackBookViewer: React.FC = () => {
   const [hasEmail, setHasEmail] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<BlackBookCategoryFilter>('ALL');
+  const [selectedEntry, setSelectedEntry] = useState<BlackBookEntry | null>(null);
 
   React.useEffect(() => {
     const q = searchParams.get('search') || '';
@@ -254,7 +258,8 @@ export const BlackBookViewer: React.FC = () => {
           options={letterOptions}
           value={selectedLetter}
           onChange={setSelectedLetter}
-          minItemWidth="3rem"
+          minItemWidth="0"
+          fullWidth
           compact
           className={styles.letterSegment}
         />
@@ -337,9 +342,10 @@ export const BlackBookViewer: React.FC = () => {
                               style={{
                                 width: `calc(${100 / columns}% - ${((columns - 1) * 16) / columns}px)`,
                               }}
-                              className={styles.card}
+                              className={`${styles.card} ${styles.clickableCard}`}
                               variant="glass"
                               p={4}
+                              onClick={() => setSelectedEntry(entry)}
                             >
                               {/* Name - clickable if known entity */}
                               <div className={styles.cardHeader}>
@@ -364,7 +370,10 @@ export const BlackBookViewer: React.FC = () => {
                                 <div className={styles.nameWrap}>
                                   {entry.person_name ? (
                                     <Button
-                                      onClick={() => handleEntityClick(entry.person_id || 0)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEntityClick(entry.person_id || 0);
+                                      }}
                                       variant="ghost"
                                       className={styles.entityButton}
                                       title="Click to view entity profile"
@@ -380,6 +389,7 @@ export const BlackBookViewer: React.FC = () => {
                                       <Link
                                         to={`/documents?search=${encodeURIComponent(displayName)}`}
                                         state={backLinkState}
+                                        onClick={(e) => e.stopPropagation()}
                                         className={styles.searchEvidenceLink}
                                         title="Search evidence for this name"
                                       >
@@ -389,7 +399,10 @@ export const BlackBookViewer: React.FC = () => {
                                     </>
                                   )}
                                 </div>
-                                <div className={styles.headerActions}>
+                                <div
+                                  className={styles.headerActions}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   <AddToInvestigationButton
                                     item={{
                                       id: `blackbook-${entry.id}`,
@@ -435,6 +448,7 @@ export const BlackBookViewer: React.FC = () => {
                                           <Link
                                             to={`/emails?search=${encodeURIComponent(email)}`}
                                             state={backLinkState}
+                                            onClick={(e) => e.stopPropagation()}
                                             className={styles.emailLink}
                                           >
                                             {email}
@@ -442,6 +456,7 @@ export const BlackBookViewer: React.FC = () => {
                                           <Link
                                             to={`/emails?search=${encodeURIComponent(email)}`}
                                             state={backLinkState}
+                                            onClick={(e) => e.stopPropagation()}
                                             className={styles.emailActions}
                                           >
                                             <Icon
@@ -496,6 +511,7 @@ export const BlackBookViewer: React.FC = () => {
                                   <Link
                                     to={`/documents/${encodeURIComponent(String(entry.document_id))}`}
                                     state={backLinkState}
+                                    onClick={(e) => e.stopPropagation()}
                                     className={styles.documentLink}
                                   >
                                     <Icon name="FileText" className={styles.tinyExternal} />
@@ -531,6 +547,287 @@ export const BlackBookViewer: React.FC = () => {
           )}
         </div>
       )}
+
+      {selectedEntry && (
+        <ContactDetailsModal
+          entry={selectedEntry}
+          onClose={() => setSelectedEntry(null)}
+          showRawMode={showRaw}
+        />
+      )}
     </div>
+  );
+};
+
+interface ContactDetailsModalProps {
+  entry: BlackBookEntry;
+  onClose: () => void;
+  showRawMode: boolean;
+}
+
+const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
+  entry,
+  onClose,
+  showRawMode,
+}) => {
+  const { modalRef } = useModalFocusTrap({ isActive: true, onEscape: onClose });
+  useScrollLock(true);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [localShowRaw, setLocalShowRaw] = useState(showRawMode);
+  const backLinkState = useBackLinkState();
+  const navigate = useNavigate();
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    });
+  };
+
+  const rawName = entry.person_name || entry.entry_text.split('\n')[0]?.trim() || 'Unknown';
+  const cleanName = extractCleanName(entry.entry_text) || rawName;
+  const displayName = localShowRaw ? rawName : cleanName;
+
+  const handleEntityClick = (personId: number) => {
+    onClose();
+    navigate(`/entity/${personId}`, { state: backLinkState });
+  };
+
+  const getCategoryBadgeClass = (category: BlackBookEntry['entry_category']) => {
+    switch (category) {
+      case 'credential':
+        return styles.badgeCredential;
+      case 'contact':
+        return styles.badgeContact;
+      default:
+        return styles.badgeOriginal;
+    }
+  };
+
+  return createPortal(
+    <div className={styles.backdrop}>
+      <button className={styles.dismissLayer} onClick={onClose} aria-label="Close details modal" />
+      <div
+        ref={modalRef}
+        className={styles.modalDialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-contact-name"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className={styles.modalHeader}>
+          {entry.thumbnail_path ? (
+            <div className={styles.modalAvatar}>
+              <img
+                src={
+                  entry.thumbnail_path.startsWith('/')
+                    ? entry.thumbnail_path
+                    : `/${entry.thumbnail_path}`
+                }
+                alt={displayName}
+                className={styles.avatarImg}
+              />
+            </div>
+          ) : (
+            <div className={styles.modalFallbackAvatar}>
+              <Icon name="User" className={styles.modalLargeIcon} />
+            </div>
+          )}
+          <div className={styles.modalNameGroup}>
+            <h3 id="modal-contact-name" className={styles.modalName}>
+              {displayName}
+            </h3>
+            <span
+              className={`${styles.categoryBadge} ${getCategoryBadgeClass(entry.entry_category)}`}
+            >
+              {entry.entry_category}
+            </span>
+          </div>
+          <Button
+            variant="glass"
+            size="sm"
+            onClick={onClose}
+            className={styles.modalCloseButton}
+            title="Close details modal"
+          >
+            <Icon name="X" size="sm" />
+          </Button>
+        </div>
+
+        <div className={styles.modalBody}>
+          {/* Phone Numbers */}
+          {entry.phone_numbers.length > 0 && (
+            <div className={styles.detailSection}>
+              <div className={styles.detailSectionLabel}>
+                <Icon name="Phone" className={styles.detailSectionIcon} />
+                <span>Phone Numbers</span>
+              </div>
+              <div className={styles.detailGrid}>
+                {entry.phone_numbers.map((phone, idx) => {
+                  const formatted = formatPhoneNumber(phone);
+                  const displayPhone = localShowRaw ? phone : formatted;
+                  const isCopied = copiedField === `phone-${idx}`;
+                  return (
+                    <div key={idx} className={styles.detailCard}>
+                      <span className={styles.detailCardValue}>{displayPhone}</span>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <a
+                          href={`tel:${phone}`}
+                          className={styles.detailCardAction}
+                          title="Call phone number"
+                        >
+                          <Icon name="PhoneCall" size="sm" />
+                        </a>
+                        <button
+                          type="button"
+                          className={styles.detailCardAction}
+                          onClick={() => handleCopy(displayPhone, `phone-${idx}`)}
+                          title="Copy phone number"
+                        >
+                          <Icon
+                            name={isCopied ? 'Check' : 'Copy'}
+                            size="sm"
+                            style={isCopied ? { color: '#4ade80' } : undefined}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Email Addresses */}
+          {entry.email_addresses.length > 0 && (
+            <div className={styles.detailSection}>
+              <div className={styles.detailSectionLabel}>
+                <Icon name="Mail" className={styles.detailSectionIcon} />
+                <span>Email Addresses</span>
+              </div>
+              <div className={styles.detailGrid}>
+                {entry.email_addresses.map((email, idx) => {
+                  const isCopied = copiedField === `email-${idx}`;
+                  return (
+                    <div key={idx} className={styles.detailCard}>
+                      <span className={styles.detailCardValue}>{email}</span>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <a
+                          href={`mailto:${email}`}
+                          className={styles.detailCardAction}
+                          title="Send email"
+                        >
+                          <Icon name="Mail" size="sm" />
+                        </a>
+                        <button
+                          type="button"
+                          className={styles.detailCardAction}
+                          onClick={() => handleCopy(email, `email-${idx}`)}
+                          title="Copy email address"
+                        >
+                          <Icon
+                            name={isCopied ? 'Check' : 'Copy'}
+                            size="sm"
+                            style={isCopied ? { color: '#4ade80' } : undefined}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Physical Addresses */}
+          {entry.addresses.length > 0 && (
+            <div className={styles.detailSection}>
+              <div className={styles.detailSectionLabel}>
+                <Icon name="MapPin" className={styles.detailSectionIcon} />
+                <span>Physical Addresses</span>
+              </div>
+              <div className={styles.detailGrid}>
+                {entry.addresses.map((address, idx) => {
+                  const isCopied = copiedField === `address-${idx}`;
+                  return (
+                    <div key={idx} className={styles.detailCard}>
+                      <span className={styles.detailCardValue}>{address}</span>
+                      <button
+                        type="button"
+                        className={styles.detailCardAction}
+                        onClick={() => handleCopy(address, `address-${idx}`)}
+                        title="Copy address"
+                      >
+                        <Icon
+                          name={isCopied ? 'Check' : 'Copy'}
+                          size="sm"
+                          style={isCopied ? { color: '#4ade80' } : undefined}
+                        />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Notes (if present) */}
+          {entry.notes && entry.notes.trim() && (
+            <div className={styles.detailSection}>
+              <div className={styles.detailSectionLabel}>
+                <Icon name="Info" className={styles.detailSectionIcon} />
+                <span>Academic Notes</span>
+              </div>
+              <div className={styles.notesBlock}>{entry.notes}</div>
+            </div>
+          )}
+
+          {/* OCR / Pretty Comparison */}
+          <div className={styles.detailSection}>
+            <div className={styles.ocrToggleBlock}>
+              <div className={styles.ocrHeader}>
+                <span className={styles.ocrTitle}>OCR Transcription View</span>
+                <AnimatedSegmentedControl
+                  ariaLabel="Transcription view mode"
+                  options={TEXT_MODE_OPTIONS}
+                  value={localShowRaw ? 'raw' : 'pretty'}
+                  onChange={(mode) => setLocalShowRaw(mode === 'raw')}
+                  minItemWidth="5rem"
+                  compact
+                />
+              </div>
+              <div className={styles.ocrContent}>{entry.entry_text}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.modalFooter}>
+          {entry.person_id && (
+            <Button variant="secondary" onClick={() => handleEntityClick(entry.person_id || 0)}>
+              <Icon name="User" size="sm" style={{ marginRight: '0.25rem' }} />
+              <span>View Entity Profile</span>
+            </Button>
+          )}
+          {entry.document_id && (
+            <Button
+              variant="glass"
+              onClick={() => {
+                onClose();
+                navigate(`/documents/${encodeURIComponent(String(entry.document_id))}`, {
+                  state: backLinkState,
+                });
+              }}
+            >
+              <Icon name="FileText" size="sm" style={{ marginRight: '0.25rem' }} />
+              <span>Source Document</span>
+            </Button>
+          )}
+          <Button variant="glass" onClick={onClose}>
+            Close
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 };

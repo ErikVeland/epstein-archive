@@ -530,29 +530,29 @@ export class DocumentProcessor {
     if (score >= 50) {
       return {
         rating: 5,
-        peppers: '🚩🚩🚩🚩🚩',
+        peppers: '',
         description: 'Red Flag Index 5 - Major criminal evidence',
       };
     } else if (score >= 35) {
       return {
         rating: 4,
-        peppers: '🚩🚩🚩🚩',
+        peppers: '',
         description: 'Red Flag Index 4 - Significant incriminating content',
       };
     } else if (score >= 20) {
       return {
         rating: 3,
-        peppers: '🚩🚩🚩',
+        peppers: '',
         description: 'Red Flag Index 3 - Notable controversial mentions',
       };
     } else if (score >= 10) {
       return {
         rating: 2,
-        peppers: '🚩🚩',
+        peppers: '',
         description: 'Red Flag Index 2 - Some interesting connections',
       };
     } else {
-      return { rating: 1, peppers: '🚩', description: 'Red Flag Index 1 - Minor mentions' };
+      return { rating: 1, peppers: '', description: 'Red Flag Index 1 - Minor mentions' };
     }
   }
 
