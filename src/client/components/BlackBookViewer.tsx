@@ -9,6 +9,7 @@ import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
 import styles from './BlackBookViewer.module.css';
 import { Button, Input, SearchField, Surface } from '@client/design-system/lib';
+import { AnimatedSegmentedControl } from './common/AnimatedSegmentedControl';
 interface BlackBookEntry {
   id: number;
   person_id: number | null;
@@ -22,6 +23,25 @@ interface BlackBookEntry {
   person_name?: string;
   thumbnail_path?: string;
 }
+
+type BlackBookCategoryFilter = 'ALL' | 'Original' | 'Contact' | 'Credential';
+type BlackBookTextMode = 'pretty' | 'raw';
+
+const CATEGORY_OPTIONS: Array<{ value: BlackBookCategoryFilter; label: string }> = [
+  { value: 'ALL', label: 'ALL' },
+  { value: 'Original', label: 'Original' },
+  { value: 'Contact', label: 'Contact' },
+  { value: 'Credential', label: 'Credential' },
+];
+
+const TEXT_MODE_OPTIONS: Array<{
+  value: BlackBookTextMode;
+  label: string;
+  icon: 'Eye' | 'FileText';
+}> = [
+  { value: 'pretty', label: 'Pretty', icon: 'Eye' },
+  { value: 'raw', label: 'Raw OCR', icon: 'FileText' },
+];
 
 const parseStringList = (value: unknown): string[] => {
   if (Array.isArray(value)) {
@@ -48,7 +68,7 @@ export const BlackBookViewer: React.FC = () => {
   const [hasPhone, setHasPhone] = useState<boolean>(false);
   const [hasEmail, setHasEmail] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<BlackBookCategoryFilter>('ALL');
 
   React.useEffect(() => {
     const q = searchParams.get('search') || '';
@@ -69,6 +89,7 @@ export const BlackBookViewer: React.FC = () => {
   const navigate = useNavigate();
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const letterOptions = ['ALL', ...alphabet].map((letter) => ({ value: letter, label: letter }));
 
   const {
     data: entries = [],
@@ -204,21 +225,15 @@ export const BlackBookViewer: React.FC = () => {
           </div>
         </div>
 
-        {/* Pretty/Raw Toggle */}
-        <Button
-          onClick={() => setShowRaw(!showRaw)}
-          variant={showRaw ? 'secondary' : 'primary'}
-          size="sm"
-          className={styles.toggleButton}
-          title={showRaw ? 'Showing raw OCR text' : 'Showing cleaned text'}
-        >
-          {showRaw ? (
-            <Icon name="FileText" className={styles.smIcon} />
-          ) : (
-            <Icon name="Eye" className={styles.smIcon} />
-          )}
-          <span className={styles.toggleText}>{showRaw ? 'Raw OCR' : 'Pretty'}</span>
-        </Button>
+        <AnimatedSegmentedControl
+          ariaLabel="Black Book text mode"
+          options={TEXT_MODE_OPTIONS}
+          value={showRaw ? 'raw' : 'pretty'}
+          onChange={(mode) => setShowRaw(mode === 'raw')}
+          minItemWidth="6rem"
+          compact
+          className={styles.textModeToggle}
+        />
       </div>
 
       {/* Search Bar */}
@@ -234,23 +249,15 @@ export const BlackBookViewer: React.FC = () => {
 
       {/* Alphabet Filter */}
       <div className={styles.letters}>
-        <Button
-          onClick={() => setSelectedLetter('ALL')}
-          variant={selectedLetter === 'ALL' ? 'primary' : 'secondary'}
-          size="sm"
-        >
-          ALL
-        </Button>
-        {alphabet.map((letter) => (
-          <Button
-            key={letter}
-            onClick={() => setSelectedLetter(letter)}
-            variant={selectedLetter === letter ? 'primary' : 'secondary'}
-            size="sm"
-          >
-            {letter}
-          </Button>
-        ))}
+        <AnimatedSegmentedControl
+          ariaLabel="Filter Black Book entries by surname initial"
+          options={letterOptions}
+          value={selectedLetter}
+          onChange={setSelectedLetter}
+          minItemWidth="3rem"
+          compact
+          className={styles.letterSegment}
+        />
       </div>
 
       {/* Contact Filters */}
@@ -285,18 +292,14 @@ export const BlackBookViewer: React.FC = () => {
 
         <div className={styles.divider} />
 
-        <Surface variant="glass" className={styles.categoryBar} p={1}>
-          {['ALL', 'Original', 'Contact', 'Credential'].map((cat) => (
-            <Button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              variant={selectedCategory === cat ? 'primary' : 'ghost'}
-              size="sm"
-            >
-              {cat}
-            </Button>
-          ))}
-        </Surface>
+        <AnimatedSegmentedControl
+          ariaLabel="Filter Black Book entries by record type"
+          options={CATEGORY_OPTIONS}
+          value={selectedCategory}
+          onChange={setSelectedCategory}
+          minItemWidth="6.5rem"
+          className={styles.categoryBar}
+        />
       </div>
 
       {/* Entries Grid - Virtualized */}
