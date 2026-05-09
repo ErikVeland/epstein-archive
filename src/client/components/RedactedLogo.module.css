@@ -13,9 +13,8 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.07);
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  width: 270px;
-  min-width: 270px;
-  max-width: 270px;
+  width: max-content;
+  min-width: 0;
 }
 
 .root:hover {
@@ -331,9 +330,9 @@
 
 @media (max-width: 767px) {
   .root {
-    width: 224px;
-    min-width: 224px;
-    max-width: 224px;
+    width: max-content;
+    min-width: 0;
+    max-width: none;
     padding: var(--space-1) var(--space-2);
     gap: var(--space-2);
   }
@@ -355,5 +354,31 @@
 
   .letter {
     width: 8.4px;
+  }
+}
+
+@media (max-width: 340px) {
+  .root {
+    padding: var(--space-1);
+    gap: var(--space-1);
+  }
+
+  .logoBadge {
+    width: 22px;
+    height: 22px;
+  }
+
+  .logoIcon {
+    width: 12px;
+    height: 12px;
+  }
+
+  .title {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+  }
+
+  .letter {
+    width: 7.8px;
   }
 }
