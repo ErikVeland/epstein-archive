@@ -577,7 +577,8 @@ async function runEnrichPhase(
 
   const pool = getIngestPool();
 
-  let whereClause = 'content IS NOT NULL AND length(content) > 50';
+  let whereClause =
+    "content IS NOT NULL AND length(content) > 50 AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
   if (mode === 'backfill') {
     // Backfill any document lacking a summary, OR any garbled/low-confidence document that has not been re-corrected yet.
     whereClause +=
@@ -605,6 +606,8 @@ async function runEnrichPhase(
     currentDocId: null,
   });
 
+  const failedDocIds = new Set<number>();
+
   while (!shuttingDown) {
     // Always query at offset 0: enriched docs drop out of the WHERE clause
     // so the result set naturally shrinks each iteration.
@@ -613,7 +616,7 @@ async function runEnrichPhase(
         `
       SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name
       FROM documents
-      WHERE ${whereClause}
+      WHERE ${whereClause} ${failedDocIds.size > 0 ? `AND id NOT IN (${Array.from(failedDocIds).join(',')})` : ''}
       ORDER BY id ASC
       LIMIT $1
     `,
@@ -731,6 +734,24 @@ async function runEnrichPhase(
         });
       } catch (error) {
         console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
+        failedDocIds.add(Number(doc.id));
+
+        try {
+          const meta =
+            typeof doc.metadata_json === 'object' && doc.metadata_json !== null
+              ? (doc.metadata_json as Record<string, unknown>)
+              : {};
+          meta.ai_enrichment_failed = true;
+          meta.ai_enrichment_error = String((error as Error)?.message || error);
+          meta.ai_enriched_at = new Date().toISOString();
+          await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [
+            JSON.stringify(meta),
+            doc.id,
+          ]);
+        } catch {
+          // non-fatal
+        }
+
         if (
           error instanceof PipelineBlockedError ||
           String((error as Error)?.message || '').includes('timed out')
