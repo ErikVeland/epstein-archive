@@ -26,6 +26,11 @@ export class MediaExtractionService {
     }
   }
 
+  private getDatasetAlbumName(sourceCollection?: string): string {
+    const cleanSource = String(sourceCollection || '').trim();
+    return cleanSource || 'Extracted Media';
+  }
+
   /**
    * Extract images from a PDF and register them in the media library
    */
@@ -127,14 +132,15 @@ export class MediaExtractionService {
 
       await sharpImg.jpeg({ quality: 90 }).toFile(savePath);
 
+      const albumName = this.getDatasetAlbumName(sourceCollection);
       const album = await this.mediaService.getOrCreateAlbum(
-        'Extracted Media',
-        'Media assets extracted from documents and forensic bundles.',
+        albumName,
+        `Extracted media assets from the ${albumName} dataset.`,
       );
 
       // Register in database
       const relativePath = path.relative(process.cwd(), savePath);
-      await this.mediaService.createImage({
+      const image = await this.mediaService.createImage({
         filename,
         originalFilename: filename,
         path: relativePath,
@@ -160,6 +166,15 @@ export class MediaExtractionService {
           entropy: stats.entropy,
         },
       });
+
+      const baseTags = [
+        await this.mediaService.getOrCreateTag('extracted-media', 'system'),
+        await this.mediaService.getOrCreateTag(`dataset:${albumName}`, 'dataset'),
+      ];
+      if (isTextOnly) {
+        baseTags.push(await this.mediaService.getOrCreateTag('text-only-extraction', 'system'));
+      }
+      await Promise.all(baseTags.map((tag) => this.mediaService.addTagToImage(image.id, tag.id)));
 
       return true;
     } catch (err) {

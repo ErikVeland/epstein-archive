@@ -60,6 +60,18 @@ export class MediaService {
     await this.db.query(sql, params);
   }
 
+  private nonTextExtractPredicate(alias: string): string {
+    return `NOT (
+      COALESCE(${alias}.has_text, false) IS TRUE
+      OR ${alias}.metadata_json->>'is_text_only' = 'true'
+      OR ${alias}.file_path ILIKE '%Unconfirmed Claims%'
+      OR ${alias}.file_path ILIKE '%textify%'
+      OR ${alias}.file_path ILIKE '%_ocr%'
+      OR ${alias}.file_path ILIKE '%-ocr-%'
+      OR (${alias}.metadata_json->>'is_document_extract' = 'true' AND LENGTH(COALESCE(${alias}.title, '')) > 80)
+    )`;
+  }
+
   private mapRowToMediaImage(row: Record<string, unknown>): MediaImage {
     const mediaPath = String(row['file_path'] ?? row['filePath'] ?? row['path'] ?? '');
     const filename = String(row['filename'] ?? row['file_name'] ?? path.basename(mediaPath));
@@ -140,7 +152,10 @@ export class MediaService {
         COUNT(i.id) as "imageCount",
         ci.file_path as "coverImagePath"
       FROM media_albums a
-      LEFT JOIN media_items i ON a.id = i.album_id AND i.file_type LIKE 'image/%'
+      LEFT JOIN media_items i
+        ON a.id = i.album_id
+       AND i.file_type LIKE 'image/%'
+       AND ${this.nonTextExtractPredicate('i')}
       LEFT JOIN media_items ci ON a.cover_image_id = ci.id::text
       GROUP BY a.id, ci.file_path
       HAVING COUNT(i.id) > 0
@@ -158,7 +173,10 @@ export class MediaService {
         COUNT(i.id) as "imageCount",
         ci.file_path as "coverImagePath"
       FROM media_albums a
-      LEFT JOIN media_items i ON a.id = i.album_id AND i.file_type LIKE 'image/%'
+      LEFT JOIN media_items i
+        ON a.id = i.album_id
+       AND i.file_type LIKE 'image/%'
+       AND ${this.nonTextExtractPredicate('i')}
       LEFT JOIN media_items ci ON a.cover_image_id = ci.id::text
       WHERE a.id = $1
       GROUP BY a.id, ci.file_path
@@ -281,9 +299,7 @@ export class MediaService {
       if (filter.albumId) conditions.push(`i.album_id = ${bind(filter.albumId)}`);
       if (filter.documentId) conditions.push(`i.document_id = ${bind(filter.documentId)}`);
       if (filter.excludeTextScans) {
-        conditions.push(
-          `(i.metadata_json->>'is_text_only' IS NULL OR i.metadata_json->>'is_text_only' != 'true')`,
-        );
+        conditions.push(this.nonTextExtractPredicate('i'));
       }
       if (filter.personId) {
         conditions.push(
@@ -352,9 +368,7 @@ export class MediaService {
       if (filter.albumId) conditions.push(`i.album_id = ${bind(filter.albumId)}`);
       if (filter.documentId) conditions.push(`i.document_id = ${bind(filter.documentId)}`);
       if (filter.excludeTextScans) {
-        conditions.push(
-          `(i.metadata_json->>'is_text_only' IS NULL OR i.metadata_json->>'is_text_only' != 'true')`,
-        );
+        conditions.push(this.nonTextExtractPredicate('i'));
       }
       if (filter.personId) {
         conditions.push(
@@ -752,28 +766,38 @@ export class MediaService {
   // ============ STATISTICS ============
 
   async getMediaStats(): Promise<MediaStats> {
+    const nonText = this.nonTextExtractPredicate('i');
     const totalImagesRes = (await this.pgRow<{ count: string | number }>(
-      "SELECT COUNT(*) as count FROM media_items WHERE file_type LIKE 'image/%'",
+      `SELECT COUNT(*) as count FROM media_items i WHERE i.file_type LIKE 'image/%' AND ${nonText}`,
     )) || { count: 0 };
     const totalAlbumsRes = (await this.pgRow<{ count: string | number }>(
-      'SELECT COUNT(*) as count FROM media_albums',
+      `SELECT COUNT(DISTINCT a.id) as count
+       FROM media_albums a
+       JOIN media_items i ON a.id = i.album_id
+       WHERE i.file_type LIKE 'image/%' AND ${nonText}`,
     )) || { count: 0 };
     const totalSizeRes = (await this.pgRow<{ size: string | number | null }>(
-      "SELECT COALESCE(SUM(file_size), 0) as size FROM media_items WHERE file_type LIKE 'image/%'",
+      `SELECT COALESCE(SUM(i.file_size), 0) as size
+       FROM media_items i
+       WHERE i.file_type LIKE 'image/%' AND ${nonText}`,
     )) || { size: 0 };
 
     const formatBreakdown = await this.pgRows<{ format: string; count: string | number }>(`
-        SELECT file_type as format, COUNT(*) as count
-        FROM media_items
-        WHERE file_type LIKE 'image/%'
-        GROUP BY file_type
+        SELECT i.file_type as format, COUNT(*) as count
+        FROM media_items i
+        WHERE i.file_type LIKE 'image/%' AND ${nonText}
+        GROUP BY i.file_type
       `);
 
     const albumBreakdown = await this.pgRows<{ name: string; count: string | number }>(`
         SELECT a.name, COUNT(i.id) as count
         FROM media_albums a
-        LEFT JOIN media_items i ON a.id = i.album_id AND i.file_type LIKE 'image/%'
+        LEFT JOIN media_items i
+          ON a.id = i.album_id
+         AND i.file_type LIKE 'image/%'
+         AND ${nonText}
         GROUP BY a.id, a.name
+        HAVING COUNT(i.id) > 0
       `);
 
     return {

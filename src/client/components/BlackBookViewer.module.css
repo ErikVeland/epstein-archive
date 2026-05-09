@@ -137,9 +137,15 @@
 }
 
 .categoryBar {
+  --segment-min-width: 0;
   display: flex;
   margin-left: auto;
+  width: clamp(16rem, 28vw, 24rem);
   max-width: 100%;
+}
+
+.categoryBar :global(button) {
+  padding-inline: clamp(0.65rem, 1.6vw, 1.35rem);
 }
 
 @media (max-width: 1024px) {
@@ -272,8 +278,8 @@
   flex-direction: column;
   gap: var(--space-2);
   flex-grow: 1;
-  overflow-y: auto;
-  padding-right: var(--space-2);
+  overflow: hidden;
+  min-height: 0;
 }
 
 .infoRow {
@@ -341,6 +347,16 @@
   color: var(--text-muted);
   font-size: var(--font-size-sm);
   font-style: italic;
+}
+
+.openHint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: auto;
+  color: var(--accent);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
 }
 
 .cardFooter {
@@ -472,7 +488,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 540px;
+  max-width: 760px;
   max-height: calc(100vh - var(--space-12));
   border-radius: var(--radius-xl);
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9));
@@ -573,7 +589,7 @@
 
 .detailGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
   gap: var(--space-3);
 }
 
@@ -599,6 +615,13 @@
   color: var(--text-primary);
   word-break: break-all;
   flex: 1;
+}
+
+.detailActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .detailCardAction {

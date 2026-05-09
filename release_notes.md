@@ -1,5 +1,20 @@
 # Release Notes
 
+## 20.6.3 - 2026-05-09 - Black Book Accessibility, Dataset-Specific Album Grouping & Photographic Evidence Filtering
+
+### For Investigators
+
+- **Refined Black Book Card Details**: Compacted and cleaned the layout of contact grid cards in the Black Book directory to hide long rows, adding clear and intuitive "Open full card" hints indicating any hidden numbers or locations.
+- **Enhanced Black Book Accessibility**: Added robust keyboard navigation support (`Enter` and `Space` key event listeners, `role="button"`, and standard tab indexing) to all grid cards to allow effortless, hands-free review workflows.
+- **Advanced Photographic Evidence Filtering**: Overhauled the Photo Browser to exclude all OCR-heavy pages, raw text scans, and unconfirmed document extracts from statistics, format breakdowns, and album breakdowns. Added a comprehensive database query filter (`nonTextExtractPredicate`) to ensure the photographic gallery only contains genuine photographic evidence.
+- **Dataset-Specific Album Grouping**: Configured the media ingestion pipeline to group extracted assets into dedicated dataset folders instead of clustering them in a single generic "Extracted Media" album, preserving perfect document context.
+
+### Why It Matters
+
+- Cleaner Black Book cards make scanning Epstein's directory significantly easier, while keyboard accessibility satisfies high HIG standards.
+- Removing non-photographic OCR scans from the Photo Browser ensures that the gallery is truly a visual archive rather than a collection of scanned pages.
+- Preserving dataset-level context for extracted images makes it easy to trace visual evidence back to specific source collections.
+
 ## 20.6.2 - 2026-05-09 - Black Book Card Modal, Dynamic Categories & Media Viewer Polish
 
 ### For Investigators

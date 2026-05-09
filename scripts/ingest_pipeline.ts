@@ -125,16 +125,16 @@ async function syncMediaItemFromDocument(params: {
 
   let albumId = await getOrCreateMediaAlbumId(collectionName, collectionDescription);
 
-  // Requirement: "make a separate album for the extracted images"
-  // If the file path indicates it was extracted from an archive or email, place it in "Extracted Media"
+  // Keep extracted assets grouped by dataset. The media browser should not turn every
+  // source document into a separate album.
   const isExtracted =
     filePath.includes('data/extracted') ||
     filePath.includes('data/attachments') ||
     filePath.includes('data/temp_extraction');
   if (isExtracted) {
     albumId = await getOrCreateMediaAlbumId(
-      'Extracted Media',
-      'Media assets extracted from archives, emails, and forensic bundles.',
+      collectionName,
+      collectionDescription || `Extracted media assets from the ${collectionName} dataset.`,
     );
   }
   const existing =

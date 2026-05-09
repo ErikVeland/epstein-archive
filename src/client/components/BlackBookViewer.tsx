@@ -31,10 +31,8 @@ type BlackBookCategoryFilter = 'ALL' | 'Original' | 'Contact' | 'Credential';
 type BlackBookTextMode = 'pretty' | 'raw';
 
 const CATEGORY_OPTIONS: Array<{ value: BlackBookCategoryFilter; label: string }> = [
-  { value: 'ALL', label: 'ALL' },
-  { value: 'Original', label: 'Original' },
-  { value: 'Contact', label: 'Contact' },
-  { value: 'Credential', label: 'Credential' },
+  { value: 'ALL', label: 'All' },
+  { value: 'Original', label: 'Address Book' },
 ];
 
 const TEXT_MODE_OPTIONS: Array<{
@@ -62,6 +60,17 @@ const parseStringList = (value: unknown): string[] => {
     }
   }
   return [];
+};
+
+const getRecordTypeLabel = (category: BlackBookEntry['entry_category']) => {
+  switch (category) {
+    case 'credential':
+      return 'Possible credential';
+    case 'contact':
+      return 'Extracted contact';
+    default:
+      return 'Address book';
+  }
 };
 
 export const BlackBookViewer: React.FC = () => {
@@ -302,7 +311,8 @@ export const BlackBookViewer: React.FC = () => {
           options={CATEGORY_OPTIONS}
           value={selectedCategory}
           onChange={setSelectedCategory}
-          minItemWidth="6.5rem"
+          minItemWidth="0"
+          fullWidth
           className={styles.categoryBar}
         />
       </div>
@@ -335,6 +345,13 @@ export const BlackBookViewer: React.FC = () => {
                           const displayName = showRaw
                             ? rawName
                             : extractCleanName(entry.entry_text) || rawName;
+                          const visiblePhones = entry.phone_numbers.slice(0, 2);
+                          const visibleEmails = entry.email_addresses.slice(0, 1);
+                          const visibleAddresses = entry.addresses.slice(0, 1);
+                          const hiddenDetailCount =
+                            Math.max(0, entry.phone_numbers.length - visiblePhones.length) +
+                            Math.max(0, entry.email_addresses.length - visibleEmails.length) +
+                            Math.max(0, entry.addresses.length - visibleAddresses.length);
 
                           return (
                             <Surface
@@ -346,6 +363,14 @@ export const BlackBookViewer: React.FC = () => {
                               variant="glass"
                               p={4}
                               onClick={() => setSelectedEntry(entry)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  setSelectedEntry(entry);
+                                }
+                              }}
+                              role="button"
+                              tabIndex={0}
                             >
                               {/* Name - clickable if known entity */}
                               <div className={styles.cardHeader}>
@@ -429,7 +454,7 @@ export const BlackBookViewer: React.FC = () => {
                                   <div className={styles.infoRow}>
                                     <Icon name="Phone" className={styles.infoIcon} />
                                     <div className={styles.infoBody}>
-                                      {entry.phone_numbers.map((phone, idx) => (
+                                      {visiblePhones.map((phone, idx) => (
                                         <div key={idx} className={styles.infoText}>
                                           {showRaw ? phone : formatPhoneNumber(phone)}
                                         </div>
@@ -443,7 +468,7 @@ export const BlackBookViewer: React.FC = () => {
                                   <div className={styles.infoRow}>
                                     <Icon name="Mail" className={styles.infoIcon} />
                                     <div className={styles.infoBody}>
-                                      {entry.email_addresses.map((email, idx) => (
+                                      {visibleEmails.map((email, idx) => (
                                         <div key={idx} className={styles.emailRow}>
                                           <Link
                                             to={`/emails?search=${encodeURIComponent(email)}`}
@@ -475,16 +500,11 @@ export const BlackBookViewer: React.FC = () => {
                                   <div className={styles.infoRow}>
                                     <Icon name="MapPin" className={styles.infoIcon} />
                                     <div className={styles.infoBody}>
-                                      {entry.addresses.slice(0, 2).map((address, idx) => (
+                                      {visibleAddresses.map((address, idx) => (
                                         <div key={idx} className={styles.infoText}>
                                           {address}
                                         </div>
                                       ))}
-                                      {entry.addresses.length > 2 && (
-                                        <div className={styles.subtleCount}>
-                                          +{entry.addresses.length - 2} more
-                                        </div>
-                                      )}
                                     </div>
                                   </div>
                                 )}
@@ -493,10 +513,15 @@ export const BlackBookViewer: React.FC = () => {
                                 {entry.phone_numbers.length === 0 &&
                                   entry.email_addresses.length === 0 &&
                                   entry.addresses.length === 0 && (
-                                    <div className={styles.emptyInfo}>
-                                      No contact information available
-                                    </div>
+                                    <div className={styles.emptyInfo}>OCR text only</div>
                                   )}
+                                <div className={styles.openHint}>
+                                  <Icon name="Maximize2" className={styles.tinyExternal} />
+                                  <span>
+                                    Open full card
+                                    {hiddenDetailCount > 0 ? `, ${hiddenDetailCount} more` : ''}
+                                  </span>
+                                </div>
                               </div>
 
                               {/* Metadata & Categories */}
@@ -504,7 +529,7 @@ export const BlackBookViewer: React.FC = () => {
                                 <span
                                   className={`${styles.categoryBadge} ${getCategoryBadgeClass(entry.entry_category)}`}
                                 >
-                                  {entry.entry_category}
+                                  {getRecordTypeLabel(entry.entry_category)}
                                 </span>
 
                                 {entry.document_id && (
@@ -640,7 +665,7 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
             <span
               className={`${styles.categoryBadge} ${getCategoryBadgeClass(entry.entry_category)}`}
             >
-              {entry.entry_category}
+              {getRecordTypeLabel(entry.entry_category)}
             </span>
           </div>
           <Button
@@ -670,7 +695,7 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                   return (
                     <div key={idx} className={styles.detailCard}>
                       <span className={styles.detailCardValue}>{displayPhone}</span>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div className={styles.detailActions}>
                         <a
                           href={`tel:${phone}`}
                           className={styles.detailCardAction}
@@ -711,7 +736,7 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                   return (
                     <div key={idx} className={styles.detailCard}>
                       <span className={styles.detailCardValue}>{email}</span>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div className={styles.detailActions}>
                         <a
                           href={`mailto:${email}`}
                           className={styles.detailCardAction}
