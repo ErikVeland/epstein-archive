@@ -31,9 +31,9 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
     let intervalId: NodeJS.Timeout;
 
     const runAnimation = () => {
-      const letterDelay = 70;
-      const glitchLeadTime = 115;
-      const glitchClearTime = 190;
+      const letterDelay = 42;
+      const glitchLeadTime = 80;
+      const glitchClearTime = 130;
       animationCount.current += 1;
 
       // Odd intervals: Trigger alternate text animations
@@ -59,7 +59,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
 
       // Phase 2: Hold fully redacted for 2 seconds
       const fullRedactTime = letterCount * letterDelay;
-      const holdTime = 2000;
+      const holdTime = 3200;
 
       // Phase 3: Reveal letters one by one (swapping to alternative text if isAltAnimation)
       setTimeout(() => {
@@ -151,7 +151,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
     const animationTimeout = setTimeout(() => {
       runAnimation();
       // Set up recurring animations every 12-20 seconds for active feel
-      intervalId = setInterval(runAnimation, 12000 + Math.random() * 8000);
+      intervalId = setInterval(runAnimation, 16000 + Math.random() * 8000);
     }, initialDelay);
 
     return () => {

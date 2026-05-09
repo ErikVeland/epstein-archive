@@ -31,16 +31,25 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--space-4);
+  /* Gradient on ::before so the container itself receives pointer events */
+}
+
+.toolbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
   pointer-events: none;
+  z-index: 0;
 }
 
 .toolbarLeft,
 .toolbarActions {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  pointer-events: auto;
 }
 
 .toolbarActions {
@@ -149,7 +158,6 @@
 
 .imageStage {
   position: relative;
-  z-index: 5;
   display: flex;
   flex: 1 1 auto;
   align-items: center;

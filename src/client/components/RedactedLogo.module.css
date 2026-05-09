@@ -123,20 +123,32 @@
 .redactedBlock {
   display: inline-block;
   color: #01030a;
-  background:
-    linear-gradient(
-      90deg,
-      oklch(95% 0.37 196 / 0.22) 0%,
-      transparent 18%,
-      oklch(72% 0.38 330 / 0.24) 100%
-    ),
-    #02040a;
+  background: #02040a;
   padding: 0 2px;
   border-radius: 1px;
-  box-shadow:
-    0 0 2px rgba(0, 0, 0, 0.7),
-    0 0 8px oklch(95% 0.37 196 / 0.28),
-    0 0 10px oklch(72% 0.38 330 / 0.18);
+  /* Glow bursts in with the glitch, then fades to clean black */
+  animation: redactSettle 700ms cubic-bezier(0.25, 0, 0.5, 1) forwards;
+}
+
+@keyframes redactSettle {
+  0% {
+    background: #02040a;
+    box-shadow:
+      0 0 2px rgba(0, 0, 0, 0.7),
+      0 0 14px oklch(95% 0.37 196 / 0.7),
+      0 0 28px oklch(72% 0.38 330 / 0.5),
+      0 0 50px oklch(95% 0.37 196 / 0.25);
+  }
+  60% {
+    box-shadow:
+      0 0 2px rgba(0, 0, 0, 0.7),
+      0 0 4px oklch(95% 0.37 196 / 0.15),
+      0 0 8px oklch(72% 0.38 330 / 0.1);
+  }
+  100% {
+    background: #02040a;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.7);
+  }
 }
 
 /* Base char — positioning context for CA pseudo-elements */
@@ -237,7 +249,7 @@
 
 .letterGlitching {
   z-index: 2;
-  animation: glitchFlicker 120ms steps(1, end) infinite;
+  animation: glitchFlicker 75ms steps(1, end) infinite;
 }
 
 /* ── Glitching character — HDR neon colour override ───────────────────── */
@@ -262,7 +274,7 @@
   text-shadow:
     0 0 8px oklch(72% 0.38 330),
     0 0 20px oklch(72% 0.38 330 / 0.7);
-  animation: channelMagenta 95ms steps(2, end) infinite;
+  animation: channelMagenta 60ms steps(2, end) infinite;
 }
 
 /* ── Chromatic aberration — cyan channel, bottom slice ────────────────── */
@@ -275,7 +287,7 @@
   text-shadow:
     0 0 8px oklch(95% 0.37 196),
     0 0 20px oklch(94% 0.4 136 / 0.6);
-  animation: channelCyan 105ms steps(2, end) infinite;
+  animation: channelCyan 70ms steps(2, end) infinite;
 }
 
 @keyframes channelMagenta {
