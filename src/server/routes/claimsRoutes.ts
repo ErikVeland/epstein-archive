@@ -16,6 +16,17 @@ const verifyClaimSchema = z.object({
   }),
 });
 
+// GET /api/claims/corroborated
+router.get('/corroborated', async (req, res, next) => {
+  try {
+    const limit = Number(req.query.limit || 50);
+    const corroborated = await claimTriplesRepository.getCorroboratedClaims(limit);
+    return res.json({ corroborated });
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // GET /api/claims/:id
 router.get('/:id', async (req, res, next) => {
   try {

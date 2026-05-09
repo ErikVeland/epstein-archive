@@ -122,6 +122,26 @@ router.post('/login', authLimiter, async (req, res) => {
   }
 });
 
+// POST /api/auth/guest
+router.post('/guest', async (req, res) => {
+  try {
+    const guestUser = {
+      id: 'guest',
+      username: 'Guest Researcher',
+      role: 'guest',
+    };
+    const accessToken = generateAccessToken(guestUser);
+    res.json({
+      success: true,
+      accessToken,
+      user: guestUser,
+    });
+  } catch (error) {
+    logger.error({ err: error }, 'Guest login error');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /api/auth/refresh
 router.post('/refresh', authLimiter, async (req, res) => {
   const refreshToken = req.cookies.refreshToken;

@@ -45,6 +45,20 @@ describe('mapProvenanceFieldsDto', () => {
     expect(result.provenanceStatus).toBe('missing');
     expect(() => provenanceSchema.parse(result)).not.toThrow();
   });
+
+  it('treats a source document plus extraction method as complete provenance', () => {
+    const result = mapProvenanceFieldsDto({
+      source_document_id: '314',
+      extraction_method: 'agentic',
+      confidence: 0.64,
+    });
+
+    expect(result.sourceDocumentId).toBe(314);
+    expect(result.sourceHash).toBeNull();
+    expect(result.extractionMethod).toBe('agentic');
+    expect(result.provenanceStatus).toBe('complete');
+    expect(() => provenanceSchema.parse(result)).not.toThrow();
+  });
 });
 
 describe('provenance-bearing DTO mappers', () => {

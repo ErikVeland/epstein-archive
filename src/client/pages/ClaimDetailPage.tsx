@@ -18,6 +18,12 @@ interface ClaimDetail {
   modality: string;
   verified: number;
   createdAt: string;
+  sourceDocumentId: number | null;
+  sourceHash: string | null;
+  extractionMethod: 'ocr' | 'manual' | 'structured' | 'agentic';
+  reviewState: 'unreviewed' | 'accepted' | 'rejected' | 'deferred' | 'insufficient_evidence';
+  lastVerifiedAt: string | null;
+  provenanceStatus: 'complete' | 'partial' | 'missing';
   subjectName?: string;
   objectName?: string;
   documentTitle?: string;
@@ -74,6 +80,9 @@ export function ClaimDetailPage() {
           <span className={styles.badge}>
             {isLoading ? 'Loading' : isError ? 'Unavailable' : `${confidence}% Confidence`}
           </span>
+          <span className={styles.badge}>
+            {data?.provenanceStatus ? `${data.provenanceStatus} provenance` : 'Provenance pending'}
+          </span>
         </div>
         <h1 className={styles.title}>{isLoading ? 'Loading claim...' : title}</h1>
         <p className={styles.subtitle}>
@@ -111,7 +120,15 @@ export function ClaimDetailPage() {
             </div>
             <div className={styles.fact}>
               <span className={styles.label}>Method</span>
-              <span className={styles.value}>Agentic extraction</span>
+              <span className={styles.value}>{data?.extractionMethod || 'Pending'}</span>
+            </div>
+            <div className={styles.fact}>
+              <span className={styles.label}>Review State</span>
+              <span className={styles.value}>{data?.reviewState || 'Pending'}</span>
+            </div>
+            <div className={styles.fact}>
+              <span className={styles.label}>Source Hash</span>
+              <span className={styles.value}>{data?.sourceHash || 'Unavailable'}</span>
             </div>
             <div className={styles.fact}>
               <span className={styles.label}>Created</span>

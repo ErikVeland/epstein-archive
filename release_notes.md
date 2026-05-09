@@ -1,5 +1,21 @@
 # Release Notes
 
+## 20.7.0 - 2026-05-10 - Trust & Verification Release Candidate
+
+### For Investigators
+
+- **Claim-Level Provenance Contract**: AI-extracted claim triples now carry explicit source document IDs, source hashes, extraction method, review state, verification timestamp, and provenance status through the API contract.
+- **Claim Detail Provenance Visibility**: Claim detail pages now surface provenance status, extraction method, review state, and source hash directly beside the claim instead of leaving those trust signals implicit.
+- **Semantic Search Honesty Pass**: Global search now sends Keyword, Conceptual, or Hybrid mode to the backend, preserves semantic match reasons in returned document results, and reports whether pgvector embeddings are actually populated or lexical fallback is active.
+- **Release Trust Gate**: Added `pnpm check:release-trust`, a release-only gate that fails when critical investigation specs contain quiet skips or release workstreams remain marked blocked/in-progress.
+- **Black Book Type Hardening**: Removed the remaining explicit `any` usage from the Black Book repository so lint output can be treated as a genuine release signal.
+
+### Why It Matters
+
+- Machine-extracted claims are now harder to mistake for verified facts: the API and UI carry source and review metadata with the claim itself.
+- Researchers choosing Conceptual or Hybrid search now get a real backend mode request plus visible readiness/fallback state, closing the most misleading part of the previous semantic search experience.
+- Release readiness now has a hard transparency check for skipped golden-path coverage, helping prevent a green test run from hiding missing fixture data.
+
 ## 20.6.3 - 2026-05-09 - Black Book Accessibility, Dataset-Specific Album Grouping & Photographic Evidence Filtering
 
 ### For Investigators

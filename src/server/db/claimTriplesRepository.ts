@@ -1,5 +1,6 @@
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
+import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
 
 export interface ClaimTriple {
   id: string;
@@ -16,11 +17,51 @@ export interface ClaimTriple {
   verifiedAt: Date | null;
   rejectionReason: string | null;
   createdAt: Date;
+  sourceDocumentId: number | null;
+  sourceHash: string | null;
+  extractionMethod: ExtractionMethod;
+  reviewState: ReviewState;
+  lastVerifiedAt: Date | null;
+  provenanceStatus: ProvenanceStatus;
   // Joined fields
   subjectName?: string;
   objectName?: string;
   documentTitle?: string;
 }
+
+type ClaimTripleRow = Omit<
+  ClaimTriple,
+  'sourceDocumentId' | 'extractionMethod' | 'reviewState' | 'lastVerifiedAt' | 'provenanceStatus'
+> & {
+  documentId: string | number | null;
+  sourceHash: string | null;
+  verified: number | string | null;
+  verifiedAt: Date | string | null;
+};
+
+const normalizeClaim = (row: ClaimTripleRow): ClaimTriple => {
+  const sourceDocumentId =
+    row.documentId == null || !Number.isFinite(Number(row.documentId))
+      ? null
+      : Number(row.documentId);
+  const verified = Number(row.verified ?? 0);
+  const reviewState: ReviewState =
+    verified === 1 ? 'accepted' : verified === 2 ? 'rejected' : 'unreviewed';
+  const extractionMethod: ExtractionMethod = 'agentic';
+  const provenanceStatus: ProvenanceStatus = sourceDocumentId ? 'complete' : 'missing';
+
+  return {
+    ...row,
+    documentId: row.documentId == null ? '' : String(row.documentId),
+    verified,
+    sourceDocumentId,
+    sourceHash: row.sourceHash,
+    extractionMethod,
+    reviewState,
+    lastVerifiedAt: row.verifiedAt ? new Date(row.verifiedAt) : null,
+    provenanceStatus,
+  };
+};
 
 export const claimTriplesRepository = {
   async getById(id: string | number): Promise<ClaimTriple | null> {
@@ -44,7 +85,8 @@ export const claimTriplesRepository = {
           ct.created_at as "createdAt",
           s.full_name as "subjectName",
           o.full_name as "objectName",
-          d.title as "documentTitle"
+          d.title as "documentTitle",
+          d.content_hash as "sourceHash"
         FROM claim_triples ct
         LEFT JOIN entities s ON ct.subject_entity_id = s.id
         LEFT JOIN entities o ON ct.object_entity_id = o.id
@@ -54,7 +96,7 @@ export const claimTriplesRepository = {
         `,
         [id],
       );
-      return res.rows[0] ?? null;
+      return res.rows[0] ? normalizeClaim(res.rows[0]) : null;
     } catch (error) {
       logger.error({ err: error, id }, '[claimTriplesRepository] getById error');
       throw error;
@@ -82,7 +124,8 @@ export const claimTriplesRepository = {
           ct.created_at as "createdAt",
           s.full_name as "subjectName",
           o.full_name as "objectName",
-          d.title as "documentTitle"
+          d.title as "documentTitle",
+          d.content_hash as "sourceHash"
         FROM claim_triples ct
         LEFT JOIN entities s ON ct.subject_entity_id = s.id
         LEFT JOIN entities o ON ct.object_entity_id = o.id
@@ -92,7 +135,7 @@ export const claimTriplesRepository = {
         `,
         [documentId],
       );
-      return res.rows;
+      return res.rows.map(normalizeClaim);
     } catch (error) {
       logger.error({ err: error, documentId }, '[claimTriplesRepository] getByDocumentId error');
       throw error;
@@ -120,7 +163,8 @@ export const claimTriplesRepository = {
           ct.created_at as "createdAt",
           s.full_name as "subjectName",
           o.full_name as "objectName",
-          d.title as "documentTitle"
+          d.title as "documentTitle",
+          d.content_hash as "sourceHash"
         FROM claim_triples ct
         LEFT JOIN entities s ON ct.subject_entity_id = s.id
         LEFT JOIN entities o ON ct.object_entity_id = o.id
@@ -130,7 +174,7 @@ export const claimTriplesRepository = {
         `,
         [BigInt(entityId)],
       );
-      return res.rows;
+      return res.rows.map(normalizeClaim);
     } catch (error) {
       logger.error({ err: error, entityId }, '[claimTriplesRepository] getByEntityId error');
       throw error;
@@ -159,6 +203,48 @@ export const claimTriplesRepository = {
       return true;
     } catch (error) {
       logger.error({ err: error, id }, '[claimTriplesRepository] verify error');
+      throw error;
+    }
+  },
+
+  async getCorroboratedClaims(limit = 50): Promise<
+    Array<{
+      subjectId: string;
+      subjectName: string;
+      predicate: string;
+      objectId: string | null;
+      objectName: string | null;
+      objectText: string | null;
+      corroborationCount: number;
+      documents: Array<{ id: string; title: string }>;
+    }>
+  > {
+    try {
+      const res = await getApiPool().query(
+        `
+        SELECT
+          ct.subject_entity_id as "subjectId",
+          s.full_name as "subjectName",
+          ct.predicate as "predicate",
+          ct.object_entity_id as "objectId",
+          o.full_name as "objectName",
+          ct.object_text as "objectText",
+          COUNT(DISTINCT ct.document_id) as "corroborationCount",
+          json_agg(DISTINCT jsonb_build_object('id', d.id::text, 'title', d.title)) as "documents"
+        FROM claim_triples ct
+        JOIN entities s ON ct.subject_entity_id = s.id
+        LEFT JOIN entities o ON ct.object_entity_id = o.id
+        LEFT JOIN documents d ON ct.document_id = d.id
+        GROUP BY ct.subject_entity_id, s.full_name, ct.predicate, ct.object_entity_id, o.full_name, ct.object_text
+        HAVING COUNT(DISTINCT ct.document_id) > 1
+        ORDER BY "corroborationCount" DESC, ct.subject_entity_id ASC
+        LIMIT $1
+        `,
+        [limit],
+      );
+      return res.rows;
+    } catch (error) {
+      logger.error({ err: error }, '[claimTriplesRepository] getCorroboratedClaims error');
       throw error;
     }
   },

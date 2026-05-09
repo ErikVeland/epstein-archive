@@ -619,6 +619,8 @@ if [ "$DB_ONLY" = false ]; then
 
       pnpm install --frozen-lockfile
       pnpm build:prod
+      echo 'Exporting fresh database snapshot for dashboard...'
+      pnpm snapshot:export
 
       if [ -d .prev_dist_assets ]; then
         echo 'Restoring previous hashed assets (non-overwriting)...'

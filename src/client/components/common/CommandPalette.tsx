@@ -91,6 +91,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           keywords: ['documents', 'docs', 'files'],
         },
         {
+          id: 'go-redactions',
+          label: 'Go to Redactions',
+          description: 'Open redaction coverage and span review',
+          icon: 'ScanText',
+          action: () => navigate('/redactions'),
+          keywords: ['redactions', 'unredaction', 'coverage', 'withheld'],
+        },
+        {
           id: 'go-flights',
           label: 'Go to Flights',
           description: 'Navigate to Flights page',

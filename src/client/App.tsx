@@ -69,6 +69,10 @@ import {
   useReliableBackNavigation,
   useTrackRouteHistory,
 } from './hooks/useReliableBackNavigation';
+import {
+  useNavigationContextManager,
+  useNavigationReturn,
+} from './hooks/useNavigationContextManager';
 import { parseReleaseNotes } from './utils/releaseNotes';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 import { useApiStatus } from './contexts/ApiStatusContext';
@@ -81,6 +85,10 @@ const PeoplePage = lazyWithRetry(
 const DocumentsPage = lazyWithRetry(
   () => import('./pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })),
   'DocumentsPage',
+);
+const RedactionsPage = lazyWithRetry(
+  () => import('./pages/RedactionsPage').then((m) => ({ default: m.RedactionsPage })),
+  'RedactionsPage',
 );
 const TimelinePage = lazyWithRetry(
   () => import('./pages/TimelinePage').then((m) => ({ default: m.TimelinePage })),
@@ -105,6 +113,18 @@ const PropertyPage = lazyWithRetry(
 const EmailPage = lazyWithRetry(
   () => import('./pages/EmailPage').then((m) => ({ default: m.EmailPage })),
   'EmailPage',
+);
+const CorroborationPage = lazyWithRetry(
+  () => import('./pages/CorroborationPage').then((m) => ({ default: m.CorroborationPage })),
+  'CorroborationPage',
+);
+const LegalTrackerPage = lazyWithRetry(
+  () => import('./pages/LegalTrackerPage').then((m) => ({ default: m.LegalTrackerPage })),
+  'LegalTrackerPage',
+);
+const SurvivorTrackingPage = lazyWithRetry(
+  () => import('./pages/SurvivorTrackingPage').then((m) => ({ default: m.SurvivorTrackingPage })),
+  'SurvivorTrackingPage',
 );
 const MediaPage = lazyWithRetry(
   () => import('./pages/MediaPage').then((m) => ({ default: m.MediaPage })),
@@ -234,12 +254,15 @@ function App() {
   const navigate = useNavigate();
   const backLinkState = useBackLinkState();
   const { goBack } = useReliableBackNavigation();
+  const { closeModal: _closeModal, restoreScroll: _restoreScroll } = useNavigationContextManager();
   const { user: currentUser, isAdmin } = useAuth();
   const isMobile = useIsMobile();
 
   useTrackRouteHistory();
 
   const seoConfig = useSeoConfig();
+
+  useNavigationReturn();
 
   // people state removed - PeoplePage handles its own data fetching
 
@@ -677,11 +700,7 @@ function App() {
         if (documentModalId) {
           setDocumentModalId('');
           setDocumentModalInitial(null);
-          const params = new URLSearchParams(location.search);
-          params.delete('id');
-          params.delete('modalTab');
-          params.delete('textMode');
-          navigate(`${location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
+          goBack('/documents');
           // Announce modal close for screen readers
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
@@ -1625,6 +1644,19 @@ function App() {
                           label="Documents"
                         />
                         <AppSegmentedNavItem
+                          onClick={() => navigate('/redactions')}
+                          onMouseEnter={() =>
+                            preloader.prefetchJson(
+                              '/api/documents?hasFailedRedactions=true&limit=25',
+                            )
+                          }
+                          tone="documents"
+                          active={activeTab === 'redactions'}
+                          density={navLayoutMode}
+                          icon="ScanText"
+                          label="Redactions"
+                        />
+                        <AppSegmentedNavItem
                           onClick={() => navigate('/media')}
                           onMouseEnter={() => {
                             preloader.prefetchJson('/api/media/albums');
@@ -1962,7 +1994,11 @@ function App() {
                               />
                             }
                           />
+                          <Route path="/redactions" element={<RedactionsPage />} />
                           <Route path="/timeline/*" element={<TimelinePage />} />
+                          <Route path="/claims/corroborated" element={<CorroborationPage />} />
+                          <Route path="/legal-proceedings" element={<LegalTrackerPage />} />
+                          <Route path="/survivors" element={<SurvivorTrackingPage />} />
                           <Route path="/claims/:id" element={<ClaimDetailPage />} />
                           <Route
                             path="/financial/:id"
@@ -2170,9 +2206,14 @@ function App() {
                         const params = new URLSearchParams(location.search);
                         params.delete('entityId');
                         params.delete('entityTab');
-                        navigate(
-                          `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`,
+                        const targetPath = `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+                        sessionStorage.setItem(
+                          'nav-return:scroll',
+                          String(window.scrollY || window.pageYOffset || 0),
                         );
+                        navigate(targetPath, {
+                          state: { ...location.state, _navReturn: targetPath },
+                        });
                       }}
                     />
                   </ScopedErrorBoundary>
@@ -2195,18 +2236,11 @@ function App() {
                       onClose={() => {
                         setDocumentModalId('');
                         setDocumentModalInitial(null);
-                        const docState = location.state as { backTo?: string } | null;
-                        if (docState?.backTo) {
-                          navigate(docState.backTo, { replace: true });
-                        } else {
-                          const params = new URLSearchParams(location.search);
-                          params.delete('id');
-                          params.delete('modalTab');
-                          params.delete('textMode');
-                          navigate(
-                            `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`,
-                          );
-                        }
+                        sessionStorage.setItem(
+                          'nav-return:scroll',
+                          String(window.scrollY || window.pageYOffset || 0),
+                        );
+                        goBack('/documents');
                       }}
                     />
                   </ScopedErrorBoundary>

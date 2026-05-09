@@ -211,6 +211,12 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             </div>
             <span className={s.navLabel}>Media</span>
           </Button>
+          <Button unstyled className={s.navItem} onClick={() => handleNavigation('/redactions')}>
+            <div className={s.iconWrap}>
+              <Icon name="ScanText" size="sm" />
+            </div>
+            <span className={s.navLabel}>Redactions</span>
+          </Button>
 
           <div className={s.divider} />
           <div className={`${s.sectionLabel} ${s.sectionLabelMid}`}>Intelligence</div>

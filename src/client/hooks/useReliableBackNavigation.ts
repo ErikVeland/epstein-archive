@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   useLocation,
   useNavigate,
@@ -25,6 +25,19 @@ let lastRecordedSignature: string | null = null;
 
 const toPath = (location: Pick<Location, 'pathname' | 'search' | 'hash'>): string =>
   `${location.pathname}${location.search}${location.hash}`;
+
+const readReturnTargetFromSearch = (search: string): string | null => {
+  const params = new URLSearchParams(search);
+  const rawTarget = params.get('returnTo') || params.get('backTo');
+  if (!rawTarget) return null;
+
+  try {
+    const target = decodeURIComponent(rawTarget);
+    return target.startsWith('/') && !target.startsWith('//') ? target : null;
+  } catch {
+    return rawTarget.startsWith('/') && !rawTarget.startsWith('//') ? rawTarget : null;
+  }
+};
 
 const recordRoute = (
   location: Pick<Location, 'key' | 'pathname' | 'search' | 'hash'>,
@@ -113,24 +126,72 @@ export const useTrackRouteHistory = () => {
   }, [location.hash, location.key, location.pathname, location.search, navigationType]);
 };
 
+const NAV_RETURN_KEY = 'nav-return:scroll';
+
+const saveScrollPosition = (path: string): void => {
+  try {
+    const scrollY = window.scrollY || window.pageYOffset || 0;
+    if (scrollY > 0) {
+      sessionStorage.setItem(
+        NAV_RETURN_KEY,
+        JSON.stringify({ path, scrollY, timestamp: Date.now() }),
+      );
+    }
+  } catch {
+    // sessionStorage unavailable
+  }
+};
+
 export const useReliableBackNavigation = (defaultFallback: To = '/') => {
   const location = useLocation();
   const navigate = useNavigate();
+  const restoredRef = useRef(false);
+
+  useEffect(() => {
+    if (restoredRef.current) {
+      restoredRef.current = false;
+      return;
+    }
+    try {
+      const stored = sessionStorage.getItem(NAV_RETURN_KEY);
+      if (stored) {
+        const data = JSON.parse(stored);
+        if (data && typeof data.scrollY === 'number' && data.scrollY > 0) {
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: data.scrollY, behavior: 'auto' });
+          });
+        }
+      }
+    } catch {
+      // sessionStorage unavailable or invalid JSON
+    }
+  }, [location.pathname, location.search]);
 
   const goBack = useCallback(
     (fallback: To = defaultFallback) => {
       const currentPath = toPath(location);
       const locationState = (location.state as BackNavigationState | null) ?? null;
+
       const explicitTarget =
-        typeof locationState?.backTo === 'string' ? locationState.backTo : null;
+        (typeof locationState?.backTo === 'string' ? locationState.backTo : null) ||
+        readReturnTargetFromSearch(location.search);
 
       if (explicitTarget && explicitTarget !== currentPath) {
+        saveScrollPosition(currentPath);
         navigate(explicitTarget);
+        return;
+      }
+
+      const navReturn = locationState as { _navReturn?: string } | null;
+      if (navReturn?._navReturn && navReturn._navReturn !== currentPath) {
+        saveScrollPosition(currentPath);
+        navigate(navReturn._navReturn);
         return;
       }
 
       const trackedPrevious = getTrackedPreviousPath();
       if (trackedPrevious) {
+        saveScrollPosition(currentPath);
         navigate(-1);
         return;
       }

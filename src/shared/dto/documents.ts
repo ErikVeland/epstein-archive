@@ -17,6 +17,11 @@ export interface DocumentListItemDto extends ProvenanceFieldsDto {
   previewText: string;
   previewKind: 'ai_summary' | 'excerpt' | 'fallback' | string;
   whyFlagged: string;
+  unredactionAttempted: boolean;
+  unredactionSucceeded: boolean;
+  redactionCoverageBefore: number | null;
+  redactionCoverageAfter: number | null;
+  unredactedTextGain: number | null;
 }
 
 export interface DocumentsListResponseDto {

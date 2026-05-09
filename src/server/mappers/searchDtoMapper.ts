@@ -22,9 +22,15 @@ export const mapUnifiedSearchResponseDto = (
           | string
           | number,
         title: String(d.title || ''),
-        sourcePath: String(d.sourcePath ?? d.file_path ?? ''),
-        contentPreview: String(d.contentPreview ?? d.content_preview ?? ''),
+        fileName: d.fileName ? String(d.fileName) : undefined,
+        filePath: d.filePath ? String(d.filePath) : undefined,
+        sourcePath: String(d.sourcePath ?? d.filePath ?? d.file_path ?? ''),
+        contentPreview: String(d.contentPreview ?? d.previewText ?? d.content_preview ?? ''),
+        snippet: d.snippet == null ? null : String(d.snippet),
+        evidenceType: d.evidenceType == null ? null : String(d.evidenceType),
         redFlagRating: Number(d.redFlagRating ?? d.red_flag_rating ?? 0),
+        matchReason: d.matchReason == null ? undefined : String(d.matchReason),
+        score: Number(d.score ?? d.rank ?? 0),
       }))
     : [],
   investigations: Array.isArray(data.investigations)
@@ -36,6 +42,18 @@ export const mapUnifiedSearchResponseDto = (
   semanticCapability: data.semanticCapability
     ? {
         available: Boolean(data.semanticCapability.available),
+        reason: data.semanticCapability.reason,
+        provider: data.semanticCapability.provider,
+        documentEmbeddings: data.semanticCapability.documentEmbeddings,
+        entityEmbeddings: data.semanticCapability.entityEmbeddings,
+        requestedMode: data.requestedMode,
+        effectiveMode: data.effectiveMode,
+        message:
+          data.requestedMode !== 'lexical' && data.effectiveMode === 'lexical'
+            ? data.requestedMode === 'semantic'
+              ? 'Conceptual search is unavailable in this environment, so keyword results are shown instead.'
+              : 'Hybrid search is using keyword results because semantic indexes are unavailable.'
+            : undefined,
       }
     : undefined,
 });

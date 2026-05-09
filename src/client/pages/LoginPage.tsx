@@ -18,6 +18,35 @@ export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleGuestLogin = async () => {
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/guest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Guest login failed');
+      }
+
+      if (!data.accessToken || !data.user) {
+        throw new Error('Invalid server response: missing token or user data');
+      }
+
+      login(data.user, data.accessToken);
+      navigate('/');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Guest login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -87,6 +116,33 @@ export const LoginPage: React.FC = () => {
 
           <Button unstyled type="submit" disabled={loading} className={styles.submitButton}>
             {loading ? 'Signing in...' : 'Sign In'}
+          </Button>
+
+          <div
+            style={{
+              margin: 'var(--space-3) 0',
+              textAlign: 'center',
+              color: 'var(--text-muted)',
+              fontSize: '0.85rem',
+            }}
+          >
+            or
+          </div>
+
+          <Button
+            unstyled
+            type="button"
+            disabled={loading}
+            onClick={handleGuestLogin}
+            className={styles.submitButton}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--accent)',
+              color: 'var(--accent)',
+              marginTop: 0,
+            }}
+          >
+            Browse Public Archives (Read-Only)
           </Button>
         </form>
       </Surface>

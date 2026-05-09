@@ -107,22 +107,27 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
                 />
               }
             />
-            <HIGSettingsRow
-              label="Collection"
-              value={(doc.metadata?.source_collection as string | undefined) || 'Classified'}
-            />
-            <HIGSettingsRow
-              label="Source Hash"
-              value={doc.sourceHash ? `${doc.sourceHash.slice(0, 8)}...` : 'N/A'}
-              isMono
-            />
-            <HIGSettingsRow label="Last Verified" value={doc.lastVerifiedAt || 'Never'} />
-            <HIGSettingsRow label="Thread Depth" value={`${threadCount} Messages`} />
+            {!!doc.metadata?.source_collection && (
+              <HIGSettingsRow label="Collection" value={String(doc.metadata.source_collection)} />
+            )}
+            {doc.sourceHash && (
+              <HIGSettingsRow
+                label="Source Hash"
+                value={`${doc.sourceHash.slice(0, 8)}...`}
+                isMono
+              />
+            )}
+            {doc.lastVerifiedAt && (
+              <HIGSettingsRow label="Last Verified" value={doc.lastVerifiedAt} />
+            )}
+            {threadCount > 0 && (
+              <HIGSettingsRow label="Thread Depth" value={`${threadCount} Messages`} />
+            )}
           </HIGSettingsGroup>
         </Box>
       </Surface>
 
-      {summary ? (
+      {summary && summary.bullets && summary.bullets.length > 0 && (
         <Surface variant="glass-highlight" className={`${styles.sectionCard} ${styles.section}`}>
           <Button
             unstyled
@@ -142,112 +147,89 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           </Button>
           {expandedSummary && (
             <Box className={styles.summaryContent}>
-              {summary.bullets && summary.bullets.length > 0 ? (
-                <ul className={styles.insightList}>
-                  {summary.bullets.map((bullet, index) => (
-                    <li key={`summary-${index}`} className={styles.insightItem}>
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <LqText variant="xs" color="muted" className={styles.emptyText}>
-                  No summary insights available for this document.
-                </LqText>
+              <ul className={styles.insightList}>
+                {summary.bullets.map((bullet, index) => (
+                  <li key={`summary-${index}`} className={styles.insightItem}>
+                    {bullet}
+                  </li>
+                ))}
+              </ul>
+              {summary.sourceLabel && (
+                <Box className={styles.sourceMeta}>
+                  <Box className={styles.sourceDot} />
+                  {summary.sourceLabel}
+                </Box>
               )}
-              <Box className={styles.sourceMeta}>
-                <Box className={styles.sourceDot} />
-                {summary.sourceLabel}
-              </Box>
             </Box>
           )}
         </Surface>
-      ) : (
-        <Surface variant="glass-highlight" className={`${styles.sectionCard} ${styles.section}`}>
-          <h3 className={styles.sectionToggleHeading} style={{ pointerEvents: 'none' }}>
-            <Icon name="Sparkles" size="sm" className={styles.iconAccent} />
-            Key Insights &amp; Summary
-          </h3>
-          <Box className={styles.summaryContent}>
-            <Box className={styles.summaryPending}>
-              <Box className={styles.pendingPulse} />
-              <LqText variant="xs" color="muted">
-                AI enrichment pending — summaries will appear after the pipeline completes this
-                document.
-              </LqText>
-            </Box>
-          </Box>
-        </Surface>
       )}
 
-      <Surface
-        variant="glass-highlight"
-        data-rail-section="entities"
-        className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'entities' ? styles.sectionActive : ''}`}
-      >
-        <Button
-          unstyled
-          type="button"
-          onClick={() => setExpandedEntities((prev) => !prev)}
-          className={styles.entitiesToggle}
+      {entities && entities.length > 0 && (
+        <Surface
+          variant="glass-highlight"
+          data-rail-section="entities"
+          className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'entities' ? styles.sectionActive : ''}`}
         >
-          <h3 className={styles.entitiesHeading}>Live Entities ({entities.length})</h3>
-          <Icon
-            name="ChevronDown"
-            size="sm"
-            className={`${styles.chevronIcon} ${expandedEntities ? styles.chevronRotated : ''}`}
-          />
-        </Button>
-        {expandedEntities && (
-          <Box className={styles.entitiesList}>
-            {entities.length === 0 && (
-              <LqText variant="small" color="muted" className={styles.emptyEntities}>
-                No entities flagged in this record.
-              </LqText>
-            )}
-            {entities.map((entity, index) => (
-              <HIGStackRow
-                key={`${entity.id || entity.name}-${index}`}
-                icon="User"
-                title={entity.name}
-                subtitle={entity.entityType || 'Entity'}
-                onClick={() => setSelectedEntity(entity)}
-                isActive={selectedEntity?.name === entity.name}
-              />
-            ))}
-          </Box>
-        )}
-
-        {selectedEntity && (
-          <Box className={styles.selectedEntityCard}>
-            <Box className={styles.selectedEntityHeader}>
-              <LqText variant="xs" className={styles.selectedEntityLabel}>
-                Active Focus
-              </LqText>
-              <Button
-                unstyled
-                onClick={() => setSelectedEntity(null)}
-                className={styles.clearButton}
-                aria-label="Clear active focus"
-              >
-                <Icon name="X" size="sm" />
-              </Button>
+          <Button
+            unstyled
+            type="button"
+            onClick={() => setExpandedEntities((prev) => !prev)}
+            className={styles.entitiesToggle}
+          >
+            <h3 className={styles.entitiesHeading}>Live Entities ({entities.length})</h3>
+            <Icon
+              name="ChevronDown"
+              size="sm"
+              className={`${styles.chevronIcon} ${expandedEntities ? styles.chevronRotated : ''}`}
+            />
+          </Button>
+          {expandedEntities && (
+            <Box className={styles.entitiesList}>
+              {entities.map((entity, index) => (
+                <HIGStackRow
+                  key={`${entity.id || entity.name}-${index}`}
+                  icon="User"
+                  title={entity.name}
+                  subtitle={entity.entityType || 'Entity'}
+                  onClick={() => setSelectedEntity(entity)}
+                  isActive={selectedEntity?.name === entity.name}
+                />
+              ))}
             </Box>
-            <LqText variant="body" weight="semibold" className={styles.selectedEntityName}>
-              {selectedEntity.name}
-            </LqText>
-            {Number.isFinite(Number(selectedEntity.id)) && (
-              <Button
-                unstyled
-                className={styles.deepLinkButton}
-                onClick={() => onOpenDossier(String(selectedEntity.id))}
-              >
-                Deep Link
-              </Button>
-            )}
-          </Box>
-        )}
-      </Surface>
+          )}
+
+          {selectedEntity && (
+            <Box className={styles.selectedEntityCard}>
+              <Box className={styles.selectedEntityHeader}>
+                <LqText variant="xs" className={styles.selectedEntityLabel}>
+                  Active Focus
+                </LqText>
+                <Button
+                  unstyled
+                  onClick={() => setSelectedEntity(null)}
+                  className={styles.clearButton}
+                  aria-label="Clear active focus"
+                >
+                  <Icon name="X" size="sm" />
+                </Button>
+              </Box>
+              <LqText variant="body" weight="semibold" className={styles.selectedEntityName}>
+                {selectedEntity.name}
+              </LqText>
+              {Number.isFinite(Number(selectedEntity.id)) && (
+                <Button
+                  unstyled
+                  className={styles.deepLinkButton}
+                  onClick={() => onOpenDossier(String(selectedEntity.id))}
+                >
+                  Deep Link
+                </Button>
+              )}
+            </Box>
+          )}
+        </Surface>
+      )}
 
       {relatedDocs && relatedDocs.length > 0 && (
         <Surface variant="glass-highlight" className={`${styles.sectionCard} ${styles.section}`}>
@@ -283,17 +265,16 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
         </Surface>
       )}
 
-      <Surface
-        variant="glass-highlight"
-        data-rail-section="case"
-        className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'case' ? styles.sectionActive : ''}`}
-      >
-        <h3 className={styles.sectionHeadingSmGap}>Case Reference</h3>
-        {caseLinks.length === 0 ? (
-          <LqText variant="small" color="muted" className={styles.emptyText}>
-            No formal linkage.
-          </LqText>
-        ) : (
+      {caseLinks && caseLinks.length > 0 && (
+        <Surface
+          variant="glass-highlight"
+          data-rail-section="case"
+          className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'case' ? styles.sectionActive : ''}`}
+        >
+          <h3 className={styles.sectionHeadingSmGap}>
+            <Icon name="Briefcase" size="sm" className={styles.iconMuted} />
+            Case Reference
+          </h3>
           <Box className={styles.tagRow}>
             {caseLinks.map((entry, index) => (
               <span key={`case-link-${index}`} className={styles.tag}>
@@ -301,23 +282,19 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
               </span>
             ))}
           </Box>
-        )}
-      </Surface>
+        </Surface>
+      )}
 
-      <Surface
-        variant="glass-highlight"
-        data-rail-section="timeline"
-        className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'timeline' ? styles.sectionActive : ''}`}
-      >
-        <h3 className={styles.sectionHeading}>
-          <Icon name="Calendar" size="sm" className={styles.iconMuted} />
-          Timeline Hook
-        </h3>
-        {timelineReferences.length === 0 ? (
-          <LqText variant="small" color="muted" className={styles.emptyText}>
-            No chronological tag.
-          </LqText>
-        ) : (
+      {timelineReferences && timelineReferences.length > 0 && (
+        <Surface
+          variant="glass-highlight"
+          data-rail-section="timeline"
+          className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'timeline' ? styles.sectionActive : ''}`}
+        >
+          <h3 className={styles.sectionHeading}>
+            <Icon name="Calendar" size="sm" className={styles.iconMuted} />
+            Timeline Hook
+          </h3>
           <Box className={styles.tagRow}>
             {timelineReferences.map((entry, index) => (
               <span key={`timeline-ref-${index}`} className={styles.tag}>
@@ -325,8 +302,8 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
               </span>
             ))}
           </Box>
-        )}
-      </Surface>
+        </Surface>
+      )}
 
       <section className={styles.addSection}>
         <AddToInvestigationButton

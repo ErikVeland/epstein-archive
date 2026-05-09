@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import DOMPurify from 'isomorphic-dompurify';
 import Icon from '@client/components/common/Icon';
 import { Box, Button, SearchField, Select, TextInput } from '@client/design-system/lib';
-import { apiClient } from '@client/services/apiClient';
+import { apiClient, type SearchMode } from '@client/services/apiClient';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { Person } from '@client/types';
 import { useScrollLock } from '@client/hooks/useScrollLock';
@@ -45,6 +45,7 @@ interface SearchFilters {
   entity: string;
   date_range: { start: string; end: string };
   min_word_count: number;
+  mode: SearchMode;
 }
 
 type UnknownRecord = Record<string, unknown>;
@@ -76,6 +77,9 @@ const GlobalSearch: React.FC = () => {
   );
   const [articleResults, setArticleResults] = useState<Array<Record<string, unknown>>>([]);
   const [mediaResults, setMediaResults] = useState<Array<Record<string, unknown>>>([]);
+  const [semanticCapability, setSemanticCapability] = useState<Record<string, unknown> | null>(
+    null,
+  );
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -85,6 +89,7 @@ const GlobalSearch: React.FC = () => {
     entity: '',
     date_range: { start: '', end: '' },
     min_word_count: 0,
+    mode: 'hybrid',
   });
   const navigate = useNavigate();
   const backLinkState = useBackLinkState();
@@ -130,9 +135,17 @@ const GlobalSearch: React.FC = () => {
       setResults([]);
       setEntityResults([]);
       setFilteredResults([]);
+      setSemanticCapability(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- performSearch is stable and defined below
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (searchTerm.length > 2) {
+      performSearch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- performSearch is stable and defined below
+  }, [filters.mode]);
 
   useEffect(() => {
     applyFilters();
@@ -144,7 +157,8 @@ const GlobalSearch: React.FC = () => {
     setSearchError(null);
 
     try {
-      const data = asRecord(await apiClient.search(searchTerm, 100));
+      const data = asRecord(await apiClient.search(searchTerm, 100, { mode: filters.mode }));
+      setSemanticCapability(asRecord(data.semanticCapability));
 
       if (data.entities) {
         setEntityResults(data.entities as Person[]);
@@ -250,6 +264,15 @@ const GlobalSearch: React.FC = () => {
     return count.toString();
   };
 
+  const semanticAvailable = semanticCapability?.available === true;
+  const semanticMessage =
+    asString(semanticCapability?.message) ||
+    (filters.mode === 'lexical'
+      ? 'Keyword search uses exact text and metadata matches.'
+      : semanticAvailable
+        ? `${filters.mode === 'hybrid' ? 'Hybrid' : 'Conceptual'} search is using semantic embeddings.`
+        : 'Semantic index unavailable; keyword fallback is active.');
+
   return (
     <div className={s.root}>
       {/* Search Header */}
@@ -330,6 +353,21 @@ const GlobalSearch: React.FC = () => {
             </div>
 
             <div className={s.filterGroup}>
+              <label className={s.filterLabel}>Search Mode</label>
+              <Select
+                value={filters.mode}
+                onChange={(e) => setFilters({ ...filters, mode: e.target.value as SearchMode })}
+                size="sm"
+                className={s.filterSelect}
+                options={[
+                  { value: 'lexical', label: 'Keyword' },
+                  { value: 'semantic', label: 'Conceptual' },
+                  { value: 'hybrid', label: 'Hybrid' },
+                ]}
+              />
+            </div>
+
+            <div className={s.filterGroup}>
               <label className={s.filterLabel}>Entity</label>
               <TextInput
                 type="text"
@@ -396,6 +434,7 @@ const GlobalSearch: React.FC = () => {
                     entity: '',
                     date_range: { start: '', end: '' },
                     min_word_count: 0,
+                    mode: 'hybrid',
                   })
                 }
                 variant="secondary"
@@ -405,6 +444,26 @@ const GlobalSearch: React.FC = () => {
                 Clear Filters
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {searchTerm.length > 2 && (
+        <div className={s.errorBanner} role="status">
+          <Icon
+            name={filters.mode === 'lexical' || semanticAvailable ? 'SearchCheck' : 'AlertCircle'}
+            size="md"
+            className={semanticAvailable || filters.mode === 'lexical' ? s.accentIcon : s.errorIcon}
+          />
+          <div>
+            <p className={s.errorTitle}>
+              {filters.mode === 'lexical'
+                ? 'Keyword mode'
+                : semanticAvailable
+                  ? 'Semantic mode active'
+                  : 'Keyword fallback active'}
+            </p>
+            <p className={s.errorDesc}>{semanticMessage}</p>
           </div>
         </div>
       )}

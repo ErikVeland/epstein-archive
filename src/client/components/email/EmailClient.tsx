@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EmailClient.module.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
@@ -19,15 +20,19 @@ import { useFilters } from '@client/contexts/useFilters';
 import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { isJunkEntity } from '@client/utils/entityFilters';
-import { Button, SearchField, Select, TextInput } from '@client/design-system/lib';
+import { Button, Flex, SearchField, Select, Surface, TextInput } from '@client/design-system/lib';
 
 type EmailDensity = 'comfortable' | 'compact';
 
-const tabOptions: Array<{ id: 'all' | 'primary' | 'updates' | 'promotions'; label: string }> = [
+const tabOptions: Array<{
+  id: 'all' | 'primary' | 'updates' | 'promotions' | 'analytics';
+  label: string;
+}> = [
   { id: 'all', label: 'All' },
   { id: 'primary', label: 'Primary' },
   { id: 'updates', label: 'Updates' },
   { id: 'promotions', label: 'Promotions' },
+  { id: 'analytics', label: 'Forensic Analytics' },
 ];
 
 const minRiskOptions = [
@@ -208,8 +213,15 @@ export const EmailClient: React.FC = () => {
   const [selectedMailboxId, setSelectedMailboxId] = useState(
     searchParams.get('mailboxId') || 'all',
   );
-  const [activeTab, setActiveTab] = useState<'all' | 'primary' | 'updates' | 'promotions'>(
-    (searchParams.get('tab') || 'all') as 'all' | 'primary' | 'updates' | 'promotions',
+  const [activeTab, setActiveTab] = useState<
+    'all' | 'primary' | 'updates' | 'promotions' | 'analytics'
+  >(
+    (searchParams.get('tab') || 'all') as
+      | 'all'
+      | 'primary'
+      | 'updates'
+      | 'promotions'
+      | 'analytics',
   );
   const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('q') || '');
@@ -230,6 +242,18 @@ export const EmailClient: React.FC = () => {
   );
 
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
+
+  const { data: analyticsData } = useQuery<{
+    matrix: Array<{ sender: string; recipient: string; count: number }>;
+  }>({
+    queryKey: ['emailAnalytics'],
+    queryFn: async () => {
+      const res = await fetch('/api/emails/analytics/matrix');
+      if (!res.ok) throw new Error('Failed to fetch email analytics');
+      return await res.json();
+    },
+    enabled: activeTab === 'analytics',
+  });
 
   const VALID_PANES = new Set(['mailboxes', 'threads', 'messages']);
   type MobilePane = 'mailboxes' | 'threads' | 'messages';
@@ -314,7 +338,7 @@ export const EmailClient: React.FC = () => {
     searchParams,
     deepLinkedMessageId,
     selectedMailboxId,
-    activeTab,
+    activeTab: activeTab === 'analytics' ? 'all' : activeTab,
     debouncedSearch,
     fromFilter,
     toFilter,
@@ -909,7 +933,135 @@ export const EmailClient: React.FC = () => {
           )}
 
           <div className={styles.threadPaneBody}>
-            {threadsLoading ? (
+            {activeTab === 'analytics' ? (
+              <div style={{ padding: 'var(--space-5)', height: '100%', overflowY: 'auto' }}>
+                <div style={{ marginBottom: 'var(--space-4)' }}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      color: 'var(--text-primary)',
+                      fontSize: '1.25rem',
+                      fontWeight: 'var(--weight-light)',
+                    }}
+                  >
+                    Forensic Communication Heatmap
+                  </h3>
+                  <p
+                    style={{
+                      margin: 'var(--space-1) 0 0',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    Pairwise communication frequency analysis mapped between foreclosure targets and
+                    senders.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+                  {(analyticsData?.matrix || []).map((item, idx) => {
+                    const maxVal = Math.max(
+                      ...(analyticsData?.matrix || []).map((m) => m.count),
+                      1,
+                    );
+                    const percent = (item.count / maxVal) * 100;
+                    return (
+                      <Surface
+                        key={idx}
+                        variant="glass"
+                        style={{
+                          padding: 'var(--space-4)',
+                          borderRadius: 'var(--radius-md)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 'var(--space-2)',
+                        }}
+                      >
+                        <Flex
+                          justify="between"
+                          align="center"
+                          style={{ flexWrap: 'wrap', gap: 'var(--space-2)' }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 'var(--space-2)',
+                              flexWrap: 'wrap',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontWeight: 'bold',
+                                color: 'var(--accent)',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              {item.sender}
+                            </span>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+                              ➔
+                            </span>
+                            <span
+                              style={{
+                                fontWeight: 'bold',
+                                color: 'var(--text-primary)',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              {item.recipient}
+                            </span>
+                          </div>
+                          <span
+                            style={{
+                              fontSize: '0.85rem',
+                              fontWeight: 'bold',
+                              color: 'var(--status-success)',
+                            }}
+                          >
+                            {item.count} messages
+                          </span>
+                        </Flex>
+                        <div
+                          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}
+                        >
+                          <div
+                            style={{
+                              flex: 1,
+                              height: '8px',
+                              background: 'rgba(255, 255, 255, 0.05)',
+                              borderRadius: '4px',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${percent}%`,
+                                height: '100%',
+                                background:
+                                  'linear-gradient(90deg, var(--accent), var(--status-success))',
+                                borderRadius: '4px',
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </Surface>
+                    );
+                  })}
+                  {(!analyticsData || (analyticsData?.matrix || []).length === 0) && (
+                    <div
+                      style={{
+                        padding: 'var(--space-6)',
+                        color: 'var(--text-muted)',
+                        textAlign: 'center',
+                      }}
+                    >
+                      No analytical communications data has been indexed for this mailbox yet.
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : threadsLoading ? (
               <div className={styles.stateLoading}>
                 <Icon name="Loader2" className={styles.loaderInline} /> Loading conversations
               </div>

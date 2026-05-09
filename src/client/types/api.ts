@@ -29,13 +29,26 @@ export interface SearchDocumentPayload {
   id: string | number;
   title?: string;
   fileName?: string;
+  filePath?: string;
   snippet?: string;
   evidenceType?: string;
+  matchReason?: string;
+  score?: number;
 }
 
 export interface SearchResponsePayload {
   entities: Array<Record<string, unknown>>;
   documents: SearchDocumentPayload[];
+  semanticCapability?: {
+    available: boolean;
+    reason?: string;
+    provider?: string;
+    documentEmbeddings?: number;
+    entityEmbeddings?: number;
+    requestedMode?: 'lexical' | 'semantic' | 'hybrid';
+    effectiveMode?: 'lexical' | 'semantic' | 'hybrid';
+    message?: string;
+  };
 }
 
 export interface EntityConnectionSignal {

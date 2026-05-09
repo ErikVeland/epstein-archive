@@ -29,7 +29,19 @@ import {
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
+import { communicationsRepository } from '../db/communicationsRepository.js';
+
 const router = express.Router();
+
+// GET /api/emails/analytics/matrix
+router.get('/analytics/matrix', async (req, res, next) => {
+  try {
+    const matrix = await communicationsRepository.getCommunicationsMatrix();
+    res.json({ matrix });
+  } catch (error) {
+    next(error);
+  }
+});
 
 const DEFAULT_LIMIT = 40;
 const MAX_LIMIT = 100;

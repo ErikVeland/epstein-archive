@@ -11,6 +11,7 @@ import {
 } from '../mappers/documentsDtoMapper.js';
 import { searchRepository } from '../db/searchRepository.js';
 import { icebergRepository } from '../db/icebergRepository.js';
+import { RedactionResolver } from '../services/RedactionResolver.js';
 import fs from 'fs';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
@@ -389,11 +390,17 @@ router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next)
     res.json({
       hasFailedRedactions: redactionSpans.length > 0,
       count: redactionSpans.length,
-      redactions: redactionSpans.map((s: Record<string, unknown>) => ({
-        page: s.page_index || 1,
-        text: s.original_text || '',
-        bbox: s.bbox || [0, 0, 0, 0],
-      })),
+      redactions: redactionSpans.map((s: Record<string, unknown>) => {
+        const text = s.original_text || '';
+        const resolution = RedactionResolver.resolve(text);
+        return {
+          page: s.page_index || 1,
+          text,
+          bbox: s.bbox || [0, 0, 0, 0],
+          resolvedText: resolution.resolvedText,
+          candidates: resolution.candidates,
+        };
+      }),
     });
   } catch (error) {
     next(error);

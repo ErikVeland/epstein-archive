@@ -10,9 +10,15 @@ export interface SearchEntityResultDto {
 export interface SearchDocumentResultDto {
   id: number | string;
   title: string;
+  fileName?: string;
+  filePath?: string;
   sourcePath: string;
   contentPreview: string;
+  snippet?: string | null;
+  evidenceType?: string | null;
   redFlagRating: number;
+  matchReason?: string;
+  score?: number;
 }
 
 export interface UnifiedSearchResponseDto {
@@ -22,5 +28,14 @@ export interface UnifiedSearchResponseDto {
   articles: Record<string, unknown>[];
   media: Record<string, unknown>[];
   didYouMean: string[];
-  semanticCapability?: { available: boolean; provider?: string };
+  semanticCapability?: {
+    available: boolean;
+    reason?: string;
+    provider?: string;
+    documentEmbeddings?: number;
+    entityEmbeddings?: number;
+    requestedMode?: 'lexical' | 'semantic' | 'hybrid';
+    effectiveMode?: 'lexical' | 'semantic' | 'hybrid';
+    message?: string;
+  };
 }

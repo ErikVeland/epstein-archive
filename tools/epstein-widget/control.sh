@@ -60,18 +60,15 @@ case "$ACTION" in
       echo "pm2 not found" >&2
       exit 1
     fi
-    "$PM2" start "$REPO_DIR/ecosystem.config.cjs" --only ingest-intelligence --update-env
+    "$PM2" start "$REPO_DIR/ecosystem.config.cjs" --only unified-pipeline --update-env
     ;;
   stop)
     RUN_ID=$(try_run_id)
     if [ -n "$RUN_ID" ] && [ -n "$PSQL" ]; then
       "$PSQL" "$DB" -tAc "UPDATE pipeline_runs SET control_signal='stop' WHERE id=$RUN_ID;" >/dev/null
-    else
-      if [ -z "$PM2" ]; then
-        echo "pm2 not found" >&2
-        exit 1
-      fi
-      "$PM2" stop ingest-intelligence
+    fi
+    if [ -n "$PM2" ]; then
+      "$PM2" stop unified-pipeline || true
     fi
     ;;
   pause)

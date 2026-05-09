@@ -102,11 +102,13 @@ const normalizeReviewState = (value: unknown): ReviewState => {
 };
 
 const deriveProvenanceStatus = (
+  sourceDocumentId: number | null,
   sourceHash: string | null,
   extractionMethod: ExtractionMethod | null,
 ): ProvenanceStatus => {
-  if (sourceHash && extractionMethod) return 'complete';
-  if (sourceHash || extractionMethod) return 'partial';
+  const hasSource = sourceDocumentId != null || sourceHash != null;
+  if (hasSource && extractionMethod) return 'complete';
+  if (hasSource || extractionMethod) return 'partial';
   return 'missing';
 };
 
@@ -128,6 +130,6 @@ export const mapProvenanceFieldsDto = (row: ProvenanceRowInput): ProvenanceField
     lastVerifiedAt: asNullableString(
       row.lastVerifiedAt ?? row.last_verified_at ?? row.verifiedAt ?? row.verified_at,
     ),
-    provenanceStatus: deriveProvenanceStatus(sourceHash, extractionMethod),
+    provenanceStatus: deriveProvenanceStatus(sourceDocumentId, sourceHash, extractionMethod),
   };
 };

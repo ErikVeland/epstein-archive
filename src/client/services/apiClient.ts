@@ -815,16 +815,19 @@ class ApiClient {
   async search(
     query: string,
     limit: number = 20,
+    options: { mode?: SearchMode } = {},
   ): Promise<{
     entities: Person[];
     documents: unknown[];
     investigations?: unknown[];
     articles?: unknown[];
     media?: unknown[];
+    semanticCapability?: Record<string, unknown>;
   }> {
     const params = new URLSearchParams();
     params.append('q', query);
     if (limit !== 20) params.append('limit', limit.toString());
+    if (options.mode) params.append('mode', options.mode);
 
     const url = `${API_BASE_URL}/search?${params.toString()}`;
     const r = await this.fetchWithErrorHandling<unknown>(url);
@@ -846,6 +849,9 @@ class ApiClient {
       investigations: ((r as Record<string, unknown>).investigations || []) as unknown[],
       articles: ((r as Record<string, unknown>).articles || []) as unknown[],
       media: ((r as Record<string, unknown>).media || []) as unknown[],
+      semanticCapability: ((r as Record<string, unknown>).semanticCapability || undefined) as
+        | Record<string, unknown>
+        | undefined,
     };
   }
 
@@ -1336,6 +1342,7 @@ class ApiClient {
       includeMedia?: boolean;
       excludedFileTypes?: string[];
       mode?: SearchMode;
+      hasFailedRedactions?: boolean;
     } = {},
     page: number = 1,
     limit: number = 50,
@@ -1358,6 +1365,8 @@ class ApiClient {
     if (filters.includeMedia) params.append('includeMedia', 'true');
     if (filters.excludedFileTypes && filters.excludedFileTypes.length > 0)
       params.append('excludedFileTypes', filters.excludedFileTypes.join(','));
+    if (filters.hasFailedRedactions !== undefined)
+      params.append('hasFailedRedactions', String(filters.hasFailedRedactions));
     if (filters.fileType && filters.fileType.length > 0)
       params.append('fileType', filters.fileType.join(','));
     if (filters.redFlagLevel?.min !== undefined)

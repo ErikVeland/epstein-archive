@@ -288,7 +288,12 @@ export const documentsRepository = {
         red_flag_rating as "redFlagRating",
         COALESCE(NULLIF(title, ''), file_name) as "title",
         source_collection as "sourceCollection",
-        significance_score as "significanceScore"
+        significance_score as "significanceScore",
+        unredaction_attempted as "unredactionAttempted",
+        unredaction_succeeded as "unredactionSucceeded",
+        redaction_coverage_before as "redactionCoverageBefore",
+        redaction_coverage_after as "redactionCoverageAfter",
+        unredacted_text_gain as "unredactedTextGain"
       FROM documents
       WHERE (
           $1::text IS NULL
@@ -314,6 +319,18 @@ export const documentsRepository = {
           )
         )
         AND (file_type != ALL($13::text[]) OR $13::text[] IS NULL)
+        AND (
+          $14::boolean IS NULL
+          OR $14::boolean = false
+          OR (
+            COALESCE(has_failed_redactions::int, 0) > 0
+            OR failed_redaction_count > 0
+            OR redaction_coverage_after IS NOT NULL
+            OR EXISTS (
+              SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id
+            )
+          )
+        )
       ORDER BY ${orderByClause}
       LIMIT $9::int OFFSET $10::int
     `;
@@ -344,6 +361,18 @@ export const documentsRepository = {
           )
         )
         AND (file_type != ALL($11::text[]) OR $11::text[] IS NULL)
+        AND (
+          $12::boolean IS NULL
+          OR $12::boolean = false
+          OR (
+            COALESCE(has_failed_redactions::int, 0) > 0
+            OR failed_redaction_count > 0
+            OR redaction_coverage_after IS NOT NULL
+            OR EXISTS (
+              SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id
+            )
+          )
+        )
     `;
 
     const pool = getApiPool();
@@ -364,6 +393,7 @@ export const documentsRepository = {
         fullTextSearch,
         !!filters.includeMedia,
         filters.excludedFileTypes || null,
+        filters.hasFailedRedactions ?? null,
       ],
     });
 
@@ -377,6 +407,7 @@ export const documentsRepository = {
       !filters.endDate &&
       filters.minRedFlag === undefined &&
       filters.maxRedFlag === undefined &&
+      filters.hasFailedRedactions === undefined &&
       !filters.includeMedia &&
       (!filters.excludedFileTypes || filters.excludedFileTypes.length === 0);
 
@@ -389,7 +420,7 @@ export const documentsRepository = {
               const res = await pool.query<{ total: string | number }>({
                 name: 'documents.getDocuments.count.cached',
                 text: countSql,
-                values: [null, null, null, null, null, null, null, null, null, false, null],
+                values: [null, null, null, null, null, null, null, null, null, false, null, null],
               });
               return Number(res.rows[0]?.total ?? 0);
             },
@@ -411,6 +442,7 @@ export const documentsRepository = {
                 fullTextSearch,
                 !!filters.includeMedia,
                 filters.excludedFileTypes || null,
+                filters.hasFailedRedactions ?? null,
               ],
             });
             return Number(res.rows[0]?.total ?? 0);
@@ -493,6 +525,13 @@ export const documentsRepository = {
         redFlagRating: Number(doc.redFlagRating || 0),
         wordCount: Number(doc.wordCount || 0),
         significanceScore: doc.significanceScore != null ? Number(doc.significanceScore) : null,
+        unredactionAttempted: Boolean(doc.unredactionAttempted),
+        unredactionSucceeded: Boolean(doc.unredactionSucceeded),
+        redactionCoverageBefore:
+          doc.redactionCoverageBefore != null ? Number(doc.redactionCoverageBefore) : null,
+        redactionCoverageAfter:
+          doc.redactionCoverageAfter != null ? Number(doc.redactionCoverageAfter) : null,
+        unredactedTextGain: doc.unredactedTextGain != null ? Number(doc.unredactedTextGain) : null,
         entitiesCount: entityCount,
         keyEntities,
         sourceType,

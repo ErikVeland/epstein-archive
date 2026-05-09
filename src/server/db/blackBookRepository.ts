@@ -31,6 +31,7 @@ type BlackBookEntryRow = {
   entryText?: string | null;
   emailAddresses?: unknown;
   addresses?: unknown;
+  phoneNumbers?: unknown;
   entryCategory?: string | null;
 };
 
@@ -106,52 +107,62 @@ export const blackBookRepository = {
       getApiPool(),
     );
 
-    const filteredEntries = (entries as BlackBookEntryRow[]).filter((e) => {
-      const emails = parseArrayValue(e.emailAddresses);
-      const addresses = parseArrayValue(e.addresses);
-      const phones = parseArrayValue((e as any).phoneNumbers);
-      const entryText = String(e.entryText || '');
+    const filteredEntries = (entries as BlackBookEntryRow[])
+      .map((e) => {
+        const emails = parseArrayValue(e.emailAddresses);
+        const addresses = parseArrayValue(e.addresses);
+        const phones = parseArrayValue(e.phoneNumbers);
+        const entryText = String(e.entryText || '');
 
-      let category = String(e.entryCategory || 'original').toLowerCase();
-      if (category === 'original') {
-        const text = entryText.toLowerCase();
-        const credentialKeywords = [
-          'pin',
-          'code',
-          'password',
-          'passcode',
-          'lock',
-          'combination',
-          'login',
-          'username',
-          'member id',
-          'acc#',
-          'account #',
-        ];
-        const hasCredentialKeyword = credentialKeywords.some((keyword) => {
-          const regex = new RegExp(`\\b${keyword}\\b`, 'i');
-          return regex.test(text);
-        });
+        let category = String(e.entryCategory || 'original').toLowerCase();
+        if (category === 'original') {
+          const text = entryText.toLowerCase();
+          const credentialKeywords = [
+            'pin',
+            'code',
+            'password',
+            'passcode',
+            'lock',
+            'combination',
+            'login',
+            'username',
+            'member id',
+            'acc#',
+            'account #',
+          ];
+          const hasCredentialKeyword = credentialKeywords.some((keyword) => {
+            const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+            return regex.test(text);
+          });
 
-        if (
-          hasCredentialKeyword ||
-          /combination[:\-\s]\d+/i.test(text) ||
-          /code[:\-\s]\d+/i.test(text)
-        ) {
-          category = 'credential';
-        } else if (phones.length > 0 || emails.length > 0 || addresses.length > 0) {
-          category = 'contact';
+          if (
+            hasCredentialKeyword ||
+            /combination[:\-\s]\d+/i.test(text) ||
+            /code[:\-\s]\d+/i.test(text)
+          ) {
+            category = 'credential';
+          } else if (phones.length > 0 || emails.length > 0 || addresses.length > 0) {
+            category = 'contact';
+          }
         }
-      }
 
-      (e as any).entryCategory = category;
+        return {
+          ...e,
+          entryCategory: category,
+          emails,
+          addresses,
+        };
+      })
+      .filter((e) => {
+        const emails = e.emails;
+        const addresses = e.addresses;
 
-      if (filters?.hasEmail && (!Array.isArray(emails) || emails.length === 0)) return false;
-      if (filters?.hasAddress && (!Array.isArray(addresses) || addresses.length === 0))
-        return false;
-      if (filters?.category && category !== filters.category.toLowerCase()) return false;
-      return true;
-    });
+        if (filters?.hasEmail && (!Array.isArray(emails) || emails.length === 0)) return false;
+        if (filters?.hasAddress && (!Array.isArray(addresses) || addresses.length === 0))
+          return false;
+        if (filters?.category && e.entryCategory !== filters.category.toLowerCase()) return false;
+        return true;
+      });
 
     // Enrich with profile pictures
     const names = filteredEntries
@@ -245,7 +256,7 @@ export const blackBookRepository = {
         id: Number(e.id),
         personId: e.personId ? Number(e.personId) : null,
         documentId: e.documentId ? Number(e.documentId) : null,
-        entryCategory: (e as any).entryCategory,
+        entryCategory: e.entryCategory,
         thumbnailPath:
           (e.personId ? thumbnailsByPersonId.get(Number(e.personId)) : undefined) ??
           (typeof e.displayName === 'string' ? thumbnailsByName.get(e.displayName) : undefined),

@@ -4,6 +4,7 @@ export type Tab =
   | 'people'
   | 'search'
   | 'documents'
+  | 'redactions'
   | 'media'
   | 'timeline'
   | 'flights'
@@ -26,6 +27,7 @@ export const tabLabels: Record<Tab, string> = {
   people: 'People',
   search: 'Search',
   documents: 'Documents',
+  redactions: 'Redactions',
   media: 'Media',
   timeline: 'Timeline',
   flights: 'Flights',
@@ -52,6 +54,7 @@ export const useAppNavigation = () => {
   const matchEntity = useMatch({ path: '/entity/:id', end: false });
   const matchSearch = useMatch({ path: '/search', end: false });
   const matchDocuments = useMatch({ path: '/documents', end: false });
+  const matchRedactions = useMatch({ path: '/redactions', end: false });
   const matchMedia = useMatch({ path: '/media', end: false });
   const matchTimeline = useMatch({ path: '/timeline', end: false });
   const matchFlights = useMatch({ path: '/flights', end: false });
@@ -90,6 +93,7 @@ export const useAppNavigation = () => {
   const activeTab: Tab = (() => {
     if (matchSearch) return 'search';
     if (matchDocuments) return 'documents';
+    if (matchRedactions) return 'redactions';
     if (matchMedia) return 'media';
     if (matchTimeline) return 'timeline';
     if (matchFlights) return 'flights';

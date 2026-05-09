@@ -90,6 +90,22 @@ module.exports = {
         EXO_MODEL: 'mlx-community/Qwen3-30B-A3B-4bit',
       },
     },
+    {
+      name: 'unified-pipeline',
+      script: 'npx',
+      args: 'tsx scripts/unified_pipeline.ts --mode backfill',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: true, // Auto-restart on exit or watchdog-triggered crash
+      watch: false,
+      max_memory_restart: '2G',
+      env: {
+        NODE_ENV: 'production',
+        EXO_MODEL: 'mlx-community/Qwen3-30B-A3B-4bit',
+        ENABLE_AI_ENRICHMENT: 'true',
+        AI_PROVIDER: 'exo_cluster',
+      },
+    },
   ],
 
   // === DEPLOYMENT CONFIGURATION ===

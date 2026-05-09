@@ -4,6 +4,9 @@ import { logger } from '../services/Logger.js';
 export interface SemanticCapability {
   available: boolean;
   reason?: string;
+  provider?: 'pgvector';
+  documentEmbeddings?: number;
+  entityEmbeddings?: number;
   supportedModels?: string[];
 }
 
@@ -39,10 +42,29 @@ export async function getSemanticCapability(): Promise<SemanticCapability> {
       };
     }
 
-    // 3. Optional: Check if at least one row has embeddings (heuristic)
-    // We'll skip this for now as per instructions it's optional and might be slow.
+    const [documentEmbeddingRes, entityEmbeddingRes] = await Promise.all([
+      pool.query<{ count: string }>(
+        'SELECT COUNT(*)::text AS count FROM documents WHERE content_embedding IS NOT NULL',
+      ),
+      pool.query<{ count: string }>(
+        'SELECT COUNT(*)::text AS count FROM entities WHERE description_embedding IS NOT NULL',
+      ),
+    ]);
 
-    return { available: true };
+    const documentEmbeddings = Number(documentEmbeddingRes.rows[0]?.count || 0);
+    const entityEmbeddings = Number(entityEmbeddingRes.rows[0]?.count || 0);
+
+    if (documentEmbeddings === 0 && entityEmbeddings === 0) {
+      return {
+        available: false,
+        reason: 'pgvector is installed, but no document or entity embeddings are populated',
+        provider: 'pgvector',
+        documentEmbeddings,
+        entityEmbeddings,
+      };
+    }
+
+    return { available: true, provider: 'pgvector', documentEmbeddings, entityEmbeddings };
   } catch (error) {
     logger.warn({ err: error }, '[semantic] capability detection failed');
     return {

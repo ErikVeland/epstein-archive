@@ -248,4 +248,36 @@ export const communicationsRepository = {
       } as unknown as EmailRow),
     );
   },
+
+  async getCommunicationsMatrix(): Promise<
+    Array<{
+      sender: string;
+      recipient: string;
+      count: number;
+    }>
+  > {
+    const pool = getApiPool();
+    const res = await pool.query<{ sender: string; recipient: string; count: number }>(
+      `
+      SELECT 
+        COALESCE(d.metadata_json->>'from', d.metadata_json->>'From', d.metadata_json->>'sender', 'Unknown Sender') AS sender,
+        jsonb_array_elements_text(
+          CASE 
+            WHEN jsonb_typeof(d.metadata_json->'to') = 'array' THEN d.metadata_json->'to'
+            WHEN jsonb_typeof(d.metadata_json->'To') = 'array' THEN d.metadata_json->'To'
+            WHEN jsonb_typeof(d.metadata_json->'recipients') = 'array' THEN d.metadata_json->'recipients'
+            ELSE '[]'::jsonb
+          END
+        ) AS recipient,
+        COUNT(*)::int AS count
+      FROM documents d
+      WHERE d.evidence_type = 'email'
+      GROUP BY sender, recipient
+      HAVING COUNT(*) > 0
+      ORDER BY count DESC
+      LIMIT 100
+      `,
+    );
+    return res.rows;
+  },
 };

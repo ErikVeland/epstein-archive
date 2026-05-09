@@ -201,6 +201,8 @@ export interface UnifiedSearchResult {
   media: Record<string, unknown>[];
   didYouMean: Record<string, unknown>[];
   semanticCapability?: SemanticCapability;
+  requestedMode?: 'lexical' | 'semantic' | 'hybrid';
+  effectiveMode?: 'lexical' | 'semantic' | 'hybrid';
 }
 
 interface SearchFilters {
@@ -750,6 +752,8 @@ export const searchRepository = {
       media,
       didYouMean: [],
       semanticCapability: capability,
+      requestedMode: isSemanticOnly ? 'semantic' : isHybrid ? 'hybrid' : 'lexical',
+      effectiveMode,
     };
   },
 

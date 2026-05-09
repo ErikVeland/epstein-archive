@@ -19,6 +19,11 @@ const documentListItemCanonicalSchema = z
     previewText: z.string(),
     previewKind: z.string(),
     whyFlagged: z.string(),
+    unredactionAttempted: z.boolean(),
+    unredactionSucceeded: z.boolean(),
+    redactionCoverageBefore: z.number().nullable(),
+    redactionCoverageAfter: z.number().nullable(),
+    unredactedTextGain: z.number().nullable(),
   })
   .merge(provenanceSchema);
 
@@ -33,6 +38,11 @@ export const documentListItemSchema = z.preprocess((input) => {
     previewText: row.previewText ?? row.preview_text ?? '',
     previewKind: row.previewKind ?? row.preview_kind ?? 'fallback',
     whyFlagged: row.whyFlagged ?? row.why_flagged ?? '',
+    unredactionAttempted: row.unredactionAttempted ?? row.unredaction_attempted ?? false,
+    unredactionSucceeded: row.unredactionSucceeded ?? row.unredaction_succeeded ?? false,
+    redactionCoverageBefore: row.redactionCoverageBefore ?? row.redaction_coverage_before ?? null,
+    redactionCoverageAfter: row.redactionCoverageAfter ?? row.redaction_coverage_after ?? null,
+    unredactedTextGain: row.unredactedTextGain ?? row.unredacted_text_gain ?? null,
   };
 }, documentListItemCanonicalSchema);
 

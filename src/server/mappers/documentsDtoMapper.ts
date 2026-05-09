@@ -41,6 +41,13 @@ export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentLi
   previewText: String(doc.previewText || doc.snippet || ''),
   previewKind: String(doc.previewKind || 'fallback'),
   whyFlagged: String(doc.whyFlagged || ''),
+  unredactionAttempted: Boolean(doc.unredactionAttempted),
+  unredactionSucceeded: Boolean(doc.unredactionSucceeded),
+  redactionCoverageBefore:
+    doc.redactionCoverageBefore == null ? null : Number(doc.redactionCoverageBefore),
+  redactionCoverageAfter:
+    doc.redactionCoverageAfter == null ? null : Number(doc.redactionCoverageAfter),
+  unredactedTextGain: doc.unredactedTextGain == null ? null : Number(doc.unredactedTextGain),
 });
 
 export const mapDocumentsListResponseDto = (
