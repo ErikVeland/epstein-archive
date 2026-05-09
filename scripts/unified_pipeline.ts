@@ -677,15 +677,16 @@ async function runEnrichPhase(
         let refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
 
         // LLM OCR Re-Correction Pipeline Phase:
-        // Reconstruct highly garbled text (ocr_confidence < 0.6) into readable sentences using Ollama or Exo.
+        // Reconstruct highly garbled text (ocr_confidence < 0.6 or containing equals signs) into readable sentences using Ollama or Exo.
         const ocrConf = meta.ocr_confidence;
-        const isLowLegibility = typeof ocrConf === 'number' && ocrConf < 0.6;
+        const isLowLegibility =
+          (typeof ocrConf === 'number' && ocrConf < 0.6) || (doc.content || '').includes('=');
         if (isLowLegibility && process.env.ENABLE_AI_ENRICHMENT === 'true') {
           const cleanedText = await AIEnrichmentService.cleanOCRText(refinedText, subject);
           if (cleanedText && cleanedText.length > 50) {
             refinedText = cleanedText;
-            meta.ocr_corrected = true;
           }
+          meta.ocr_corrected = true;
         }
 
         // Release raw content from row object — refinedText is the only copy we need
