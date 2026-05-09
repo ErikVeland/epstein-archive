@@ -4,7 +4,6 @@ import { validate, searchSchema } from '../middleware/validate.js';
 import { mapUnifiedSearchResponseDto } from '../mappers/searchDtoMapper.js';
 import { logger } from '../services/Logger.js';
 import { getSemanticCapability } from '../semantic/capability.js';
-import { getApiPool } from '../db/connection.js';
 
 const router = express.Router();
 
@@ -12,20 +11,16 @@ const router = express.Router();
 router.get('/capability', async (_req, res, next) => {
   try {
     const capability = await getSemanticCapability();
-    // Get total document/entity counts for coverage percentage
-    const pool = getApiPool();
-    const [docCount, entityCount] = await Promise.all([
-      pool.query('SELECT COUNT(*) as total FROM documents'),
-      pool.query('SELECT COUNT(*) as total FROM entities'),
-    ]);
+    // Get total document/entity counts for coverage percentage from repository
+    const stats = await searchRepository.getDatabaseStats();
     return res.json({
       available: capability.available,
       reason: capability.available ? undefined : (capability as { reason?: string }).reason,
       provider: capability.available ? capability.provider : undefined,
       documentEmbeddings: capability.documentEmbeddings ?? 0,
       entityEmbeddings: capability.entityEmbeddings ?? 0,
-      totalDocuments: Number(docCount.rows[0]?.total ?? 0),
-      totalEntities: Number(entityCount.rows[0]?.total ?? 0),
+      totalDocuments: stats.totalDocuments,
+      totalEntities: stats.totalEntities,
     });
   } catch (error) {
     return next(error);

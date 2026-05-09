@@ -3,74 +3,11 @@ import { flightsRepository } from '../db/flightsRepository.js';
 import { documentsRepository } from '../db/documentsRepository.js';
 import { claimTriplesRepository } from '../db/claimTriplesRepository.js';
 import { communicationsRepository } from '../db/communicationsRepository.js';
-import { getApiPool } from '../db/connection.js';
+import { relationshipsRepository } from '../db/relationshipsRepository.js';
 import { logger } from '../services/Logger.js';
-import type { ConnectionDossierDto, ConnectionPathDto } from '@shared/dto/connections';
+import type { ConnectionDossierDto } from '@shared/dto/connections';
 
 const router = express.Router();
-
-async function resolveEntity(
-  id: string,
-): Promise<{ id: string; name: string; type: string } | null> {
-  const res = await getApiPool().query(
-    `SELECT id::text, full_name as name, entity_type as type FROM entities WHERE id = $1 LIMIT 1`,
-    [id],
-  );
-  return res.rows[0] ?? null;
-}
-
-async function resolveShortestPath(
-  sourceId: string,
-  targetId: string,
-): Promise<ConnectionPathDto | null> {
-  try {
-    const res = await getApiPool().query(
-      `
-      WITH RECURSIVE path(node_id, path, depth) AS (
-        SELECT $1::bigint, ARRAY[$1::bigint], 0
-        UNION ALL
-        SELECT
-          CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END,
-          p.path || CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END,
-          p.depth + 1
-        FROM path p
-        JOIN relationships r ON (r.entity_id_1 = p.node_id OR r.entity_id_2 = p.node_id)
-        WHERE NOT (CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END = ANY(p.path))
-          AND p.depth < 7
-      )
-      SELECT path, depth FROM path WHERE node_id = $2::bigint ORDER BY depth ASC LIMIT 1
-      `,
-      [sourceId, targetId],
-    );
-
-    if (!res.rows[0]) return null;
-
-    const { path: nodeIds, depth } = res.rows[0] as { path: (string | number)[]; depth: number };
-    const nodeRes = await getApiPool().query(
-      `SELECT id::text, full_name as name, entity_type as type FROM entities WHERE id = ANY($1::bigint[])`,
-      [nodeIds],
-    );
-    const nodeMap = new Map(
-      nodeRes.rows.map((n: { id: string; name: string; type: string }) => [n.id, n]),
-    );
-    const nodes = nodeIds.map(
-      (nid) => nodeMap.get(String(nid)) ?? { id: String(nid), name: String(nid), type: 'unknown' },
-    );
-
-    const edges: ConnectionPathDto['edges'] = [];
-    for (let i = 0; i < nodeIds.length - 1; i++) {
-      edges.push({
-        source: String(nodeIds[i]),
-        target: String(nodeIds[i + 1]),
-        type: 'relationship',
-      });
-    }
-
-    return { hops: Number(depth), nodes, edges };
-  } catch {
-    return null;
-  }
-}
 
 // GET /api/connections?a=:entityId&b=:entityId
 router.get('/', async (req, res, next) => {
@@ -80,7 +17,10 @@ router.get('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Both a and b entity IDs are required' });
     }
 
-    const [entityA, entityB] = await Promise.all([resolveEntity(a), resolveEntity(b)]);
+    const [entityA, entityB] = await Promise.all([
+      relationshipsRepository.resolveEntity(a),
+      relationshipsRepository.resolveEntity(b),
+    ]);
     if (!entityA) return res.status(404).json({ error: `Entity not found: ${a}` });
     if (!entityB) return res.status(404).json({ error: `Entity not found: ${b}` });
 
@@ -104,7 +44,7 @@ router.get('/', async (req, res, next) => {
         logger.warn({ err }, 'getSharedCommunications failed');
         return [];
       }),
-      resolveShortestPath(a, b),
+      relationshipsRepository.resolveShortestPath(a, b),
     ]);
 
     const dossier: ConnectionDossierDto = {

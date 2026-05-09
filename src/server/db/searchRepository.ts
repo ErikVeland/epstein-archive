@@ -774,4 +774,16 @@ export const searchRepository = {
       return [];
     }
   },
+
+  getDatabaseStats: async () => {
+    const pool = getApiPool();
+    const [docCount, entityCount] = await Promise.all([
+      pool.query('SELECT COUNT(*) as total FROM documents'),
+      pool.query('SELECT COUNT(*) as total FROM entities'),
+    ]);
+    return {
+      totalDocuments: Number(docCount.rows[0]?.total ?? 0),
+      totalEntities: Number(entityCount.rows[0]?.total ?? 0),
+    };
+  },
 };

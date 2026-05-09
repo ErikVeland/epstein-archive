@@ -481,4 +481,65 @@ export const relationshipsRepository = {
 
     return null;
   },
+
+  async resolveEntity(id: string): Promise<{ id: string; name: string; type: string } | null> {
+    const pool = getApiPool();
+    const res = await pool.query(
+      `SELECT id::text, full_name as name, entity_type as type FROM entities WHERE id = $1 LIMIT 1`,
+      [id],
+    );
+    return res.rows[0] ?? null;
+  },
+
+  async resolveShortestPath(sourceId: string, targetId: string): Promise<any | null> {
+    const pool = getApiPool();
+    try {
+      const res = await pool.query(
+        `
+        WITH RECURSIVE path(node_id, path, depth) AS (
+          SELECT $1::bigint, ARRAY[$1::bigint], 0
+          UNION ALL
+          SELECT
+            CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END,
+            p.path || CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END,
+            p.depth + 1
+          FROM path p
+          JOIN relationships r ON (r.entity_id_1 = p.node_id OR r.entity_id_2 = p.node_id)
+          WHERE NOT (CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END = ANY(p.path))
+            AND p.depth < 7
+        )
+        SELECT path, depth FROM path WHERE node_id = $2::bigint ORDER BY depth ASC LIMIT 1
+        `,
+        [sourceId, targetId],
+      );
+
+      if (!res.rows[0]) return null;
+
+      const { path: nodeIds, depth } = res.rows[0] as { path: (string | number)[]; depth: number };
+      const nodeRes = await pool.query(
+        `SELECT id::text, full_name as name, entity_type as type FROM entities WHERE id = ANY($1::bigint[])`,
+        [nodeIds],
+      );
+      const nodeMap = new Map(
+        nodeRes.rows.map((n: { id: string; name: string; type: string }) => [n.id, n]),
+      );
+      const nodes = nodeIds.map(
+        (nid) =>
+          nodeMap.get(String(nid)) ?? { id: String(nid), name: String(nid), type: 'unknown' },
+      );
+
+      const edges: any[] = [];
+      for (let i = 0; i < nodeIds.length - 1; i++) {
+        edges.push({
+          source: String(nodeIds[i]),
+          target: String(nodeIds[i + 1]),
+          type: 'relationship',
+        });
+      }
+
+      return { hops: Number(depth), nodes, edges };
+    } catch {
+      return null;
+    }
+  },
 };
