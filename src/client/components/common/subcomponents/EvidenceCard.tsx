@@ -20,6 +20,7 @@ export interface EvidenceDocument {
   documentTitle?: string | null;
   content?: string;
   contentPreview?: string;
+  contentRefined?: string;
   evidenceType?: string;
   redFlagRating?: number;
   keyword?: string;
@@ -42,7 +43,7 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
   testId = 'evidence-card',
 }) => {
   const excerpt = normalizeEvidenceSnippet(
-    doc.contentPreview || doc.content || doc.title || '',
+    doc.contentPreview || doc.content || doc.contentRefined || doc.title || '',
     doc.title || doc.fileName || `Document ${doc.id}`,
   );
 
@@ -58,7 +59,18 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
     fileType: doc.fileType,
     filePath: doc.filePath || doc.fileName,
   });
-  const mediaUrl = isMedia ? resolveEntityPhotoUrl({ id: doc.id }, true) : null;
+  const mediaUrl = isMedia
+    ? resolveEntityPhotoUrl(
+        {
+          id: doc.id,
+          filePath: doc.filePath,
+          thumbnailUrl: doc.fileType?.startsWith('image/')
+            ? `/api/documents/${doc.id}/file?variant=original`
+            : undefined,
+        },
+        true,
+      )
+    : null;
 
   return (
     <article
@@ -97,9 +109,11 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
               <img src={mediaUrl} loading="lazy" alt="Media preview" />
             </div>
           )}
-          <p className={s.excerpt}>
-            {highlightTerms(excerpt, [entityName, doc.keyword], s.highlight)}
-          </p>
+          {excerpt && (
+            <p className={s.excerpt}>
+              {highlightTerms(excerpt, [entityName, doc.keyword], s.highlight)}
+            </p>
+          )}
         </div>
       </div>
 

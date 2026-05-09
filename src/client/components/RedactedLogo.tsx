@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import Icon from './common/Icon';
 import styles from './RedactedLogo.module.css';
 
 interface RedactedLogoProps {
@@ -6,71 +7,75 @@ interface RedactedLogoProps {
   className?: string;
 }
 
+const ALTERNATE_TITLES = ['THE TRUMP FILES', 'OPERATION EPSTEIN FURY', 'TRUMP-EPSTEIN FILES'];
+
 /**
  * A logo component that periodically animates letters into redacted blocks
- * one by one with glitch effects.
+ * one by one with high-speed scramble glitch effects.
  */
 export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = '' }) => {
   const [redactedCount, setRedactedCount] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [glitchingIndex, setGlitchingIndex] = useState<number | null>(null);
   const [globalGlitch, setGlobalGlitch] = useState(false);
-  const [showAltText, setShowAltText] = useState(false);
+  const [currentText, setCurrentText] = useState(text);
   const animationCount = useRef(0);
 
-  // Pre-calculate letter count (excluding spaces)
-  const letterCount = useMemo(() => text.replace(/\s/g, '').length, [text]);
+  // Use the length of the currently active text
+  const letterCount = useMemo(() => currentText.replace(/\s/g, '').length, [currentText]);
 
   useEffect(() => {
-    // Initial delay before first animation (4-8 seconds after mount)
-    const initialDelay = 4000 + Math.random() * 4000;
+    // Initial delay before first animation (3-6 seconds after mount)
+    const initialDelay = 3000 + Math.random() * 3000;
 
     let intervalId: NodeJS.Timeout;
 
     const runAnimation = () => {
-      const letterDelay = 55; // ms per letter
+      const letterDelay = 45; // slightly faster and snappier for better tech feel
       animationCount.current += 1;
 
-      // Every 10th animation OR every 4th animation, show the alt text when unredacting
-      const isAltAnimation = animationCount.current % 10 === 0 || animationCount.current % 4 === 0;
+      // Odd intervals: Trigger alternate text animations
+      const isAltAnimation = animationCount.current % 3 === 0 || animationCount.current % 5 === 0;
 
-      // Phase 1: Redact letters one by one with glitch
       setIsAnimating(true);
-      setShowAltText(false);
 
+      // Phase 1: Redact standard text letters one by one with glitch
       for (let i = 1; i <= letterCount; i++) {
         setTimeout(() => {
           setGlitchingIndex(i - 1);
           // Random global glitch on some letters
-          if (Math.random() > 0.6) setGlobalGlitch(true);
+          if (Math.random() > 0.65) setGlobalGlitch(true);
           setTimeout(() => {
             setGlitchingIndex(null);
             setGlobalGlitch(false);
-          }, 60);
+          }, 50);
           setRedactedCount(i);
         }, i * letterDelay);
       }
 
-      // Phase 2: Hold fully redacted for 2.5 seconds
+      // Phase 2: Hold fully redacted for 2 seconds
       const fullRedactTime = letterCount * letterDelay;
-      const holdTime = 2500;
+      const holdTime = 2000;
 
-      // Phase 3: Reveal letters one by one
+      // Phase 3: Reveal letters one by one (swapping to alternative text if isAltAnimation)
       setTimeout(() => {
-        // Set alt text at start of reveal phase if this is the 10th animation
         if (isAltAnimation) {
-          setShowAltText(true);
+          const chosenAlt = ALTERNATE_TITLES[animationCount.current % ALTERNATE_TITLES.length];
+          setCurrentText(chosenAlt);
+        } else {
+          setCurrentText(text);
         }
 
+        // Now reveal the new active text
         for (let i = letterCount - 1; i >= 0; i--) {
           setTimeout(
             () => {
               setGlitchingIndex(i);
-              if (Math.random() > 0.6) setGlobalGlitch(true);
+              if (Math.random() > 0.65) setGlobalGlitch(true);
               setTimeout(() => {
                 setGlitchingIndex(null);
                 setGlobalGlitch(false);
-              }, 60);
+              }, 50);
               setRedactedCount(i);
             },
             (letterCount - i) * letterDelay,
@@ -78,15 +83,49 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
         }
       }, fullRedactTime + holdTime);
 
-      // Phase 4: End animation (add extra hold if alt text was shown)
-      const altHoldTime = isAltAnimation ? 1500 : 0;
+      // Phase 4: End animation and restore standard text after a hold if alt text was shown
+      const altHoldTime = isAltAnimation ? 2000 : 0;
       setTimeout(
         () => {
           setIsAnimating(false);
           setRedactedCount(0);
           setGlitchingIndex(null);
           setGlobalGlitch(false);
-          setShowAltText(false);
+          if (isAltAnimation) {
+            // Gradually transition back to original text
+            setIsAnimating(true);
+            for (let i = 1; i <= letterCount; i++) {
+              setTimeout(() => {
+                setGlitchingIndex(i - 1);
+                setRedactedCount(i);
+              }, i * 20);
+
+              setTimeout(
+                () => {
+                  setCurrentText(text);
+                  for (let j = letterCount - 1; j >= 0; j--) {
+                    setTimeout(
+                      () => {
+                        setGlitchingIndex(j);
+                        setRedactedCount(j);
+                      },
+                      (letterCount - j) * 20,
+                    );
+                  }
+                },
+                letterCount * 20 + 400,
+              );
+
+              setTimeout(
+                () => {
+                  setIsAnimating(false);
+                  setRedactedCount(0);
+                  setGlitchingIndex(null);
+                },
+                letterCount * 40 + 500,
+              );
+            }
+          }
         },
         fullRedactTime + holdTime + letterCount * letterDelay + 100 + altHoldTime,
       );
@@ -95,24 +134,21 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
     // First animation after initial delay
     const animationTimeout = setTimeout(() => {
       runAnimation();
-      // Set up recurring animations every 15-25 seconds
-      intervalId = setInterval(runAnimation, 15000 + Math.random() * 10000);
+      // Set up recurring animations every 12-20 seconds for active feel
+      intervalId = setInterval(runAnimation, 12000 + Math.random() * 8000);
     }, initialDelay);
 
     return () => {
       clearTimeout(animationTimeout);
       clearInterval(intervalId);
     };
-  }, [letterCount]);
+  }, [letterCount, currentText, text]);
 
-  // Render text - always render individual spans during animation for consistency
+  // Render text - individual spans with high-tech scrambles during transitions
   const renderText = () => {
     let letterIndex = 0;
 
-    // Easter egg: swap "EPSTEIN" for "TRUMP" on alt animation (all caps)
-    const displayText = showAltText ? text.replace(/EPSTEIN/gi, 'TRUMP') : text;
-
-    return displayText.split('').map((char, i) => {
+    return currentText.split('').map((char, i) => {
       if (char === ' ') {
         return (
           <span key={i} className={styles.space}>
@@ -127,26 +163,31 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
       const isRedacted = currentLetterIndex < redactedCount;
       const isGlitching = currentLetterIndex === glitchingIndex;
 
-      // Strong glitch effects
-      const glitchStyle = isGlitching
-        ? {
-            transform: `translateX(${Math.random() > 0.5 ? 2 : -2}px) translateY(${Math.random() > 0.5 ? 1 : -1}px)`,
-            filter: 'brightness(2) contrast(1.5)',
-            textShadow: `2px 0 var(--glitch-magenta), -2px 0 var(--glitch-cyan)`,
-          }
-        : {};
+      // Scramble glitch characters
+      let displayedChar = char;
+      if (isRedacted) {
+        displayedChar = '█';
+      }
+      if (isGlitching) {
+        const glitchChars = ['█', '▓', '▒', '░', 'Δ', 'Ø', 'X', '#', '%', '&', '§', '?', '0', '1'];
+        displayedChar = glitchChars[Math.floor(Math.random() * glitchChars.length)];
+      }
+
+      // Dynamic CSS classes for high-speed chromatic aberration and skews
+      const letterClasses = [styles.letter, isGlitching ? styles.letterGlitching : '']
+        .filter(Boolean)
+        .join(' ');
 
       return (
         <span
           key={i}
-          className={styles.letter}
-          style={{ transition: isGlitching ? 'none' : 'all 0.05s', ...glitchStyle }}
+          className={letterClasses}
+          style={{ transition: isGlitching ? 'none' : 'all 0.05s' }}
         >
-          {isRedacted ? (
-            // Redacted block - solid black bar
+          {isRedacted && !isGlitching ? (
             <span className={styles.redactedBlock}>█</span>
           ) : (
-            <span className={styles.normalChar}>{char}</span>
+            <span className={styles.normalChar}>{displayedChar}</span>
           )}
         </span>
       );
@@ -158,15 +199,23 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
       {/* Global glitch overlay */}
       {globalGlitch && <div className={styles.globalGlitch} />}
 
-      <h1
-        className={styles.title}
-        style={{
-          transform: globalGlitch ? `translateX(${Math.random() > 0.5 ? 3 : -3}px)` : 'none',
-          filter: globalGlitch ? 'hue-rotate(20deg)' : 'none',
-        }}
-      >
-        {isAnimating ? renderText() : <span className={styles.staticText}>{text}</span>}
-      </h1>
+      {/* Glowing Icon Badge */}
+      <div className={styles.logoBadge}>
+        <Icon name="Fingerprint" className={styles.logoIcon} />
+      </div>
+
+      <div className={styles.textContainer}>
+        <h1
+          className={styles.title}
+          style={{
+            transform: globalGlitch ? `translateX(${Math.random() > 0.5 ? 2 : -2}px)` : 'none',
+            filter: globalGlitch ? 'hue-rotate(15deg)' : 'none',
+          }}
+        >
+          {isAnimating ? renderText() : <span className={styles.staticText}>{currentText}</span>}
+        </h1>
+        <div className={styles.subtitle}>CLASSIFIED SIGNAL</div>
+      </div>
     </div>
   );
 };

@@ -670,7 +670,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   }
 
   return (
-    <Box fullHeight flex direction="column" bgcolor="var(--lq-surface-1)">
+    <Box fullHeight flex direction="column" className={styles.root}>
       {/* Unified Premium Header */}
       <Surface variant="glass" p="lg" className={styles.headerSurface}>
         <Flex direction="column" gap="lg" px="xl" py="lg">

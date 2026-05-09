@@ -44,7 +44,7 @@ const looksLikeJunk = (text: string): boolean => {
   const digits = (sample.match(/\d/g) || []).length;
   const letters = (sample.match(/[a-z]/gi) || []).length;
   const underscores = (sample.match(/_/g) || []).length;
-  const longRuns = (sample.match(/[A-Za-z0-9]{32,}/g) || []).length;
+  const longRuns = (sample.match(/[A-Za-z0-9]{40,}/g) || []).length;
   const idNoiseHits = OCR_NOISE_PATTERNS.reduce(
     (acc, pattern) => acc + ((sample.match(pattern) || []).length > 0 ? 1 : 0),
     0,
@@ -56,10 +56,10 @@ const looksLikeJunk = (text: string): boolean => {
 
   return (
     underscores / sample.length > 0.035 ||
-    digits > letters * 1.1 ||
+    digits > letters * 2.5 ||
     longRuns > 0 ||
     idNoiseHits >= 2 ||
-    dictishRatio < 0.42 ||
+    dictishRatio < 0.25 ||
     symbolNoise > 0
   );
 };
@@ -91,6 +91,7 @@ type DocumentRow = Record<string, unknown> & {
   content?: string | null;
   contentRefined?: string | null;
   contentPreview?: string | null;
+  contentRaw?: string | null;
   cleanedText?: string | null;
   metadata?: unknown;
   metadataJson?: unknown;
@@ -159,8 +160,8 @@ const buildPreview = (doc: {
   title?: string | null;
   fileName?: string | null;
   contentRefined?: string | null;
-  cleanedText?: string | null;
   contentPreview?: string | null;
+  contentRaw?: string | null;
   metadata?: DocumentMetadata;
 }) => {
   const curatedTitle =
@@ -170,18 +171,20 @@ const buildPreview = (doc: {
   const title = curatedTitle || deriveHumanTitle(doc.fileName || 'Untitled document');
 
   const refined = (doc.contentRefined || '').trim();
-  const cleaned = (doc.cleanedText || '').trim();
-  const raw = (doc.contentPreview || '').trim();
+  const preview = (doc.contentPreview || '').trim();
+  const raw = (doc.contentRaw || '').trim();
   const aiSummary =
     (typeof doc.metadata?.ai_summary === 'string' && doc.metadata.ai_summary.trim()) ||
     (typeof doc.metadata?.summary === 'string' && doc.metadata.summary.trim()) ||
     '';
+  const metaText =
+    (typeof doc.metadata?.extracted_text === 'string' && doc.metadata.extracted_text.trim()) ||
+    (typeof doc.metadata?.body_clean_text === 'string' && doc.metadata.body_clean_text.trim()) ||
+    '';
 
+  // Best-quality first: refined → ai_summary → preview → raw → metadata text
   if (refined && !looksLikeJunk(refined)) {
     return { title, previewText: firstMeaningfulExcerpt(refined), previewKind: 'excerpt' as const };
-  }
-  if (cleaned && !looksLikeJunk(cleaned)) {
-    return { title, previewText: firstMeaningfulExcerpt(cleaned), previewKind: 'excerpt' as const };
   }
   if (aiSummary) {
     return {
@@ -190,21 +193,29 @@ const buildPreview = (doc: {
       previewKind: 'ai_summary' as const,
     };
   }
+  if (preview && !looksLikeJunk(preview)) {
+    return { title, previewText: firstMeaningfulExcerpt(preview), previewKind: 'excerpt' as const };
+  }
   if (raw && !looksLikeJunk(raw)) {
     return { title, previewText: firstMeaningfulExcerpt(raw), previewKind: 'excerpt' as const };
   }
+  if (metaText && !looksLikeJunk(metaText)) {
+    return {
+      title,
+      previewText: firstMeaningfulExcerpt(metaText),
+      previewKind: 'excerpt' as const,
+    };
+  }
 
-  const fallbackText = (refined || cleaned || raw || '').trim();
-  const truncatedFallback = fallbackText
-    ? fallbackText.slice(0, 160).replace(/\s+/g, ' ').trim() +
-      (fallbackText.length > 160 ? '...' : '')
-    : 'OCR-heavy document; open to view extracted text.';
+  // Any text is better than nothing — show first lines even if noisy OCR
+  const anyText = (refined || preview || raw || metaText).trim();
+  if (anyText) {
+    const truncated =
+      anyText.slice(0, 160).replace(/\s+/g, ' ').trim() + (anyText.length > 160 ? '...' : '');
+    return { title, previewText: truncated, previewKind: 'fallback' as const };
+  }
 
-  return {
-    title,
-    previewText: truncatedFallback || 'OCR-heavy document; open to view extracted text.',
-    previewKind: 'fallback' as const,
-  };
+  return { title, previewText: '', previewKind: 'fallback' as const };
 };
 
 export const documentsRepository = {
@@ -269,6 +280,8 @@ export const documentsRepository = {
         date_created as "dateCreated",
         extracted_date as "extractedDate",
         content_refined as "contentRefined",
+        content_preview as "contentPreview",
+        LEFT(content, 600) as "contentRaw",
         evidence_type as "evidenceType",
         metadata_json as "metadata",
         word_count as "wordCount",
@@ -451,6 +464,7 @@ export const documentsRepository = {
         fileName,
         contentRefined,
         contentPreview: typeof doc.contentPreview === 'string' ? doc.contentPreview : '',
+        contentRaw: typeof doc.contentRaw === 'string' ? doc.contentRaw : '',
         metadata,
       });
 

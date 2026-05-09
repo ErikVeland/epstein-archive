@@ -280,7 +280,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         )}
       >
         <Flex justify="between" align="center" className={styles.toolbar}>
-          <Flex align="center" gap="md">
+          <Flex align="center" gap="md" className={styles.toolbarLeft}>
             <Button variant="glass" size="sm" onClick={onClose} title="Close Resolution Viewer">
               <Icon name="X" size="md" />
             </Button>
@@ -299,7 +299,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             </Stack>
           </Flex>
 
-          <Flex align="center" gap="sm">
+          <Flex align="center" gap="sm" className={styles.toolbarActions}>
             <Button variant="glass" size="sm" onClick={handleShare}>
               {showCopied ? (
                 <Icon name="Check" size="md" className={styles.successIcon} />

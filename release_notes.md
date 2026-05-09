@@ -1,5 +1,22 @@
 # Release Notes
 
+## 20.6.1 - 2026-05-09 - Forensic Logo Overhaul, Glitch Redactions & Wired Press Ingestion
+
+### For Investigators
+
+- **Forensic Logo Overhaul**: Transformed the plain text header logo into an official intelligence-division-style badge. Added a glowing holographic circular badge enclosing a futuristic `Fingerprint` icon in soft blue, wrapped in a glassmorphic cyber-card with a custom subtitle (`CLASSIFIED SIGNAL`). Hovering over the logo applies dynamic sizing expansions and subtle neon glow increases.
+- **Glitch-Scramble Redaction Transitions**: Upgraded the redaction transitions to feel highly immersive and technological. Individual characters now undergo rapid cybernetic scrambling (`█`, `▓`, `▒`, `░`, `Δ`, `Ø`, `X`, etc.) before solidifying, accompanied by a high-speed `.letterGlitching` chromatic aberration flicker animation that skews, skews, and splits text in rose-red and cyan.
+- **Alternating Secret Campaigns**: Implemented multiple secret campaign titles (including `'THE TRUMP FILES'`, `'OPERATION EPSTEIN FURY'`, and `'TRUMP-EPSTEIN FILES'`) that decode and swap dynamically at frequent, coprime odd intervals (`% 3` and `% 5` cycles) before smoothly unscrambling back to standard text.
+- **WIRED Press Article & Dedicated Media Album**: Integrated the latest WIRED article concerning the physical Epstein Files archive library in New York. Created a dedicated database migration seeding the article metadata, registering a dedicated `"Wired"` album, and attaching a high-fidelity newly generated cover image inside `media_items`.
+- **Investigation Workspace Blue Gradient & Border Bleed**: Resolved a critical inline styling conflict in `InvestigationWorkspace.tsx` that was blocking the custom glassmorphic phthalo blue gradient background. Flattened adjacent nested container corners to ensure the background bleeds flawlessly across borders with zero dark gaps.
+- **Left-Aligned Folder Navigation**: Corrected the album folder layout in sidebar browsers to left-align folder icons and text naturally with full-width HIG rows, eliminating awkward centered clumping on wider displays.
+
+### Why It Matters
+
+- Dynamic, high-tech logo details and scramble animations create an extremely premium, alive, and interactive " Classified Intelligence Agency" workbench aesthetic.
+- Swapping secret campaigns at odd intervals adds immersive, thematic depth across investigation sessions.
+- Ingestion of WIRED coverage ensures that the press archive is fully complete and up to date with the latest physical library announcements.
+
 ## 20.6.0 - 2026-05-08 - Workspace Polish, Interactive Heatmaps & Layout Refinements
 
 ### For Investigators

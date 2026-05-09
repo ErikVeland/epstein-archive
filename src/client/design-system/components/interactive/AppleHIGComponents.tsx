@@ -44,7 +44,7 @@ export const HIGStackRow: React.FC<HIGStackRowProps> = ({
   className = '',
 }) => {
   const content = (
-    <Flex align="center" gap="sm">
+    <Flex align="center" gap="sm" fullWidth>
       <div className={styles.iconBadge}>
         <Icon name={icon as Parameters<typeof Icon>[0]['name']} size="xs" />
       </div>

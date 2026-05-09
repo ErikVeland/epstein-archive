@@ -589,7 +589,16 @@ export const mediaRepository = {
       );
     }
     if (filters?.excludeTextScans) {
-      whereParts.push(`m.has_text IS NOT TRUE`);
+      whereParts.push(`
+        NOT (
+          m.has_text IS TRUE
+          OR m.file_path ILIKE '%Unconfirmed Claims%'
+          OR m.file_path ILIKE '%textify%'
+          OR m.file_path ILIKE '%_ocr%'
+          OR m.file_path ILIKE '%-ocr-%'
+          OR LENGTH(COALESCE(m.title, '')) > 80
+        )
+      `);
     }
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';

@@ -1,9 +1,29 @@
 .root {
   position: relative;
-  width: 185px;
-  min-width: 185px;
-  max-width: 185px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  background: rgba(10, 15, 30, 0.4);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+}
+
+.root:hover {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(59, 130, 246, 0.35);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 15px rgba(59, 130, 246, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .globalGlitch {
@@ -15,16 +35,63 @@
     0deg,
     transparent 0px,
     transparent 2px,
-    color-mix(in srgb, var(--glitch-cyan) 6%, transparent) 2px,
-    color-mix(in srgb, var(--glitch-cyan) 6%, transparent) 4px
+    color-mix(in srgb, var(--glitch-cyan, #06b6d4) 10%, transparent) 2px,
+    color-mix(in srgb, var(--glitch-cyan, #06b6d4) 10%, transparent) 4px
   );
+  opacity: 0.7;
+}
+
+/* Glowing Icon Badge */
+.logoBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: var(--accent-info, #60a5fa);
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.root:hover .logoBadge {
+  color: #93c5fd;
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 14px rgba(59, 130, 246, 0.35);
+  transform: scale(1.05);
+}
+
+.logoIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex-grow: 1;
 }
 
 .title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   white-space: nowrap;
+  line-height: 1.1;
+  text-transform: uppercase;
+  margin: 0;
+  padding: 0;
+  color: var(--text-strong, #ffffff);
 }
 
 .space {
@@ -34,37 +101,119 @@
 
 .letter {
   display: inline-block;
-  width: 10.8px;
+  width: 9.5px;
   text-align: center;
   position: relative;
 }
 
 .redactedBlock {
-  color: var(--bg-dark);
-  background: var(--bg-dark);
-  padding: 0 var(--space-1);
+  color: #0c0f1d;
+  background: #0c0f1d;
+  padding: 0 1px;
+  border-radius: 1px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 .normalChar {
-  color: var(--text-strong);
+  color: var(--text-strong, #ffffff);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
 }
 
 .staticText {
-  color: var(--text-strong);
+  color: var(--text-strong, #ffffff);
+}
+
+.subtitle {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(59, 130, 246, 0.6);
+  text-transform: uppercase;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.root:hover .subtitle {
+  color: rgba(59, 130, 246, 0.85);
+}
+
+/* High Speed Cyber Glitch Animation */
+@keyframes glitchFlicker {
+  0% {
+    opacity: 1;
+    transform: skewX(0deg) scale(1);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    opacity: 0.8;
+    transform: skewX(-12deg) scaleY(1.1) translateX(-1px);
+    filter: hue-rotate(45deg) brightness(1.4);
+    text-shadow:
+      2px 0 #ec4899,
+      -2px 0 #06b6d4;
+  }
+  40% {
+    opacity: 0.95;
+    transform: skewX(15deg) scaleX(0.9) translateY(1px);
+    filter: brightness(0.9);
+  }
+  60% {
+    opacity: 0.75;
+    transform: skewX(-6deg) scale(1.05) translateX(1px);
+    filter: invert(0.05) hue-rotate(-30deg);
+    text-shadow:
+      -2px 0 #ec4899,
+      2px 0 #06b6d4;
+  }
+  80% {
+    opacity: 0.9;
+    transform: skewY(4deg) scaleY(0.95);
+    filter: brightness(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: skewX(0deg) scale(1);
+    filter: hue-rotate(0deg);
+  }
+}
+
+.letterGlitching {
+  animation: glitchFlicker 0.1s infinite;
+  color: #f43f5e !important;
+  text-shadow:
+    2px 0 #06b6d4,
+    -2px 0 #ec4899;
 }
 
 @media (max-width: 767px) {
   .root {
-    width: 144px;
-    min-width: 144px;
-    max-width: 144px;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+    padding: var(--space-1) var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .logoBadge {
+    width: 26px;
+    height: 26px;
+  }
+
+  .logoIcon {
+    width: 14px;
+    height: 14px;
   }
 
   .title {
-    font-size: 0.95rem;
+    font-size: 0.8rem;
   }
 
   .letter {
-    width: 8.4px;
+    width: 8px;
+  }
+
+  .subtitle {
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
   }
 }

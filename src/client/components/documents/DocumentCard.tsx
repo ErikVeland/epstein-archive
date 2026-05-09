@@ -192,9 +192,11 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
           );
         })()}
 
-        <LqText variant="xs" color="secondary" className={styles.preview}>
-          {searchTerm ? highlightSearchTerm(previewText, searchTerm) : previewText}
-        </LqText>
+        {previewText && (
+          <LqText variant="xs" color="secondary" className={styles.preview}>
+            {searchTerm ? highlightSearchTerm(previewText, searchTerm) : previewText}
+          </LqText>
+        )}
 
         {document.keyEntities && document.keyEntities.length > 0 && (
           <Flex align="center" gap="xs" className={styles.entitiesRow}>

@@ -2,9 +2,8 @@
 
 .sidebar {
   display: none;
-  min-width: 16rem;
-  width: fit-content;
-  max-width: min(28rem, 36vw);
+  width: 18rem;
+  max-width: min(28rem, 38vw);
   background: var(--glass-bg-strong);
   border-right: 1px solid var(--glass-border);
   flex-direction: column;

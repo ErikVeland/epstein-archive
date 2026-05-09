@@ -91,11 +91,17 @@
 
 /* Row states */
 .rowStatic {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   width: 100%;
   padding: var(--space-3) var(--space-4);
 }
 
 .rowButton {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   width: 100%;
   text-align: left;
   padding: var(--space-3) var(--space-4);

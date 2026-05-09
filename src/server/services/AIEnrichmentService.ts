@@ -49,9 +49,14 @@ export class AIEnrichmentService {
    */
   private static async autoDiscoverExoModel(): Promise<string> {
     // 1. If explicitly set via env var, use it (highest priority)
-    if (process.env.EXO_MODEL) {
+    if (process.env.EXO_MODEL && !this.exoUnavailableModels.has(process.env.EXO_MODEL)) {
       logger.info(`🤖 Using EXO_MODEL from environment: ${process.env.EXO_MODEL}`);
       return process.env.EXO_MODEL;
+    }
+    if (process.env.EXO_MODEL) {
+      logger.warn(
+        `⚠️ EXO_MODEL ${process.env.EXO_MODEL} is unavailable; discovering another model`,
+      );
     }
 
     // 2. If already discovered, use cached
@@ -115,11 +120,19 @@ export class AIEnrichmentService {
    */
   private static async autoDiscoverExoGraphModel(): Promise<string> {
     // 1. Explicit env override takes highest priority
-    if (process.env.GRAPH_EXTRACTION_MODEL) {
+    if (
+      process.env.GRAPH_EXTRACTION_MODEL &&
+      !this.exoUnavailableModels.has(process.env.GRAPH_EXTRACTION_MODEL)
+    ) {
       logger.info(
         `🤖 Using GRAPH_EXTRACTION_MODEL from environment: ${process.env.GRAPH_EXTRACTION_MODEL}`,
       );
       return process.env.GRAPH_EXTRACTION_MODEL;
+    }
+    if (process.env.GRAPH_EXTRACTION_MODEL) {
+      logger.warn(
+        `⚠️ GRAPH_EXTRACTION_MODEL ${process.env.GRAPH_EXTRACTION_MODEL} is unavailable; discovering another model`,
+      );
     }
 
     // 2. Return cached discovery result

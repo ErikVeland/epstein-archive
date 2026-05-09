@@ -142,10 +142,16 @@ function writeLiveStatus(fields: Record<string, unknown>) {
 
 function recordExit(reason: string, details: Record<string, unknown> = {}) {
   pipelineRuntime.exitReason = reason;
+  pipelineRuntime.currentDocId = null;
+  pipelineRuntime.currentFile = null;
+  pipelineRuntime.currentDocStartedAt = 0;
   const payload = {
     running: false,
     exitReason: reason,
     lastError: reason,
+    currentFile: null,
+    currentDocId: null,
+    currentDocStartedAt: null,
     ...details,
   };
   console.error(`\n🛑 Pipeline exiting: ${reason}`);
@@ -580,9 +586,11 @@ async function runEnrichPhase(
   let whereClause =
     "content IS NOT NULL AND length(content) > 50 AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
   if (mode === 'backfill') {
-    // Backfill any document lacking a summary, OR any garbled/low-confidence document that has not been re-corrected yet.
+    // Backfill documents lacking a summary. Garbled/low-confidence rows are retried only until
+    // content_refined exists; the original raw content remains unchanged, so checking it forever
+    // would keep selecting already-enriched documents.
     whereClause +=
-      " AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_summary' OR (content LIKE '%=%' AND NOT metadata_json ? 'ocr_corrected') OR (coalesce((metadata_json->>'ocr_confidence')::float, 1.0) < 0.6 AND NOT metadata_json ? 'ocr_corrected'))";
+      " AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_summary' OR (content_refined IS NULL AND content LIKE '%=%' AND NOT metadata_json ? 'ocr_corrected') OR (content_refined IS NULL AND coalesce((metadata_json->>'ocr_confidence')::float, 1.0) < 0.6 AND NOT metadata_json ? 'ocr_corrected'))";
   } else if (mode === 'new') {
     whereClause += " AND created_at > now() - interval '1 day'";
   }
@@ -602,8 +610,13 @@ async function runEnrichPhase(
     phase: 'Enrichment',
     enrichStartedAt: new Date().toISOString(),
     enrichProcessed: 0,
+    enrichTotal,
     currentFile: null,
     currentDocId: null,
+    currentDocStartedAt: null,
+    lastError: null,
+    exitReason: null,
+    exitCode: null,
   });
 
   const failedDocIds = new Set<number>();
@@ -797,7 +810,17 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
     startTime: new Date().toISOString(),
   };
 
-  updateHeartbeat({ running: true, phase: 'Ingest', crashed: false });
+  updateHeartbeat({
+    running: true,
+    phase: 'Ingest',
+    crashed: false,
+    lastError: null,
+    exitReason: null,
+    exitCode: null,
+    currentFile: null,
+    currentDocId: null,
+    currentDocStartedAt: null,
+  });
   if (mode === 'ingest' || mode === 'full') {
     stats.ingestStats = await runIngestPhase(sourceDir);
     updateHeartbeat({ phase: 'Intelligence' });
@@ -866,14 +889,28 @@ async function main() {
     shuttingDown = true;
     console.log('\n🛑 Stopped via SIGTERM.');
     pipelineRuntime.exitReason = 'Stopped by SIGTERM';
-    writeLiveStatus({ running: false, phase: 'Stopped', exitReason: pipelineRuntime.exitReason });
+    writeLiveStatus({
+      running: false,
+      phase: 'Stopped',
+      exitReason: pipelineRuntime.exitReason,
+      currentFile: null,
+      currentDocId: null,
+      currentDocStartedAt: null,
+    });
   });
   process.on('SIGINT', () => {
     if (shuttingDown) return;
     shuttingDown = true;
     console.log('\n🛑 Stopped.');
     pipelineRuntime.exitReason = 'Stopped by SIGINT';
-    writeLiveStatus({ running: false, phase: 'Stopped', exitReason: pipelineRuntime.exitReason });
+    writeLiveStatus({
+      running: false,
+      phase: 'Stopped',
+      exitReason: pipelineRuntime.exitReason,
+      currentFile: null,
+      currentDocId: null,
+      currentDocStartedAt: null,
+    });
   });
 
   const args = process.argv.slice(2);
@@ -913,7 +950,17 @@ async function main() {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('\n❌ Cycle error (will retry in 60s):', error);
-      updateHeartbeat({ phase: 'Error', lastError: msg, blockedReason: msg });
+      pipelineRuntime.currentDocId = null;
+      pipelineRuntime.currentFile = null;
+      pipelineRuntime.currentDocStartedAt = 0;
+      updateHeartbeat({
+        phase: 'Error',
+        lastError: msg,
+        blockedReason: msg,
+        currentFile: null,
+        currentDocId: null,
+        currentDocStartedAt: null,
+      });
       if (!shuttingDown) {
         for (let i = 0; i < 60; i++) {
           if (shuttingDown) break;
@@ -932,7 +979,14 @@ async function main() {
   }
   if (pipelineRuntime.watchdog) clearInterval(pipelineRuntime.watchdog);
   pipelineRuntime.exitReason = pipelineRuntime.exitReason || 'Pipeline stopped cleanly';
-  updateHeartbeat({ running: false, phase: 'Stopped', exitReason: pipelineRuntime.exitReason });
+  updateHeartbeat({
+    running: false,
+    phase: 'Stopped',
+    exitReason: pipelineRuntime.exitReason,
+    currentFile: null,
+    currentDocId: null,
+    currentDocStartedAt: null,
+  });
   console.log('✅ Pipeline stopped cleanly.');
   process.exit(0);
 }

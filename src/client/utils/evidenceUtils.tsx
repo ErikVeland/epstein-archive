@@ -5,7 +5,7 @@ import React from 'react';
  */
 export const normalizeEvidenceSnippet = (raw: string, fallbackTitle: string): string => {
   if (!raw || raw.trim() === '' || raw === fallbackTitle) {
-    return `Document excerpt for "${fallbackTitle}" is pending full transcription. Double-click to view raw text source or metadata files.`;
+    return '';
   }
   const cleaned = raw
     .replace(/\s+/g, ' ')
@@ -14,7 +14,7 @@ export const normalizeEvidenceSnippet = (raw: string, fallbackTitle: string): st
     .trim();
 
   if (cleaned.length < 10) {
-    return `Document excerpt for "${fallbackTitle}" is pending full transcription. Double-click to view raw text source or metadata files.`;
+    return '';
   }
 
   const maxLength = 240;
@@ -216,12 +216,17 @@ export const normalizeEvidenceDocument = (
       item.source_path,
     fileName:
       item.fileName || item.file_name || item.filename || item.sourcePath || item.source_path,
+    filePath: item.filePath || item.file_path || item.sourcePath || item.source_path || null,
+    fileType: item.fileType || item.file_type || null,
     documentTitle:
       item.documentTitle ||
       item.document_title ||
       (item.document as { title?: unknown } | null | undefined)?.title ||
       null,
-    contentPreview: item.contentPreview || item.context_snippet || item.description,
+    contentPreview: item.contentPreview || item.context_snippet || item.description || null,
+    contentRefined:
+      item.contentRefined || item.content_refined || item.contentPreview || item.content || null,
+    content: item.content || item.contentRefined || item.content_refined || null,
     evidenceType: item.evidenceType || item.evidence_type || 'Document',
     redFlagRating: item.redFlagRating ?? item.red_flag_rating ?? item.risk_score ?? 0,
     source_collection: item.source_collection || item.collection,

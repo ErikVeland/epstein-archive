@@ -48,12 +48,12 @@ export const looksLikePreviewJunk = (text: string): boolean => {
   const digits = (sample.match(/\d/g) || []).length;
   const letters = (sample.match(/[a-z]/gi) || []).length;
   const underscores = (sample.match(/_/g) || []).length;
-  const longRuns = (sample.match(/[A-Za-z0-9]{30,}/g) || []).length;
+  const longRuns = (sample.match(/[A-Za-z0-9]{40,}/g) || []).length;
   const words = sample.split(/\s+/).filter(Boolean);
   const alphaWords = words.filter((w) => /[a-z]{3,}/i.test(w)).length;
   const wordRatio = words.length > 0 ? alphaWords / words.length : 0;
   return (
-    underscores / sample.length > 0.03 || digits > letters * 1.1 || longRuns > 0 || wordRatio < 0.45
+    underscores / sample.length > 0.03 || digits > letters * 2.5 || longRuns > 0 || wordRatio < 0.25
   );
 };
 
@@ -77,7 +77,8 @@ export const getSafePreviewText = (doc: Document): string => {
     return 'Evidence photo asset; open to view original image.';
   }
 
-  const rawContent = (doc.content || '').trim();
+  // Use any available text — sanitize and truncate, even if noisy OCR
+  const rawContent = (doc.content || fromPreview || '').trim();
   if (rawContent) {
     const cleaned = rawContent
       .replace(/\s+/g, ' ')
@@ -87,14 +88,11 @@ export const getSafePreviewText = (doc: Document): string => {
 
     if (cleaned.length > 10) {
       const maxLength = 240;
-      if (cleaned.length > maxLength) {
-        return cleaned.slice(0, maxLength).trim() + '...';
-      }
-      return cleaned;
+      return cleaned.length > maxLength ? cleaned.slice(0, maxLength).trim() + '...' : cleaned;
     }
   }
 
-  return 'No preview text available; open document to view full contents.';
+  return '';
 };
 
 export const getRiskLabel = (score: number): string => {

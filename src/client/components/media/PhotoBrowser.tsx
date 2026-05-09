@@ -529,6 +529,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
   const handleCloseViewer = () => {
     setViewerStartIndex(null);
+    setPreviewPerson(null);
     const url = new URL(window.location.href);
     url.searchParams.delete('photoId');
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
