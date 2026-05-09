@@ -473,7 +473,7 @@ export const statsRepository = {
 
     // Media Progress Stats
     const mediaStatsRes = await getApiPool().query(
-      "SELECT count(*) as total, sum(case when metadata_json ->> 'extracted_text' is not null then 1 else 0 end) as processed FROM media_items",
+      'SELECT count(*) as total, sum(case when has_text = true then 1 else 0 end) as processed FROM media_items',
     );
     const media = {
       total: Number(mediaStatsRes.rows[0].total || 0),

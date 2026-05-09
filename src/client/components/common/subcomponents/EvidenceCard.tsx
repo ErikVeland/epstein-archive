@@ -15,6 +15,8 @@ export interface EvidenceDocument {
   id?: string | number;
   title?: string;
   fileName?: string;
+  filePath?: string;
+  fileType?: string;
   documentTitle?: string | null;
   content?: string;
   contentPreview?: string;
@@ -53,6 +55,8 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
   const isMedia = isVisualMediaItem({
     sourceType: doc.evidenceType,
     filename: doc.title || doc.fileName,
+    fileType: doc.fileType,
+    filePath: doc.filePath || doc.fileName,
   });
   const mediaUrl = isMedia ? resolveEntityPhotoUrl({ id: doc.id }, true) : null;
 

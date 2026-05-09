@@ -46,8 +46,9 @@ export const entityConnectionsRepository = {
     const limit = Math.min(opts.limit ?? 50, 500);
     const minScore = opts.minScore ?? 0;
 
-    const { rows } = await getApiPool().query<ConnectionRow>(
-      `
+    let rows = (
+      await getApiPool().query<ConnectionRow>(
+        `
       WITH signals AS (
         SELECT
           ecs.other_id,
@@ -89,8 +90,36 @@ export const entityConnectionsRepository = {
       ORDER BY total_score DESC
       LIMIT $3
       `,
-      [entityId, minScore, limit],
-    );
+        [entityId, minScore, limit],
+      )
+    ).rows;
+
+    if (rows.length === 0) {
+      // Fallback: Query directly from entity_relationships if signals are not populated yet
+      const fallbackRes = await getApiPool().query<ConnectionRow>(
+        `
+        SELECT
+          e.id::text               AS entity_id,
+          e.full_name              AS entity_name,
+          COALESCE(e.entity_type, e.primary_role, 'unknown') AS entity_type,
+          COALESCE(e.red_flag_rating, 0) AS risk_rating,
+          e.community_id,
+          (er.proximity_score * 3.0 + er.confidence * 30.0) AS total_score,
+          (er.proximity_score * 100.0) AS rel_score,
+          0 AS fin_score, 0 AS comm_score, 0 AS flight_score, 0 AS doc_score,
+          er.relationship_type     AS rel_type,
+          er.confidence            AS rel_confidence,
+          0 AS fin_count, 0 AS comm_count, 0 AS flight_count, 0 AS doc_count
+        FROM entity_relationships er
+        JOIN entities e ON e.id = CASE WHEN er.source_entity_id = $1::bigint THEN er.target_entity_id ELSE er.source_entity_id END
+        WHERE (er.source_entity_id = $1::bigint OR er.target_entity_id = $1::bigint)
+        ORDER BY total_score DESC
+        LIMIT $2
+        `,
+        [entityId, limit],
+      );
+      rows = fallbackRes.rows;
+    }
 
     return rows.map((r) => ({
       entityId: r.entity_id,

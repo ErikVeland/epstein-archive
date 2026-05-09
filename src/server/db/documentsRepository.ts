@@ -194,9 +194,15 @@ const buildPreview = (doc: {
     return { title, previewText: firstMeaningfulExcerpt(raw), previewKind: 'excerpt' as const };
   }
 
+  const fallbackText = (refined || cleaned || raw || '').trim();
+  const truncatedFallback = fallbackText
+    ? fallbackText.slice(0, 160).replace(/\s+/g, ' ').trim() +
+      (fallbackText.length > 160 ? '...' : '')
+    : 'OCR-heavy document; open to view extracted text.';
+
   return {
     title,
-    previewText: 'OCR-heavy document; open to view extracted text.',
+    previewText: truncatedFallback || 'OCR-heavy document; open to view extracted text.',
     previewKind: 'fallback' as const,
   };
 };

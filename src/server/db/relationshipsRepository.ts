@@ -192,10 +192,27 @@ export const relationshipsRepository = {
 
       if (d >= safeDepth) continue;
 
-      const rels = await relationshipsQueries.getNeighborsCached.run(
+      let rels = await relationshipsQueries.getNeighborsCached.run(
         { entityId: id, limit: 100 },
         pool,
       );
+
+      if (!rels || rels.length === 0) {
+        // Fallback to direct query from entity_relationships table if adjacency cache is empty
+        const directRes = await pool.query(
+          `SELECT 
+             CASE WHEN source_entity_id = $1::bigint THEN target_entity_id ELSE source_entity_id END AS "targetId",
+             relationship_type AS "relationshipTypes",
+             proximity_score AS "proximityScore",
+             proximity_score AS "bridgeScore"
+           FROM entity_relationships
+           WHERE source_entity_id = $1::bigint OR target_entity_id = $1::bigint
+           ORDER BY proximity_score DESC
+           LIMIT 100`,
+          [id],
+        );
+        rels = directRes.rows as IGetNeighborsCachedResult[];
+      }
 
       for (const r of rels as IGetNeighborsCachedResult[]) {
         const targetId = Number(r.targetId);

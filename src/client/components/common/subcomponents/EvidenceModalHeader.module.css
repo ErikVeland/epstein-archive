@@ -220,6 +220,7 @@
   font-weight: 300;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
+  flex: 1 0 100%;
 }
 
 @media (max-width: 767px) {
@@ -228,6 +229,7 @@
     font-size: 0.75rem;
     gap: var(--space-2);
     line-height: 1.2;
+    flex: 1 0 100%;
   }
 }
 
@@ -235,6 +237,8 @@
   .subtitleRow {
     font-size: 1rem;
     flex-wrap: nowrap;
+    margin-left: calc(5.5rem + var(--space-5));
+    flex: 1 0 calc(100% - 5.5rem - var(--space-5));
   }
 }
 

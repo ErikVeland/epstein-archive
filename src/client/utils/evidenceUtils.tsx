@@ -5,7 +5,7 @@ import React from 'react';
  */
 export const normalizeEvidenceSnippet = (raw: string, fallbackTitle: string): string => {
   if (!raw || raw.trim() === '' || raw === fallbackTitle) {
-    return 'No refined summary available. Raw document source is currently queued for LLM recorrection and forensic metadata parsing...';
+    return `Document excerpt for "${fallbackTitle}" is pending full transcription. Double-click to view raw text source or metadata files.`;
   }
   const cleaned = raw
     .replace(/\s+/g, ' ')
@@ -14,7 +14,7 @@ export const normalizeEvidenceSnippet = (raw: string, fallbackTitle: string): st
     .trim();
 
   if (cleaned.length < 10) {
-    return 'No refined summary available. Raw document source is currently queued for LLM recorrection and forensic metadata parsing...';
+    return `Document excerpt for "${fallbackTitle}" is pending full transcription. Double-click to view raw text source or metadata files.`;
   }
 
   const maxLength = 240;

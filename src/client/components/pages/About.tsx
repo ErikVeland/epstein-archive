@@ -84,10 +84,13 @@ export const About: React.FC = () => {
           {(pipelineStatus?.datasets || []).map((dataset: PipelineDataset) => {
             const currentIngested = dataset.ingested;
             const currentDownloaded = dataset.downloaded;
-            const target = dataset.target;
+            const target = Math.max(dataset.target || 0, currentIngested, currentDownloaded);
 
-            const ingestPercent = Math.min(100, (currentIngested / target) * 100);
-            const downloadPercent = Math.min(100, (currentDownloaded / target) * 100);
+            const ingestPercent = Math.min(100, target > 0 ? (currentIngested / target) * 100 : 0);
+            const downloadPercent = Math.min(
+              100,
+              target > 0 ? (currentDownloaded / target) * 100 : 0,
+            );
             const isComplete = currentIngested >= target;
 
             return (

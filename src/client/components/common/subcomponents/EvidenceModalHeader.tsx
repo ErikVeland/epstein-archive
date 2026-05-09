@@ -103,56 +103,56 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
             </div>
           </div>
         ) : (
-          <>
-            <div className={s.titleRow}>
-              <h2 className={s.title}>{entity?.fullName}</h2>
-              <span className={`${s.riskBadge} ${s[getRiskClass(entity?.redFlagRating || 0)]}`}>
-                <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
-                Risk {(entity?.redFlagRating || 0).toFixed(0)}/5
-              </span>
-            </div>
-
-            <div className={s.subtitleRow}>
-              <span className={s.role}>{entity?.primaryRole}</span>
-              {(entity?.birthDate || entity?.deathDate) && (
-                <>
-                  <span className={s.dot} />
-                  <span className={s.dates}>
-                    {entity?.birthDate ? `b. ${entity.birthDate}` : ''}
-                    {entity?.deathDate ? ` • d. ${entity.deathDate}` : ''}
-                  </span>
-                </>
-              )}
-
-              <div className={s.forensicPopoverContainer}>
-                <Button
-                  unstyled
-                  onClick={() => setShowProfilePopover(!showProfilePopover)}
-                  className={s.forensicButton}
-                >
-                  <Icon name="FileText" size="xs" />
-                  <span>Profile Summary</span>
-                </Button>
-                {showProfilePopover && (
-                  <div className={s.forensicPopover}>
-                    <div className={s.forensicPopoverHeader}>
-                      <span>Forensic Profile</span>
-                      <Button
-                        unstyled
-                        onClick={() => setShowProfilePopover(false)}
-                        className={s.popoverCloseBtn}
-                      >
-                        <Icon name="X" size="xs" />
-                      </Button>
-                    </div>
-                    <p className={s.forensicText}>{forensicSummary}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </>
+          <div className={s.titleRow}>
+            <h2 className={s.title}>{entity?.fullName}</h2>
+            <span className={`${s.riskBadge} ${s[getRiskClass(entity?.redFlagRating || 0)]}`}>
+              <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
+              Risk {(entity?.redFlagRating || 0).toFixed(0)}/5
+            </span>
+          </div>
         )}
       </div>
+
+      {!loading && (
+        <div className={s.subtitleRow}>
+          <span className={s.role}>{entity?.primaryRole}</span>
+          {(entity?.birthDate || entity?.deathDate) && (
+            <>
+              <span className={s.dot} />
+              <span className={s.dates}>
+                {entity?.birthDate ? `b. ${entity.birthDate}` : ''}
+                {entity?.deathDate ? ` • d. ${entity.deathDate}` : ''}
+              </span>
+            </>
+          )}
+
+          <div className={s.forensicPopoverContainer}>
+            <Button
+              unstyled
+              onClick={() => setShowProfilePopover(!showProfilePopover)}
+              className={s.forensicButton}
+            >
+              <Icon name="FileText" size="xs" />
+              <span>Profile Summary</span>
+            </Button>
+            {showProfilePopover && (
+              <div className={s.forensicPopover}>
+                <div className={s.forensicPopoverHeader}>
+                  <span>Forensic Profile</span>
+                  <Button
+                    unstyled
+                    onClick={() => setShowProfilePopover(false)}
+                    className={s.popoverCloseBtn}
+                  >
+                    <Icon name="X" size="xs" />
+                  </Button>
+                </div>
+                <p className={s.forensicText}>{forensicSummary}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {!loading && entity?.id && (
         <div className={s.actionsArea}>
