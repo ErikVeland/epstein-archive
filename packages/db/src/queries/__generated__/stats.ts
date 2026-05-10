@@ -3,34 +3,46 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type NumberOrString = number | string;
 
-/** Query 'GetGlobalStats' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetGlobalStatsResult = never;
+/** 'GetGlobalStats' parameters type */
+export type IGetGlobalStatsParams = void;
 
-/** Query 'GetGlobalStats' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetGlobalStatsParams = never;
+/** 'GetGlobalStats' return type */
+export interface IGetGlobalStatsResult {
+  averageRedFlagRating: string | null;
+  documentsFixed: string | null;
+  documentsWithMetadata: string | null;
+  entitiesWithDocuments: string | null;
+  totalDocuments: string | null;
+  totalEntities: string | null;
+  totalMentions: string | null;
+  totalUniqueRoles: string | null;
+}
+
+/** 'GetGlobalStats' query type */
+export interface IGetGlobalStatsQuery {
+  params: IGetGlobalStatsParams;
+  result: IGetGlobalStatsResult;
+}
 
 const getGlobalStatsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT\n  COUNT(*)::integer as "totalEntities",\n  SUM(COALESCE(mentions, 0)) as "totalMentions",\n  AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",\n  COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != \'\' THEN primary_role END) as "totalUniqueRoles",\n  COUNT(*)::integer FILTER (WHERE mentions > 0) as "entitiesWithDocuments",\n  (SELECT COUNT(*)::integer FROM documents) as "totalDocuments",\n  (SELECT COUNT(*)::integer FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = \'object\' AND metadata_json <> \'{}\'::jsonb)) as "documentsWithMetadata",\n  (SELECT COUNT(*)::integer FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"\nFROM entities',
+    'SELECT\n  (SELECT COUNT(*) FROM entities) as "totalEntities",\n  (SELECT COUNT(*) FROM documents) as "totalDocuments",\n  (SELECT SUM(mentions) FROM entities) as "totalMentions",\n  (SELECT AVG(red_flag_rating) FROM entities) as "averageRedFlagRating",\n  (SELECT COUNT(DISTINCT primary_role) FROM entities WHERE primary_role IS NOT NULL AND primary_role != \'\') as "totalUniqueRoles",\n  (SELECT COUNT(*) FROM entities WHERE mentions > 0) as "entitiesWithDocuments",\n  (SELECT COUNT(*) FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = \'object\' AND metadata_json <> \'{}\'::jsonb)) as "documentsWithMetadata",\n  (SELECT COUNT(*) FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   COUNT(*)::integer as "totalEntities",
- *   SUM(COALESCE(mentions, 0)) as "totalMentions",
- *   AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",
- *   COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != '' THEN primary_role END) as "totalUniqueRoles",
- *   COUNT(*)::integer FILTER (WHERE mentions > 0) as "entitiesWithDocuments",
- *   (SELECT COUNT(*)::integer FROM documents) as "totalDocuments",
- *   (SELECT COUNT(*)::integer FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = 'object' AND metadata_json <> '{}'::jsonb)) as "documentsWithMetadata",
- *   (SELECT COUNT(*)::integer FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"
- * FROM entities
+ *   (SELECT COUNT(*) FROM entities) as "totalEntities",
+ *   (SELECT COUNT(*) FROM documents) as "totalDocuments",
+ *   (SELECT SUM(mentions) FROM entities) as "totalMentions",
+ *   (SELECT AVG(red_flag_rating) FROM entities) as "averageRedFlagRating",
+ *   (SELECT COUNT(DISTINCT primary_role) FROM entities WHERE primary_role IS NOT NULL AND primary_role != '') as "totalUniqueRoles",
+ *   (SELECT COUNT(*) FROM entities WHERE mentions > 0) as "entitiesWithDocuments",
+ *   (SELECT COUNT(*) FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = 'object' AND metadata_json <> '{}'::jsonb)) as "documentsWithMetadata",
+ *   (SELECT COUNT(*) FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"
  * ```
  */
 export const getGlobalStats = new PreparedQuery<IGetGlobalStatsParams, IGetGlobalStatsResult>(
@@ -42,7 +54,7 @@ export type IGetRiskDistributionParams = void;
 
 /** 'GetRiskDistribution' return type */
 export interface IGetRiskDistributionResult {
-  count: number | null;
+  count: string | null;
   level: string | null;
 }
 
@@ -56,7 +68,7 @@ const getRiskDistributionIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    "SELECT\n  COALESCE(risk_level, 'LOW') as level,\n  COUNT(*)::integer as count\nFROM entities\nGROUP BY risk_level",
+    "SELECT\n  COALESCE(risk_level, 'LOW') as level,\n  COUNT(*) as count\nFROM entities\nGROUP BY risk_level",
 };
 
 /**
@@ -64,7 +76,7 @@ const getRiskDistributionIR: any = {
  * ```
  * SELECT
  *   COALESCE(risk_level, 'LOW') as level,
- *   COUNT(*)::integer as count
+ *   COUNT(*) as count
  * FROM entities
  * GROUP BY risk_level
  * ```
@@ -79,7 +91,7 @@ export type IGetRedFlagDistributionParams = void;
 
 /** 'GetRedFlagDistribution' return type */
 export interface IGetRedFlagDistributionResult {
-  count: number | null;
+  count: string | null;
   rating: number | null;
 }
 
@@ -93,7 +105,7 @@ const getRedFlagDistributionIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT\n  red_flag_rating as rating,\n  COUNT(*)::integer as count\nFROM entities\nWHERE red_flag_rating IS NOT NULL\nGROUP BY red_flag_rating\nORDER BY red_flag_rating ASC',
+    'SELECT\n  red_flag_rating as rating,\n  COUNT(*) as count\nFROM entities\nWHERE red_flag_rating IS NOT NULL\nGROUP BY red_flag_rating\nORDER BY red_flag_rating ASC',
 };
 
 /**
@@ -101,7 +113,7 @@ const getRedFlagDistributionIR: any = {
  * ```
  * SELECT
  *   red_flag_rating as rating,
- *   COUNT(*)::integer as count
+ *   COUNT(*) as count
  * FROM entities
  * WHERE red_flag_rating IS NOT NULL
  * GROUP BY red_flag_rating
@@ -120,7 +132,7 @@ export interface IGetTopRolesParams {
 
 /** 'GetTopRoles' return type */
 export interface IGetTopRolesResult {
-  count: number | null;
+  count: string | null;
   role: string | null;
 }
 
@@ -133,16 +145,16 @@ export interface IGetTopRolesQuery {
 const getTopRolesIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 175, b: 181 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 166, b: 172 }] },
   ],
   statement:
-    "SELECT primary_role as role, COUNT(*)::integer as count \nFROM entities \nWHERE primary_role IS NOT NULL AND primary_role != ''\nGROUP BY primary_role \nORDER BY count DESC\nLIMIT :limit!",
+    "SELECT primary_role as role, COUNT(*) as count \nFROM entities \nWHERE primary_role IS NOT NULL AND primary_role != ''\nGROUP BY primary_role \nORDER BY count DESC\nLIMIT :limit!",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT primary_role as role, COUNT(*)::integer as count
+ * SELECT primary_role as role, COUNT(*) as count
  * FROM entities
  * WHERE primary_role IS NOT NULL AND primary_role != ''
  * GROUP BY primary_role
@@ -229,7 +241,7 @@ export type IGetCollectionCountsParams = void;
 
 /** 'GetCollectionCounts' return type */
 export interface IGetCollectionCountsResult {
-  count: number | null;
+  count: string | null;
   sourceCollection: string | null;
 }
 
@@ -243,13 +255,13 @@ const getCollectionCountsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT source_collection as "sourceCollection", COUNT(*)::integer as count \nFROM documents \nWHERE source_collection IS NOT NULL \nGROUP BY source_collection',
+    'SELECT source_collection as "sourceCollection", COUNT(*) as count \nFROM documents \nWHERE source_collection IS NOT NULL \nGROUP BY source_collection',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT source_collection as "sourceCollection", COUNT(*)::integer as count
+ * SELECT source_collection as "sourceCollection", COUNT(*) as count
  * FROM documents
  * WHERE source_collection IS NOT NULL
  * GROUP BY source_collection
@@ -265,7 +277,7 @@ export type IGetActiveInvestigationsCountParams = void;
 
 /** 'GetActiveInvestigationsCount' return type */
 export interface IGetActiveInvestigationsCountResult {
-  count: number | null;
+  count: string | null;
 }
 
 /** 'GetActiveInvestigationsCount' query type */
@@ -277,14 +289,13 @@ export interface IGetActiveInvestigationsCountQuery {
 const getActiveInvestigationsCountIR: any = {
   usedParamSet: {},
   params: [],
-  statement:
-    "SELECT COUNT(*)::integer as count FROM investigations WHERE status IN ('active', 'open')",
+  statement: "SELECT COUNT(*) as count FROM investigations WHERE status IN ('active', 'open')",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*)::integer as count FROM investigations WHERE status IN ('active', 'open')
+ * SELECT COUNT(*) as count FROM investigations WHERE status IN ('active', 'open')
  * ```
  */
 export const getActiveInvestigationsCount = new PreparedQuery<
@@ -299,7 +310,7 @@ export interface IGetRecentProcessedCountParams {
 
 /** 'GetRecentProcessedCount' return type */
 export interface IGetRecentProcessedCountResult {
-  count: number | null;
+  count: string | null;
 }
 
 /** 'GetRecentProcessedCount' query type */
@@ -311,16 +322,16 @@ export interface IGetRecentProcessedCountQuery {
 const getRecentProcessedCountIR: any = {
   usedParamSet: { seconds: true },
   params: [
-    { name: 'seconds', required: true, transform: { type: 'scalar' }, locs: [{ a: 120, b: 128 }] },
+    { name: 'seconds', required: true, transform: { type: 'scalar' }, locs: [{ a: 111, b: 119 }] },
   ],
   statement:
-    "SELECT COUNT(*)::integer as count \nFROM documents \nWHERE last_processed_at > CURRENT_TIMESTAMP - (INTERVAL '1 second' * :seconds!)",
+    "SELECT COUNT(*) as count \nFROM documents \nWHERE last_processed_at > CURRENT_TIMESTAMP - (INTERVAL '1 second' * :seconds!)",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*)::integer as count
+ * SELECT COUNT(*) as count
  * FROM documents
  * WHERE last_processed_at > CURRENT_TIMESTAMP - (INTERVAL '1 second' * :seconds!)
  * ```
@@ -372,12 +383,12 @@ export interface IGetTimelineEventsParams {
 
 /** 'GetTimelineEvents' return type */
 export interface IGetTimelineEventsResult {
-  date: Date;
+  date: Date | null;
   description: string | null;
-  document_id: string | null;
-  primary_entity: string | null;
+  document_id: string;
+  primary_entity: string;
   significance_score: string | null;
-  title: string;
+  title: string | null;
   type: string | null;
 }
 
@@ -390,26 +401,28 @@ export interface IGetTimelineEventsQuery {
 const getTimelineEventsIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 259, b: 265 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 391, b: 397 }] },
   ],
   statement:
-    'SELECT \n  te.date,\n  te.description,\n  te.type,\n  te.title,\n  te.related_document_id as document_id,\n  te.entities as primary_entity,\n  te.significance as significance_score\nFROM global_timeline_events te\nWHERE te.date IS NOT NULL\nORDER BY te.date DESC\nLIMIT :limit!',
+    "SELECT \n  te.event_date as date,\n  te.event_description as description,\n  te.event_type as type,\n  d.file_name as title,\n  d.id as document_id,\n  e.full_name as primary_entity,\n  'medium' as significance_score\nFROM timeline_events te\nLEFT JOIN documents d ON te.document_id = d.id\nLEFT JOIN entities e ON te.entity_id = e.id\nWHERE te.event_date IS NOT NULL\nORDER BY te.event_date DESC\nLIMIT :limit!",
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   te.date,
- *   te.description,
- *   te.type,
- *   te.title,
- *   te.related_document_id as document_id,
- *   te.entities as primary_entity,
- *   te.significance as significance_score
- * FROM global_timeline_events te
- * WHERE te.date IS NOT NULL
- * ORDER BY te.date DESC
+ *   te.event_date as date,
+ *   te.event_description as description,
+ *   te.event_type as type,
+ *   d.file_name as title,
+ *   d.id as document_id,
+ *   e.full_name as primary_entity,
+ *   'medium' as significance_score
+ * FROM timeline_events te
+ * LEFT JOIN documents d ON te.document_id = d.id
+ * LEFT JOIN entities e ON te.entity_id = e.id
+ * WHERE te.event_date IS NOT NULL
+ * ORDER BY te.event_date DESC
  * LIMIT :limit!
  * ```
  */
