@@ -6,7 +6,6 @@ export interface Article {
   id: string;
   title: string;
   link?: string | null;
-  url?: string | null;
   source?: string | null;
   publication?: string | null;
   pubDate?: string | null;

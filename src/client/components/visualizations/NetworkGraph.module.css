@@ -561,3 +561,26 @@
     transform: rotate(360deg);
   }
 }
+
+.highlightHalo {
+  fill: none;
+  stroke: var(--accent);
+  animation: nodeHaloPulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
+@keyframes nodeHaloPulse {
+  0% {
+    opacity: 0.4;
+    stroke-width: 2px;
+  }
+  50% {
+    opacity: 0.9;
+    stroke-width: 4.5px;
+  }
+  100% {
+    opacity: 0.4;
+    stroke-width: 2px;
+  }
+}

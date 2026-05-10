@@ -40,8 +40,8 @@ export type IGetEntityAndDocumentCountsParams = void;
 
 /** 'GetEntityAndDocumentCounts' return type */
 export interface IGetEntityAndDocumentCountsResult {
-  documents: string | null;
-  entities: string | null;
+  documents: number | null;
+  entities: number | null;
 }
 
 /** 'GetEntityAndDocumentCounts' query type */
@@ -54,15 +54,15 @@ const getEntityAndDocumentCountsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT \n  (SELECT COUNT(*) FROM entities) as entities,\n  (SELECT COUNT(*) FROM documents) as documents',
+    'SELECT \n  (SELECT COUNT(*)::integer FROM entities) as entities,\n  (SELECT COUNT(*)::integer FROM documents) as documents',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   (SELECT COUNT(*) FROM entities) as entities,
- *   (SELECT COUNT(*) FROM documents) as documents
+ *   (SELECT COUNT(*)::integer FROM entities) as entities,
+ *   (SELECT COUNT(*)::integer FROM documents) as documents
  * ```
  */
 export const getEntityAndDocumentCounts = new PreparedQuery<

@@ -9,43 +9,13 @@ export type NumberOrString = number | string;
 
 export type stringArray = string[];
 
-/** 'GetDocuments' parameters type */
-export interface IGetDocumentsParams {
-  endDate?: DateOrString | null | void;
-  evidenceType?: string | null | void;
-  fileTypes?: stringArray | null | void;
-  limit: NumberOrString;
-  maxRedFlag?: number | null | void;
-  minRedFlag?: number | null | void;
-  offset: NumberOrString;
-  search?: string | null | void;
-  sources?: stringArray | null | void;
-  startDate?: DateOrString | null | void;
-}
+/** Query 'GetDocuments' is invalid, so its result is assigned type 'never'.
+ *  */
+export type IGetDocumentsResult = never;
 
-/** 'GetDocuments' return type */
-export interface IGetDocumentsResult {
-  contentRefined: string | null;
-  dateCreated: Date | null;
-  evidenceType: string | null;
-  extractedDate: Date | null;
-  fileName: string | null;
-  fileSize: string | null;
-  fileType: string | null;
-  id: string;
-  metadata: Json | null;
-  redFlagRating: number | null;
-  sourceCollection: string | null;
-  title: string | null;
-  totalCount: string | null;
-  wordCount: number | null;
-}
-
-/** 'GetDocuments' query type */
-export interface IGetDocumentsQuery {
-  params: IGetDocumentsParams;
-  result: IGetDocumentsResult;
-}
+/** Query 'GetDocuments' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type IGetDocumentsParams = never;
 
 const getDocumentsIR: any = {
   usedParamSet: {
@@ -66,11 +36,11 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 493, b: 499 },
-        { a: 536, b: 542 },
-        { a: 573, b: 579 },
-        { a: 602, b: 608 },
-        { a: 661, b: 667 },
+        { a: 502, b: 508 },
+        { a: 545, b: 551 },
+        { a: 582, b: 588 },
+        { a: 611, b: 617 },
+        { a: 670, b: 676 },
       ],
     },
     {
@@ -78,8 +48,8 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 695, b: 704 },
-        { a: 710, b: 719 },
+        { a: 704, b: 713 },
+        { a: 719, b: 728 },
       ],
     },
     {
@@ -87,8 +57,8 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 753, b: 765 },
-        { a: 770, b: 782 },
+        { a: 762, b: 774 },
+        { a: 779, b: 791 },
       ],
     },
     {
@@ -96,8 +66,8 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 824, b: 831 },
-        { a: 837, b: 844 },
+        { a: 833, b: 840 },
+        { a: 846, b: 853 },
       ],
     },
     {
@@ -105,8 +75,8 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 904, b: 913 },
-        { a: 918, b: 927 },
+        { a: 913, b: 922 },
+        { a: 927, b: 936 },
       ],
     },
     {
@@ -114,8 +84,8 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 987, b: 994 },
-        { a: 999, b: 1006 },
+        { a: 996, b: 1003 },
+        { a: 1008, b: 1015 },
       ],
     },
     {
@@ -123,8 +93,8 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1043, b: 1053 },
-        { a: 1058, b: 1068 },
+        { a: 1052, b: 1062 },
+        { a: 1067, b: 1077 },
       ],
     },
     {
@@ -132,15 +102,15 @@ const getDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1105, b: 1115 },
-        { a: 1120, b: 1130 },
+        { a: 1114, b: 1124 },
+        { a: 1129, b: 1139 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1222, b: 1228 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1237, b: 1244 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1231, b: 1237 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1246, b: 1253 }] },
   ],
   statement:
-    'SELECT \n  id,\n  file_name as "fileName",\n  file_type as "fileType",\n  file_size as "fileSize",\n  date_created as "dateCreated",\n  extracted_date as "extractedDate",\n  content_refined as "contentRefined",\n  evidence_type as "evidenceType",\n  metadata_json as "metadata",\n  word_count as "wordCount",\n  red_flag_rating as "redFlagRating",\n  COALESCE(NULLIF(title, \'\'), file_name) as "title",\n  source_collection as "sourceCollection",\n  COUNT(*) OVER () as "totalCount"\nFROM documents\nWHERE (\n  :search::text IS NULL\n  OR file_name ILIKE :search\n  OR source_collection ILIKE :search\n  OR file_path ILIKE :search\n  OR fts_vector @@ websearch_to_tsquery(\'english\', :search)\n)\n  AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)\n  AND (evidence_type = :evidenceType OR :evidenceType IS NULL)\n  AND (source_collection = ANY(:sources) OR :sources IS NULL)\n  AND (COALESCE(extracted_date, date_created) >= :startDate OR :startDate IS NULL)\n  AND (COALESCE(extracted_date, date_created) <= :endDate OR :endDate IS NULL)\n  AND (red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\nORDER BY red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC\nLIMIT :limit! OFFSET :offset!',
+    'SELECT \n  id,\n  file_name as "fileName",\n  file_type as "fileType",\n  file_size as "fileSize",\n  date_created as "dateCreated",\n  extracted_date as "extractedDate",\n  content_refined as "contentRefined",\n  evidence_type as "evidenceType",\n  metadata_json as "metadata",\n  word_count as "wordCount",\n  red_flag_rating as "redFlagRating",\n  COALESCE(NULLIF(title, \'\'), file_name) as "title",\n  source_collection as "sourceCollection",\n  COUNT(*)::integer OVER () as "totalCount"\nFROM documents\nWHERE (\n  :search::text IS NULL\n  OR file_name ILIKE :search\n  OR source_collection ILIKE :search\n  OR file_path ILIKE :search\n  OR fts_vector @@ websearch_to_tsquery(\'english\', :search)\n)\n  AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)\n  AND (evidence_type = :evidenceType OR :evidenceType IS NULL)\n  AND (source_collection = ANY(:sources) OR :sources IS NULL)\n  AND (COALESCE(extracted_date, date_created) >= :startDate OR :startDate IS NULL)\n  AND (COALESCE(extracted_date, date_created) <= :endDate OR :endDate IS NULL)\n  AND (red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\nORDER BY red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC\nLIMIT :limit! OFFSET :offset!',
 };
 
 /**
@@ -160,7 +130,7 @@ const getDocumentsIR: any = {
  *   red_flag_rating as "redFlagRating",
  *   COALESCE(NULLIF(title, ''), file_name) as "title",
  *   source_collection as "sourceCollection",
- *   COUNT(*) OVER () as "totalCount"
+ *   COUNT(*)::integer OVER () as "totalCount"
  * FROM documents
  * WHERE (
  *   :search::text IS NULL
@@ -198,7 +168,7 @@ export interface ICountDocumentsParams {
 
 /** 'CountDocuments' return type */
 export interface ICountDocumentsResult {
-  total: string | null;
+  total: number | null;
 }
 
 /** 'CountDocuments' query type */
@@ -224,11 +194,11 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 51, b: 57 },
-        { a: 94, b: 100 },
-        { a: 131, b: 137 },
-        { a: 160, b: 166 },
-        { a: 219, b: 225 },
+        { a: 60, b: 66 },
+        { a: 103, b: 109 },
+        { a: 140, b: 146 },
+        { a: 169, b: 175 },
+        { a: 228, b: 234 },
       ],
     },
     {
@@ -236,8 +206,8 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 253, b: 262 },
-        { a: 268, b: 277 },
+        { a: 262, b: 271 },
+        { a: 277, b: 286 },
       ],
     },
     {
@@ -245,8 +215,8 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 311, b: 323 },
-        { a: 328, b: 340 },
+        { a: 320, b: 332 },
+        { a: 337, b: 349 },
       ],
     },
     {
@@ -254,8 +224,8 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 382, b: 389 },
-        { a: 395, b: 402 },
+        { a: 391, b: 398 },
+        { a: 404, b: 411 },
       ],
     },
     {
@@ -263,8 +233,8 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 462, b: 471 },
-        { a: 476, b: 485 },
+        { a: 471, b: 480 },
+        { a: 485, b: 494 },
       ],
     },
     {
@@ -272,8 +242,8 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 545, b: 552 },
-        { a: 557, b: 564 },
+        { a: 554, b: 561 },
+        { a: 566, b: 573 },
       ],
     },
     {
@@ -281,8 +251,8 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 601, b: 611 },
-        { a: 616, b: 626 },
+        { a: 610, b: 620 },
+        { a: 625, b: 635 },
       ],
     },
     {
@@ -290,19 +260,19 @@ const countDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 663, b: 673 },
-        { a: 678, b: 688 },
+        { a: 672, b: 682 },
+        { a: 687, b: 697 },
       ],
     },
   ],
   statement:
-    "SELECT COUNT(*) as total \nFROM documents\nWHERE (\n  :search::text IS NULL\n  OR file_name ILIKE :search\n  OR source_collection ILIKE :search\n  OR file_path ILIKE :search\n  OR fts_vector @@ websearch_to_tsquery('english', :search)\n)\n  AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)\n  AND (evidence_type = :evidenceType OR :evidenceType IS NULL)\n  AND (source_collection = ANY(:sources) OR :sources IS NULL)\n  AND (COALESCE(extracted_date, date_created) >= :startDate OR :startDate IS NULL)\n  AND (COALESCE(extracted_date, date_created) <= :endDate OR :endDate IS NULL)\n  AND (red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)",
+    "SELECT COUNT(*)::integer as total \nFROM documents\nWHERE (\n  :search::text IS NULL\n  OR file_name ILIKE :search\n  OR source_collection ILIKE :search\n  OR file_path ILIKE :search\n  OR fts_vector @@ websearch_to_tsquery('english', :search)\n)\n  AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)\n  AND (evidence_type = :evidenceType OR :evidenceType IS NULL)\n  AND (source_collection = ANY(:sources) OR :sources IS NULL)\n  AND (COALESCE(extracted_date, date_created) >= :startDate OR :startDate IS NULL)\n  AND (COALESCE(extracted_date, date_created) <= :endDate OR :endDate IS NULL)\n  AND (red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*) as total
+ * SELECT COUNT(*)::integer as total
  * FROM documents
  * WHERE (
  *   :search::text IS NULL
@@ -363,10 +333,10 @@ export interface IGetDocumentByIdQuery {
 const getDocumentByIdIR: any = {
   usedParamSet: { id: true },
   params: [
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 796, b: 799 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 787, b: 790 }] },
   ],
   statement:
-    'SELECT \n  id,\n  file_name as "fileName",\n  file_path as "filePath",\n  file_type as "fileType",\n  file_size as "fileSize",\n  date_created as "dateCreated",\n  extracted_date as "extractedDate",\n  content_hash as "contentHash",\n  word_count as "wordCount",\n  red_flag_rating as "redFlagRating",\n  metadata_json as "metadataJson",\n  content_refined as "content",\n  title,\n  evidence_type as "evidenceType",\n  unredaction_attempted as "unredactionAttempted",\n  unredaction_succeeded as "unredactionSucceeded",\n  redaction_coverage_before as "redactionCoverageBefore",\n  redaction_coverage_after as "redactionCoverageAfter",\n  unredacted_text_gain as "unredactedTextGain",\n  unredaction_baseline_vocab as "unredactionBaselineVocab",\n  original_file_path as "originalFilePath"\nFROM documents\nWHERE id = :id!',
+    'SELECT \n  id,\n  file_name as "fileName",\n  file_path as "filePath",\n  file_type as "fileType",\n  file_size as "fileSize",\n  date_created as "dateCreated",\n  extracted_date as "extractedDate",\n  content_hash as "contentHash",\n  word_count as "wordCount",\n  red_flag_rating as "redFlagRating",\n  metadata_json as "metadataJson",\n  content_refined as "content",\n  title,\n  evidence_type as "evidenceType",\n  unredaction_attempted as "unredactionAttempted",\n  unredaction_succeeded as "unredactionSucceeded",\n  redaction_coverage_before as "redactionCoverageBefore",\n  redaction_coverage_after as "redactionCoverageAfter",\n  unredacted_text_gain as "unredactedTextGain",\n  unredaction_baseline_vocab as "unredactionBaselineVocab",\n  file_path as "originalFilePath"\nFROM documents\nWHERE id = :id!',
 };
 
 /**
@@ -393,7 +363,7 @@ const getDocumentByIdIR: any = {
  *   redaction_coverage_after as "redactionCoverageAfter",
  *   unredacted_text_gain as "unredactedTextGain",
  *   unredaction_baseline_vocab as "unredactionBaselineVocab",
- *   original_file_path as "originalFilePath"
+ *   file_path as "originalFilePath"
  * FROM documents
  * WHERE id = :id!
  * ```
@@ -411,7 +381,7 @@ export interface IGetDocumentEntitiesParams {
 export interface IGetDocumentEntitiesResult {
   entityId: string;
   entityType: string | null;
-  mentions: string | null;
+  mentions: number | null;
   name: string;
   redFlagRating: number | null;
 }
@@ -429,11 +399,11 @@ const getDocumentEntitiesIR: any = {
       name: 'documentId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 272, b: 283 }],
+      locs: [{ a: 281, b: 292 }],
     },
   ],
   statement:
-    'SELECT\n  e.id as "entityId",\n  e.full_name as "name",\n  COALESCE(e.entity_type, \'unknown\') as "entityType",\n  COALESCE(e.red_flag_rating, 0) as "redFlagRating",\n  COUNT(*) as "mentions"\nFROM entity_mentions em\nJOIN entities e ON e.id = em.entity_id\nWHERE em.document_id = :documentId!\nGROUP BY e.id, e.full_name, e.entity_type, e.red_flag_rating\nORDER BY mentions DESC, "redFlagRating" DESC, e.full_name ASC\nLIMIT 200',
+    'SELECT\n  e.id as "entityId",\n  e.full_name as "name",\n  COALESCE(e.entity_type, \'unknown\') as "entityType",\n  COALESCE(e.red_flag_rating, 0) as "redFlagRating",\n  COUNT(*)::integer as "mentions"\nFROM entity_mentions em\nJOIN entities e ON e.id = em.entity_id\nWHERE em.document_id = :documentId!\nGROUP BY e.id, e.full_name, e.entity_type, e.red_flag_rating\nORDER BY mentions DESC, "redFlagRating" DESC, e.full_name ASC\nLIMIT 200',
 };
 
 /**
@@ -444,7 +414,7 @@ const getDocumentEntitiesIR: any = {
  *   e.full_name as "name",
  *   COALESCE(e.entity_type, 'unknown') as "entityType",
  *   COALESCE(e.red_flag_rating, 0) as "redFlagRating",
- *   COUNT(*) as "mentions"
+ *   COUNT(*)::integer as "mentions"
  * FROM entity_mentions em
  * JOIN entities e ON e.id = em.entity_id
  * WHERE em.document_id = :documentId!

@@ -591,13 +591,15 @@ export const mediaRepository = {
     if (filters?.excludeTextScans) {
       whereParts.push(`
         NOT (
-          m.has_text IS TRUE
-          OR m.metadata_json->>'is_text_only' = 'true'
-          OR m.file_path ILIKE '%Unconfirmed Claims%'
-          OR m.file_path ILIKE '%textify%'
-          OR m.file_path ILIKE '%_ocr%'
-          OR m.file_path ILIKE '%-ocr-%'
-          OR (m.metadata_json->>'is_document_extract' = 'true' AND LENGTH(COALESCE(m.title, '')) > 80)
+          (
+            m.has_text IS TRUE
+            OR m.metadata_json->>'is_text_only' = 'true'
+            OR m.file_path ILIKE '%Unconfirmed Claims%'
+            OR m.file_path ILIKE '%textify%'
+            OR m.file_path ILIKE '%_ocr%'
+            OR m.file_path ILIKE '%-ocr-%'
+            OR (m.metadata_json->>'is_document_extract' = 'true' AND LENGTH(COALESCE(m.title, '')) > 80)
+          ) IS TRUE
         )
       `);
     }

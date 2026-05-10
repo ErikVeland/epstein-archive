@@ -304,7 +304,7 @@ export const dataQualityRepository = {
         d.id,
         d.file_name,
         d.source_collection,
-        d.source_original_url,
+        NULL::text AS source_original_url,
         d.source_path,
         d.source_url,
         d.source_system,

@@ -48,4 +48,23 @@ WHERE (:search::text IS NULL
     OR publication = :publication);
 
 /* @name getArticleById */
-SELECT * FROM articles WHERE id = :id!;
+SELECT
+  id,
+  title,
+  link,
+  source,
+  publication,
+  pub_date,
+  description,
+  summary,
+  tags,
+  red_flag_rating,
+  image_url,
+  reading_time,
+  created_at,
+  updated_at,
+  content,
+  author,
+  guid
+FROM articles
+WHERE id = :id!;

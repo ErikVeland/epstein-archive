@@ -15,7 +15,7 @@ export interface IGetThreadsParams {
 export interface IGetThreadsResult {
   firstDate: Date | null;
   lastDate: Date | null;
-  messageCount: string | null;
+  messageCount: number | null;
   participantsJson: Json | null;
   previewSnippet: string | null;
   subjectCanonical: string | null;
@@ -31,11 +31,11 @@ export interface IGetThreadsQuery {
 const getThreadsIR: any = {
   usedParamSet: { limit: true, offset: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 468, b: 474 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 483, b: 490 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 477, b: 483 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 492, b: 499 }] },
   ],
   statement:
-    'SELECT \n  COALESCE(metadata_json->>\'thread_id\', id::text) as "threadId",\n  MIN(metadata_json->>\'subject\') as "subjectCanonical",\n  COUNT(*) as "messageCount",\n  MIN(date_created) as "firstDate",\n  MAX(date_created) as "lastDate",\n  jsonb_agg(metadata_json->>\'from\') as "participantsJson",\n  (SELECT content FROM documents d2 WHERE d2.id = MAX(d.id)) as "previewSnippet"\nFROM documents d\nWHERE evidence_type = \'email\'\nGROUP BY "threadId"\nORDER BY "lastDate" DESC\nLIMIT :limit! OFFSET :offset!',
+    'SELECT \n  COALESCE(metadata_json->>\'thread_id\', id::text) as "threadId",\n  MIN(metadata_json->>\'subject\') as "subjectCanonical",\n  COUNT(*)::integer as "messageCount",\n  MIN(date_created) as "firstDate",\n  MAX(date_created) as "lastDate",\n  jsonb_agg(metadata_json->>\'from\') as "participantsJson",\n  (SELECT content FROM documents d2 WHERE d2.id = MAX(d.id)) as "previewSnippet"\nFROM documents d\nWHERE evidence_type = \'email\'\nGROUP BY "threadId"\nORDER BY "lastDate" DESC\nLIMIT :limit! OFFSET :offset!',
 };
 
 /**
@@ -44,7 +44,7 @@ const getThreadsIR: any = {
  * SELECT
  *   COALESCE(metadata_json->>'thread_id', id::text) as "threadId",
  *   MIN(metadata_json->>'subject') as "subjectCanonical",
- *   COUNT(*) as "messageCount",
+ *   COUNT(*)::integer as "messageCount",
  *   MIN(date_created) as "firstDate",
  *   MAX(date_created) as "lastDate",
  *   jsonb_agg(metadata_json->>'from') as "participantsJson",
@@ -185,18 +185,28 @@ export interface IGetMessageByIdResult {
   last_processed_at: Date | null;
   lease_expires_at: Date | null;
   metadata_json: Json | null;
+  normalized_text_sha256: string | null;
   original_file_id: string | null;
-  original_file_path: string | null;
   page_count: number | null;
+  parent_document_id: string | null;
   pipeline_version: string | null;
   processing_attempts: number | null;
   processing_error: string | null;
   processing_status: string | null;
+  provenance_score: number | null;
+  provenance_status: string | null;
   red_flag_rating: number | null;
   redaction_coverage_after: number | null;
   redaction_coverage_before: number | null;
   signal_score: number | null;
+  significance_score: number;
+  source_acquired_at: Date | null;
+  source_acquisition_method: string | null;
   source_collection: string | null;
+  source_path: string | null;
+  source_release: string | null;
+  source_system: string | null;
+  source_url: string | null;
   start_offset: number | null;
   title: string | null;
   unredacted_span_json: string | null;
@@ -325,18 +335,28 @@ export interface IGetCommunicationsForEntityResult {
   last_processed_at: Date | null;
   lease_expires_at: Date | null;
   metadata_json: Json | null;
+  normalized_text_sha256: string | null;
   original_file_id: string | null;
-  original_file_path: string | null;
   page_count: number | null;
+  parent_document_id: string | null;
   pipeline_version: string | null;
   processing_attempts: number | null;
   processing_error: string | null;
   processing_status: string | null;
+  provenance_score: number | null;
+  provenance_status: string | null;
   red_flag_rating: number | null;
   redaction_coverage_after: number | null;
   redaction_coverage_before: number | null;
   signal_score: number | null;
+  significance_score: number;
+  source_acquired_at: Date | null;
+  source_acquisition_method: string | null;
   source_collection: string | null;
+  source_path: string | null;
+  source_release: string | null;
+  source_system: string | null;
+  source_url: string | null;
   start_offset: number | null;
   title: string | null;
   unredacted_span_json: string | null;

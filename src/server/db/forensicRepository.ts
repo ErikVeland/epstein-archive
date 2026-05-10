@@ -122,7 +122,7 @@ export const forensicRepository = {
   getChainOfCustody: async (evidenceId: number | string) => {
     const pool = getApiPool();
     const res = await pool.query(
-      'SELECT id, evidence_id, actor, action, date, notes, signature FROM chain_of_custody WHERE evidence_id = $1 ORDER BY date DESC',
+      'SELECT id, document_id as evidence_id, actor, action, date, notes, signature FROM chain_of_custody WHERE document_id = $1 ORDER BY date DESC',
       [evidenceId],
     );
     return res.rows;
@@ -141,7 +141,7 @@ export const forensicRepository = {
   }) => {
     const pool = getApiPool();
     const sql = `
-      INSERT INTO chain_of_custody (evidence_id, actor, action, date, notes, signature)
+      INSERT INTO chain_of_custody (document_id, actor, action, date, notes, signature)
       VALUES ($1, $2, $3, $4, $5, $6)
     `;
     await pool.query(sql, [

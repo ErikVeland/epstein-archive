@@ -45,6 +45,7 @@ interface NetworkGraphProps {
   onFilterUpdate?: (stats: { visible: number; total: number; label: string }) => void;
   onEdgeClick?: (edge: Relationship) => void;
   nodeRiskActions?: React.ReactNode;
+  highlightedNodeIds?: string[];
 }
 
 interface Point {
@@ -133,11 +134,17 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   onFilterUpdate,
   onEdgeClick,
   nodeRiskActions,
+  highlightedNodeIds = [],
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [nodes, setNodes] = useState<GraphNode[]>([]);
   const [transform, setTransform] = useState({ x: 50, y: 50, k: 1.0 }); // Start centered at 50,50 for 100x100 viewBox
   const [isDragging, setIsDragging] = useState(false);
+  const highlightSet = useMemo(
+    () => new Set((highlightedNodeIds || []).map(String)),
+    [highlightedNodeIds],
+  );
+  const hasActiveHighlight = highlightSet.size > 0;
   const [dragStart, setDragStart] = useState<Point>({ x: 0, y: 0 });
   const [draggedNode, setDraggedNode] = useState<string | number | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
@@ -923,12 +930,20 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               const weightBonus = (link.normalizedWeight || 0) * 2.5;
               const baseWidth = 1.0 + weightBonus;
               const highlightWidth = 3.5 + weightBonus;
+              const isLinkHighlighted =
+                highlightSet.has(String(link.source.id)) &&
+                highlightSet.has(String(link.target.id));
               const baseOpacity =
                 transform.k < 0.4
                   ? 0.25
                   : transform.k < 0.8
                     ? 0.35
                     : 0.45 + (link.normalizedWeight || 0) * 0.35;
+
+              let finalOpacity = isHighlight ? 0.85 : baseOpacity;
+              if (hasActiveHighlight) {
+                finalOpacity = isLinkHighlighted ? 0.95 : 0.05;
+              }
 
               return (
                 <line
@@ -937,9 +952,15 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                   y1={link.source.y}
                   x2={link.target.x}
                   y2={link.target.y}
-                  stroke={isHighlight ? 'var(--text-strong)' : stroke}
-                  strokeWidth={isHighlight ? highlightWidth : baseWidth}
-                  strokeOpacity={isHighlight ? 0.85 : baseOpacity}
+                  stroke={
+                    isLinkHighlighted
+                      ? 'var(--accent)'
+                      : isHighlight
+                        ? 'var(--text-strong)'
+                        : stroke
+                  }
+                  strokeWidth={isLinkHighlighted ? 4.0 : isHighlight ? highlightWidth : baseWidth}
+                  strokeOpacity={finalOpacity}
                   strokeDasharray={isInferred || isAgentic ? '1.6 1.2' : undefined}
                   vectorEffect="non-scaling-stroke"
                   className={styles.link}
@@ -962,6 +983,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           {/* Nodes */}
           <g className="nodes">
             {filteredNodes.map((node) => {
+              const isNodeHighlighted = highlightSet.has(String(node.id));
+              const nodeOpacity = hasActiveHighlight && !isNodeHighlighted ? 0.15 : 1.0;
               const color = getRiskColor(node.risk || 0); // Changed from node.riskLevel to node.risk
               const isHovered = hoveredNode === node.label; // Changed from node.label to node.label
               const size = node.radius || 4;
@@ -1000,8 +1023,13 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                   className={spacePressed ? styles.dragDisabled : styles.nodeGroup}
                   style={{
                     transition: isDragging && draggedNode === node.id ? 'none' : undefined,
+                    opacity: nodeOpacity,
                   }}
                 >
+                  {/* Highlight Strobe Ring */}
+                  {isNodeHighlighted && (
+                    <circle r={(size / 2) * 1.8} className={styles.highlightHalo} />
+                  )}
                   {/* Outer Glow */}
                   <circle
                     r={(size / 2) * 2.5}

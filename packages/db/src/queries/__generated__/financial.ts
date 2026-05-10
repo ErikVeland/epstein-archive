@@ -296,8 +296,8 @@ export type IGetFinancialSummaryParams = void;
 
 /** 'GetFinancialSummary' return type */
 export interface IGetFinancialSummaryResult {
-  highRiskCount: string | null;
-  totalTransactions: string | null;
+  highRiskCount: number | null;
+  totalTransactions: number | null;
   totalValue: string | null;
 }
 
@@ -311,7 +311,7 @@ const getFinancialSummaryIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT\n  (SELECT SUM(amount) FROM financial_transactions) as "totalValue",\n  (SELECT COUNT(*) FROM financial_transactions WHERE risk_level IN (\'high\', \'critical\')) as "highRiskCount",\n  (SELECT COUNT(*) FROM financial_transactions) as "totalTransactions"',
+    'SELECT\n  (SELECT SUM(amount) FROM financial_transactions) as "totalValue",\n  (SELECT COUNT(*)::integer FROM financial_transactions WHERE risk_level IN (\'high\', \'critical\')) as "highRiskCount",\n  (SELECT COUNT(*)::integer FROM financial_transactions) as "totalTransactions"',
 };
 
 /**
@@ -319,8 +319,8 @@ const getFinancialSummaryIR: any = {
  * ```
  * SELECT
  *   (SELECT SUM(amount) FROM financial_transactions) as "totalValue",
- *   (SELECT COUNT(*) FROM financial_transactions WHERE risk_level IN ('high', 'critical')) as "highRiskCount",
- *   (SELECT COUNT(*) FROM financial_transactions) as "totalTransactions"
+ *   (SELECT COUNT(*)::integer FROM financial_transactions WHERE risk_level IN ('high', 'critical')) as "highRiskCount",
+ *   (SELECT COUNT(*)::integer FROM financial_transactions) as "totalTransactions"
  * ```
  */
 export const getFinancialSummary = new PreparedQuery<

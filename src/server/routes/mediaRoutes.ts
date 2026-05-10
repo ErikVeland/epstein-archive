@@ -185,7 +185,7 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
       sortOrder,
       fileType: 'image',
       transcriptQuery: typeof query.search === 'string' ? query.search : undefined,
-      excludeTextScans: query.excludeTextScans !== false,
+      excludeTextScans: query.excludeTextScans === true,
     });
 
     res.setHeader('X-Total-Count', String(total));

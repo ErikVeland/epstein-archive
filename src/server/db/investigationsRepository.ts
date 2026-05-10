@@ -36,7 +36,7 @@ type InvestigationEvidenceAnnotationType = 'highlight' | 'note' | 'tag' | 'class
 type InvestigationEvidenceAnnotationRow = {
   id: number;
   investigation_id: number;
-  evidence_id: number;
+  document_id: number;
   annotation_type: InvestigationEvidenceAnnotationType;
   content: string;
   color: string | null;
@@ -474,7 +474,7 @@ export const investigationsRepository = {
         SELECT
           id,
           investigation_id,
-          evidence_id,
+          document_id,
           annotation_type,
           content,
           color,
@@ -485,7 +485,7 @@ export const investigationsRepository = {
           created_at::text,
           updated_at::text
         FROM investigation_evidence_annotations
-        WHERE investigation_id = $1 AND evidence_id = $2
+        WHERE investigation_id = $1 AND document_id = $2
         ORDER BY created_at ASC
       `,
       [investigationId, evidenceId],
@@ -493,7 +493,7 @@ export const investigationsRepository = {
 
     return result.rows.map((row) => ({
       id: String(row.id),
-      evidenceId: Number(row.evidence_id),
+      evidenceId: Number(row.document_id),
       type: row.annotation_type,
       content: row.content,
       color: row.color || undefined,
@@ -513,7 +513,7 @@ export const investigationsRepository = {
         SELECT
           id,
           investigation_id,
-          evidence_id,
+          document_id,
           annotation_type,
           content,
           color,
@@ -525,14 +525,14 @@ export const investigationsRepository = {
           updated_at::text
         FROM investigation_evidence_annotations
         WHERE investigation_id = $1
-        ORDER BY evidence_id ASC, created_at ASC
+        ORDER BY document_id ASC, created_at ASC
       `,
       [investigationId],
     );
 
     return result.rows.map((row) => ({
       id: String(row.id),
-      evidenceId: Number(row.evidence_id),
+      evidenceId: Number(row.document_id),
       type: row.annotation_type,
       content: row.content,
       color: row.color || undefined,
@@ -562,7 +562,7 @@ export const investigationsRepository = {
       `
         INSERT INTO investigation_evidence_annotations (
           investigation_id,
-          evidence_id,
+          document_id,
           annotation_type,
           content,
           color,
@@ -575,7 +575,7 @@ export const investigationsRepository = {
         RETURNING
           id,
           investigation_id,
-          evidence_id,
+          document_id,
           annotation_type,
           content,
           color,
@@ -602,7 +602,7 @@ export const investigationsRepository = {
     const row = result.rows[0];
     return {
       id: String(row.id),
-      evidenceId: Number(row.evidence_id),
+      evidenceId: Number(row.document_id),
       type: row.annotation_type,
       content: row.content,
       color: row.color || undefined,
@@ -637,11 +637,11 @@ export const investigationsRepository = {
           end_offset = COALESCE($7, end_offset),
           metadata_json = COALESCE($8::jsonb, metadata_json),
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1 AND investigation_id = $2 AND evidence_id = $3
+        WHERE id = $1 AND investigation_id = $2 AND document_id = $3
         RETURNING
           id,
           investigation_id,
-          evidence_id,
+          document_id,
           annotation_type,
           content,
           color,
@@ -675,7 +675,7 @@ export const investigationsRepository = {
     const result = await getApiPool().query(
       `
         DELETE FROM investigation_evidence_annotations
-        WHERE id = $1 AND investigation_id = $2 AND evidence_id = $3
+        WHERE id = $1 AND investigation_id = $2 AND document_id = $3
       `,
       [annotationId, investigationId, evidenceId],
     );
@@ -695,9 +695,9 @@ export const investigationsRepository = {
     // Fetch ALL evidence links for all these hypotheses in one go to avoid N+1
     const hypothesisIds = hypotheses.map((h: IGetHypothesesResult) => Number(h.id));
     const allEvidenceLinks = await getApiPool().query(
-      `SELECT he.*, e.title as evidence_title, e.evidence_type
+      `SELECT he.*, d.title as evidence_title, d.evidence_type
        FROM hypothesis_evidence he
-       LEFT JOIN evidence e ON he.evidence_id = e.id
+       LEFT JOIN documents d ON he.document_id = d.id
        WHERE he.hypothesis_id = ANY($1::int[])`,
       [hypothesisIds],
     );
@@ -710,7 +710,7 @@ export const investigationsRepository = {
           ...link,
           id: Number(link.id),
           hypothesis_id: hid,
-          evidence_id: Number(link.evidence_id),
+          document_id: Number(link.document_id),
         });
         return acc;
       },
@@ -836,24 +836,23 @@ export const investigationsRepository = {
     // We use a raw query here to easily apply limit/offset to the joint view
     const result = await getApiPool().query(
       `SELECT 
-        e.id, 
-        e.evidence_type as type, 
-        e.title, 
-        e.description, 
-        e.source_path,
-        e.metadata_json,
+        d.id, 
+        d.evidence_type as type, 
+        d.title, 
+        COALESCE(d.content_preview, LEFT(d.content, 320)) as description, 
+        d.file_path as source_path,
+        d.metadata_json,
         ie.id as investigation_evidence_id,
         d.id as document_id,
         m.id as media_item_id,
-        e.red_flag_rating,
+        d.red_flag_rating,
         ie.relevance, 
         ie.added_at, 
         ie.added_by,
         ie.notes
       FROM investigation_evidence ie
-      JOIN evidence e ON ie.evidence_id = e.id
-      LEFT JOIN documents d ON d.file_path = e.source_path OR e.source_path LIKE '%' || d.file_path || '%'
-      LEFT JOIN media_items m ON m.file_path = e.source_path OR e.source_path LIKE '%' || m.file_path || '%'
+      JOIN documents d ON ie.document_id = d.id
+      LEFT JOIN media_items m ON m.file_path = d.file_path OR d.file_path LIKE '%' || m.file_path || '%'
       WHERE ie.investigation_id = $1 
       ORDER BY ie.added_at DESC
       LIMIT $2 OFFSET $3`,
@@ -916,8 +915,7 @@ export const investigationsRepository = {
       // totalDocuments: Total number of evidence records in the investigation
       const totalDocuments = summary.totalEvidence;
 
-      // entitiesWithDocuments: For investigation scoping, this is the count of entities
-      // that are explicitly linked via the evidence_entity table in this investigation.
+      // entitiesWithDocuments: Count entities mentioned by documents linked as investigation evidence.
       const entitiesWithDocuments = totalEntities;
 
       // documentsWithMetadata: Count of documents that have non-empty enrichment/metadata
@@ -1005,11 +1003,9 @@ export const investigationsRepository = {
         SELECT DISTINCT i.id
         FROM investigations i
         JOIN investigation_evidence ie ON i.id = ie.investigation_id
-        JOIN evidence ev ON ie.evidence_id = ev.id
-        LEFT JOIN evidence_entity ee ON ev.id = ee.evidence_id
-        LEFT JOIN documents d ON d.file_path = ev.source_path
-        LEFT JOIN entity_mentions em ON d.id = em.document_id
-        WHERE ee.entity_id = $1::bigint OR em.entity_id = $1::bigint
+        JOIN documents d ON d.id = ie.document_id
+        JOIN entity_mentions em ON d.id = em.document_id
+        WHERE em.entity_id = $1::bigint
       )
       SELECT * FROM investigations
       WHERE id IN (SELECT id FROM linked_via_leads UNION SELECT id FROM linked_via_mentions)

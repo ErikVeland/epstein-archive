@@ -320,33 +320,6 @@ export const evidenceRepository = {
         );
         evidenceId = String(ins.id);
 
-        interface MediaPersonRow {
-          entity_id: number;
-          role?: string;
-        }
-        const people = await runQuery<{ mediaItemId: string }, MediaPersonRow>(
-          evidenceQueries.getMediaItemPeople,
-          { mediaItemId },
-          getApiPool(),
-        );
-        if (people.length > 0) {
-          // Batch insert all entity links in one query instead of N+1 individual inserts
-          const values = people.map((_: MediaPersonRow, i: number) => {
-            const base = i * 5;
-            return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
-          });
-          const params: (string | number)[] = [];
-          for (const p of people) {
-            params.push(evidenceId, String(p.entity_id), String(p.role || 'participant'), 0.8, '');
-          }
-          await client.query(
-            `INSERT INTO evidence_entity (evidence_id, entity_id, role, confidence, mention_context)
-             VALUES ${values.join(', ')}
-             ON CONFLICT DO NOTHING`,
-            params,
-          );
-        }
-
         await client.query('COMMIT');
       } catch (err) {
         await client.query('ROLLBACK');
@@ -403,14 +376,14 @@ export const evidenceRepository = {
       fullName: string;
       entityCategory: string;
     }>(
-      `SELECT ie.evidence_id::text AS "evidenceId",
-              ee.entity_id::text   AS "entityId",
-              COALESCE(ent.full_name, '[deleted]') AS "fullName",
-              COALESCE(ent.entity_category, 'unknown') AS "entityCategory"
-       FROM investigation_evidence ie
-       LEFT JOIN evidence_entity ee  ON ee.evidence_id = ie.evidence_id
-       LEFT JOIN entities ent ON ent.id = ee.entity_id
-       WHERE ie.investigation_id = $1`,
+      `SELECT ie.document_id::text AS "evidenceId",
+	              em.entity_id::text   AS "entityId",
+	              COALESCE(ent.full_name, '[deleted]') AS "fullName",
+	              COALESCE(ent.entity_category, 'unknown') AS "entityCategory"
+	       FROM investigation_evidence ie
+	       LEFT JOIN entity_mentions em ON em.document_id = ie.document_id
+	       LEFT JOIN entities ent ON ent.id = em.entity_id
+	       WHERE ie.investigation_id = $1`,
       [investigationId],
     );
 
@@ -552,11 +525,12 @@ export const evidenceRepository = {
             category: string;
             role: string;
           }>(
-            `SELECT ee.evidence_id, ent.id, ent.full_name AS name,
-                  ent.primary_role AS category, ee.role
-           FROM evidence_entity ee
-           INNER JOIN entities ent ON ent.id = ee.entity_id
-           WHERE ee.evidence_id = ANY($1::int[])`,
+            `SELECT ie.document_id AS evidence_id, ent.id, ent.full_name AS name,
+                  ent.primary_role AS category, 'mentioned' AS role
+           FROM investigation_evidence ie
+           INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+           INNER JOIN entities ent ON ent.id = em.entity_id
+           WHERE ie.document_id = ANY($1::int[])`,
             [resultIds],
           )
           .then((r) => r.rows)
@@ -613,14 +587,13 @@ export const evidenceRepository = {
     // Get timeline events if any
     const eventRows = await getApiPool().query(
       `SELECT 
-        te.event_date as date,
-        te.event_description as description,
-        te.event_type as type,
-        'medium' as significance_score
-      FROM timeline_events te
-      JOIN documents d ON d.id = te.document_id
-      JOIN evidence e ON e.source_path = d.file_path
-      WHERE e.id = $1`,
+        te.date,
+        te.description,
+        te.type,
+        te.significance as significance_score
+      FROM global_timeline_events te
+      JOIN documents d ON d.id = te.related_document_id
+      WHERE d.id = $1`,
       [id],
     );
     const events = eventRows.rows;
@@ -679,13 +652,15 @@ export const evidenceRepository = {
         e.id,
         e.evidence_type as "evidenceType",
         e.title,
-        e.description,
+        COALESCE(e.content_preview, LEFT(e.content, 320)) as "description",
         e.red_flag_rating as "redFlagRating",
         e.created_at as "createdAt"
-      FROM evidence e
-      INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
-      WHERE ee.entity_id = $1
+      FROM documents e
+      INNER JOIN investigation_evidence ie ON ie.document_id = e.id
+      INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+      WHERE em.entity_id = $1
         AND ($2::text IS NULL OR e.evidence_type = $2)
+      GROUP BY e.id
       ORDER BY e.created_at DESC
       LIMIT $3 OFFSET $4`,
       [entityId, type || null, limitNum, offset],
@@ -694,9 +669,10 @@ export const evidenceRepository = {
 
     const countRows = await getApiPool().query(
       `SELECT COUNT(*) as total
-      FROM evidence e
-      INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
-      WHERE ee.entity_id = $1
+      FROM documents e
+      INNER JOIN investigation_evidence ie ON ie.document_id = e.id
+      INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+      WHERE em.entity_id = $1
         AND ($2::text IS NULL OR e.evidence_type = $2)`,
       [entityId, type || null],
     );

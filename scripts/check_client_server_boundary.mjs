@@ -33,6 +33,13 @@ for (const file of rawFiles) {
     if (isForbidden(spec)) {
       violations.push({ file, spec });
     }
+    if (spec === 'pg' || spec === 'node-postgres') {
+      violations.push({ file, spec: `${spec} (database client import in browser code)` });
+    }
+  }
+
+  if (/\b(require\s*\(\s*['"`]pg['"`]\s*\)|from\s+['"`]pg['"`])/.test(content)) {
+    violations.push({ file, spec: 'pg (database client import in browser code)' });
   }
 }
 

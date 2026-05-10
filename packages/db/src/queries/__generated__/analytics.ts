@@ -264,11 +264,11 @@ export type IGetTotalCountsParams = void;
 
 /** 'GetTotalCounts' return type */
 export interface IGetTotalCountsResult {
-  documents: string | null;
-  entities: string | null;
-  evidence_files: string | null;
-  relationships: string | null;
-  unclassified_documents: string | null;
+  documents: number | null;
+  entities: number | null;
+  evidence_files: number | null;
+  relationships: number | null;
+  unclassified_documents: number | null;
 }
 
 /** 'GetTotalCounts' query type */
@@ -281,18 +281,18 @@ const getTotalCountsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    "SELECT\n  (SELECT COUNT(*) FROM entities  WHERE COALESCE(junk_tier,'clean') = 'clean') AS entities,\n  (SELECT COUNT(*) FROM documents)                                               AS documents,\n  (SELECT COUNT(*) FROM documents WHERE evidence_type IS NOT NULL)               AS evidence_files,\n  (SELECT COUNT(*) FROM documents WHERE evidence_type IS NULL)                   AS unclassified_documents,\n  (SELECT COUNT(*) FROM entity_relationships)                                    AS relationships",
+    "SELECT\n  (SELECT COUNT(*)::integer FROM entities  WHERE COALESCE(junk_tier,'clean') = 'clean') AS entities,\n  (SELECT COUNT(*)::integer FROM documents)                                               AS documents,\n  (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NOT NULL)               AS evidence_files,\n  (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NULL)                   AS unclassified_documents,\n  (SELECT COUNT(*)::integer FROM entity_relationships)                                    AS relationships",
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   (SELECT COUNT(*) FROM entities  WHERE COALESCE(junk_tier,'clean') = 'clean') AS entities,
- *   (SELECT COUNT(*) FROM documents)                                               AS documents,
- *   (SELECT COUNT(*) FROM documents WHERE evidence_type IS NOT NULL)               AS evidence_files,
- *   (SELECT COUNT(*) FROM documents WHERE evidence_type IS NULL)                   AS unclassified_documents,
- *   (SELECT COUNT(*) FROM entity_relationships)                                    AS relationships
+ *   (SELECT COUNT(*)::integer FROM entities  WHERE COALESCE(junk_tier,'clean') = 'clean') AS entities,
+ *   (SELECT COUNT(*)::integer FROM documents)                                               AS documents,
+ *   (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NOT NULL)               AS evidence_files,
+ *   (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NULL)                   AS unclassified_documents,
+ *   (SELECT COUNT(*)::integer FROM entity_relationships)                                    AS relationships
  * ```
  */
 export const getTotalCounts = new PreparedQuery<IGetTotalCountsParams, IGetTotalCountsResult>(
@@ -304,8 +304,8 @@ export type IGetReconciliationCountsParams = void;
 
 /** 'GetReconciliationCounts' return type */
 export interface IGetReconciliationCountsResult {
-  unclassified: string | null;
-  unknown_date: string | null;
+  unclassified: number | null;
+  unknown_date: number | null;
 }
 
 /** 'GetReconciliationCounts' query type */
@@ -318,15 +318,15 @@ const getReconciliationCountsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    "SELECT\n  (SELECT COUNT(*) FROM documents WHERE evidence_type IS NULL) AS unclassified,\n  (SELECT COUNT(*) FROM documents\n     WHERE date_created IS NULL\n       OR date_created > '2026-12-31'::date) AS unknown_date",
+    "SELECT\n  (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NULL) AS unclassified,\n  (SELECT COUNT(*)::integer FROM documents\n     WHERE date_created IS NULL\n       OR date_created > '2026-12-31'::date) AS unknown_date",
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   (SELECT COUNT(*) FROM documents WHERE evidence_type IS NULL) AS unclassified,
- *   (SELECT COUNT(*) FROM documents
+ *   (SELECT COUNT(*)::integer FROM documents WHERE evidence_type IS NULL) AS unclassified,
+ *   (SELECT COUNT(*)::integer FROM documents
  *      WHERE date_created IS NULL
  *        OR date_created > '2026-12-31'::date) AS unknown_date
  * ```
@@ -405,7 +405,7 @@ export interface IGetWebVitalsAggregatesResult {
   p75Inp: number | null;
   p75Lcp: number | null;
   route: string;
-  sampleCount: string | null;
+  sampleCount: number | null;
 }
 
 /** 'GetWebVitalsAggregates' query type */
@@ -417,10 +417,10 @@ export interface IGetWebVitalsAggregatesQuery {
 const getWebVitalsAggregatesIR: any = {
   usedParamSet: { days: true },
   params: [
-    { name: 'days', required: false, transform: { type: 'scalar' }, locs: [{ a: 366, b: 370 }] },
+    { name: 'days', required: false, transform: { type: 'scalar' }, locs: [{ a: 375, b: 379 }] },
   ],
   statement:
-    'SELECT \n  collected_at::date as date,\n  route,\n  COUNT(*) as "sampleCount",\n  percentile_cont(0.75) WITHIN GROUP (ORDER BY cls) as "p75Cls",\n  percentile_cont(0.75) WITHIN GROUP (ORDER BY lcp) as "p75Lcp",\n  percentile_cont(0.75) WITHIN GROUP (ORDER BY inp) as "p75Inp",\n  AVG(long_task_count) as "avgLongTasks"\nFROM web_vitals\nWHERE collected_at >= CURRENT_DATE - (:days || \' days\')::interval\nGROUP BY date, route\nORDER BY date DESC, route',
+    'SELECT \n  collected_at::date as date,\n  route,\n  COUNT(*)::integer as "sampleCount",\n  percentile_cont(0.75) WITHIN GROUP (ORDER BY cls) as "p75Cls",\n  percentile_cont(0.75) WITHIN GROUP (ORDER BY lcp) as "p75Lcp",\n  percentile_cont(0.75) WITHIN GROUP (ORDER BY inp) as "p75Inp",\n  AVG(long_task_count) as "avgLongTasks"\nFROM web_vitals\nWHERE collected_at >= CURRENT_DATE - (:days || \' days\')::interval\nGROUP BY date, route\nORDER BY date DESC, route',
 };
 
 /**
@@ -429,7 +429,7 @@ const getWebVitalsAggregatesIR: any = {
  * SELECT
  *   collected_at::date as date,
  *   route,
- *   COUNT(*) as "sampleCount",
+ *   COUNT(*)::integer as "sampleCount",
  *   percentile_cont(0.75) WITHIN GROUP (ORDER BY cls) as "p75Cls",
  *   percentile_cont(0.75) WITHIN GROUP (ORDER BY lcp) as "p75Lcp",
  *   percentile_cont(0.75) WITHIN GROUP (ORDER BY inp) as "p75Inp",
@@ -458,7 +458,7 @@ export interface IGetWebVitalsAggregatesAverageResult {
   avgLongTasks: string | null;
   date: Date | null;
   route: string;
-  sampleCount: string | null;
+  sampleCount: number | null;
 }
 
 /** 'GetWebVitalsAggregatesAverage' query type */
@@ -470,10 +470,10 @@ export interface IGetWebVitalsAggregatesAverageQuery {
 const getWebVitalsAggregatesAverageIR: any = {
   usedParamSet: { days: true },
   params: [
-    { name: 'days', required: false, transform: { type: 'scalar' }, locs: [{ a: 243, b: 247 }] },
+    { name: 'days', required: false, transform: { type: 'scalar' }, locs: [{ a: 252, b: 256 }] },
   ],
   statement:
-    'SELECT \n  collected_at::date as date,\n  route,\n  COUNT(*) as "sampleCount",\n  AVG(cls) as "avgCls",\n  AVG(lcp) as "avgLcp",\n  AVG(inp) as "avgInp",\n  AVG(long_task_count) as "avgLongTasks"\nFROM web_vitals\nWHERE collected_at >= CURRENT_DATE - (:days || \' days\')::interval\nGROUP BY date, route\nORDER BY date DESC, route',
+    'SELECT \n  collected_at::date as date,\n  route,\n  COUNT(*)::integer as "sampleCount",\n  AVG(cls) as "avgCls",\n  AVG(lcp) as "avgLcp",\n  AVG(inp) as "avgInp",\n  AVG(long_task_count) as "avgLongTasks"\nFROM web_vitals\nWHERE collected_at >= CURRENT_DATE - (:days || \' days\')::interval\nGROUP BY date, route\nORDER BY date DESC, route',
 };
 
 /**
@@ -482,7 +482,7 @@ const getWebVitalsAggregatesAverageIR: any = {
  * SELECT
  *   collected_at::date as date,
  *   route,
- *   COUNT(*) as "sampleCount",
+ *   COUNT(*)::integer as "sampleCount",
  *   AVG(cls) as "avgCls",
  *   AVG(lcp) as "avgLcp",
  *   AVG(inp) as "avgInp",

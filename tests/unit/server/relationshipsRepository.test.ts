@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const queryMock = vi.fn();
 
@@ -23,6 +23,10 @@ vi.mock('@epstein/db', () => {
 });
 
 describe('relationshipsRepository.getRelationships', () => {
+  beforeEach(() => {
+    queryMock.mockReset();
+  });
+
   it('queries relationships using canonical_id when available', async () => {
     queryMock.mockResolvedValueOnce({
       rows: [{ id: '42', canonical_id: 1 }],
@@ -71,5 +75,23 @@ describe('relationshipsRepository.getRelationships', () => {
 
     expect(result.canonicalId).toBe(42);
     expect(queryMock.mock.calls.at(-1)?.[1]?.[0]).toBe(42);
+  });
+});
+
+describe('relationshipsRepository.resolveShortestPath', () => {
+  beforeEach(() => {
+    queryMock.mockReset();
+  });
+
+  it('uses the current entity_relationships table in the recursive path query', async () => {
+    queryMock.mockResolvedValueOnce({ rows: [] });
+
+    const { relationshipsRepository } =
+      await import('../../../src/server/db/relationshipsRepository');
+    await relationshipsRepository.resolveShortestPath('1', '2');
+
+    const sql = String(queryMock.mock.calls[0]?.[0] ?? '');
+    expect(sql).toContain('JOIN entity_relationships r');
+    expect(sql).not.toContain('JOIN relationships r');
   });
 });

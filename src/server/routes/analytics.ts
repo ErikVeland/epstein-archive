@@ -3,7 +3,7 @@ import { analyticsQueries } from '@epstein/db';
 import { analyticsRepository } from '../db/analyticsRepository.js';
 import { entitiesRepository } from '../db/entitiesRepository.js';
 import { getApiPool } from '../db/runtime.js';
-import { resetJunkFlags } from '../db/routesDb.js';
+import { resetJunkFlags } from '../db/healthQueries.js';
 import { analyticsRateLimiter } from '../middleware/rateLimit.js';
 import { cacheResponse } from '../utils/perfCache.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';

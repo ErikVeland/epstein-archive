@@ -8,7 +8,7 @@ import {
   getEntityAndDocumentCounts,
   getSampleEntityWithMentions,
   pingDatabase,
-} from '../db/routesDb.js';
+} from '../db/healthQueries.js';
 import { BackupService } from '../services/BackupService.js';
 import { cacheMiddleware } from '../middleware/cache.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';

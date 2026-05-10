@@ -29,10 +29,10 @@ export interface IGetMentionsQueueQuery {
 const getMentionsQueueIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 474, b: 480 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 472, b: 478 }] },
   ],
   statement:
-    'SELECT \n  m.id, m.entity_id as "entityId", m.document_id as "documentId", m.mention_context as "mentionContext", m.confidence as "confidenceScore", \n  e.full_name as "entityName", d.file_name as "fileName", ds.signal_score as "signalScore"\nFROM entity_mentions m\nJOIN entities e ON m.entity_id = e.id\nJOIN documents d ON m.document_id = d.id\nLEFT JOIN document_sentences ds ON m.sentence_id = ds.id\nWHERE m.verified = 0\nORDER BY ds.signal_score DESC, m.confidence ASC\nLIMIT :limit!',
+    'SELECT\n  m.id, m.entity_id as "entityId", m.document_id as "documentId", m.mention_context as "mentionContext", m.confidence as "confidenceScore",\n  e.full_name as "entityName", d.file_name as "fileName", ds.signal_score as "signalScore"\nFROM entity_mentions m\nJOIN entities e ON m.entity_id = e.id\nJOIN documents d ON m.document_id = d.id\nLEFT JOIN document_sentences ds ON m.sentence_id = ds.id\nWHERE m.verified = 0\nORDER BY ds.signal_score DESC, m.confidence ASC\nLIMIT :limit!',
 };
 
 /**
@@ -72,11 +72,11 @@ export interface IVerifyMentionQuery {
 const verifyMentionIR: any = {
   usedParamSet: { verifiedBy: true, id: true },
   params: [
-    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 56, b: 67 }] },
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 113, b: 116 }] },
+    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 55, b: 66 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 112, b: 115 }] },
   ],
   statement:
-    'UPDATE entity_mentions \nSET verified = 1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP\nWHERE id = :id!',
+    'UPDATE entity_mentions\nSET verified = 1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP\nWHERE id = :id!',
 };
 
 /**
@@ -110,12 +110,12 @@ export interface IRejectMentionQuery {
 const rejectMentionIR: any = {
   usedParamSet: { verifiedBy: true, reason: true, id: true },
   params: [
-    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 57, b: 68 }] },
-    { name: 'reason', required: true, transform: { type: 'scalar' }, locs: [{ a: 123, b: 130 }] },
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 143, b: 146 }] },
+    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 56, b: 67 }] },
+    { name: 'reason', required: true, transform: { type: 'scalar' }, locs: [{ a: 122, b: 129 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 142, b: 145 }] },
   ],
   statement:
-    'UPDATE entity_mentions \nSET verified = -1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP, rejection_reason = :reason!\nWHERE id = :id!',
+    'UPDATE entity_mentions\nSET verified = -1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP, rejection_reason = :reason!\nWHERE id = :id!',
 };
 
 /**
@@ -144,7 +144,7 @@ export interface IGetClaimsQueueResult {
   predicate: string | null;
   signalScore: number | null;
   subjectEntityId: string | null;
-  subjectEntityName: string | null;
+  subjectEntityName: string;
 }
 
 /** 'GetClaimsQueue' query type */
@@ -156,10 +156,10 @@ export interface IGetClaimsQueueQuery {
 const getClaimsQueueIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 505, b: 511 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 460, b: 466 }] },
   ],
   statement:
-    'SELECT \n  c.id, c.subject_entity_id as "subjectEntityId", c.predicate, c.object_text as "objectText", c.confidence,\n  ds.signal_score as "signalScore", d.file_name as "fileName",\n  e.full_name as "subjectEntityName"\nFROM claim_triples c\nJOIN documents d ON c.document_id = d.id\nLEFT JOIN document_sentences ds ON c.sentence_id = ds.id\nLEFT JOIN entities e ON c.subject_entity_id = e.id\nWHERE c.verified = 0\nORDER BY ds.signal_score DESC, c.confidence ASC\nLIMIT :limit!',
+    'SELECT\n  c.id, c.subject_entity_id as "subjectEntityId", c.predicate, c.object_text as "objectText", c.confidence,\n  ds.signal_score as "signalScore", d.file_name as "fileName",\n  e.full_name as "subjectEntityName"\nFROM claim_triples c\nJOIN documents d ON c.document_id = d.id\nLEFT JOIN document_sentences ds ON c.sentence_id = ds.id\nLEFT JOIN entities e ON c.subject_entity_id = e.id\nWHERE c.verified = 0\nORDER BY ds.signal_score DESC, c.confidence ASC\nLIMIT :limit!',
 };
 
 /**
@@ -200,11 +200,11 @@ export interface IVerifyClaimQuery {
 const verifyClaimIR: any = {
   usedParamSet: { verifiedBy: true, id: true },
   params: [
-    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 54, b: 65 }] },
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 111, b: 114 }] },
+    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 53, b: 64 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 110, b: 113 }] },
   ],
   statement:
-    'UPDATE claim_triples \nSET verified = 1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP\nWHERE id = :id!',
+    'UPDATE claim_triples\nSET verified = 1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP\nWHERE id = :id!',
 };
 
 /**
@@ -236,12 +236,12 @@ export interface IRejectClaimQuery {
 const rejectClaimIR: any = {
   usedParamSet: { verifiedBy: true, reason: true, id: true },
   params: [
-    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 55, b: 66 }] },
-    { name: 'reason', required: true, transform: { type: 'scalar' }, locs: [{ a: 121, b: 128 }] },
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 141, b: 144 }] },
+    { name: 'verifiedBy', required: true, transform: { type: 'scalar' }, locs: [{ a: 54, b: 65 }] },
+    { name: 'reason', required: true, transform: { type: 'scalar' }, locs: [{ a: 120, b: 127 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 140, b: 143 }] },
   ],
   statement:
-    'UPDATE claim_triples \nSET verified = -1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP, rejection_reason = :reason!\nWHERE id = :id!',
+    'UPDATE claim_triples\nSET verified = -1, verified_by = :verifiedBy!, verified_at = CURRENT_TIMESTAMP, rejection_reason = :reason!\nWHERE id = :id!',
 };
 
 /**

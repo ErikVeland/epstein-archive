@@ -25,7 +25,7 @@ import {
   getEmailThreadMessageHeaders,
   getEmailThreads,
   searchEmailMessagesLegacy,
-} from '../db/routesDb.js';
+} from '../db/healthQueries.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 

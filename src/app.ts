@@ -22,7 +22,7 @@ import {
 import { validateStartup } from './server/utils/startupValidation.js';
 import { runMigrations } from './server/db/migrator.js';
 import { initRevisionManager } from './server/revisionManager.js';
-import { getEntityAndDocumentCounts } from './server/db/routesDb.js';
+import { getEntityAndDocumentCounts } from './server/db/healthQueries.js';
 import type { SortOption } from './types';
 
 // Route imports
@@ -678,23 +678,19 @@ export class App {
           id: number;
           file_name: string | null;
           file_path: string | null;
-          original_file_path: string | null;
         }>(
           `
-            SELECT id, file_name, file_path, original_file_path
+            SELECT id, file_name, file_path
             FROM documents
             WHERE
               LOWER(COALESCE(file_path, '')) = ANY($1::text[])
-              OR LOWER(COALESCE(original_file_path, '')) = ANY($1::text[])
               OR LOWER(COALESCE(metadata_json->>'source_original_url', '')) = ANY($1::text[])
               OR LOWER(COALESCE(file_path, '')) LIKE '%' || $2::text
-              OR LOWER(COALESCE(original_file_path, '')) LIKE '%' || $2::text
               OR LOWER(COALESCE(metadata_json->>'source_original_url', '')) LIKE '%' || $2::text
             ORDER BY
               CASE
                 WHEN LOWER(COALESCE(file_path, '')) = ANY($1::text[]) THEN 0
-                WHEN LOWER(COALESCE(original_file_path, '')) = ANY($1::text[]) THEN 1
-                WHEN LOWER(COALESCE(metadata_json->>'source_original_url', '')) = ANY($1::text[]) THEN 2
+                WHEN LOWER(COALESCE(metadata_json->>'source_original_url', '')) = ANY($1::text[]) THEN 1
                 ELSE 3
               END,
               id DESC
@@ -710,20 +706,17 @@ export class App {
             id: number;
             file_name: string | null;
             file_path: string | null;
-            original_file_path: string | null;
           }>(
             `
-              SELECT id, file_name, file_path, original_file_path
+              SELECT id, file_name, file_path
               FROM documents
               WHERE
                 LOWER(COALESCE(file_name, '')) = $1::text
                 OR LOWER(COALESCE(file_path, '')) LIKE '%' || $1::text
-                OR LOWER(COALESCE(original_file_path, '')) LIKE '%' || $1::text
               ORDER BY
                 CASE
                   WHEN $2::text IS NOT NULL AND LOWER(COALESCE(file_path, '')) LIKE '%' || $2::text || '%' THEN 0
-                  WHEN $2::text IS NOT NULL AND LOWER(COALESCE(original_file_path, '')) LIKE '%' || $2::text || '%' THEN 1
-                  WHEN LOWER(COALESCE(file_name, '')) = $1::text THEN 2
+                  WHEN LOWER(COALESCE(file_name, '')) = $1::text THEN 1
                   ELSE 3
                 END,
                 id DESC

@@ -5,7 +5,6 @@ import { resolveCanonicalEntityId } from '../utils/id_utils.js';
 import {
   IGetRelationshipsResult,
   IGetNeighborsCachedResult,
-  IGetTopEntitiesByRelationshipCountResult,
 } from '@epstein/db/src/queries/__generated__/relationships.js';
 
 function normalizeType(rawType: string): string {
@@ -320,12 +319,50 @@ export const relationshipsRepository = {
     const nodes = Array.from(uniqueMap.values());
     const validIds = new Set(nodes.map((n) => n.id));
 
+    // Batch lookup for distinct shared document count for all resolved edges
+    const docCountByPair = new Map<string, number>();
+    try {
+      const uniquePairs = Array.from(
+        new Map(
+          edges.map((e) => {
+            // Sort IDs for stable lookup key across permutations
+            const key = [e.source_id, e.target_id].sort().join('-');
+            return [key, [e.source_id, e.target_id]];
+          }),
+        ).values(),
+      );
+
+      if (uniquePairs.length > 0) {
+        const pairRes = await pool.query(
+          `
+          WITH input_pairs(s, t) AS (
+            SELECT (value->>0)::bigint, (value->>1)::bigint
+            FROM jsonb_array_elements($1::jsonb)
+          )
+          SELECT p.s, p.t, COUNT(DISTINCT em1.document_id)::int as count
+          FROM input_pairs p
+          JOIN entity_mentions em1 ON em1.entity_id = p.s
+          JOIN entity_mentions em2 ON em2.entity_id = p.t AND em2.document_id = em1.document_id
+          GROUP BY p.s, p.t
+          `,
+          [JSON.stringify(uniquePairs)],
+        );
+        for (const row of pairRes.rows) {
+          const key = [Number(row.s), Number(row.t)].sort().join('-');
+          docCountByPair.set(key, Number(row.count || 0));
+        }
+      }
+    } catch (err) {
+      logger.warn({ err }, '[GRAPH] Failed fetching document overlap counts');
+    }
+
     // Calculate weight and Remap edges
     const finalEdges = edges
       .map((e) => {
+        const docCount = docCountByPair.get([e.source_id, e.target_id].sort().join('-')) || 0;
         const p = Math.min(100, Math.max(0, e.proximity_score || 0));
         const c = Math.min(1.0, Math.max(0, e.confidence || 1));
-        const d = Math.min(20, Math.max(0, 0)); // docCount defaults
+        const d = Math.min(20, Math.max(0, docCount));
         const score = Math.min(100, Math.round(p * 0.4 + c * 30 + d * 5));
 
         return {
@@ -335,7 +372,7 @@ export const relationshipsRepository = {
           type: String(e.relationship_type || 'related_to'),
           weight: score,
           confidence: c,
-          docCount: 0,
+          docCount,
         };
       })
       .filter((e) => validIds.has(e.source) && validIds.has(e.target) && e.source !== e.target);
@@ -357,12 +394,10 @@ export const relationshipsRepository = {
       avg_proximity_score: Number((totals?.avgProximityScore || 0).toFixed(2)),
       avg_risk_score: Number((totals?.avgRiskScore || 0).toFixed(2)),
       avg_confidence: Number((totals?.avgConfidence || 0).toFixed(2)),
-      top_entities_by_relationship_count: topRows.map(
-        (r: IGetTopEntitiesByRelationshipCountResult) => ({
-          entity_id: Number(r.entityId),
-          count: Number(r.count),
-        }),
-      ),
+      top_entities_by_relationship_count: topRows.map((r) => ({
+        entity_id: Number(r.entityId),
+        count: Number(r.count),
+      })),
     };
   },
 

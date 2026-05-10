@@ -275,9 +275,8 @@ export async function runIntelligencePipeline() {
 
     // SQL strings for high-throughput loops
     const insertEntitySql = `
-      INSERT INTO entities (full_name, type, risk_level, evidence_count, created_at)
+      INSERT INTO entities (full_name, entity_type, risk_level, evidence_count, created_at)
       VALUES ($1, $2, $3, 1, CURRENT_TIMESTAMP)
-      ON CONFLICT (full_name, type) DO NOTHING
       RETURNING id
     `;
 
@@ -417,7 +416,7 @@ export async function runIntelligencePipeline() {
         // Insert/Find Entity
         let entityId: number;
         const existing = (
-          await db.query('SELECT id FROM entities WHERE full_name = $1 AND type = $2', [
+          await db.query('SELECT id FROM entities WHERE full_name = $1 AND entity_type = $2', [
             finalEnt.name,
             finalEnt.type,
           ])
@@ -433,7 +432,7 @@ export async function runIntelligencePipeline() {
           } else {
             // Conflict handled, fetch id
             const refetch = (
-              await db.query('SELECT id FROM entities WHERE full_name = $1 AND type = $2', [
+              await db.query('SELECT id FROM entities WHERE full_name = $1 AND entity_type = $2', [
                 finalEnt.name,
                 finalEnt.type,
               ])

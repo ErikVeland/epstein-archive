@@ -66,7 +66,7 @@ async function main() {
         'refinedDocuments', (SELECT COUNT(*) FROM documents WHERE content_refined IS NOT NULL),
         'financialTransactions', (SELECT COUNT(*) FROM financial_transactions),
         'claimTriples', (SELECT COUNT(*) FROM claim_triples),
-        'relations', (SELECT COUNT(*) FROM relations),
+        'relations', (SELECT COUNT(*) FROM entity_relationships),
         'timelineEvents', (SELECT COUNT(*) FROM global_timeline_events WHERE source = 'pipeline_extract')
       ) AS counts
     `),

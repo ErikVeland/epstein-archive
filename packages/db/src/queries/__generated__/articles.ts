@@ -192,7 +192,7 @@ export interface ICountArticlesParams {
 
 /** 'CountArticles' return type */
 export interface ICountArticlesResult {
-  total: string | null;
+  total: number | null;
 }
 
 /** 'CountArticles' query type */
@@ -209,10 +209,10 @@ const countArticlesIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 47, b: 53 },
-        { a: 89, b: 95 },
-        { a: 123, b: 129 },
-        { a: 150, b: 156 },
+        { a: 56, b: 62 },
+        { a: 98, b: 104 },
+        { a: 132, b: 138 },
+        { a: 159, b: 165 },
       ],
     },
     {
@@ -220,20 +220,20 @@ const countArticlesIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 166, b: 177 },
-        { a: 210, b: 221 },
-        { a: 245, b: 256 },
+        { a: 175, b: 186 },
+        { a: 219, b: 230 },
+        { a: 254, b: 265 },
       ],
     },
   ],
   statement:
-    'SELECT COUNT(*) as total\nFROM articles \nWHERE (:search::text IS NULL \n    OR title ILIKE :search \n    OR description ILIKE :search \n    OR tags ILIKE :search)\n  AND (:publication::text IS NULL \n    OR source = :publication \n    OR publication = :publication)',
+    'SELECT COUNT(*)::integer as total\nFROM articles \nWHERE (:search::text IS NULL \n    OR title ILIKE :search \n    OR description ILIKE :search \n    OR tags ILIKE :search)\n  AND (:publication::text IS NULL \n    OR source = :publication \n    OR publication = :publication)',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*) as total
+ * SELECT COUNT(*)::integer as total
  * FROM articles
  * WHERE (:search::text IS NULL
  *     OR title ILIKE :search
@@ -265,7 +265,6 @@ export interface IGetArticleByIdResult {
   link: string | null;
   pub_date: Date | null;
   publication: string | null;
-  published_date: Date | null;
   reading_time: string | null;
   red_flag_rating: number | null;
   source: string | null;
@@ -273,7 +272,6 @@ export interface IGetArticleByIdResult {
   tags: string | null;
   title: string;
   updated_at: Date;
-  url: string | null;
 }
 
 /** 'GetArticleById' query type */
@@ -284,14 +282,36 @@ export interface IGetArticleByIdQuery {
 
 const getArticleByIdIR: any = {
   usedParamSet: { id: true },
-  params: [{ name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 34, b: 37 }] }],
-  statement: 'SELECT * FROM articles WHERE id = :id!',
+  params: [
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 230, b: 233 }] },
+  ],
+  statement:
+    'SELECT\n  id,\n  title,\n  link,\n  source,\n  publication,\n  pub_date,\n  description,\n  summary,\n  tags,\n  red_flag_rating,\n  image_url,\n  reading_time,\n  created_at,\n  updated_at,\n  content,\n  author,\n  guid\nFROM articles\nWHERE id = :id!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM articles WHERE id = :id!
+ * SELECT
+ *   id,
+ *   title,
+ *   link,
+ *   source,
+ *   publication,
+ *   pub_date,
+ *   description,
+ *   summary,
+ *   tags,
+ *   red_flag_rating,
+ *   image_url,
+ *   reading_time,
+ *   created_at,
+ *   updated_at,
+ *   content,
+ *   author,
+ *   guid
+ * FROM articles
+ * WHERE id = :id!
  * ```
  */
 export const getArticleById = new PreparedQuery<IGetArticleByIdParams, IGetArticleByIdResult>(

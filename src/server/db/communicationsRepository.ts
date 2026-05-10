@@ -1,11 +1,6 @@
 import { communicationsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import type { SharedCommunicationDto } from '@shared/dto/connections';
-import {
-  IGetThreadsResult,
-  ISearchThreadsResult,
-  IGetCommunicationsForEntityResult,
-} from '@epstein/db/src/queries/__generated__/communications';
 import { EmailDTO, ThreadDTO, EmailSearchFilters } from '../../types/email.js';
 
 function normalizeList(raw: unknown): string[] {
@@ -114,7 +109,7 @@ export const communicationsRepository = {
 
     const rows = await communicationsQueries.getThreads.run({ limit, offset }, pool);
 
-    const threads: Omit<ThreadDTO, 'linkedEntities'>[] = rows.map((row: IGetThreadsResult) => {
+    const threads: Omit<ThreadDTO, 'linkedEntities'>[] = rows.map((row) => {
       let participants: string[] = [];
       if (Array.isArray(row.participantsJson)) {
         participants = [...new Set(normalizeList(row.participantsJson))];
@@ -222,7 +217,7 @@ export const communicationsRepository = {
     );
 
     // For brevity and parity with legacy, return partial thread results
-    return threadRows.map((row: ISearchThreadsResult) => ({
+    return threadRows.map((row) => ({
       thread_id: row.threadId!,
       subject_canonical: 'Search Result',
       participants: [],
@@ -241,7 +236,7 @@ export const communicationsRepository = {
       { entityId },
       getApiPool(),
     );
-    return rows.map((row: IGetCommunicationsForEntityResult) =>
+    return rows.map((row) =>
       mapRowToEmailDTO({
         ...row,
         metadataJson: row.metadata_json,

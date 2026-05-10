@@ -601,3 +601,98 @@ const searchMediaIR: any = {
  * ```
  */
 export const searchMedia = new PreparedQuery<ISearchMediaParams, ISearchMediaResult>(searchMediaIR);
+
+/** Query 'SearchDocumentsSemantic' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ISearchDocumentsSemanticResult = never;
+
+/** Query 'SearchDocumentsSemantic' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ISearchDocumentsSemanticParams = never;
+
+const searchDocumentsSemanticIR: any = {
+  usedParamSet: { embedding: true, evidenceType: true, limit: true },
+  params: [
+    {
+      name: 'embedding',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [{ a: 199, b: 208 }],
+    },
+    {
+      name: 'evidenceType',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [
+        { a: 247, b: 259 },
+        { a: 294, b: 306 },
+      ],
+    },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 346, b: 352 }] },
+  ],
+  statement:
+    'SELECT\n  id,\n  file_name           AS "fileName",\n  file_path           AS "filePath",\n  evidence_type       AS "evidenceType",\n  red_flag_rating     AS "redFlagRating",\n  1 - (content_embedding <=> :embedding) AS similarity\nFROM documents\nWHERE (:evidenceType::text IS NULL OR evidence_type = :evidenceType::text)\nORDER BY similarity DESC\nLIMIT :limit!',
+};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *   id,
+ *   file_name           AS "fileName",
+ *   file_path           AS "filePath",
+ *   evidence_type       AS "evidenceType",
+ *   red_flag_rating     AS "redFlagRating",
+ *   1 - (content_embedding <=> :embedding) AS similarity
+ * FROM documents
+ * WHERE (:evidenceType::text IS NULL OR evidence_type = :evidenceType::text)
+ * ORDER BY similarity DESC
+ * LIMIT :limit!
+ * ```
+ */
+export const searchDocumentsSemantic = new PreparedQuery<
+  ISearchDocumentsSemanticParams,
+  ISearchDocumentsSemanticResult
+>(searchDocumentsSemanticIR);
+
+/** Query 'SearchEntitiesSemantic' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ISearchEntitiesSemanticResult = never;
+
+/** Query 'SearchEntitiesSemantic' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ISearchEntitiesSemanticParams = never;
+
+const searchEntitiesSemanticIR: any = {
+  usedParamSet: { embedding: true, limit: true },
+  params: [
+    {
+      name: 'embedding',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [{ a: 121, b: 130 }],
+    },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 237, b: 243 }] },
+  ],
+  statement:
+    'SELECT\n  id,\n  full_name          AS "fullName",\n  primary_role       AS "primaryRole",\n  1 - (description_embedding <=> :embedding) AS similarity\nFROM entities\nWHERE COALESCE(junk_tier, \'clean\') = \'clean\'\nORDER BY similarity DESC\nLIMIT :limit!',
+};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT
+ *   id,
+ *   full_name          AS "fullName",
+ *   primary_role       AS "primaryRole",
+ *   1 - (description_embedding <=> :embedding) AS similarity
+ * FROM entities
+ * WHERE COALESCE(junk_tier, 'clean') = 'clean'
+ * ORDER BY similarity DESC
+ * LIMIT :limit!
+ * ```
+ */
+export const searchEntitiesSemantic = new PreparedQuery<
+  ISearchEntitiesSemanticParams,
+  ISearchEntitiesSemanticResult
+>(searchEntitiesSemanticIR);

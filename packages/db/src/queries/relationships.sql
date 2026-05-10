@@ -4,8 +4,8 @@ SELECT
   target_entity_id as "targetId", 
   relationship_type as "relationshipType", 
   proximity_score as "proximityScore",
-  0 as "riskScore", 
-  1 as confidence, 
+  COALESCE(risk_score, 0) as "riskScore", 
+  COALESCE(confidence, 0.5) as confidence, 
   NULL as "metadataJson"
 FROM entity_relationships
 WHERE (source_entity_id = :entityId!::bigint OR target_entity_id = :entityId!::bigint)
@@ -74,8 +74,8 @@ LIMIT :limit!;
 SELECT 
   COUNT(*)::integer as "totalRelationships",
   AVG(proximity_score) as "avgProximityScore",
-  0 as "avgRiskScore",
-  1 as "avgConfidence"
+  AVG(COALESCE(risk_score, 0)) as "avgRiskScore",
+  AVG(COALESCE(confidence, 0)) as "avgConfidence"
 FROM entity_relationships;
 
 /* @name getTopEntitiesByRelationshipCount */

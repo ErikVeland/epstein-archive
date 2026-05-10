@@ -13,7 +13,7 @@ import {
   getWebVitalsAggregates,
   getWebVitalsAggregatesAverage,
   recordWebVitals,
-} from '../db/routesDb.js';
+} from '../db/healthQueries.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
 

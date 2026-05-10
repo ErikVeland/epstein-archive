@@ -90,16 +90,14 @@ WHERE processing_status = 'processing'
 
 /* @name getTimelineEvents */
 SELECT 
-  te.event_date as date,
-  te.event_description as description,
-  te.event_type as type,
-  d.file_name as title,
-  d.id as document_id,
-  e.full_name as primary_entity,
-  'medium' as significance_score
-FROM timeline_events te
-LEFT JOIN documents d ON te.document_id = d.id
-LEFT JOIN entities e ON te.entity_id = e.id
-WHERE te.event_date IS NOT NULL
-ORDER BY te.event_date DESC
+  te.date,
+  te.description,
+  te.type,
+  te.title,
+  te.related_document_id as document_id,
+  te.entities as primary_entity,
+  te.significance as significance_score
+FROM global_timeline_events te
+WHERE te.date IS NOT NULL
+ORDER BY te.date DESC
 LIMIT :limit!;

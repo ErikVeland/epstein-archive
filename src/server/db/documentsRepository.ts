@@ -862,7 +862,7 @@ export const documentsRepository = {
       entities,
       mentionedEntities: entities,
       signals,
-      original_file_path: document.originalFilePath || document.filePath,
+      original_file_path: document.filePath,
       redaction_spans: redactionSpans.map((s) => ({
         ...s,
         id: Number(s.id),

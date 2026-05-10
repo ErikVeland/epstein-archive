@@ -12,7 +12,7 @@ import fs from 'fs';
 import { documentsRepository } from '../db/documentsRepository.js';
 import { searchRepository } from '../db/searchRepository.js';
 import { forensicRepository } from '../db/forensicRepository.js';
-import { getEvidenceTypes, insertUploadedDocument } from '../db/routesDb.js';
+import { getEvidenceTypes, insertUploadedDocument } from '../db/healthQueries.js';
 import { logAudit } from '../utils/auditLogger.js';
 import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';

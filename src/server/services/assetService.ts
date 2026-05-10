@@ -83,21 +83,6 @@ export const AssetService = {
   },
 
   /**
-   * Link an asset to a media item.
-   */
-  async linkToMedia(mediaId: number, assetId: number, role: string = 'primary'): Promise<void> {
-    const pool = getApiPool();
-    await pool.query(
-      `
-      INSERT INTO media_assets (media_id, asset_id, role)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (media_id, asset_id) DO NOTHING
-    `,
-      [mediaId, assetId, role],
-    );
-  },
-
-  /**
    * Find asset by SHA-256.
    */
   async findBySha256(sha256: string): Promise<number | null> {

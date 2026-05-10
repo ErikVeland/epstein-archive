@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { logAudit } from '../utils/auditLogger.js';
 import bcrypt from 'bcryptjs';
-import { createUser, deleteUser, getUserById, listUsers, updateUser } from '../db/routesDb.js';
+import { createUser, deleteUser, getUserById, listUsers, updateUser } from '../db/healthQueries.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 

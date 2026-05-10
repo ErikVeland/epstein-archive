@@ -65,9 +65,9 @@ export interface IGetEntityEvidenceResult {
   id: string;
   mentionContext: string | null;
   redFlagRating: number | null;
-  role: string;
+  role: string | null;
   sourcePath: string | null;
-  title: string;
+  title: string | null;
 }
 
 /** 'GetEntityEvidence' query type */
@@ -79,33 +79,35 @@ export interface IGetEntityEvidenceQuery {
 const getEntityEvidenceIR: any = {
   usedParamSet: { entityId: true, limit: true, offset: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 381, b: 390 }] },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 425, b: 431 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 440, b: 447 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 536, b: 545 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 594, b: 600 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 609, b: 616 }] },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.evidence_type as "evidenceType",\n  e.title,\n  e.description,\n  e.source_path as "sourcePath",\n  e.cleaned_path as "cleanedPath",\n  e.red_flag_rating as "redFlagRating",\n  e.created_at as "createdAt",\n  ee.role,\n  ee.confidence,\n  ee.mention_context as "mentionContext"\nFROM evidence e\nINNER JOIN evidence_entity ee ON ee.evidence_id = e.id\nWHERE ee.entity_id = :entityId!\nORDER BY e.created_at DESC\nLIMIT :limit! OFFSET :offset!',
+    'SELECT \n  d.id,\n  d.evidence_type as "evidenceType",\n  d.title,\n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description,\n  d.file_path as "sourcePath",\n  d.file_path as "cleanedPath",\n  d.red_flag_rating as "redFlagRating",\n  d.created_at as "createdAt",\n  \'mentioned\' as role,\n  MAX(em.confidence) as confidence,\n  MAX(em.mention_context) as "mentionContext"\nFROM documents d\nINNER JOIN investigation_evidence ie ON ie.document_id = d.id\nINNER JOIN entity_mentions em ON em.document_id = ie.document_id\nWHERE em.entity_id = :entityId!\nGROUP BY d.id\nORDER BY d.created_at DESC\nLIMIT :limit! OFFSET :offset!',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   e.id,
- *   e.evidence_type as "evidenceType",
- *   e.title,
- *   e.description,
- *   e.source_path as "sourcePath",
- *   e.cleaned_path as "cleanedPath",
- *   e.red_flag_rating as "redFlagRating",
- *   e.created_at as "createdAt",
- *   ee.role,
- *   ee.confidence,
- *   ee.mention_context as "mentionContext"
- * FROM evidence e
- * INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
- * WHERE ee.entity_id = :entityId!
- * ORDER BY e.created_at DESC
+ *   d.id,
+ *   d.evidence_type as "evidenceType",
+ *   d.title,
+ *   COALESCE(d.content_preview, LEFT(d.content, 320)) as description,
+ *   d.file_path as "sourcePath",
+ *   d.file_path as "cleanedPath",
+ *   d.red_flag_rating as "redFlagRating",
+ *   d.created_at as "createdAt",
+ *   'mentioned' as role,
+ *   MAX(em.confidence) as confidence,
+ *   MAX(em.mention_context) as "mentionContext"
+ * FROM documents d
+ * INNER JOIN investigation_evidence ie ON ie.document_id = d.id
+ * INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+ * WHERE em.entity_id = :entityId!
+ * GROUP BY d.id
+ * ORDER BY d.created_at DESC
  * LIMIT :limit! OFFSET :offset!
  * ```
  */
@@ -121,7 +123,7 @@ export interface ICountEntityEvidenceParams {
 
 /** 'CountEntityEvidence' return type */
 export interface ICountEntityEvidenceResult {
-  total: string | null;
+  total: number | null;
 }
 
 /** 'CountEntityEvidence' query type */
@@ -133,19 +135,20 @@ export interface ICountEntityEvidenceQuery {
 const countEntityEvidenceIR: any = {
   usedParamSet: { entityId: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 117, b: 126 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 199, b: 208 }] },
   ],
   statement:
-    'SELECT COUNT(*) as total\nFROM evidence e\nINNER JOIN evidence_entity ee ON ee.evidence_id = e.id\nWHERE ee.entity_id = :entityId!',
+    'SELECT COUNT(*)::integer as total\nFROM documents d\nINNER JOIN investigation_evidence ie ON ie.document_id = d.id\nINNER JOIN entity_mentions em ON em.document_id = ie.document_id\nWHERE em.entity_id = :entityId!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*) as total
- * FROM evidence e
- * INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
- * WHERE ee.entity_id = :entityId!
+ * SELECT COUNT(*)::integer as total
+ * FROM documents d
+ * INNER JOIN investigation_evidence ie ON ie.document_id = d.id
+ * INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+ * WHERE em.entity_id = :entityId!
  * ```
  */
 export const countEntityEvidence = new PreparedQuery<
@@ -160,7 +163,7 @@ export interface IGetEvidenceTypeBreakdownByEntityParams {
 
 /** 'GetEvidenceTypeBreakdownByEntity' return type */
 export interface IGetEvidenceTypeBreakdownByEntityResult {
-  count: string | null;
+  count: number | null;
   evidenceType: string | null;
 }
 
@@ -173,22 +176,23 @@ export interface IGetEvidenceTypeBreakdownByEntityQuery {
 const getEvidenceTypeBreakdownByEntityIR: any = {
   usedParamSet: { entityId: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 157, b: 166 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 239, b: 248 }] },
   ],
   statement:
-    'SELECT \n  e.evidence_type as "evidenceType",\n  COUNT(*) as count\nFROM evidence e\nINNER JOIN evidence_entity ee ON ee.evidence_id = e.id\nWHERE ee.entity_id = :entityId!\nGROUP BY e.evidence_type\nORDER BY count DESC',
+    'SELECT \n  d.evidence_type as "evidenceType",\n  COUNT(*)::integer as count\nFROM documents d\nINNER JOIN investigation_evidence ie ON ie.document_id = d.id\nINNER JOIN entity_mentions em ON em.document_id = ie.document_id\nWHERE em.entity_id = :entityId!\nGROUP BY d.evidence_type\nORDER BY count DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   e.evidence_type as "evidenceType",
- *   COUNT(*) as count
- * FROM evidence e
- * INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
- * WHERE ee.entity_id = :entityId!
- * GROUP BY e.evidence_type
+ *   d.evidence_type as "evidenceType",
+ *   COUNT(*)::integer as count
+ * FROM documents d
+ * INNER JOIN investigation_evidence ie ON ie.document_id = d.id
+ * INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+ * WHERE em.entity_id = :entityId!
+ * GROUP BY d.evidence_type
  * ORDER BY count DESC
  * ```
  */
@@ -204,8 +208,8 @@ export interface IGetRoleBreakdownByEntityParams {
 
 /** 'GetRoleBreakdownByEntity' return type */
 export interface IGetRoleBreakdownByEntityResult {
-  count: string | null;
-  role: string;
+  count: number | null;
+  role: string | null;
 }
 
 /** 'GetRoleBreakdownByEntity' query type */
@@ -217,21 +221,21 @@ export interface IGetRoleBreakdownByEntityQuery {
 const getRoleBreakdownByEntityIR: any = {
   usedParamSet: { entityId: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 84, b: 93 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 105, b: 114 }] },
   ],
   statement:
-    'SELECT \n  ee.role,\n  COUNT(*) as count\nFROM evidence_entity ee\nWHERE ee.entity_id = :entityId!\nGROUP BY ee.role\nORDER BY count DESC',
+    "SELECT \n  'mentioned' as role,\n  COUNT(*)::integer as count\nFROM entity_mentions em\nWHERE em.entity_id = :entityId!\nGROUP BY role\nORDER BY count DESC",
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   ee.role,
- *   COUNT(*) as count
- * FROM evidence_entity ee
- * WHERE ee.entity_id = :entityId!
- * GROUP BY ee.role
+ *   'mentioned' as role,
+ *   COUNT(*)::integer as count
+ * FROM entity_mentions em
+ * WHERE em.entity_id = :entityId!
+ * GROUP BY role
  * ORDER BY count DESC
  * ```
  */
@@ -247,7 +251,7 @@ export interface IGetRedFlagDistributionByEntityParams {
 
 /** 'GetRedFlagDistributionByEntity' return type */
 export interface IGetRedFlagDistributionByEntityResult {
-  count: string | null;
+  count: number | null;
   red_flag_rating: number | null;
 }
 
@@ -260,23 +264,24 @@ export interface IGetRedFlagDistributionByEntityQuery {
 const getRedFlagDistributionByEntityIR: any = {
   usedParamSet: { entityId: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 141, b: 150 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 223, b: 232 }] },
   ],
   statement:
-    'SELECT \n  e.red_flag_rating,\n  COUNT(*) as count\nFROM evidence e\nINNER JOIN evidence_entity ee ON ee.evidence_id = e.id\nWHERE ee.entity_id = :entityId! AND e.red_flag_rating IS NOT NULL\nGROUP BY e.red_flag_rating\nORDER BY e.red_flag_rating DESC',
+    'SELECT \n  d.red_flag_rating,\n  COUNT(*)::integer as count\nFROM documents d\nINNER JOIN investigation_evidence ie ON ie.document_id = d.id\nINNER JOIN entity_mentions em ON em.document_id = ie.document_id\nWHERE em.entity_id = :entityId! AND d.red_flag_rating IS NOT NULL\nGROUP BY d.red_flag_rating\nORDER BY d.red_flag_rating DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   e.red_flag_rating,
- *   COUNT(*) as count
- * FROM evidence e
- * INNER JOIN evidence_entity ee ON ee.evidence_id = e.id
- * WHERE ee.entity_id = :entityId! AND e.red_flag_rating IS NOT NULL
- * GROUP BY e.red_flag_rating
- * ORDER BY e.red_flag_rating DESC
+ *   d.red_flag_rating,
+ *   COUNT(*)::integer as count
+ * FROM documents d
+ * INNER JOIN investigation_evidence ie ON ie.document_id = d.id
+ * INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+ * WHERE em.entity_id = :entityId! AND d.red_flag_rating IS NOT NULL
+ * GROUP BY d.red_flag_rating
+ * ORDER BY d.red_flag_rating DESC
  * ```
  */
 export const getRedFlagDistributionByEntity = new PreparedQuery<
@@ -295,7 +300,7 @@ export interface IGetRelatedEntitiesByEntityResult {
   entityCategory: string | null;
   fullName: string;
   id: string;
-  sharedEvidenceCount: string | null;
+  sharedEvidenceCount: number | null;
 }
 
 /** 'GetRelatedEntitiesByEntity' query type */
@@ -312,14 +317,14 @@ const getRelatedEntitiesByEntityIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 316, b: 325 },
-        { a: 348, b: 357 },
+        { a: 325, b: 334 },
+        { a: 357, b: 366 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 453, b: 459 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 462, b: 468 }] },
   ],
   statement:
-    'SELECT \n  ent.id,\n  ent.full_name as "fullName",\n  ent.entity_category as "entityCategory",\n  COUNT(DISTINCT ee1.evidence_id) as "sharedEvidenceCount"\nFROM evidence_entity ee1\nINNER JOIN evidence_entity ee2 ON ee1.evidence_id = ee2.evidence_id\nINNER JOIN entities ent ON ent.id = ee2.entity_id\nWHERE ee1.entity_id = :entityId! AND ee2.entity_id != :entityId!\nGROUP BY ent.id, ent.full_name, ent.entity_category\nORDER BY "sharedEvidenceCount" DESC\nLIMIT :limit!',
+    'SELECT \n  ent.id,\n  ent.full_name as "fullName",\n  ent.entity_category as "entityCategory",\n  COUNT(DISTINCT em1.document_id)::integer as "sharedEvidenceCount"\nFROM entity_mentions em1\nINNER JOIN entity_mentions em2 ON em1.document_id = em2.document_id\nINNER JOIN entities ent ON ent.id = em2.entity_id\nWHERE em1.entity_id = :entityId! AND em2.entity_id != :entityId!\nGROUP BY ent.id, ent.full_name, ent.entity_category\nORDER BY "sharedEvidenceCount" DESC\nLIMIT :limit!',
 };
 
 /**
@@ -329,11 +334,11 @@ const getRelatedEntitiesByEntityIR: any = {
  *   ent.id,
  *   ent.full_name as "fullName",
  *   ent.entity_category as "entityCategory",
- *   COUNT(DISTINCT ee1.evidence_id) as "sharedEvidenceCount"
- * FROM evidence_entity ee1
- * INNER JOIN evidence_entity ee2 ON ee1.evidence_id = ee2.evidence_id
- * INNER JOIN entities ent ON ent.id = ee2.entity_id
- * WHERE ee1.entity_id = :entityId! AND ee2.entity_id != :entityId!
+ *   COUNT(DISTINCT em1.document_id)::integer as "sharedEvidenceCount"
+ * FROM entity_mentions em1
+ * INNER JOIN entity_mentions em2 ON em1.document_id = em2.document_id
+ * INNER JOIN entities ent ON ent.id = em2.entity_id
+ * WHERE em1.entity_id = :entityId! AND em2.entity_id != :entityId!
  * GROUP BY ent.id, ent.full_name, ent.entity_category
  * ORDER BY "sharedEvidenceCount" DESC
  * LIMIT :limit!
@@ -347,7 +352,6 @@ export const getRelatedEntitiesByEntity = new PreparedQuery<
 /** 'CreateEvidenceFull' parameters type */
 export interface ICreateEvidenceFullParams {
   description?: string | null | void;
-  evidenceTags?: string | null | void;
   evidenceType: string;
   extractedText?: string | null | void;
   metadata?: Json | null | void;
@@ -377,7 +381,6 @@ const createEvidenceFullIR: any = {
     description: true,
     extractedText: true,
     redFlagRating: true,
-    evidenceTags: true,
     metadata: true,
   },
   params: [
@@ -385,71 +388,68 @@ const createEvidenceFullIR: any = {
       name: 'evidenceType',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 212, b: 225 }],
+      locs: [{ a: 195, b: 208 }],
     },
     {
       name: 'sourcePath',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 231, b: 242 }],
+      locs: [{ a: 214, b: 225 }],
     },
     {
       name: 'originalFilename',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 248, b: 265 }],
+      locs: [{ a: 231, b: 248 }],
     },
-    { name: 'title', required: true, transform: { type: 'scalar' }, locs: [{ a: 271, b: 277 }] },
+    { name: 'title', required: true, transform: { type: 'scalar' }, locs: [{ a: 254, b: 260 }] },
     {
       name: 'description',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 283, b: 294 }],
+      locs: [{ a: 266, b: 277 }],
     },
     {
       name: 'extractedText',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 300, b: 313 }],
+      locs: [
+        { a: 283, b: 296 },
+        { a: 357, b: 370 },
+      ],
     },
     {
       name: 'redFlagRating',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 319, b: 333 }],
-    },
-    {
-      name: 'evidenceTags',
-      required: false,
-      transform: { type: 'scalar' },
-      locs: [{ a: 339, b: 351 }],
+      locs: [{ a: 302, b: 316 }],
     },
     {
       name: 'metadata',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 357, b: 365 }],
+      locs: [{ a: 322, b: 330 }],
     },
   ],
   statement:
-    'INSERT INTO evidence (\n  evidence_type,\n  source_path,\n  original_filename,\n  title,\n  description,\n  extracted_text,\n  red_flag_rating,\n  evidence_tags,\n  metadata_json,\n  created_at,\n  ingested_at\n) VALUES (\n  :evidenceType!, \n  :sourcePath!, \n  :originalFilename!, \n  :title!, \n  :description, \n  :extractedText, \n  :redFlagRating!, \n  :evidenceTags, \n  :metadata, \n  CURRENT_TIMESTAMP, \n  CURRENT_TIMESTAMP\n)\nRETURNING id',
+    "INSERT INTO documents (\n  evidence_type,\n  file_path,\n  file_name,\n  title,\n  content_preview,\n  content,\n  red_flag_rating,\n  metadata_json,\n  file_size,\n  word_count,\n  created_at\n) VALUES (\n  :evidenceType!, \n  :sourcePath!, \n  :originalFilename!, \n  :title!, \n  :description, \n  :extractedText, \n  :redFlagRating!, \n  :metadata, \n  0,\n  LENGTH(COALESCE(:extractedText, '')),\n  CURRENT_TIMESTAMP\n)\nON CONFLICT (file_path) DO UPDATE SET\n  title = COALESCE(EXCLUDED.title, documents.title),\n  content_preview = COALESCE(EXCLUDED.content_preview, documents.content_preview),\n  content = COALESCE(NULLIF(EXCLUDED.content, ''), documents.content),\n  evidence_type = COALESCE(EXCLUDED.evidence_type, documents.evidence_type),\n  red_flag_rating = COALESCE(EXCLUDED.red_flag_rating, documents.red_flag_rating),\n  metadata_json = COALESCE(documents.metadata_json, '{}'::jsonb) || COALESCE(EXCLUDED.metadata_json, '{}'::jsonb)\nRETURNING id",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO evidence (
+ * INSERT INTO documents (
  *   evidence_type,
- *   source_path,
- *   original_filename,
+ *   file_path,
+ *   file_name,
  *   title,
- *   description,
- *   extracted_text,
+ *   content_preview,
+ *   content,
  *   red_flag_rating,
- *   evidence_tags,
  *   metadata_json,
- *   created_at,
- *   ingested_at
+ *   file_size,
+ *   word_count,
+ *   created_at
  * ) VALUES (
  *   :evidenceType!,
  *   :sourcePath!,
@@ -458,11 +458,18 @@ const createEvidenceFullIR: any = {
  *   :description,
  *   :extractedText,
  *   :redFlagRating!,
- *   :evidenceTags,
  *   :metadata,
- *   CURRENT_TIMESTAMP,
+ *   0,
+ *   LENGTH(COALESCE(:extractedText, '')),
  *   CURRENT_TIMESTAMP
  * )
+ * ON CONFLICT (file_path) DO UPDATE SET
+ *   title = COALESCE(EXCLUDED.title, documents.title),
+ *   content_preview = COALESCE(EXCLUDED.content_preview, documents.content_preview),
+ *   content = COALESCE(NULLIF(EXCLUDED.content, ''), documents.content),
+ *   evidence_type = COALESCE(EXCLUDED.evidence_type, documents.evidence_type),
+ *   red_flag_rating = COALESCE(EXCLUDED.red_flag_rating, documents.red_flag_rating),
+ *   metadata_json = COALESCE(documents.metadata_json, '{}'::jsonb) || COALESCE(EXCLUDED.metadata_json, '{}'::jsonb)
  * RETURNING id
  * ```
  */
@@ -514,7 +521,7 @@ const addEvidenceToInvestigationIR: any = {
     },
   ],
   statement:
-    'INSERT INTO investigation_evidence (\n  investigation_id,\n  evidence_id,\n  notes,\n  relevance,\n  added_at\n) VALUES (:investigationId!, :evidenceId!, :notes, :relevance, CURRENT_TIMESTAMP)\nON CONFLICT (investigation_id, evidence_id) DO UPDATE SET\n  notes = EXCLUDED.notes,\n  relevance = EXCLUDED.relevance,\n  added_at = CURRENT_TIMESTAMP\nRETURNING id',
+    'INSERT INTO investigation_evidence (\n  investigation_id,\n  document_id,\n  notes,\n  relevance,\n  added_at\n) VALUES (:investigationId!, :evidenceId!, :notes, :relevance, CURRENT_TIMESTAMP)\nON CONFLICT (investigation_id, document_id) DO UPDATE SET\n  notes = EXCLUDED.notes,\n  relevance = EXCLUDED.relevance,\n  added_at = CURRENT_TIMESTAMP\nRETURNING id',
 };
 
 /**
@@ -522,12 +529,12 @@ const addEvidenceToInvestigationIR: any = {
  * ```
  * INSERT INTO investigation_evidence (
  *   investigation_id,
- *   evidence_id,
+ *   document_id,
  *   notes,
  *   relevance,
  *   added_at
  * ) VALUES (:investigationId!, :evidenceId!, :notes, :relevance, CURRENT_TIMESTAMP)
- * ON CONFLICT (investigation_id, evidence_id) DO UPDATE SET
+ * ON CONFLICT (investigation_id, document_id) DO UPDATE SET
  *   notes = EXCLUDED.notes,
  *   relevance = EXCLUDED.relevance,
  *   added_at = CURRENT_TIMESTAMP
@@ -557,7 +564,7 @@ export interface IGetInvestigationEvidenceSummaryResult {
   redFlagRating: number | null;
   relevance: string | null;
   source: string | null;
-  title: string;
+  title: string | null;
 }
 
 /** 'GetInvestigationEvidenceSummary' query type */
@@ -573,31 +580,31 @@ const getInvestigationEvidenceSummaryIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 423, b: 439 }],
+      locs: [{ a: 461, b: 477 }],
     },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.evidence_type as "evidenceType",\n  e.title,\n  e.description,\n  e.red_flag_rating as "redFlagRating",\n  e.created_at as "createdAt",\n  e.source_path as "source",\n  e.cleaned_path as "cleanedPath",\n  e.original_file_path as "originalFilePath",\n  ie.notes,\n  ie.relevance,\n  ie.added_at as "addedAt"\nFROM investigation_evidence ie\nINNER JOIN evidence e ON e.id = ie.evidence_id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC',
+    'SELECT \n  d.id,\n  d.evidence_type as "evidenceType",\n  d.title,\n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description,\n  d.red_flag_rating as "redFlagRating",\n  d.created_at as "createdAt",\n  d.file_path as "source",\n  d.file_path as "cleanedPath",\n  d.file_path as "originalFilePath",\n  ie.notes,\n  ie.relevance,\n  ie.added_at as "addedAt"\nFROM investigation_evidence ie\nINNER JOIN documents d ON d.id = ie.document_id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   e.id,
- *   e.evidence_type as "evidenceType",
- *   e.title,
- *   e.description,
- *   e.red_flag_rating as "redFlagRating",
- *   e.created_at as "createdAt",
- *   e.source_path as "source",
- *   e.cleaned_path as "cleanedPath",
- *   e.original_file_path as "originalFilePath",
+ *   d.id,
+ *   d.evidence_type as "evidenceType",
+ *   d.title,
+ *   COALESCE(d.content_preview, LEFT(d.content, 320)) as description,
+ *   d.red_flag_rating as "redFlagRating",
+ *   d.created_at as "createdAt",
+ *   d.file_path as "source",
+ *   d.file_path as "cleanedPath",
+ *   d.file_path as "originalFilePath",
  *   ie.notes,
  *   ie.relevance,
  *   ie.added_at as "addedAt"
  * FROM investigation_evidence ie
- * INNER JOIN evidence e ON e.id = ie.evidence_id
+ * INNER JOIN documents d ON d.id = ie.document_id
  * WHERE ie.investigation_id = :investigationId!
  * ORDER BY ie.added_at DESC
  * ```
@@ -616,7 +623,7 @@ export interface IGetInvestigationEntityCoverageParams {
 /** 'GetInvestigationEntityCoverage' return type */
 export interface IGetInvestigationEntityCoverageResult {
   entityCategory: string | null;
-  evidenceCount: string | null;
+  evidenceCount: number | null;
   fullName: string;
   id: string;
 }
@@ -634,12 +641,12 @@ const getInvestigationEntityCoverageIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 317, b: 333 }],
+      locs: [{ a: 326, b: 342 }],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 423, b: 429 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 432, b: 438 }] },
   ],
   statement:
-    'SELECT \n  ent.id,\n  ent.full_name as "fullName",\n  ent.entity_category as "entityCategory",\n  COUNT(DISTINCT ee.evidence_id) as "evidenceCount"\nFROM investigation_evidence ie\nINNER JOIN evidence_entity ee ON ee.evidence_id = ie.evidence_id\nINNER JOIN entities ent ON ent.id = ee.entity_id\nWHERE ie.investigation_id = :investigationId!\nGROUP BY ent.id, ent.full_name, ent.entity_category\nORDER BY "evidenceCount" DESC\nLIMIT :limit!',
+    'SELECT \n  ent.id,\n  ent.full_name as "fullName",\n  ent.entity_category as "entityCategory",\n  COUNT(DISTINCT ie.document_id)::integer as "evidenceCount"\nFROM investigation_evidence ie\nINNER JOIN entity_mentions em ON em.document_id = ie.document_id\nINNER JOIN entities ent ON ent.id = em.entity_id\nWHERE ie.investigation_id = :investigationId!\nGROUP BY ent.id, ent.full_name, ent.entity_category\nORDER BY "evidenceCount" DESC\nLIMIT :limit!',
 };
 
 /**
@@ -649,10 +656,10 @@ const getInvestigationEntityCoverageIR: any = {
  *   ent.id,
  *   ent.full_name as "fullName",
  *   ent.entity_category as "entityCategory",
- *   COUNT(DISTINCT ee.evidence_id) as "evidenceCount"
+ *   COUNT(DISTINCT ie.document_id)::integer as "evidenceCount"
  * FROM investigation_evidence ie
- * INNER JOIN evidence_entity ee ON ee.evidence_id = ie.evidence_id
- * INNER JOIN entities ent ON ent.id = ee.entity_id
+ * INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+ * INNER JOIN entities ent ON ent.id = em.entity_id
  * WHERE ie.investigation_id = :investigationId!
  * GROUP BY ent.id, ent.full_name, ent.entity_category
  * ORDER BY "evidenceCount" DESC
@@ -715,7 +722,7 @@ export interface ISearchEvidenceFullResult {
   id: string;
   redFlagRating: number | null;
   snippet: string | null;
-  title: string;
+  title: string | null;
 }
 
 /** 'SearchEvidenceFull' query type */
@@ -740,9 +747,9 @@ const searchEvidenceFullIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 255, b: 261 },
-        { a: 325, b: 330 },
-        { a: 397, b: 402 },
+        { a: 287, b: 293 },
+        { a: 358, b: 363 },
+        { a: 430, b: 435 },
       ],
     },
     {
@@ -750,8 +757,8 @@ const searchEvidenceFullIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 413, b: 425 },
-        { a: 462, b: 474 },
+        { a: 446, b: 458 },
+        { a: 495, b: 507 },
       ],
     },
     {
@@ -759,8 +766,8 @@ const searchEvidenceFullIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 484, b: 494 },
-        { a: 533, b: 543 },
+        { a: 517, b: 527 },
+        { a: 566, b: 576 },
       ],
     },
     {
@@ -768,8 +775,8 @@ const searchEvidenceFullIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 553, b: 562 },
-        { a: 604, b: 613 },
+        { a: 586, b: 595 },
+        { a: 637, b: 646 },
       ],
     },
     {
@@ -777,35 +784,35 @@ const searchEvidenceFullIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 623, b: 630 },
-        { a: 672, b: 679 },
+        { a: 656, b: 663 },
+        { a: 705, b: 712 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 715, b: 721 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 730, b: 737 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 748, b: 754 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 763, b: 770 }] },
   ],
   statement:
-    'SELECT DISTINCT\n  e.id,\n  e.title,\n  e.evidence_type as "evidenceType",\n  e.red_flag_rating as "redFlagRating",\n  e.created_at as "createdAt",\n  e.evidence_tags as "evidenceTags",\n  ts_headline(\'english\', e.extracted_text, websearch_to_tsquery(\'english\', :query!), \'MaxWords=25,MinWords=8\') as snippet\nFROM evidence e\nWHERE (:query::text IS NULL OR e.fts_vector @@ websearch_to_tsquery(\'english\', :query))\n  AND (:evidenceType::text IS NULL OR e.evidence_type = :evidenceType)\n  AND (:redFlagMin::int IS NULL OR e.red_flag_rating >= :redFlagMin)\n  AND (:startDate::timestamptz IS NULL OR e.created_at >= :startDate)\n  AND (:endDate::timestamptz IS NULL OR e.created_at <= :endDate)\nORDER BY e.created_at DESC\nLIMIT :limit! OFFSET :offset!',
+    "SELECT DISTINCT\n  d.id,\n  d.title,\n  d.evidence_type as \"evidenceType\",\n  d.red_flag_rating as \"redFlagRating\",\n  d.created_at as \"createdAt\",\n  COALESCE(d.metadata_json->>'tags', '[]') as \"evidenceTags\",\n  ts_headline('english', COALESCE(d.content, ''), websearch_to_tsquery('english', :query!), 'MaxWords=25,MinWords=8') as snippet\nFROM documents d\nWHERE (:query::text IS NULL OR d.fts_vector @@ websearch_to_tsquery('english', :query))\n  AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType)\n  AND (:redFlagMin::int IS NULL OR d.red_flag_rating >= :redFlagMin)\n  AND (:startDate::timestamptz IS NULL OR d.created_at >= :startDate)\n  AND (:endDate::timestamptz IS NULL OR d.created_at <= :endDate)\nORDER BY d.created_at DESC\nLIMIT :limit! OFFSET :offset!",
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT DISTINCT
- *   e.id,
- *   e.title,
- *   e.evidence_type as "evidenceType",
- *   e.red_flag_rating as "redFlagRating",
- *   e.created_at as "createdAt",
- *   e.evidence_tags as "evidenceTags",
- *   ts_headline('english', e.extracted_text, websearch_to_tsquery('english', :query!), 'MaxWords=25,MinWords=8') as snippet
- * FROM evidence e
- * WHERE (:query::text IS NULL OR e.fts_vector @@ websearch_to_tsquery('english', :query))
- *   AND (:evidenceType::text IS NULL OR e.evidence_type = :evidenceType)
- *   AND (:redFlagMin::int IS NULL OR e.red_flag_rating >= :redFlagMin)
- *   AND (:startDate::timestamptz IS NULL OR e.created_at >= :startDate)
- *   AND (:endDate::timestamptz IS NULL OR e.created_at <= :endDate)
- * ORDER BY e.created_at DESC
+ *   d.id,
+ *   d.title,
+ *   d.evidence_type as "evidenceType",
+ *   d.red_flag_rating as "redFlagRating",
+ *   d.created_at as "createdAt",
+ *   COALESCE(d.metadata_json->>'tags', '[]') as "evidenceTags",
+ *   ts_headline('english', COALESCE(d.content, ''), websearch_to_tsquery('english', :query!), 'MaxWords=25,MinWords=8') as snippet
+ * FROM documents d
+ * WHERE (:query::text IS NULL OR d.fts_vector @@ websearch_to_tsquery('english', :query))
+ *   AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType)
+ *   AND (:redFlagMin::int IS NULL OR d.red_flag_rating >= :redFlagMin)
+ *   AND (:startDate::timestamptz IS NULL OR d.created_at >= :startDate)
+ *   AND (:endDate::timestamptz IS NULL OR d.created_at <= :endDate)
+ * ORDER BY d.created_at DESC
  * LIMIT :limit! OFFSET :offset!
  * ```
  */
@@ -848,8 +855,8 @@ const countSearchEvidenceIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 60, b: 65 },
-        { a: 132, b: 137 },
+        { a: 61, b: 66 },
+        { a: 133, b: 138 },
       ],
     },
     {
@@ -857,8 +864,8 @@ const countSearchEvidenceIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 148, b: 160 },
-        { a: 197, b: 209 },
+        { a: 149, b: 161 },
+        { a: 198, b: 210 },
       ],
     },
     {
@@ -866,8 +873,8 @@ const countSearchEvidenceIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 219, b: 229 },
-        { a: 268, b: 278 },
+        { a: 220, b: 230 },
+        { a: 269, b: 279 },
       ],
     },
     {
@@ -875,8 +882,8 @@ const countSearchEvidenceIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 288, b: 297 },
-        { a: 339, b: 348 },
+        { a: 289, b: 298 },
+        { a: 340, b: 349 },
       ],
     },
     {
@@ -884,25 +891,25 @@ const countSearchEvidenceIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 358, b: 365 },
-        { a: 407, b: 414 },
+        { a: 359, b: 366 },
+        { a: 408, b: 415 },
       ],
     },
   ],
   statement:
-    "SELECT COUNT(DISTINCT e.id) as total\nFROM evidence e\nWHERE (:query::text IS NULL OR e.fts_vector @@ websearch_to_tsquery('english', :query))\n  AND (:evidenceType::text IS NULL OR e.evidence_type = :evidenceType)\n  AND (:redFlagMin::int IS NULL OR e.red_flag_rating >= :redFlagMin)\n  AND (:startDate::timestamptz IS NULL OR e.created_at >= :startDate)\n  AND (:endDate::timestamptz IS NULL OR e.created_at <= :endDate)",
+    "SELECT COUNT(DISTINCT d.id) as total\nFROM documents d\nWHERE (:query::text IS NULL OR d.fts_vector @@ websearch_to_tsquery('english', :query))\n  AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType)\n  AND (:redFlagMin::int IS NULL OR d.red_flag_rating >= :redFlagMin)\n  AND (:startDate::timestamptz IS NULL OR d.created_at >= :startDate)\n  AND (:endDate::timestamptz IS NULL OR d.created_at <= :endDate)",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(DISTINCT e.id) as total
- * FROM evidence e
- * WHERE (:query::text IS NULL OR e.fts_vector @@ websearch_to_tsquery('english', :query))
- *   AND (:evidenceType::text IS NULL OR e.evidence_type = :evidenceType)
- *   AND (:redFlagMin::int IS NULL OR e.red_flag_rating >= :redFlagMin)
- *   AND (:startDate::timestamptz IS NULL OR e.created_at >= :startDate)
- *   AND (:endDate::timestamptz IS NULL OR e.created_at <= :endDate)
+ * SELECT COUNT(DISTINCT d.id) as total
+ * FROM documents d
+ * WHERE (:query::text IS NULL OR d.fts_vector @@ websearch_to_tsquery('english', :query))
+ *   AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType)
+ *   AND (:redFlagMin::int IS NULL OR d.red_flag_rating >= :redFlagMin)
+ *   AND (:startDate::timestamptz IS NULL OR d.created_at >= :startDate)
+ *   AND (:endDate::timestamptz IS NULL OR d.created_at <= :endDate)
  * ```
  */
 export const countSearchEvidence = new PreparedQuery<
@@ -931,7 +938,7 @@ export interface IGetEvidenceByIdDetailedResult {
   originalFilePath: string | null;
   redFlagRating: number | null;
   sourcePath: string | null;
-  title: string;
+  title: string | null;
   wordCount: number | null;
 }
 
@@ -944,34 +951,34 @@ export interface IGetEvidenceByIdDetailedQuery {
 const getEvidenceByIdDetailedIR: any = {
   usedParamSet: { id: true },
   params: [
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 545, b: 548 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 599, b: 602 }] },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.evidence_type as "evidenceType",\n  e.title,\n  e.description,\n  e.original_filename as "originalFilename",\n  e.source_path as "sourcePath",\n  e.cleaned_path as "cleanedPath",\n  e.original_file_path as "originalFilePath",\n  e.extracted_text as "extractedText",\n  e.created_at as "createdAt",\n  e.modified_at as "modifiedAt",\n  e.red_flag_rating as "redFlagRating",\n  e.evidence_tags as "evidenceTags",\n  e.metadata_json as "metadataJson",\n  e.word_count as "wordCount",\n  e.file_size as "fileSize"\nFROM evidence e\nWHERE e.id = :id!',
+    'SELECT \n  d.id,\n  d.evidence_type as "evidenceType",\n  d.title,\n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description,\n  d.file_name as "originalFilename",\n  d.file_path as "sourcePath",\n  d.file_path as "cleanedPath",\n  d.file_path as "originalFilePath",\n  d.content as "extractedText",\n  d.created_at as "createdAt",\n  d.last_processed_at as "modifiedAt",\n  d.red_flag_rating as "redFlagRating",\n  COALESCE(d.metadata_json->>\'tags\', \'[]\') as "evidenceTags",\n  d.metadata_json as "metadataJson",\n  d.word_count as "wordCount",\n  d.file_size as "fileSize"\nFROM documents d\nWHERE d.id = :id!',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   e.id,
- *   e.evidence_type as "evidenceType",
- *   e.title,
- *   e.description,
- *   e.original_filename as "originalFilename",
- *   e.source_path as "sourcePath",
- *   e.cleaned_path as "cleanedPath",
- *   e.original_file_path as "originalFilePath",
- *   e.extracted_text as "extractedText",
- *   e.created_at as "createdAt",
- *   e.modified_at as "modifiedAt",
- *   e.red_flag_rating as "redFlagRating",
- *   e.evidence_tags as "evidenceTags",
- *   e.metadata_json as "metadataJson",
- *   e.word_count as "wordCount",
- *   e.file_size as "fileSize"
- * FROM evidence e
- * WHERE e.id = :id!
+ *   d.id,
+ *   d.evidence_type as "evidenceType",
+ *   d.title,
+ *   COALESCE(d.content_preview, LEFT(d.content, 320)) as description,
+ *   d.file_name as "originalFilename",
+ *   d.file_path as "sourcePath",
+ *   d.file_path as "cleanedPath",
+ *   d.file_path as "originalFilePath",
+ *   d.content as "extractedText",
+ *   d.created_at as "createdAt",
+ *   d.last_processed_at as "modifiedAt",
+ *   d.red_flag_rating as "redFlagRating",
+ *   COALESCE(d.metadata_json->>'tags', '[]') as "evidenceTags",
+ *   d.metadata_json as "metadataJson",
+ *   d.word_count as "wordCount",
+ *   d.file_size as "fileSize"
+ * FROM documents d
+ * WHERE d.id = :id!
  * ```
  */
 export const getEvidenceByIdDetailed = new PreparedQuery<
@@ -991,7 +998,7 @@ export interface IGetEvidenceEntitiesResult {
   contextSnippet: string | null;
   id: string;
   name: string;
-  role: string;
+  role: string | null;
 }
 
 /** 'GetEvidenceEntities' query type */
@@ -1007,11 +1014,11 @@ const getEvidenceEntitiesIR: any = {
       name: 'evidenceId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 240, b: 251 }],
+      locs: [{ a: 348, b: 359 }],
     },
   ],
   statement:
-    'SELECT \n  ent.id,\n  ent.full_name as name,\n  ent.primary_role as category,\n  ee.role,\n  ee.confidence,\n  ee.mention_context as "contextSnippet"\nFROM evidence_entity ee\nINNER JOIN entities ent ON ent.id = ee.entity_id\nWHERE ee.evidence_id = :evidenceId!',
+    'SELECT \n  ent.id,\n  ent.full_name as name,\n  ent.primary_role as category,\n  \'mentioned\' as role,\n  MAX(em.confidence) as confidence,\n  MAX(em.mention_context) as "contextSnippet"\nFROM investigation_evidence ie\nINNER JOIN entity_mentions em ON em.document_id = ie.document_id\nINNER JOIN entities ent ON ent.id = em.entity_id\nWHERE ie.document_id = :evidenceId!\nGROUP BY ent.id, ent.full_name, ent.primary_role',
 };
 
 /**
@@ -1021,12 +1028,14 @@ const getEvidenceEntitiesIR: any = {
  *   ent.id,
  *   ent.full_name as name,
  *   ent.primary_role as category,
- *   ee.role,
- *   ee.confidence,
- *   ee.mention_context as "contextSnippet"
- * FROM evidence_entity ee
- * INNER JOIN entities ent ON ent.id = ee.entity_id
- * WHERE ee.evidence_id = :evidenceId!
+ *   'mentioned' as role,
+ *   MAX(em.confidence) as confidence,
+ *   MAX(em.mention_context) as "contextSnippet"
+ * FROM investigation_evidence ie
+ * INNER JOIN entity_mentions em ON em.document_id = ie.document_id
+ * INNER JOIN entities ent ON ent.id = em.entity_id
+ * WHERE ie.document_id = :evidenceId!
+ * GROUP BY ent.id, ent.full_name, ent.primary_role
  * ```
  */
 export const getEvidenceEntities = new PreparedQuery<
@@ -1039,7 +1048,7 @@ export type IGetEvidenceTypesCountsParams = void;
 
 /** 'GetEvidenceTypesCounts' return type */
 export interface IGetEvidenceTypesCountsResult {
-  count: string | null;
+  count: number | null;
   type: string | null;
 }
 
@@ -1053,7 +1062,7 @@ const getEvidenceTypesCountsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT \n  evidence_type as type,\n  COUNT(*) as count\nFROM evidence\nGROUP BY evidence_type\nORDER BY count DESC',
+    'SELECT \n  evidence_type as type,\n  COUNT(*)::integer as count\nFROM documents\nWHERE evidence_type IS NOT NULL\nGROUP BY evidence_type\nORDER BY count DESC',
 };
 
 /**
@@ -1061,8 +1070,9 @@ const getEvidenceTypesCountsIR: any = {
  * ```
  * SELECT
  *   evidence_type as type,
- *   COUNT(*) as count
- * FROM evidence
+ *   COUNT(*)::integer as count
+ * FROM documents
+ * WHERE evidence_type IS NOT NULL
  * GROUP BY evidence_type
  * ORDER BY count DESC
  * ```
@@ -1251,73 +1261,3 @@ export const getMediaItemPeople = new PreparedQuery<
   IGetMediaItemPeopleParams,
   IGetMediaItemPeopleResult
 >(getMediaItemPeopleIR);
-
-/** 'InsertEvidenceEntity' parameters type */
-export interface IInsertEvidenceEntityParams {
-  confidence: number;
-  entityId: NumberOrString;
-  evidenceId: NumberOrString;
-  mentionContext?: string | null | void;
-  role: string;
-}
-
-/** 'InsertEvidenceEntity' return type */
-export type IInsertEvidenceEntityResult = void;
-
-/** 'InsertEvidenceEntity' query type */
-export interface IInsertEvidenceEntityQuery {
-  params: IInsertEvidenceEntityParams;
-  result: IInsertEvidenceEntityResult;
-}
-
-const insertEvidenceEntityIR: any = {
-  usedParamSet: {
-    evidenceId: true,
-    entityId: true,
-    role: true,
-    confidence: true,
-    mentionContext: true,
-  },
-  params: [
-    {
-      name: 'evidenceId',
-      required: true,
-      transform: { type: 'scalar' },
-      locs: [{ a: 108, b: 119 }],
-    },
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 122, b: 131 }] },
-    { name: 'role', required: true, transform: { type: 'scalar' }, locs: [{ a: 134, b: 139 }] },
-    {
-      name: 'confidence',
-      required: true,
-      transform: { type: 'scalar' },
-      locs: [{ a: 142, b: 153 }],
-    },
-    {
-      name: 'mentionContext',
-      required: false,
-      transform: { type: 'scalar' },
-      locs: [{ a: 156, b: 170 }],
-    },
-  ],
-  statement:
-    'INSERT INTO evidence_entity (\n  evidence_id,\n  entity_id,\n  role,\n  confidence,\n  mention_context\n) VALUES (:evidenceId!, :entityId!, :role!, :confidence!, :mentionContext)\nON CONFLICT (evidence_id, entity_id) DO NOTHING',
-};
-
-/**
- * Query generated from SQL:
- * ```
- * INSERT INTO evidence_entity (
- *   evidence_id,
- *   entity_id,
- *   role,
- *   confidence,
- *   mention_context
- * ) VALUES (:evidenceId!, :entityId!, :role!, :confidence!, :mentionContext)
- * ON CONFLICT (evidence_id, entity_id) DO NOTHING
- * ```
- */
-export const insertEvidenceEntity = new PreparedQuery<
-  IInsertEvidenceEntityParams,
-  IInsertEvidenceEntityResult
->(insertEvidenceEntityIR);

@@ -109,8 +109,8 @@ export class InvestigationIngestorService {
   }
 
   /**
-   * Find all EFTA IDs in content, resolve to documents table, upsert evidence
-   * and link to investigation using raw SQL to satisfy document_id NOT NULL.
+   * Find all EFTA IDs in content, resolve to documents table, and link those
+   * canonical documents to the investigation.
    */
   private static async syncEvidence(
     investigationId: number,
@@ -134,24 +134,21 @@ export class InvestigationIngestorService {
         const doc = docRes.rows[0];
         const docId = Number(doc.id);
         const title = (doc.title as string) || eftaId;
-        const sourcePath = (doc.file_path as string) || `efta:${eftaId}`;
-
-        // Upsert into evidence table
-        const evRes = await pool.query(
-          `INSERT INTO evidence (title, description, evidence_type, source_path, original_filename, red_flag_rating)
-           VALUES ($1, $2, 'document', $3, $4, 0)
-           ON CONFLICT (source_path) DO UPDATE SET title = EXCLUDED.title
-           RETURNING id`,
-          [title, `Linked via ${eftaId}`, sourcePath, eftaId],
-        );
-        const evidenceId = Number(evRes.rows[0].id);
-
-        // Link to investigation — include document_id to satisfy NOT NULL
         await pool.query(
-          `INSERT INTO investigation_evidence (investigation_id, evidence_id, document_id, added_by, relevance)
-           VALUES ($1, $2, $3, $4, 'high')
-           ON CONFLICT (investigation_id, evidence_id) DO NOTHING`,
-          [investigationId, evidenceId, docId, ownerId],
+          `UPDATE documents
+           SET title = COALESCE(title, $2),
+               evidence_type = COALESCE(evidence_type, 'document'),
+               content_preview = COALESCE(content_preview, $3)
+           WHERE id = $1`,
+          [docId, title, `Linked via ${eftaId}`],
+        );
+
+        // Link to investigation by canonical document_id.
+        await pool.query(
+          `INSERT INTO investigation_evidence (investigation_id, document_id, added_by, relevance)
+           VALUES ($1, $2, $3, 'high')
+           ON CONFLICT (investigation_id, document_id) DO NOTHING`,
+          [investigationId, docId, ownerId],
         );
         added++;
       } catch (err) {

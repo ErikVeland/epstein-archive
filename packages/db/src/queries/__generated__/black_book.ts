@@ -113,7 +113,7 @@ export type IGetBlackBookReviewStatsParams = void;
 export interface IGetBlackBookReviewStatsResult {
   remaining: string | null;
   reviewed: string | null;
-  total: string | null;
+  total: number | null;
 }
 
 /** 'GetBlackBookReviewStats' query type */
@@ -126,14 +126,14 @@ const getBlackBookReviewStatsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT \n  COUNT(*) as total,\n  COUNT(CASE WHEN needs_review = 1 THEN 1 END) as remaining,\n  COUNT(CASE WHEN needs_review = 0 OR manually_reviewed = 1 THEN 1 END) as reviewed\nFROM entities\nWHERE id IN (SELECT person_id FROM black_book_entries)',
+    'SELECT \n  COUNT(*)::integer as total,\n  COUNT(CASE WHEN needs_review = 1 THEN 1 END) as remaining,\n  COUNT(CASE WHEN needs_review = 0 OR manually_reviewed = 1 THEN 1 END) as reviewed\nFROM entities\nWHERE id IN (SELECT person_id FROM black_book_entries)',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   COUNT(*) as total,
+ *   COUNT(*)::integer as total,
  *   COUNT(CASE WHEN needs_review = 1 THEN 1 END) as remaining,
  *   COUNT(CASE WHEN needs_review = 0 OR manually_reviewed = 1 THEN 1 END) as reviewed
  * FROM entities

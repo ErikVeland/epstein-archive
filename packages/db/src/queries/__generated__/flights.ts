@@ -199,7 +199,7 @@ export type IGetFlightStatsParams = void;
 
 /** 'GetFlightStats' return type */
 export interface IGetFlightStatsResult {
-  totalFlights: string | null;
+  totalFlights: number | null;
   uniquePassengers: string | null;
 }
 
@@ -213,14 +213,14 @@ const getFlightStatsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT\n  (SELECT COUNT(*) FROM flights) as "totalFlights",\n  (SELECT COUNT(DISTINCT passenger_name) FROM flight_passengers) as "uniquePassengers"',
+    'SELECT\n  (SELECT COUNT(*)::integer FROM flights) as "totalFlights",\n  (SELECT COUNT(DISTINCT passenger_name) FROM flight_passengers) as "uniquePassengers"',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   (SELECT COUNT(*) FROM flights) as "totalFlights",
+ *   (SELECT COUNT(*)::integer FROM flights) as "totalFlights",
  *   (SELECT COUNT(DISTINCT passenger_name) FROM flight_passengers) as "uniquePassengers"
  * ```
  */
@@ -235,7 +235,7 @@ export interface IGetTopPassengersParams {
 
 /** 'GetTopPassengers' return type */
 export interface IGetTopPassengersResult {
-  count: string | null;
+  count: number | null;
   name: string;
 }
 
@@ -248,16 +248,16 @@ export interface IGetTopPassengersQuery {
 const getTopPassengersIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 122, b: 128 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 131, b: 137 }] },
   ],
   statement:
-    'SELECT passenger_name as name, COUNT(*) as count\nFROM flight_passengers\nGROUP BY passenger_name\nORDER BY count DESC\nLIMIT :limit!',
+    'SELECT passenger_name as name, COUNT(*)::integer as count\nFROM flight_passengers\nGROUP BY passenger_name\nORDER BY count DESC\nLIMIT :limit!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT passenger_name as name, COUNT(*) as count
+ * SELECT passenger_name as name, COUNT(*)::integer as count
  * FROM flight_passengers
  * GROUP BY passenger_name
  * ORDER BY count DESC
@@ -275,7 +275,7 @@ export interface IGetTopRoutesParams {
 
 /** 'GetTopRoutes' return type */
 export interface IGetTopRoutesResult {
-  count: string | null;
+  count: number | null;
   route: string | null;
 }
 
@@ -288,10 +288,10 @@ export interface IGetTopRoutesQuery {
 const getTopRoutesIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 141, b: 147 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 150, b: 156 }] },
   ],
   statement:
-    "SELECT \n  departure_airport || ' -> ' || arrival_airport as route,\n  COUNT(*) as count\nFROM flights\nGROUP BY route\nORDER BY count DESC\nLIMIT :limit!",
+    "SELECT \n  departure_airport || ' -> ' || arrival_airport as route,\n  COUNT(*)::integer as count\nFROM flights\nGROUP BY route\nORDER BY count DESC\nLIMIT :limit!",
 };
 
 /**
@@ -299,7 +299,7 @@ const getTopRoutesIR: any = {
  * ```
  * SELECT
  *   departure_airport || ' -> ' || arrival_airport as route,
- *   COUNT(*) as count
+ *   COUNT(*)::integer as count
  * FROM flights
  * GROUP BY route
  * ORDER BY count DESC
@@ -315,7 +315,7 @@ export type IGetFlightsByYearParams = void;
 
 /** 'GetFlightsByYear' return type */
 export interface IGetFlightsByYearResult {
-  count: string | null;
+  count: number | null;
   year: string | null;
 }
 
@@ -329,7 +329,7 @@ const getFlightsByYearIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT \n  EXTRACT(YEAR FROM date::timestamp)::text as year,\n  COUNT(*) as count\nFROM flights\nGROUP BY year\nORDER BY year DESC',
+    'SELECT \n  EXTRACT(YEAR FROM date::timestamp)::text as year,\n  COUNT(*)::integer as count\nFROM flights\nGROUP BY year\nORDER BY year DESC',
 };
 
 /**
@@ -337,7 +337,7 @@ const getFlightsByYearIR: any = {
  * ```
  * SELECT
  *   EXTRACT(YEAR FROM date::timestamp)::text as year,
- *   COUNT(*) as count
+ *   COUNT(*)::integer as count
  * FROM flights
  * GROUP BY year
  * ORDER BY year DESC
@@ -367,7 +367,7 @@ const getAirportStatsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT \n  airport,\n  city,\n  SUM(count) as count\nFROM (\n  SELECT departure_airport as airport, departure_city as city, COUNT(*) as count FROM flights GROUP BY airport, city\n  UNION ALL\n  SELECT arrival_airport as airport, arrival_city as city, COUNT(*) as count FROM flights GROUP BY airport, city\n) t\nGROUP BY airport, city\nORDER BY count DESC',
+    'SELECT \n  airport,\n  city,\n  SUM(count) as count\nFROM (\n  SELECT departure_airport as airport, departure_city as city, COUNT(*)::integer as count FROM flights GROUP BY airport, city\n  UNION ALL\n  SELECT arrival_airport as airport, arrival_city as city, COUNT(*)::integer as count FROM flights GROUP BY airport, city\n) t\nGROUP BY airport, city\nORDER BY count DESC',
 };
 
 /**
@@ -378,9 +378,9 @@ const getAirportStatsIR: any = {
  *   city,
  *   SUM(count) as count
  * FROM (
- *   SELECT departure_airport as airport, departure_city as city, COUNT(*) as count FROM flights GROUP BY airport, city
+ *   SELECT departure_airport as airport, departure_city as city, COUNT(*)::integer as count FROM flights GROUP BY airport, city
  *   UNION ALL
- *   SELECT arrival_airport as airport, arrival_city as city, COUNT(*) as count FROM flights GROUP BY airport, city
+ *   SELECT arrival_airport as airport, arrival_city as city, COUNT(*)::integer as count FROM flights GROUP BY airport, city
  * ) t
  * GROUP BY airport, city
  * ORDER BY count DESC

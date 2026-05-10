@@ -16,7 +16,7 @@ export interface IGetGraphCommunitiesResult {
   label: string | null;
   mentions: string | null;
   risk: number | null;
-  size: string | null;
+  size: number | null;
   type: string | null;
 }
 
@@ -30,7 +30,7 @@ const getGraphCommunitiesIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    "SELECT \n    'community-' || community_id as id,\n    (\n        SELECT full_name \n        FROM entities e2 \n        WHERE e2.community_id = entities.community_id \n        ORDER BY red_flag_rating DESC, mentions DESC \n        LIMIT 1\n    ) || ' Group' as label,\n    'cluster' as type,\n    MAX(red_flag_rating) as risk,\n    COUNT(*) as size,\n    SUM(mentions) as mentions\nFROM entities\nWHERE community_id IS NOT NULL AND entity_type = 'Person'\nGROUP BY community_id\nHAVING COUNT(*) > 10\nORDER BY size DESC\nLIMIT 50",
+    "SELECT \n    'community-' || community_id as id,\n    (\n        SELECT full_name \n        FROM entities e2 \n        WHERE e2.community_id = entities.community_id \n        ORDER BY red_flag_rating DESC, mentions DESC \n        LIMIT 1\n    ) || ' Group' as label,\n    'cluster' as type,\n    MAX(red_flag_rating) as risk,\n    COUNT(*)::integer as size,\n    SUM(mentions) as mentions\nFROM entities\nWHERE community_id IS NOT NULL AND entity_type = 'Person'\nGROUP BY community_id\nHAVING COUNT(*)::integer > 10\nORDER BY size DESC\nLIMIT 50",
 };
 
 /**
@@ -47,12 +47,12 @@ const getGraphCommunitiesIR: any = {
  *     ) || ' Group' as label,
  *     'cluster' as type,
  *     MAX(red_flag_rating) as risk,
- *     COUNT(*) as size,
+ *     COUNT(*)::integer as size,
  *     SUM(mentions) as mentions
  * FROM entities
  * WHERE community_id IS NOT NULL AND entity_type = 'Person'
  * GROUP BY community_id
- * HAVING COUNT(*) > 10
+ * HAVING COUNT(*)::integer > 10
  * ORDER BY size DESC
  * LIMIT 50
  * ```
@@ -299,17 +299,26 @@ export interface IGetGlobalGraphNodesQuery {
 }
 
 const getGlobalGraphNodesIR: any = {
-  usedParamSet: { endDate: true, startDate: true, minRisk: true, limit: true },
+  usedParamSet: { minRisk: true, endDate: true, startDate: true, limit: true },
   params: [
+    {
+      name: 'minRisk',
+      required: true,
+      transform: { type: 'scalar' },
+      locs: [
+        { a: 109, b: 117 },
+        { a: 1339, b: 1347 },
+      ],
+    },
     {
       name: 'endDate',
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 161, b: 168 },
-        { a: 211, b: 218 },
-        { a: 460, b: 467 },
-        { a: 510, b: 517 },
+        { a: 353, b: 360 },
+        { a: 403, b: 410 },
+        { a: 729, b: 736 },
+        { a: 779, b: 786 },
       ],
     },
     {
@@ -317,37 +326,36 @@ const getGlobalGraphNodesIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 244, b: 253 },
-        { a: 295, b: 304 },
-        { a: 543, b: 552 },
-        { a: 594, b: 603 },
+        { a: 438, b: 447 },
+        { a: 489, b: 498 },
+        { a: 814, b: 823 },
+        { a: 865, b: 874 },
       ],
     },
-    {
-      name: 'minRisk',
-      required: true,
-      transform: { type: 'scalar' },
-      locs: [{ a: 1068, b: 1076 }],
-    },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1152, b: 1158 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1423, b: 1429 }] },
   ],
   statement:
-    'WITH rel_counts AS (\nSELECT entity_id, SUM(cnt) as degree FROM (\n    SELECT source_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships \n    WHERE (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) \n    AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)\n    GROUP BY source_entity_id\n    UNION ALL\n    SELECT target_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships \n    WHERE (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) \n    AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)\n    GROUP BY target_entity_id\n) t\nGROUP BY entity_id\n)\nSELECT \ne.canonical_id as id,\nMAX(e.full_name) as label, \nMAX(e.primary_role) as type,\nMAX(e.red_flag_rating) as risk,\nSUM(COALESCE(rc.degree, 0)) as "connectionCount",\nSUM(e.mentions) as mentions,\nMAX(e.entity_type) as entity_type,\nMAX(e.community_id) as community_id\nFROM entities e\nLEFT JOIN rel_counts rc ON e.id = rc.entity_id\nWHERE e.entity_type = \'Person\' \n    AND (e.red_flag_rating >= :minRisk!)\nGROUP BY e.canonical_id\nORDER BY risk DESC, "connectionCount" DESC\nLIMIT :limit!',
+    'WITH candidate_entities AS (\n    SELECT id FROM entities WHERE entity_type = \'Person\' AND red_flag_rating >= :minRisk!\n),\nrel_counts AS (\nSELECT entity_id, SUM(cnt) as degree FROM (\n    SELECT source_entity_id as entity_id, COUNT(*)::integer as cnt FROM entity_relationships \n    WHERE source_entity_id IN (SELECT id FROM candidate_entities)\n      AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) \n      AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)\n    GROUP BY source_entity_id\n    UNION ALL\n    SELECT target_entity_id as entity_id, COUNT(*)::integer as cnt FROM entity_relationships \n    WHERE target_entity_id IN (SELECT id FROM candidate_entities)\n      AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz) \n      AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)\n    GROUP BY target_entity_id\n) t\nGROUP BY entity_id\n)\nSELECT \ne.canonical_id as id,\nMAX(e.full_name) as label, \nMAX(e.primary_role) as type,\nMAX(e.red_flag_rating) as risk,\nSUM(COALESCE(rc.degree, 0)) as "connectionCount",\nSUM(e.mentions) as mentions,\nMAX(e.entity_type) as entity_type,\nMAX(e.community_id) as community_id\nFROM entities e\nLEFT JOIN rel_counts rc ON e.id = rc.entity_id\nWHERE e.entity_type = \'Person\' \n    AND (e.red_flag_rating >= :minRisk!)\nGROUP BY e.canonical_id\nORDER BY risk DESC, "connectionCount" DESC\nLIMIT :limit!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * WITH rel_counts AS (
+ * WITH candidate_entities AS (
+ *     SELECT id FROM entities WHERE entity_type = 'Person' AND red_flag_rating >= :minRisk!
+ * ),
+ * rel_counts AS (
  * SELECT entity_id, SUM(cnt) as degree FROM (
- *     SELECT source_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships
- *     WHERE (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz)
- *     AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
+ *     SELECT source_entity_id as entity_id, COUNT(*)::integer as cnt FROM entity_relationships
+ *     WHERE source_entity_id IN (SELECT id FROM candidate_entities)
+ *       AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz)
+ *       AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
  *     GROUP BY source_entity_id
  *     UNION ALL
- *     SELECT target_entity_id as entity_id, COUNT(*) as cnt FROM entity_relationships
- *     WHERE (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz)
- *     AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
+ *     SELECT target_entity_id as entity_id, COUNT(*)::integer as cnt FROM entity_relationships
+ *     WHERE target_entity_id IN (SELECT id FROM candidate_entities)
+ *       AND (:endDate::timestamptz IS NULL OR first_seen_at <= :endDate::timestamptz)
+ *       AND (:startDate::timestamptz IS NULL OR last_seen_at >= :startDate::timestamptz)
  *     GROUP BY target_entity_id
  * ) t
  * GROUP BY entity_id
@@ -721,19 +729,21 @@ const insertAdjacencyCacheIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    "INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types)\nSELECT \ns.canonical_id as entity_id,\nt.canonical_id as neighbor_id,\nMAX(er.proximity_score) as weight,\nCASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,\nSTRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types\nFROM entity_relationships er\nJOIN entities s ON er.source_entity_id = s.id\nJOIN entities t ON er.target_entity_id = t.id\nWHERE s.canonical_id != t.canonical_id\nGROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id",
+    "INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)\nSELECT \ns.canonical_id as entity_id,\nt.canonical_id as neighbor_id,\nMAX(er.proximity_score) as weight,\nCASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,\nSTRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,\nMAX(er.risk_score) as risk_score,\nMAX(er.confidence) as confidence\nFROM entity_relationships er\nJOIN entities s ON er.source_entity_id = s.id\nJOIN entities t ON er.target_entity_id = t.id\nWHERE s.canonical_id != t.canonical_id\nGROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types)
+ * INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)
  * SELECT
  * s.canonical_id as entity_id,
  * t.canonical_id as neighbor_id,
  * MAX(er.proximity_score) as weight,
  * CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,
- * STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types
+ * STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,
+ * MAX(er.risk_score) as risk_score,
+ * MAX(er.confidence) as confidence
  * FROM entity_relationships er
  * JOIN entities s ON er.source_entity_id = s.id
  * JOIN entities t ON er.target_entity_id = t.id

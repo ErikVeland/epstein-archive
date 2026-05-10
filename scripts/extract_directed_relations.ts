@@ -94,31 +94,10 @@ async function main() {
 
               if (!subjectId || !objectId || subjectId === objectId) continue;
 
-              const relationId = sha256(`${subjectId}|${rel.relationship}|${objectId}`);
-
-              await pool.query(
-                `
-                INSERT INTO relations (id, subject_entity_id, object_entity_id, predicate, direction, weight, last_seen_at)
-                VALUES ($1, $2, $3, $4, 'directed', $5, NOW())
-                ON CONFLICT (id) DO UPDATE
-                  SET last_seen_at = NOW(),
-                      weight = LEAST(relations.weight + 0.1, 10.0)
-              `,
-                [relationId, subjectId, objectId, rel.relationship, rel.confidence],
+              const evidenceId = sha256(
+                `${subjectId}|${rel.relationship}|${objectId}|${doc.id}|${paragraph.slice(0, 40)}`,
               );
 
-              const evidenceId = sha256(`${relationId}|${doc.id}|${paragraph.slice(0, 40)}`);
-              await pool.query(
-                `
-                INSERT INTO relation_evidence (id, relation_id, document_id, confidence, quote_text)
-                VALUES ($1, $2, $3, $4, $5)
-                ON CONFLICT (id) DO NOTHING
-              `,
-                [evidenceId, relationId, doc.id, rel.confidence, paragraph.slice(0, 500)],
-              );
-
-              // Also write into entity_relationships — this is the table the UI reads
-              // (NetworkGraph, /api/relationships, analyticsRepository all query here)
               await pool.query(
                 `
                 INSERT INTO entity_relationships
@@ -131,6 +110,26 @@ async function main() {
                       last_seen_at  = NOW()
               `,
                 [subjectId, objectId, rel.relationship, rel.confidence, rel.confidence],
+              );
+
+              await pool.query(
+                `
+                INSERT INTO relation_evidence (
+                  id, source_entity_id, target_entity_id, relationship_type,
+                  document_id, confidence, quote_text
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                ON CONFLICT (id) DO NOTHING
+              `,
+                [
+                  evidenceId,
+                  subjectId,
+                  objectId,
+                  rel.relationship,
+                  doc.id,
+                  rel.confidence,
+                  paragraph.slice(0, 500),
+                ],
               );
 
               relationsAdded++;

@@ -207,6 +207,7 @@ export const NetworkPage: React.FC = () => {
               relationships={relationships}
               onEntityClick={handleEntityClick}
               maxNodes={500}
+              highlightedNodeIds={foundPath?.map((n) => String(n.id)) || []}
             />
           )}
 

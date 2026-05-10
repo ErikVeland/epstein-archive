@@ -691,38 +691,65 @@ export const icebergRepository = {
     sourceId: string,
     targetId: string,
   ): Promise<RelationshipExplanationDto> {
-    const [directEvidence, edge] = await Promise.all([
+    // Perform dynamic search for both direct evidence AND recursive ranked paths
+    const [directEvidence, edge, paths] = await Promise.all([
       loadEdgeEvidenceDocuments(sourceId, targetId),
       this.getBestEdge(sourceId, targetId, { minConfidence: 0 }),
+      this.getRankedPaths({ sourceId, targetId, limit: 1, minConfidence: 0.01 }),
     ]);
+
+    let indirectEvidence: IcebergSupportingDocumentDto[] = [];
+
+    // Upgrade Routine: If direct matching fails, attempt to salvage multi-hop bridging documents
+    if (directEvidence.length === 0 && paths && paths.length > 0) {
+      const topPath = paths[0];
+      if (topPath && topPath.edges.length > 1) {
+        try {
+          // Load standard evidence bundles for each leg in the bridge
+          const legDocs = await Promise.all(
+            topPath.edges.map((e) => loadEdgeEvidenceDocuments(String(e.source), String(e.target))),
+          );
+          // Flatten and cap to reasonable volume
+          indirectEvidence = legDocs.flat().slice(0, 10);
+        } catch (_err) {
+          // Graceful degradation to empty if deeper resolution errors out
+        }
+      }
+    }
+
+    const allDocs = directEvidence.length > 0 ? directEvidence : indirectEvidence;
 
     const sharedDates = Array.from(
       new Set(
-        directEvidence
+        allDocs
           .map((doc) => (doc.date ? doc.date.slice(0, 10) : null))
           .filter((date): date is string => Boolean(date)),
       ),
     ).slice(0, 8);
 
-    const missingProvenance = directEvidence
+    const missingProvenance = allDocs
       .filter((doc) => !doc.snippet)
       .slice(0, 5)
       .map((doc) => `${doc.title} has no extractable source snippet in the current index.`);
+
+    const summary =
+      directEvidence.length > 0
+        ? `${directEvidence.length} source document${directEvidence.length === 1 ? '' : 's'} directly link these entities.`
+        : indirectEvidence.length > 0
+          ? `Inferred connection backed by ${indirectEvidence.length} docs supporting an intermediate multi-hop bridge.`
+          : 'No shared source documents found in primary or secondary degree lookups.';
 
     return {
       sourceId,
       targetId,
       directEvidence,
-      indirectEvidence: [],
+      indirectEvidence,
       sharedDates,
       sharedLocations: [],
       contradictions: [],
       missingProvenance,
       confidence: edge?.confidence ?? null,
-      summary:
-        directEvidence.length > 0
-          ? `${directEvidence.length} source document${directEvidence.length === 1 ? '' : 's'} mention both entities.`
-          : 'No shared source document was found in the bounded evidence lookup.',
+      summary,
     };
   },
 

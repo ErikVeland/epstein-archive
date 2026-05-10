@@ -169,7 +169,7 @@ async function getDocumentSignals(
         d.source_release,
         d.source_path,
         d.source_url,
-        d.source_original_url,
+        NULL::text AS source_original_url,
         d.ingestion_run_id,
         d.parent_document_id,
         COUNT(dpe.id)::int AS event_count,

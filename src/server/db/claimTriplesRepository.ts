@@ -189,7 +189,7 @@ export const claimTriplesRepository = {
     rejectionReason?: string,
   ): Promise<boolean> {
     try {
-      await getApiPool().query(
+      const res = await getApiPool().query(
         `
         UPDATE claim_triples
         SET 
@@ -198,9 +198,20 @@ export const claimTriplesRepository = {
           verified_at = CURRENT_TIMESTAMP,
           rejection_reason = $4
         WHERE id = $1
+        RETURNING subject_entity_id, object_entity_id
         `,
         [id, status, verifiedBy, rejectionReason || null],
       );
+
+      // Fire propagation loop in the background to push attenuation into active graph layer
+      const row = res.rows[0];
+      if (row?.subject_entity_id && row?.object_entity_id) {
+        this.recalculateRelationshipConfidence(row.subject_entity_id, row.object_entity_id).catch(
+          (err) =>
+            logger.warn({ err }, '[claimTriplesRepository] Async attenuation calculation failure'),
+        );
+      }
+
       return true;
     } catch (error) {
       logger.error({ err: error, id }, '[claimTriplesRepository] verify error');
@@ -294,6 +305,59 @@ export const claimTriplesRepository = {
     } catch (error) {
       logger.error({ err: error }, '[claimTriplesRepository] getCorroboratedClaims error');
       throw error;
+    }
+  },
+
+  async recalculateRelationshipConfidence(
+    subjectId: string | number,
+    objectId: string | number,
+  ): Promise<void> {
+    const pool = getApiPool();
+    try {
+      const statsRes = await pool.query(
+        `
+        SELECT 
+          COUNT(*)::int as total,
+          SUM(CASE WHEN verified = 1 THEN 1 ELSE 0 END)::int as accepted,
+          SUM(CASE WHEN verified = 2 THEN 1 ELSE 0 END)::int as rejected
+        FROM claim_triples
+        WHERE (subject_entity_id = $1 AND object_entity_id = $2)
+           OR (subject_entity_id = $2 AND object_entity_id = $1)
+        `,
+        [subjectId, objectId],
+      );
+
+      const row = statsRes.rows[0];
+      const total = Number(row?.total || 0);
+      if (total === 0) return;
+
+      const accepted = Number(row?.accepted || 0);
+      const rejected = Number(row?.rejected || 0);
+      const totalRated = accepted + rejected;
+
+      // Weight formula: Start at baseline 0.5, adjust based on verified vs rejected ratio.
+      let baseConfidence = 0.5;
+      if (totalRated > 0) {
+        baseConfidence = accepted / totalRated;
+      }
+
+      // Attenuate severely if strong negative signal exists. Clamp result between [0.1, 1.0].
+      const derivedConfidence = Math.max(0.1, Math.min(1.0, baseConfidence));
+
+      await pool.query(
+        `
+        UPDATE entity_relationships
+        SET confidence = $3, updated_at = CURRENT_TIMESTAMP
+        WHERE (source_entity_id = $1 AND target_entity_id = $2)
+           OR (source_entity_id = $2 AND target_entity_id = $1)
+        `,
+        [subjectId, objectId, derivedConfidence],
+      );
+    } catch (err) {
+      logger.error(
+        { err, subjectId, objectId },
+        '[claimTriplesRepository] Critical recalculation trigger error',
+      );
     }
   },
 };

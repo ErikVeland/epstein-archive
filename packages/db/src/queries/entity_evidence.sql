@@ -29,28 +29,28 @@ SELECT
   other.id,
   other.full_name,
   other.entity_category,
-  SUM(r.weight) as shared_evidence_count
-FROM relations r
+  SUM(COALESCE(er.strength, er.proximity_score, 1)) as shared_evidence_count
+FROM entity_relationships er
 JOIN entities other ON
   other.id = CASE
-    WHEN r.subject_entity_id = :entityId THEN r.object_entity_id
-    ELSE r.subject_entity_id
+    WHEN er.source_entity_id = :entityId THEN er.target_entity_id
+    ELSE er.source_entity_id
   END
-WHERE r.subject_entity_id = :entityId OR r.object_entity_id = :entityId
+WHERE er.source_entity_id = :entityId OR er.target_entity_id = :entityId
 GROUP BY other.id, other.full_name, other.entity_category
 ORDER BY shared_evidence_count DESC
 LIMIT :limit!;
 
 /* @name getRelationEvidenceForEntity */
 SELECT
-  r.id as relation_id,
-  r.subject_entity_id,
-  r.object_entity_id,
-  r.predicate,
-  r.direction,
-  r.weight,
-  r.first_seen_at,
-  r.last_seen_at,
+  CONCAT(er.source_entity_id, ':', er.target_entity_id, ':', er.relationship_type) as relation_id,
+  er.source_entity_id as subject_entity_id,
+  er.target_entity_id as object_entity_id,
+  er.relationship_type as predicate,
+  'directed' as direction,
+  COALESCE(er.strength, er.proximity_score, 0) as weight,
+  er.first_seen_at,
+  er.last_seen_at,
   re.id as relation_evidence_id,
   re.document_id,
   re.span_id,
@@ -59,8 +59,11 @@ SELECT
   re.mention_ids,
   d.title as document_title,
   d.file_path as document_path
-FROM relations r
-JOIN relation_evidence re ON re.relation_id = r.id
+FROM entity_relationships er
+JOIN relation_evidence re
+  ON re.source_entity_id = er.source_entity_id
+ AND re.target_entity_id = er.target_entity_id
+ AND re.relationship_type = er.relationship_type
 LEFT JOIN documents d ON d.id = re.document_id
-WHERE r.subject_entity_id = :entityId! OR r.object_entity_id = :entityId!
-ORDER BY r.weight DESC, re.confidence DESC;
+WHERE er.source_entity_id = :entityId! OR er.target_entity_id = :entityId!
+ORDER BY weight DESC, re.confidence DESC;

@@ -11,7 +11,7 @@ import {
   getGraphCommunities,
   getGraphPathEdges,
   getGraphPathNodes,
-} from '../db/routesDb.js';
+} from '../db/healthQueries.js';
 import { icebergRepository } from '../db/icebergRepository.js';
 
 const router = express.Router();

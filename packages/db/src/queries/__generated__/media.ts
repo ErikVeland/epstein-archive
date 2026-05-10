@@ -354,7 +354,7 @@ export interface ICountMediaItemsParams {
 
 /** 'CountMediaItems' return type */
 export interface ICountMediaItemsResult {
-  total: string | null;
+  total: number | null;
 }
 
 /** 'CountMediaItems' query type */
@@ -371,8 +371,8 @@ const countMediaItemsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 51, b: 59 },
-        { a: 94, b: 102 },
+        { a: 60, b: 68 },
+        { a: 103, b: 111 },
       ],
     },
     {
@@ -380,8 +380,8 @@ const countMediaItemsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 112, b: 120 },
-        { a: 156, b: 164 },
+        { a: 121, b: 129 },
+        { a: 165, b: 173 },
       ],
     },
     {
@@ -389,19 +389,19 @@ const countMediaItemsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 174, b: 184 },
-        { a: 223, b: 233 },
+        { a: 183, b: 193 },
+        { a: 232, b: 242 },
       ],
     },
   ],
   statement:
-    'SELECT COUNT(*) as total\nFROM media_items m\nWHERE (:entityId::bigint IS NULL OR m.entity_id = :entityId)\n  AND (:fileType::text IS NULL OR m.file_type LIKE :fileType)\n  AND (:minRedFlag::int IS NULL OR m.red_flag_rating >= :minRedFlag)',
+    'SELECT COUNT(*)::integer as total\nFROM media_items m\nWHERE (:entityId::bigint IS NULL OR m.entity_id = :entityId)\n  AND (:fileType::text IS NULL OR m.file_type LIKE :fileType)\n  AND (:minRedFlag::int IS NULL OR m.red_flag_rating >= :minRedFlag)',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*) as total
+ * SELECT COUNT(*)::integer as total
  * FROM media_items m
  * WHERE (:entityId::bigint IS NULL OR m.entity_id = :entityId)
  *   AND (:fileType::text IS NULL OR m.file_type LIKE :fileType)

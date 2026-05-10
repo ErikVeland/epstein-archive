@@ -89,18 +89,18 @@ WHERE investigation_id = :investigationId!;
 
 /* @name getEvidence */
 SELECT 
-  e.id, 
-  e.evidence_type as type, 
-  e.title, 
-  e.description, 
-  e.source_path, 
-  e.metadata_json,
+  d.id, 
+  d.evidence_type as type, 
+  d.title, 
+  COALESCE(d.content_preview, LEFT(d.content, 320)) as description, 
+  d.file_path as source_path, 
+  d.metadata_json,
   ie.id as investigation_evidence_id,
   ie.relevance, 
   ie.added_at, 
   ie.added_by
 FROM investigation_evidence ie
-LEFT JOIN evidence e ON ie.evidence_id = e.id
+LEFT JOIN documents d ON ie.document_id = d.id
 WHERE ie.investigation_id = :investigationId!
 ORDER BY ie.added_at DESC
 LIMIT :limit OFFSET :offset;
@@ -109,17 +109,22 @@ LIMIT :limit OFFSET :offset;
 SELECT COUNT(*)::integer as total FROM investigation_evidence WHERE investigation_id = :investigationId!;
 
 /* @name getEvidenceBySourcePath */
-SELECT id FROM evidence WHERE source_path = :sourcePath!;
+SELECT id FROM documents WHERE file_path = :sourcePath!;
 
 /* @name createEvidence */
-INSERT INTO evidence (title, description, evidence_type, source_path, original_filename, red_flag_rating)
-VALUES (:title!, :description, :evidenceType!, :sourcePath!, :originalFilename!, :redFlagRating!)
+INSERT INTO documents (title, content_preview, evidence_type, file_path, file_name, red_flag_rating, created_at)
+VALUES (:title!, :description, :evidenceType!, :sourcePath!, :originalFilename!, :redFlagRating!, CURRENT_TIMESTAMP)
+ON CONFLICT (file_path) DO UPDATE SET
+  title = COALESCE(EXCLUDED.title, documents.title),
+  content_preview = COALESCE(EXCLUDED.content_preview, documents.content_preview),
+  evidence_type = COALESCE(EXCLUDED.evidence_type, documents.evidence_type),
+  red_flag_rating = COALESCE(EXCLUDED.red_flag_rating, documents.red_flag_rating)
 RETURNING id;
 
 /* @name addEvidenceToInvestigation */
-INSERT INTO investigation_evidence (investigation_id, evidence_id, notes, relevance, added_by)
+INSERT INTO investigation_evidence (investigation_id, document_id, notes, relevance, added_by)
 VALUES (:investigationId!, :evidenceId!, :notes, :relevance, :addedBy)
-ON CONFLICT (investigation_id, evidence_id) DO NOTHING
+ON CONFLICT (investigation_id, document_id) DO NOTHING
 RETURNING id;
 
 /* @name getTimelineEvents */
@@ -149,10 +154,13 @@ WHERE id = :id!;
 DELETE FROM investigation_timeline_events WHERE id = :id!;
 
 /* @name getChainOfCustody */
-SELECT * FROM chain_of_custody WHERE evidence_id = :evidenceId! ORDER BY date ASC;
+SELECT id, document_id as evidence_id, date, actor, action, notes, signature
+FROM chain_of_custody
+WHERE document_id = :evidenceId!
+ORDER BY date ASC;
 
 /* @name addChainOfCustody */
-INSERT INTO chain_of_custody (evidence_id, date, actor, action, notes, signature)
+INSERT INTO chain_of_custody (document_id, date, actor, action, notes, signature)
 VALUES (:evidenceId!, :date!, :actor, :action, :notes, :signature)
 RETURNING id;
 
@@ -171,9 +179,9 @@ ON CONFLICT (investigation_id) DO UPDATE SET
 SELECT * FROM hypotheses WHERE investigation_id = :investigationId! ORDER BY created_at DESC;
 
 /* @name getHypothesisEvidence */
-SELECT he.*, e.title as evidence_title, e.evidence_type 
+SELECT he.*, d.title as evidence_title, d.evidence_type 
 FROM hypothesis_evidence he
-LEFT JOIN evidence e ON he.evidence_id = e.id
+LEFT JOIN documents d ON he.document_id = d.id
 WHERE he.hypothesis_id = :hypothesisId!;
 
 /* @name createHypothesis */
@@ -195,14 +203,14 @@ WHERE id = :id!;
 DELETE FROM hypotheses WHERE id = :id!;
 
 /* @name addEvidenceToHypothesis */
-INSERT INTO hypothesis_evidence (hypothesis_id, evidence_id, relevance)
+INSERT INTO hypothesis_evidence (hypothesis_id, document_id, relevance)
 VALUES (:hypothesisId!, :evidenceId!, :relevance)
 ON CONFLICT DO NOTHING
 RETURNING id;
 
 /* @name removeEvidenceFromHypothesis */
 DELETE FROM hypothesis_evidence 
-WHERE hypothesis_id = :hypothesisId! AND evidence_id = :evidenceId!;
+WHERE hypothesis_id = :hypothesisId! AND document_id = :evidenceId!;
 
 /* @name logActivity */
 INSERT INTO investigation_activity (
@@ -224,24 +232,23 @@ LIMIT :limit!;
 
 /* @name getDetailedEvidence */
 SELECT 
-  e.id, 
-  e.evidence_type as type, 
-  e.title, 
-  e.description, 
-  e.source_path,
-  e.metadata_json,
+  d.id, 
+  d.evidence_type as type, 
+  d.title, 
+  COALESCE(d.content_preview, LEFT(d.content, 320)) as description, 
+  d.file_path as source_path,
+  d.metadata_json,
   ie.id as investigation_evidence_id,
   d.id as document_id,
   m.id as media_item_id,
-  e.red_flag_rating,
+  d.red_flag_rating,
   ie.relevance, 
   ie.added_at, 
   ie.added_by,
   ie.notes
 FROM investigation_evidence ie
-LEFT JOIN evidence e ON ie.evidence_id = e.id
-LEFT JOIN documents d ON d.file_path = e.source_path
-LEFT JOIN media_items m ON m.file_path = e.source_path
+LEFT JOIN documents d ON ie.document_id = d.id
+LEFT JOIN media_items m ON m.file_path = d.file_path
 WHERE ie.investigation_id = :investigationId! 
 ORDER BY ie.added_at DESC;
 
@@ -249,5 +256,5 @@ ORDER BY ie.added_at DESC;
 SELECT DISTINCT i.* 
 FROM investigations i
 JOIN investigation_evidence ie ON i.id = ie.investigation_id
-WHERE ie.evidence_id = :evidenceId!
+WHERE ie.document_id = :evidenceId!
 ORDER BY i.updated_at DESC;

@@ -11,6 +11,7 @@ import { ProvenanceBadge } from '@client/components/common/ProvenanceBadge';
 import { ShareCitationBar } from '@client/components/common/ShareCitationBar';
 import { FlagButton } from '@client/components/common/FlagButton';
 import type { ExtractionMethod, ProvenanceStatus, ReviewState } from '@shared/dto/provenance';
+import { MiniClaimGraph } from './MiniClaimGraph';
 import styles from './ClaimsTab.module.css';
 
 interface ClaimTriple {
@@ -184,6 +185,8 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
           <span>Requires Human Verification</span>
         </Surface>
       </div>
+
+      {claims.length > 1 && <MiniClaimGraph claims={claims} />}
 
       <div className={styles.claimsList}>
         {claims.map((claim) => (

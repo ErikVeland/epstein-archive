@@ -184,13 +184,15 @@ LIMIT :limit!;
 DELETE FROM entity_adjacency;
 
 /* @name insertAdjacencyCache */
-INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types)
+INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)
 SELECT 
 s.canonical_id as entity_id,
 t.canonical_id as neighbor_id,
 MAX(er.proximity_score) as weight,
 CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,
-STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types
+STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,
+MAX(er.risk_score) as risk_score,
+MAX(er.confidence) as confidence
 FROM entity_relationships er
 JOIN entities s ON er.source_entity_id = s.id
 JOIN entities t ON er.target_entity_id = t.id

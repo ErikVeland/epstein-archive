@@ -97,7 +97,7 @@ export interface ICountInvestigationsParams {
 
 /** 'CountInvestigations' return type */
 export interface ICountInvestigationsResult {
-  total: string | null;
+  total: number | null;
 }
 
 /** 'CountInvestigations' query type */
@@ -114,8 +114,8 @@ const countInvestigationsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 54, b: 60 },
-        { a: 88, b: 94 },
+        { a: 63, b: 69 },
+        { a: 97, b: 103 },
       ],
     },
     {
@@ -123,19 +123,19 @@ const countInvestigationsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 104, b: 111 },
-        { a: 141, b: 148 },
+        { a: 113, b: 120 },
+        { a: 150, b: 157 },
       ],
     },
   ],
   statement:
-    'SELECT COUNT(*) as total \nFROM investigations \nWHERE (:status::text IS NULL OR status = :status)\n  AND (:ownerId::text IS NULL OR owner_id = :ownerId)',
+    'SELECT COUNT(*)::integer as total \nFROM investigations \nWHERE (:status::text IS NULL OR status = :status)\n  AND (:ownerId::text IS NULL OR owner_id = :ownerId)',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*) as total
+ * SELECT COUNT(*)::integer as total
  * FROM investigations
  * WHERE (:status::text IS NULL OR status = :status)
  *   AND (:ownerId::text IS NULL OR owner_id = :ownerId)
@@ -340,7 +340,6 @@ export const createInvestigation = new PreparedQuery<
 
 /** 'UpdateInvestigation' parameters type */
 export interface IUpdateInvestigationParams {
-  collaboratorIds?: string | null | void;
   description?: string | null | void;
   id: NumberOrString;
   scope?: string | null | void;
@@ -373,14 +372,7 @@ export interface IUpdateInvestigationQuery {
 }
 
 const updateInvestigationIR: any = {
-  usedParamSet: {
-    title: true,
-    description: true,
-    status: true,
-    scope: true,
-    collaboratorIds: true,
-    id: true,
-  },
+  usedParamSet: { title: true, description: true, status: true, scope: true, id: true },
   params: [
     { name: 'title', required: false, transform: { type: 'scalar' }, locs: [{ a: 46, b: 51 }] },
     {
@@ -391,16 +383,10 @@ const updateInvestigationIR: any = {
     },
     { name: 'status', required: false, transform: { type: 'scalar' }, locs: [{ a: 135, b: 141 }] },
     { name: 'scope', required: false, transform: { type: 'scalar' }, locs: [{ a: 172, b: 177 }] },
-    {
-      name: 'collaboratorIds',
-      required: false,
-      transform: { type: 'scalar' },
-      locs: [{ a: 218, b: 233 }],
-    },
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 299, b: 302 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 232, b: 235 }] },
   ],
   statement:
-    'UPDATE investigations\nSET \n  title = COALESCE(:title, title),\n  description = COALESCE(:description, description),\n  status = COALESCE(:status, status),\n  scope = COALESCE(:scope, scope),\n  collaborator_ids = COALESCE(:collaboratorIds, collaborator_ids),\n  updated_at = CURRENT_TIMESTAMP\nWHERE id = :id!\nRETURNING *',
+    'UPDATE investigations\nSET \n  title = COALESCE(:title, title),\n  description = COALESCE(:description, description),\n  status = COALESCE(:status, status),\n  scope = COALESCE(:scope, scope),\n  updated_at = CURRENT_TIMESTAMP\nWHERE id = :id!\nRETURNING *',
 };
 
 /**
@@ -412,7 +398,6 @@ const updateInvestigationIR: any = {
  *   description = COALESCE(:description, description),
  *   status = COALESCE(:status, status),
  *   scope = COALESCE(:scope, scope),
- *   collaborator_ids = COALESCE(:collaboratorIds, collaborator_ids),
  *   updated_at = CURRENT_TIMESTAMP
  * WHERE id = :id!
  * RETURNING *
@@ -422,6 +407,143 @@ export const updateInvestigation = new PreparedQuery<
   IUpdateInvestigationParams,
   IUpdateInvestigationResult
 >(updateInvestigationIR);
+
+/** 'AddCollaborator' parameters type */
+export interface IAddCollaboratorParams {
+  investigationId: NumberOrString;
+  permissionLevel?: string | null | void;
+  userId: string;
+}
+
+/** 'AddCollaborator' return type */
+export type IAddCollaboratorResult = void;
+
+/** 'AddCollaborator' query type */
+export interface IAddCollaboratorQuery {
+  params: IAddCollaboratorParams;
+  result: IAddCollaboratorResult;
+}
+
+const addCollaboratorIR: any = {
+  usedParamSet: { investigationId: true, userId: true, permissionLevel: true },
+  params: [
+    {
+      name: 'investigationId',
+      required: true,
+      transform: { type: 'scalar' },
+      locs: [{ a: 94, b: 110 }],
+    },
+    { name: 'userId', required: true, transform: { type: 'scalar' }, locs: [{ a: 113, b: 120 }] },
+    {
+      name: 'permissionLevel',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [{ a: 123, b: 138 }],
+    },
+  ],
+  statement:
+    'INSERT INTO investigation_collaborators (investigation_id, user_id, permission_level)\nVALUES (:investigationId!, :userId!, :permissionLevel)\nON CONFLICT (investigation_id, user_id) DO UPDATE SET\n  permission_level = EXCLUDED.permission_level,\n  joined_at = CURRENT_TIMESTAMP',
+};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * INSERT INTO investigation_collaborators (investigation_id, user_id, permission_level)
+ * VALUES (:investigationId!, :userId!, :permissionLevel)
+ * ON CONFLICT (investigation_id, user_id) DO UPDATE SET
+ *   permission_level = EXCLUDED.permission_level,
+ *   joined_at = CURRENT_TIMESTAMP
+ * ```
+ */
+export const addCollaborator = new PreparedQuery<IAddCollaboratorParams, IAddCollaboratorResult>(
+  addCollaboratorIR,
+);
+
+/** 'RemoveCollaborator' parameters type */
+export interface IRemoveCollaboratorParams {
+  investigationId: NumberOrString;
+  userId: string;
+}
+
+/** 'RemoveCollaborator' return type */
+export type IRemoveCollaboratorResult = void;
+
+/** 'RemoveCollaborator' query type */
+export interface IRemoveCollaboratorQuery {
+  params: IRemoveCollaboratorParams;
+  result: IRemoveCollaboratorResult;
+}
+
+const removeCollaboratorIR: any = {
+  usedParamSet: { investigationId: true, userId: true },
+  params: [
+    {
+      name: 'investigationId',
+      required: true,
+      transform: { type: 'scalar' },
+      locs: [{ a: 66, b: 82 }],
+    },
+    { name: 'userId', required: true, transform: { type: 'scalar' }, locs: [{ a: 98, b: 105 }] },
+  ],
+  statement:
+    'DELETE FROM investigation_collaborators \nWHERE investigation_id = :investigationId! AND user_id = :userId!',
+};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * DELETE FROM investigation_collaborators
+ * WHERE investigation_id = :investigationId! AND user_id = :userId!
+ * ```
+ */
+export const removeCollaborator = new PreparedQuery<
+  IRemoveCollaboratorParams,
+  IRemoveCollaboratorResult
+>(removeCollaboratorIR);
+
+/** 'GetCollaborators' parameters type */
+export interface IGetCollaboratorsParams {
+  investigationId: NumberOrString;
+}
+
+/** 'GetCollaborators' return type */
+export interface IGetCollaboratorsResult {
+  joined_at: Date | null;
+  permission_level: string | null;
+  user_id: string;
+}
+
+/** 'GetCollaborators' query type */
+export interface IGetCollaboratorsQuery {
+  params: IGetCollaboratorsParams;
+  result: IGetCollaboratorsResult;
+}
+
+const getCollaboratorsIR: any = {
+  usedParamSet: { investigationId: true },
+  params: [
+    {
+      name: 'investigationId',
+      required: true,
+      transform: { type: 'scalar' },
+      locs: [{ a: 102, b: 118 }],
+    },
+  ],
+  statement:
+    'SELECT user_id, permission_level, joined_at\nFROM investigation_collaborators\nWHERE investigation_id = :investigationId!',
+};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT user_id, permission_level, joined_at
+ * FROM investigation_collaborators
+ * WHERE investigation_id = :investigationId!
+ * ```
+ */
+export const getCollaborators = new PreparedQuery<IGetCollaboratorsParams, IGetCollaboratorsResult>(
+  getCollaboratorsIR,
+);
 
 /** 'GetEvidence' parameters type */
 export interface IGetEvidenceParams {
@@ -440,7 +562,7 @@ export interface IGetEvidenceResult {
   metadata_json: Json | null;
   relevance: string | null;
   source_path: string | null;
-  title: string;
+  title: string | null;
   type: string | null;
 }
 
@@ -457,31 +579,31 @@ const getEvidenceIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 297, b: 313 }],
+      locs: [{ a: 367, b: 383 }],
     },
-    { name: 'limit', required: false, transform: { type: 'scalar' }, locs: [{ a: 347, b: 352 }] },
-    { name: 'offset', required: false, transform: { type: 'scalar' }, locs: [{ a: 361, b: 367 }] },
+    { name: 'limit', required: false, transform: { type: 'scalar' }, locs: [{ a: 417, b: 422 }] },
+    { name: 'offset', required: false, transform: { type: 'scalar' }, locs: [{ a: 431, b: 437 }] },
   ],
   statement:
-    'SELECT \n  e.id, \n  e.evidence_type as type, \n  e.title, \n  e.description, \n  e.source_path, \n  e.metadata_json,\n  ie.id as investigation_evidence_id,\n  ie.relevance, \n  ie.added_at, \n  ie.added_by\nFROM investigation_evidence ie\nJOIN evidence e ON ie.evidence_id = e.id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC\nLIMIT :limit OFFSET :offset',
+    'SELECT \n  d.id, \n  d.evidence_type as type, \n  d.title, \n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description, \n  d.file_path as source_path, \n  d.metadata_json,\n  ie.id as investigation_evidence_id,\n  ie.relevance, \n  ie.added_at, \n  ie.added_by\nFROM investigation_evidence ie\nLEFT JOIN documents d ON ie.document_id = d.id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC\nLIMIT :limit OFFSET :offset',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   e.id,
- *   e.evidence_type as type,
- *   e.title,
- *   e.description,
- *   e.source_path,
- *   e.metadata_json,
+ *   d.id,
+ *   d.evidence_type as type,
+ *   d.title,
+ *   COALESCE(d.content_preview, LEFT(d.content, 320)) as description,
+ *   d.file_path as source_path,
+ *   d.metadata_json,
  *   ie.id as investigation_evidence_id,
  *   ie.relevance,
  *   ie.added_at,
  *   ie.added_by
  * FROM investigation_evidence ie
- * JOIN evidence e ON ie.evidence_id = e.id
+ * LEFT JOIN documents d ON ie.document_id = d.id
  * WHERE ie.investigation_id = :investigationId!
  * ORDER BY ie.added_at DESC
  * LIMIT :limit OFFSET :offset
@@ -496,7 +618,7 @@ export interface ICountEvidenceParams {
 
 /** 'CountEvidence' return type */
 export interface ICountEvidenceResult {
-  total: string | null;
+  total: number | null;
 }
 
 /** 'CountEvidence' query type */
@@ -512,17 +634,17 @@ const countEvidenceIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 78, b: 94 }],
+      locs: [{ a: 87, b: 103 }],
     },
   ],
   statement:
-    'SELECT COUNT(*) as total FROM investigation_evidence WHERE investigation_id = :investigationId!',
+    'SELECT COUNT(*)::integer as total FROM investigation_evidence WHERE investigation_id = :investigationId!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*) as total FROM investigation_evidence WHERE investigation_id = :investigationId!
+ * SELECT COUNT(*)::integer as total FROM investigation_evidence WHERE investigation_id = :investigationId!
  * ```
  */
 export const countEvidence = new PreparedQuery<ICountEvidenceParams, ICountEvidenceResult>(
@@ -548,15 +670,15 @@ export interface IGetEvidenceBySourcePathQuery {
 const getEvidenceBySourcePathIR: any = {
   usedParamSet: { sourcePath: true },
   params: [
-    { name: 'sourcePath', required: true, transform: { type: 'scalar' }, locs: [{ a: 44, b: 55 }] },
+    { name: 'sourcePath', required: true, transform: { type: 'scalar' }, locs: [{ a: 43, b: 54 }] },
   ],
-  statement: 'SELECT id FROM evidence WHERE source_path = :sourcePath!',
+  statement: 'SELECT id FROM documents WHERE file_path = :sourcePath!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT id FROM evidence WHERE source_path = :sourcePath!
+ * SELECT id FROM documents WHERE file_path = :sourcePath!
  * ```
  */
 export const getEvidenceBySourcePath = new PreparedQuery<
@@ -595,47 +717,52 @@ const createEvidenceIR: any = {
     redFlagRating: true,
   },
   params: [
-    { name: 'title', required: true, transform: { type: 'scalar' }, locs: [{ a: 114, b: 120 }] },
+    { name: 'title', required: true, transform: { type: 'scalar' }, locs: [{ a: 121, b: 127 }] },
     {
       name: 'description',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 123, b: 134 }],
+      locs: [{ a: 130, b: 141 }],
     },
     {
       name: 'evidenceType',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 137, b: 150 }],
+      locs: [{ a: 144, b: 157 }],
     },
     {
       name: 'sourcePath',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 153, b: 164 }],
+      locs: [{ a: 160, b: 171 }],
     },
     {
       name: 'originalFilename',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 167, b: 184 }],
+      locs: [{ a: 174, b: 191 }],
     },
     {
       name: 'redFlagRating',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 187, b: 201 }],
+      locs: [{ a: 194, b: 208 }],
     },
   ],
   statement:
-    'INSERT INTO evidence (title, description, evidence_type, source_path, original_filename, red_flag_rating)\nVALUES (:title!, :description, :evidenceType!, :sourcePath!, :originalFilename!, :redFlagRating!)\nRETURNING id',
+    'INSERT INTO documents (title, content_preview, evidence_type, file_path, file_name, red_flag_rating, created_at)\nVALUES (:title!, :description, :evidenceType!, :sourcePath!, :originalFilename!, :redFlagRating!, CURRENT_TIMESTAMP)\nON CONFLICT (file_path) DO UPDATE SET\n  title = COALESCE(EXCLUDED.title, documents.title),\n  content_preview = COALESCE(EXCLUDED.content_preview, documents.content_preview),\n  evidence_type = COALESCE(EXCLUDED.evidence_type, documents.evidence_type),\n  red_flag_rating = COALESCE(EXCLUDED.red_flag_rating, documents.red_flag_rating)\nRETURNING id',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO evidence (title, description, evidence_type, source_path, original_filename, red_flag_rating)
- * VALUES (:title!, :description, :evidenceType!, :sourcePath!, :originalFilename!, :redFlagRating!)
+ * INSERT INTO documents (title, content_preview, evidence_type, file_path, file_name, red_flag_rating, created_at)
+ * VALUES (:title!, :description, :evidenceType!, :sourcePath!, :originalFilename!, :redFlagRating!, CURRENT_TIMESTAMP)
+ * ON CONFLICT (file_path) DO UPDATE SET
+ *   title = COALESCE(EXCLUDED.title, documents.title),
+ *   content_preview = COALESCE(EXCLUDED.content_preview, documents.content_preview),
+ *   evidence_type = COALESCE(EXCLUDED.evidence_type, documents.evidence_type),
+ *   red_flag_rating = COALESCE(EXCLUDED.red_flag_rating, documents.red_flag_rating)
  * RETURNING id
  * ```
  */
@@ -694,15 +821,15 @@ const addEvidenceToInvestigationIR: any = {
     { name: 'addedBy', required: false, transform: { type: 'scalar' }, locs: [{ a: 156, b: 163 }] },
   ],
   statement:
-    'INSERT INTO investigation_evidence (investigation_id, evidence_id, notes, relevance, added_by)\nVALUES (:investigationId!, :evidenceId!, :notes, :relevance, :addedBy)\nON CONFLICT (investigation_id, evidence_id) DO NOTHING\nRETURNING id',
+    'INSERT INTO investigation_evidence (investigation_id, document_id, notes, relevance, added_by)\nVALUES (:investigationId!, :evidenceId!, :notes, :relevance, :addedBy)\nON CONFLICT (investigation_id, document_id) DO NOTHING\nRETURNING id',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO investigation_evidence (investigation_id, evidence_id, notes, relevance, added_by)
+ * INSERT INTO investigation_evidence (investigation_id, document_id, notes, relevance, added_by)
  * VALUES (:investigationId!, :evidenceId!, :notes, :relevance, :addedBy)
- * ON CONFLICT (investigation_id, evidence_id) DO NOTHING
+ * ON CONFLICT (investigation_id, document_id) DO NOTHING
  * RETURNING id
  * ```
  */
@@ -985,15 +1112,24 @@ export interface IGetChainOfCustodyQuery {
 const getChainOfCustodyIR: any = {
   usedParamSet: { evidenceId: true },
   params: [
-    { name: 'evidenceId', required: true, transform: { type: 'scalar' }, locs: [{ a: 51, b: 62 }] },
+    {
+      name: 'evidenceId',
+      required: true,
+      transform: { type: 'scalar' },
+      locs: [{ a: 119, b: 130 }],
+    },
   ],
-  statement: 'SELECT * FROM chain_of_custody WHERE evidence_id = :evidenceId! ORDER BY date ASC',
+  statement:
+    'SELECT id, document_id as evidence_id, date, actor, action, notes, signature\nFROM chain_of_custody\nWHERE document_id = :evidenceId!\nORDER BY date ASC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM chain_of_custody WHERE evidence_id = :evidenceId! ORDER BY date ASC
+ * SELECT id, document_id as evidence_id, date, actor, action, notes, signature
+ * FROM chain_of_custody
+ * WHERE document_id = :evidenceId!
+ * ORDER BY date ASC
  * ```
  */
 export const getChainOfCustody = new PreparedQuery<
@@ -1050,13 +1186,13 @@ const addChainOfCustodyIR: any = {
     },
   ],
   statement:
-    'INSERT INTO chain_of_custody (evidence_id, date, actor, action, notes, signature)\nVALUES (:evidenceId!, :date!, :actor, :action, :notes, :signature)\nRETURNING id',
+    'INSERT INTO chain_of_custody (document_id, date, actor, action, notes, signature)\nVALUES (:evidenceId!, :date!, :actor, :action, :notes, :signature)\nRETURNING id',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO chain_of_custody (evidence_id, date, actor, action, notes, signature)
+ * INSERT INTO chain_of_custody (document_id, date, actor, action, notes, signature)
  * VALUES (:evidenceId!, :date!, :actor, :action, :notes, :signature)
  * RETURNING id
  * ```
@@ -1218,8 +1354,8 @@ export interface IGetHypothesisEvidenceParams {
 /** 'GetHypothesisEvidence' return type */
 export interface IGetHypothesisEvidenceResult {
   created_at: Date | null;
-  evidence_id: string | null;
-  evidence_title: string;
+  document_id: string;
+  evidence_title: string | null;
   evidence_type: string | null;
   hypothesis_id: string | null;
   id: string;
@@ -1239,19 +1375,19 @@ const getHypothesisEvidenceIR: any = {
       name: 'hypothesisId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 151, b: 164 }],
+      locs: [{ a: 157, b: 170 }],
     },
   ],
   statement:
-    'SELECT he.*, e.title as evidence_title, e.evidence_type \nFROM hypothesis_evidence he\nJOIN evidence e ON he.evidence_id = e.id\nWHERE he.hypothesis_id = :hypothesisId!',
+    'SELECT he.*, d.title as evidence_title, d.evidence_type \nFROM hypothesis_evidence he\nLEFT JOIN documents d ON he.document_id = d.id\nWHERE he.hypothesis_id = :hypothesisId!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT he.*, e.title as evidence_title, e.evidence_type
+ * SELECT he.*, d.title as evidence_title, d.evidence_type
  * FROM hypothesis_evidence he
- * JOIN evidence e ON he.evidence_id = e.id
+ * LEFT JOIN documents d ON he.document_id = d.id
  * WHERE he.hypothesis_id = :hypothesisId!
  * ```
  */
@@ -1440,13 +1576,13 @@ const addEvidenceToHypothesisIR: any = {
     },
   ],
   statement:
-    'INSERT INTO hypothesis_evidence (hypothesis_id, evidence_id, relevance)\nVALUES (:hypothesisId!, :evidenceId!, :relevance)\nON CONFLICT DO NOTHING\nRETURNING id',
+    'INSERT INTO hypothesis_evidence (hypothesis_id, document_id, relevance)\nVALUES (:hypothesisId!, :evidenceId!, :relevance)\nON CONFLICT DO NOTHING\nRETURNING id',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO hypothesis_evidence (hypothesis_id, evidence_id, relevance)
+ * INSERT INTO hypothesis_evidence (hypothesis_id, document_id, relevance)
  * VALUES (:hypothesisId!, :evidenceId!, :relevance)
  * ON CONFLICT DO NOTHING
  * RETURNING id
@@ -1484,14 +1620,14 @@ const removeEvidenceFromHypothesisIR: any = {
     { name: 'evidenceId', required: true, transform: { type: 'scalar' }, locs: [{ a: 88, b: 99 }] },
   ],
   statement:
-    'DELETE FROM hypothesis_evidence \nWHERE hypothesis_id = :hypothesisId! AND evidence_id = :evidenceId!',
+    'DELETE FROM hypothesis_evidence \nWHERE hypothesis_id = :hypothesisId! AND document_id = :evidenceId!',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * DELETE FROM hypothesis_evidence
- * WHERE hypothesis_id = :hypothesisId! AND evidence_id = :evidenceId!
+ * WHERE hypothesis_id = :hypothesisId! AND document_id = :evidenceId!
  * ```
  */
 export const removeEvidenceFromHypothesis = new PreparedQuery<
@@ -1502,7 +1638,10 @@ export const removeEvidenceFromHypothesis = new PreparedQuery<
 /** 'LogActivity' parameters type */
 export interface ILogActivityParams {
   actionType: string;
+  docId?: NumberOrString | null | void;
+  entId?: NumberOrString | null | void;
   investigationId: NumberOrString;
+  leadId?: NumberOrString | null | void;
   metadata?: Json | null | void;
   targetId?: string | null | void;
   targetTitle?: string | null | void;
@@ -1532,54 +1671,60 @@ const logActivityIR: any = {
     targetId: true,
     targetTitle: true,
     metadata: true,
+    docId: true,
+    entId: true,
+    leadId: true,
   },
   params: [
     {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 155, b: 171 }],
+      locs: [{ a: 185, b: 201 }],
     },
-    { name: 'userId', required: false, transform: { type: 'scalar' }, locs: [{ a: 174, b: 180 }] },
+    { name: 'userId', required: false, transform: { type: 'scalar' }, locs: [{ a: 204, b: 210 }] },
     {
       name: 'userName',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 183, b: 191 }],
+      locs: [{ a: 213, b: 221 }],
     },
     {
       name: 'actionType',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 194, b: 205 }],
+      locs: [{ a: 224, b: 235 }],
     },
     {
       name: 'targetType',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 208, b: 218 }],
+      locs: [{ a: 241, b: 251 }],
     },
     {
       name: 'targetId',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 221, b: 229 }],
+      locs: [{ a: 254, b: 262 }],
     },
     {
       name: 'targetTitle',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 232, b: 243 }],
+      locs: [{ a: 265, b: 276 }],
     },
     {
       name: 'metadata',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 246, b: 254 }],
+      locs: [{ a: 279, b: 287 }],
     },
+    { name: 'docId', required: false, transform: { type: 'scalar' }, locs: [{ a: 292, b: 297 }] },
+    { name: 'entId', required: false, transform: { type: 'scalar' }, locs: [{ a: 300, b: 305 }] },
+    { name: 'leadId', required: false, transform: { type: 'scalar' }, locs: [{ a: 308, b: 314 }] },
   ],
   statement:
-    'INSERT INTO investigation_activity (\n  investigation_id, user_id, user_name, action_type, \n  target_type, target_id, target_title, metadata_json\n) VALUES (:investigationId!, :userId, :userName, :actionType!, :targetType, :targetId, :targetTitle, :metadata)\nRETURNING id',
+    'INSERT INTO investigation_activity (\n  investigation_id, user_id, user_name, action_type, \n  target_type, target_id, target_title, metadata_json,\n  doc_id, ent_id, lead_id\n) VALUES (\n  :investigationId!, :userId, :userName, :actionType!, \n  :targetType, :targetId, :targetTitle, :metadata,\n  :docId, :entId, :leadId\n)\nRETURNING id',
 };
 
 /**
@@ -1587,8 +1732,13 @@ const logActivityIR: any = {
  * ```
  * INSERT INTO investigation_activity (
  *   investigation_id, user_id, user_name, action_type,
- *   target_type, target_id, target_title, metadata_json
- * ) VALUES (:investigationId!, :userId, :userName, :actionType!, :targetType, :targetId, :targetTitle, :metadata)
+ *   target_type, target_id, target_title, metadata_json,
+ *   doc_id, ent_id, lead_id
+ * ) VALUES (
+ *   :investigationId!, :userId, :userName, :actionType!,
+ *   :targetType, :targetId, :targetTitle, :metadata,
+ *   :docId, :entId, :leadId
+ * )
  * RETURNING id
  * ```
  */
@@ -1604,8 +1754,11 @@ export interface IGetActivityParams {
 export interface IGetActivityResult {
   action_type: string;
   created_at: Date | null;
+  doc_id: string | null;
+  ent_id: string | null;
   id: string;
   investigation_id: string | null;
+  lead_id: string | null;
   metadata_json: Json | null;
   target_id: string | null;
   target_title: string | null;
@@ -1665,7 +1818,7 @@ export interface IGetDetailedEvidenceResult {
   red_flag_rating: number | null;
   relevance: string | null;
   source_path: string | null;
-  title: string;
+  title: string | null;
   type: string | null;
 }
 
@@ -1682,35 +1835,34 @@ const getDetailedEvidenceIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 485, b: 501 }],
+      locs: [{ a: 500, b: 516 }],
     },
   ],
   statement:
-    'SELECT \n  e.id, \n  e.evidence_type as type, \n  e.title, \n  e.description, \n  e.source_path,\n  e.metadata_json,\n  ie.id as investigation_evidence_id,\n  d.id as document_id,\n  m.id as media_item_id,\n  e.red_flag_rating,\n  ie.relevance, \n  ie.added_at, \n  ie.added_by,\n  ie.notes\nFROM investigation_evidence ie\nJOIN evidence e ON ie.evidence_id = e.id\nLEFT JOIN documents d ON d.file_path = e.source_path\nLEFT JOIN media_items m ON m.file_path = e.source_path\nWHERE ie.investigation_id = :investigationId! \nORDER BY ie.added_at DESC',
+    'SELECT \n  d.id, \n  d.evidence_type as type, \n  d.title, \n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description, \n  d.file_path as source_path,\n  d.metadata_json,\n  ie.id as investigation_evidence_id,\n  d.id as document_id,\n  m.id as media_item_id,\n  d.red_flag_rating,\n  ie.relevance, \n  ie.added_at, \n  ie.added_by,\n  ie.notes\nFROM investigation_evidence ie\nLEFT JOIN documents d ON ie.document_id = d.id\nLEFT JOIN media_items m ON m.file_path = d.file_path\nWHERE ie.investigation_id = :investigationId! \nORDER BY ie.added_at DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   e.id,
- *   e.evidence_type as type,
- *   e.title,
- *   e.description,
- *   e.source_path,
- *   e.metadata_json,
+ *   d.id,
+ *   d.evidence_type as type,
+ *   d.title,
+ *   COALESCE(d.content_preview, LEFT(d.content, 320)) as description,
+ *   d.file_path as source_path,
+ *   d.metadata_json,
  *   ie.id as investigation_evidence_id,
  *   d.id as document_id,
  *   m.id as media_item_id,
- *   e.red_flag_rating,
+ *   d.red_flag_rating,
  *   ie.relevance,
  *   ie.added_at,
  *   ie.added_by,
  *   ie.notes
  * FROM investigation_evidence ie
- * JOIN evidence e ON ie.evidence_id = e.id
- * LEFT JOIN documents d ON d.file_path = e.source_path
- * LEFT JOIN media_items m ON m.file_path = e.source_path
+ * LEFT JOIN documents d ON ie.document_id = d.id
+ * LEFT JOIN media_items m ON m.file_path = d.file_path
  * WHERE ie.investigation_id = :investigationId!
  * ORDER BY ie.added_at DESC
  * ```
@@ -1760,7 +1912,7 @@ const getInvestigationsByEvidenceIdIR: any = {
     },
   ],
   statement:
-    'SELECT DISTINCT i.* \nFROM investigations i\nJOIN investigation_evidence ie ON i.id = ie.investigation_id\nWHERE ie.evidence_id = :evidenceId!\nORDER BY i.updated_at DESC',
+    'SELECT DISTINCT i.* \nFROM investigations i\nJOIN investigation_evidence ie ON i.id = ie.investigation_id\nWHERE ie.document_id = :evidenceId!\nORDER BY i.updated_at DESC',
 };
 
 /**
@@ -1769,7 +1921,7 @@ const getInvestigationsByEvidenceIdIR: any = {
  * SELECT DISTINCT i.*
  * FROM investigations i
  * JOIN investigation_evidence ie ON i.id = ie.investigation_id
- * WHERE ie.evidence_id = :evidenceId!
+ * WHERE ie.document_id = :evidenceId!
  * ORDER BY i.updated_at DESC
  * ```
  */

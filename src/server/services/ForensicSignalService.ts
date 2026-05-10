@@ -6,7 +6,7 @@ export interface ForensicSignal {
   signal_type: string;
   confidence: number;
   risk_score: number;
-  source_source: string;
+  source_type: string;
   source_ref_id: string;
   entity_ids: number[];
   metadata_json: Record<string, unknown>;
@@ -37,7 +37,7 @@ export class ForensicSignalService {
         WHERE f1.entity_id IS NOT NULL AND f2.entity_id IS NOT NULL
       )
       INSERT INTO forensic_signals (
-        signal_type, confidence, risk_score, source_source, source_ref_id, entity_ids, metadata_json
+        signal_type, confidence, risk_score, source_type, source_ref_id, entity_ids, metadata_json
       )
       SELECT 
         'CO_TRAVEL', 
@@ -82,7 +82,7 @@ export class ForensicSignalService {
         WHERE m1.entity_id IS NOT NULL AND m2.entity_id IS NOT NULL
       )
       INSERT INTO forensic_signals (
-        signal_type, confidence, risk_score, source_source, source_ref_id, entity_ids, metadata_json
+        signal_type, confidence, risk_score, source_type, source_ref_id, entity_ids, metadata_json
       )
       SELECT 
         'CO_PRESENCE', 

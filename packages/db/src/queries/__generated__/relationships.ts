@@ -35,8 +35,8 @@ const getRelationshipsIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 279, b: 288 },
-        { a: 320, b: 329 },
+        { a: 325, b: 334 },
+        { a: 366, b: 375 },
       ],
     },
     {
@@ -44,8 +44,8 @@ const getRelationshipsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 347, b: 356 },
-        { a: 395, b: 404 },
+        { a: 393, b: 402 },
+        { a: 441, b: 450 },
       ],
     },
     {
@@ -53,13 +53,13 @@ const getRelationshipsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 414, b: 427 },
-        { a: 452, b: 465 },
+        { a: 460, b: 473 },
+        { a: 498, b: 511 },
       ],
     },
   ],
   statement:
-    'SELECT \n  source_entity_id as "sourceId", \n  target_entity_id as "targetId", \n  relationship_type as "relationshipType", \n  proximity_score as "proximityScore",\n  0 as "riskScore", \n  1 as confidence, \n  NULL as "metadataJson"\nFROM entity_relationships\nWHERE (source_entity_id = :entityId!::bigint OR target_entity_id = :entityId!::bigint)\n  AND (:minWeight::float IS NULL OR proximity_score >= :minWeight)\n  AND (:minConfidence::float IS NULL OR 1 >= :minConfidence)\nORDER BY proximity_score DESC',
+    'SELECT \n  source_entity_id as "sourceId", \n  target_entity_id as "targetId", \n  relationship_type as "relationshipType", \n  proximity_score as "proximityScore",\n  COALESCE(risk_score, 0) as "riskScore", \n  COALESCE(confidence, 0.5) as confidence, \n  NULL as "metadataJson"\nFROM entity_relationships\nWHERE (source_entity_id = :entityId!::bigint OR target_entity_id = :entityId!::bigint)\n  AND (:minWeight::float IS NULL OR proximity_score >= :minWeight)\n  AND (:minConfidence::float IS NULL OR 1 >= :minConfidence)\nORDER BY proximity_score DESC',
 };
 
 /**
@@ -70,8 +70,8 @@ const getRelationshipsIR: any = {
  *   target_entity_id as "targetId",
  *   relationship_type as "relationshipType",
  *   proximity_score as "proximityScore",
- *   0 as "riskScore",
- *   1 as confidence,
+ *   COALESCE(risk_score, 0) as "riskScore",
+ *   COALESCE(confidence, 0.5) as confidence,
  *   NULL as "metadataJson"
  * FROM entity_relationships
  * WHERE (source_entity_id = :entityId!::bigint OR target_entity_id = :entityId!::bigint)
@@ -100,19 +100,21 @@ const rebuildAdjacencyCacheIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    "INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types)\nSELECT \n  s.canonical_id as entity_id,\n  t.canonical_id as neighbor_id,\n  MAX(er.proximity_score) as weight,\n  CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,\n  STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types\nFROM entity_relationships er\nJOIN entities s ON er.source_entity_id = s.id\nJOIN entities t ON er.target_entity_id = t.id\nWHERE s.canonical_id != t.canonical_id\nGROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id\nON CONFLICT (entity_id, neighbor_id) DO UPDATE SET\n  weight = EXCLUDED.weight,\n  bridge_score = EXCLUDED.bridge_score,\n  relationship_types = EXCLUDED.relationship_types",
+    "INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)\nSELECT \n  s.canonical_id as entity_id,\n  t.canonical_id as neighbor_id,\n  MAX(er.proximity_score) as weight,\n  CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,\n  STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,\n  MAX(er.risk_score) as risk_score,\n  MAX(er.confidence) as confidence\nFROM entity_relationships er\nJOIN entities s ON er.source_entity_id = s.id\nJOIN entities t ON er.target_entity_id = t.id\nWHERE s.canonical_id != t.canonical_id\nGROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id\nON CONFLICT (entity_id, neighbor_id) DO UPDATE SET\n  weight = EXCLUDED.weight,\n  bridge_score = EXCLUDED.bridge_score,\n  relationship_types = EXCLUDED.relationship_types,\n  risk_score = EXCLUDED.risk_score,\n  confidence = EXCLUDED.confidence",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types)
+ * INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)
  * SELECT
  *   s.canonical_id as entity_id,
  *   t.canonical_id as neighbor_id,
  *   MAX(er.proximity_score) as weight,
  *   CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,
- *   STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types
+ *   STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,
+ *   MAX(er.risk_score) as risk_score,
+ *   MAX(er.confidence) as confidence
  * FROM entity_relationships er
  * JOIN entities s ON er.source_entity_id = s.id
  * JOIN entities t ON er.target_entity_id = t.id
@@ -121,7 +123,9 @@ const rebuildAdjacencyCacheIR: any = {
  * ON CONFLICT (entity_id, neighbor_id) DO UPDATE SET
  *   weight = EXCLUDED.weight,
  *   bridge_score = EXCLUDED.bridge_score,
- *   relationship_types = EXCLUDED.relationship_types
+ *   relationship_types = EXCLUDED.relationship_types,
+ *   risk_score = EXCLUDED.risk_score,
+ *   confidence = EXCLUDED.confidence
  * ```
  */
 export const rebuildAdjacencyCache = new PreparedQuery<
@@ -256,8 +260,10 @@ export interface IGetNeighborsCachedParams {
 /** 'GetNeighborsCached' return type */
 export interface IGetNeighborsCachedResult {
   bridgeScore: number | null;
+  confidence: number | null;
   proximityScore: number | null;
   relationshipTypes: string | null;
+  riskScore: number | null;
   targetId: string;
 }
 
@@ -270,11 +276,11 @@ export interface IGetNeighborsCachedQuery {
 const getNeighborsCachedIR: any = {
   usedParamSet: { entityId: true, limit: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 184, b: 193 }] },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 241, b: 247 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 243, b: 252 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 300, b: 306 }] },
   ],
   statement:
-    'SELECT \n  neighbor_id as "targetId",\n  weight as "proximityScore",\n  bridge_score as "bridgeScore",\n  relationship_types as "relationshipTypes"\nFROM entity_adjacency\nWHERE entity_id = :entityId!\nORDER BY bridge_score DESC, weight DESC\nLIMIT :limit!',
+    'SELECT \n  neighbor_id as "targetId",\n  weight as "proximityScore",\n  bridge_score as "bridgeScore",\n  relationship_types as "relationshipTypes",\n  risk_score as "riskScore",\n  confidence as "confidence"\nFROM entity_adjacency\nWHERE entity_id = :entityId!\nORDER BY bridge_score DESC, weight DESC\nLIMIT :limit!',
 };
 
 /**
@@ -284,7 +290,9 @@ const getNeighborsCachedIR: any = {
  *   neighbor_id as "targetId",
  *   weight as "proximityScore",
  *   bridge_score as "bridgeScore",
- *   relationship_types as "relationshipTypes"
+ *   relationship_types as "relationshipTypes",
+ *   risk_score as "riskScore",
+ *   confidence as "confidence"
  * FROM entity_adjacency
  * WHERE entity_id = :entityId!
  * ORDER BY bridge_score DESC, weight DESC
@@ -304,7 +312,7 @@ export interface IGetRelationshipStatsResult {
   avgConfidence: number | null;
   avgProximityScore: number | null;
   avgRiskScore: number | null;
-  totalRelationships: string | null;
+  totalRelationships: number | null;
 }
 
 /** 'GetRelationshipStats' query type */
@@ -317,17 +325,17 @@ const getRelationshipStatsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT \n  COUNT(*) as "totalRelationships",\n  AVG(proximity_score) as "avgProximityScore",\n  0 as "avgRiskScore",\n  1 as "avgConfidence"\nFROM entity_relationships',
+    'SELECT \n  COUNT(*)::integer as "totalRelationships",\n  AVG(proximity_score) as "avgProximityScore",\n  AVG(COALESCE(risk_score, 0)) as "avgRiskScore",\n  AVG(COALESCE(confidence, 0)) as "avgConfidence"\nFROM entity_relationships',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT
- *   COUNT(*) as "totalRelationships",
+ *   COUNT(*)::integer as "totalRelationships",
  *   AVG(proximity_score) as "avgProximityScore",
- *   0 as "avgRiskScore",
- *   1 as "avgConfidence"
+ *   AVG(COALESCE(risk_score, 0)) as "avgRiskScore",
+ *   AVG(COALESCE(confidence, 0)) as "avgConfidence"
  * FROM entity_relationships
  * ```
  */
@@ -343,7 +351,7 @@ export interface IGetTopEntitiesByRelationshipCountParams {
 
 /** 'GetTopEntitiesByRelationshipCount' return type */
 export interface IGetTopEntitiesByRelationshipCountResult {
-  count: string | null;
+  count: number | null;
   entityId: string;
 }
 
@@ -356,16 +364,16 @@ export interface IGetTopEntitiesByRelationshipCountQuery {
 const getTopEntitiesByRelationshipCountIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 135, b: 141 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 144, b: 150 }] },
   ],
   statement:
-    'SELECT source_entity_id as "entityId", COUNT(*) as count\nFROM entity_relationships\nGROUP BY source_entity_id\nORDER BY count DESC\nLIMIT :limit!',
+    'SELECT source_entity_id as "entityId", COUNT(*)::integer as count\nFROM entity_relationships\nGROUP BY source_entity_id\nORDER BY count DESC\nLIMIT :limit!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT source_entity_id as "entityId", COUNT(*) as count
+ * SELECT source_entity_id as "entityId", COUNT(*)::integer as count
  * FROM entity_relationships
  * GROUP BY source_entity_id
  * ORDER BY count DESC

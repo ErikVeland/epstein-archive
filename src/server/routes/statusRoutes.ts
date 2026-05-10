@@ -56,7 +56,7 @@ router.get('/backfill', async (_req, res, next) => {
       SELECT
         (SELECT COUNT(*) FROM claim_triples)::text AS claim_triples,
         (SELECT COUNT(*) FROM financial_transactions)::text AS financial_transactions,
-        (SELECT COUNT(*) FROM relations)::text AS relations,
+        (SELECT COUNT(*) FROM entity_relationships)::text AS relations,
         (SELECT COUNT(*) FROM global_timeline_events WHERE source = 'pipeline_extract')::text AS timeline_events,
         refined.n::text AS refined_documents,
         done.n::text AS docs_with_triples,

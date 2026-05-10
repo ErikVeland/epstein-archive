@@ -1,0 +1,56 @@
+.wrapper {
+  width: 100%;
+  height: 180px;
+  max-height: 220px;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+  margin-bottom: var(--space-4);
+  position: relative;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.nodeCircle {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 0.4;
+  transition: transform 200ms ease;
+}
+
+.nodeGroup:hover .nodeCircle {
+  transform: scale(1.2);
+  fill: #fff;
+}
+
+.label {
+  fill: var(--text-muted);
+  font-size: 2.2px;
+  font-family: var(--font-family-base);
+  pointer-events: none;
+  user-select: none;
+  font-weight: 500;
+}
+
+.nodeGroup:hover .label {
+  fill: var(--text-strong);
+  font-weight: 600;
+}
+
+.edge {
+  stroke: var(--accent);
+  stroke-width: 0.25;
+  stroke-opacity: 0.3;
+  pointer-events: none;
+}
+
+.edgeRejected {
+  stroke: var(--risk-high);
+  stroke-opacity: 0.2;
+  stroke-dasharray: 0.5 0.5;
+}

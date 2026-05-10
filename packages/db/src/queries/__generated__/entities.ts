@@ -22,11 +22,11 @@ export interface IGetSubjectCardsParams {
 /** 'GetSubjectCards' return type */
 export interface IGetSubjectCardsResult {
   bio: string | null;
-  blackBookCount: string | null;
+  blackBookCount: number | null;
   connections: string | null;
   fullName: string;
   id: string;
-  mediaCount: string | null;
+  mediaCount: number | null;
   mentions: number | null;
   primaryRole: string | null;
   redFlagRating: number | null;
@@ -58,10 +58,10 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 819, b: 829 },
-        { a: 866, b: 876 },
-        { a: 902, b: 912 },
-        { a: 933, b: 943 },
+        { a: 846, b: 856 },
+        { a: 893, b: 903 },
+        { a: 929, b: 939 },
+        { a: 960, b: 970 },
       ],
     },
     {
@@ -69,8 +69,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 972, b: 982 },
-        { a: 988, b: 998 },
+        { a: 999, b: 1009 },
+        { a: 1015, b: 1025 },
       ],
     },
     {
@@ -78,8 +78,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1037, b: 1047 },
-        { a: 1052, b: 1062 },
+        { a: 1064, b: 1074 },
+        { a: 1079, b: 1089 },
       ],
     },
     {
@@ -87,8 +87,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1101, b: 1111 },
-        { a: 1116, b: 1126 },
+        { a: 1128, b: 1138 },
+        { a: 1143, b: 1153 },
       ],
     },
     {
@@ -96,8 +96,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1161, b: 1165 },
-        { a: 1170, b: 1174 },
+        { a: 1188, b: 1192 },
+        { a: 1197, b: 1201 },
       ],
     },
     {
@@ -105,15 +105,15 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1237, b: 1243 },
-        { a: 1292, b: 1298 },
+        { a: 1264, b: 1270 },
+        { a: 1319, b: 1325 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1381, b: 1387 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1396, b: 1403 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1408, b: 1414 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1423, b: 1430 }] },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.full_name as "fullName",\n  e.primary_role as "primaryRole",\n  e.bio,\n  e.mentions,\n  e.risk_level as "riskLevel",\n  e.red_flag_rating as "redFlagRating",\n  e.connections_summary as "connections",\n  e.was_agentic as "wasAgentic",\n  (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = \'media\') as "mediaCount",\n  (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",\n  (\n    SELECT d.id\n    FROM entity_mentions em \n    JOIN documents d ON d.id = em.document_id \n    WHERE em.entity_id = e.id\n    AND d.evidence_type = \'media\'\n    AND (d.file_type ILIKE \'image/%\' OR d.file_type IS NULL)\n    ORDER BY d.red_flag_rating DESC, d.id DESC\n    LIMIT 1\n  ) as "topPhotoId"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = \'name\' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = \'recent\' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!',
+    'SELECT \n  e.id,\n  e.full_name as "fullName",\n  e.primary_role as "primaryRole",\n  e.bio,\n  e.mentions,\n  e.risk_level as "riskLevel",\n  e.red_flag_rating as "redFlagRating",\n  e.connections_summary as "connections",\n  e.was_agentic as "wasAgentic",\n  (SELECT COUNT(*)::integer FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = \'media\') as "mediaCount",\n  (SELECT COUNT(*)::integer FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",\n  (\n    SELECT mi.id\n    FROM media_items mi\n    LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id::text\n    WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)\n      AND mi.file_type ILIKE \'image/%\'\n    ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC\n    LIMIT 1\n  ) as "topPhotoId"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = \'name\' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = \'recent\' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!',
 };
 
 /**
@@ -129,16 +129,15 @@ const getSubjectCardsIR: any = {
  *   e.red_flag_rating as "redFlagRating",
  *   e.connections_summary as "connections",
  *   e.was_agentic as "wasAgentic",
- *   (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = 'media') as "mediaCount",
- *   (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
+ *   (SELECT COUNT(*)::integer FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = 'media') as "mediaCount",
+ *   (SELECT COUNT(*)::integer FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
  *   (
- *     SELECT d.id
- *     FROM entity_mentions em
- *     JOIN documents d ON d.id = em.document_id
- *     WHERE em.entity_id = e.id
- *     AND d.evidence_type = 'media'
- *     AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
- *     ORDER BY d.red_flag_rating DESC, d.id DESC
+ *     SELECT mi.id
+ *     FROM media_items mi
+ *     LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id::text
+ *     WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)
+ *       AND mi.file_type ILIKE 'image/%'
+ *     ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC
  *     LIMIT 1
  *   ) as "topPhotoId"
  * FROM entities e
@@ -168,7 +167,7 @@ export interface ICountSubjectCardsParams {
 
 /** 'CountSubjectCards' return type */
 export interface ICountSubjectCardsResult {
-  total: string | null;
+  total: number | null;
 }
 
 /** 'CountSubjectCards' query type */
@@ -185,10 +184,10 @@ const countSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 49, b: 59 },
-        { a: 96, b: 106 },
-        { a: 132, b: 142 },
-        { a: 163, b: 173 },
+        { a: 58, b: 68 },
+        { a: 105, b: 115 },
+        { a: 141, b: 151 },
+        { a: 172, b: 182 },
       ],
     },
     {
@@ -196,19 +195,19 @@ const countSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 202, b: 212 },
-        { a: 218, b: 228 },
+        { a: 211, b: 221 },
+        { a: 227, b: 237 },
       ],
     },
   ],
   statement:
-    'SELECT COUNT(*) as total \nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)',
+    'SELECT COUNT(*)::integer as total \nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT COUNT(*) as total
+ * SELECT COUNT(*)::integer as total
  * FROM entities e
  * WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
  *   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)
@@ -229,6 +228,7 @@ export interface IGetEntityByIdResult {
   aliases: string | null;
   bio: string | null;
   birth_date: string | null;
+  calculated_rank_score: number | null;
   canonical_id: string | null;
   community_id: string | null;
   connections_summary: string | null;
@@ -259,7 +259,6 @@ export interface IGetEntityByIdResult {
   red_flag_score: number | null;
   risk_level: string | null;
   title: string | null;
-  type: string | null;
   updated_at: Date | null;
   was_agentic: number | null;
 }
@@ -339,6 +338,7 @@ export interface IGetEntityRelationshipsResult {
   proximity_score: number | null;
   relationship_type: string;
   risk_score: number | null;
+  signal_ids: stringArray | null;
   source_entity_id: string;
   strength: number | null;
   target_entity_id: string;
@@ -458,7 +458,7 @@ export type IGetMaxConnectivityParams = void;
 
 /** 'GetMaxConnectivity' return type */
 export interface IGetMaxConnectivityResult {
-  maxConn: string | null;
+  maxConn: number | null;
 }
 
 /** 'GetMaxConnectivity' query type */
@@ -471,14 +471,14 @@ const getMaxConnectivityIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT MAX(cnt) as "maxConn" FROM (\n  SELECT source_entity_id, COUNT(*) as cnt \n  FROM entity_relationships \n  GROUP BY source_entity_id\n) AS subquery',
+    'SELECT MAX(cnt) as "maxConn" FROM (\n  SELECT source_entity_id, COUNT(*)::integer as cnt \n  FROM entity_relationships \n  GROUP BY source_entity_id\n) AS subquery',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT MAX(cnt) as "maxConn" FROM (
- *   SELECT source_entity_id, COUNT(*) as cnt
+ *   SELECT source_entity_id, COUNT(*)::integer as cnt
  *   FROM entity_relationships
  *   GROUP BY source_entity_id
  * ) AS subquery
