@@ -500,12 +500,12 @@ export const relationshipsRepository = {
           SELECT $1::bigint, ARRAY[$1::bigint], 0
           UNION ALL
           SELECT
-            CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END,
-            p.path || CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END,
+            CASE WHEN r.source_entity_id = p.node_id THEN r.target_entity_id ELSE r.source_entity_id END,
+            p.path || CASE WHEN r.source_entity_id = p.node_id THEN r.target_entity_id ELSE r.source_entity_id END,
             p.depth + 1
           FROM path p
-          JOIN relationships r ON (r.entity_id_1 = p.node_id OR r.entity_id_2 = p.node_id)
-          WHERE NOT (CASE WHEN r.entity_id_1 = p.node_id THEN r.entity_id_2 ELSE r.entity_id_1 END = ANY(p.path))
+          JOIN entity_relationships r ON (r.source_entity_id = p.node_id OR r.target_entity_id = p.node_id)
+          WHERE NOT (CASE WHEN r.source_entity_id = p.node_id THEN r.target_entity_id ELSE r.source_entity_id END = ANY(p.path))
             AND p.depth < 7
         )
         SELECT path, depth FROM path WHERE node_id = $2::bigint ORDER BY depth ASC LIMIT 1
