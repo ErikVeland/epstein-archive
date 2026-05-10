@@ -1,5 +1,15 @@
 # Release Notes
 
+## 21.0.0 - 2026-05-10 - Emergency Hotfix
+
+### Critical Fixes
+
+- **Image Gallery Restoration**: Fixed bug where `excludeTextScans` default behavior caused all images to be filtered out of the gallery view. Now correctly defaults to filtering text scans while showing actual images.
+
+### Quality Improvements
+
+- **Modal Navigation Context**: Implemented reliable back navigation system that captures and restores scroll position when closing modals, ensuring users return to exact context after viewing documents or entities.
+
 ## 20.8.0 - 2026-05-10 - Intelligence & Co-Presence Release
 
 ### For Investigators
