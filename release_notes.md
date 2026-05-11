@@ -1,5 +1,18 @@
 # Release Notes
 
+## 21.2.1 - 2026-05-11 - Entity Links & Inbox Settings
+
+### Knowledge Graph Hardening
+
+- **Identity Adjacency Seeding**: Injected and verified robust graph bindings for the master collection of 28 critical high-profile targets, establishing direct deterministic `associated_with` vectors into core dataset nexus points.
+- **Dynamic Sidebar Iteration**: Shifted the manual navigation list to optimized iteration rendering, ensuring instantly addressable search vectors for the entire watch-list array.
+
+### Inbox Control Layer
+
+- **Modal Settings Dashboard**: Shipped high-fidelity fluid overlay provisioning global inbox suppression toggles with native persistence logic.
+- **Post-Mortem Pruning**: Enforces conditional temporal restriction blocking post-August-2019 email volumes, effectively purifying inbox contents against late-stage spam leakage.
+- **Structural Length Guarding**: Injected content validation gate preventing empty-transmission rows from rendering in default workflows.
+
 ## 21.2.0 - 2026-05-11 - Email UI Overhaul & Provenance Recovery
 
 ### Email Workspace Reconstruction
