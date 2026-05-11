@@ -729,6 +729,16 @@ if [ "$DB_ONLY" = false ]; then
       echo 'Syncing live source tree to promoted commit...'
       git reset --hard \"\$TARGET_SHA\"
       git clean -fd -e dist -e .releases -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
+
+      # CERT_STEP: static_root_invariant
+      # git clean has removed symlinked build roots on some filesystems even with
+      # exclusions. Reassert the promoted artifact after cleanup and fail closed
+      # before PM2/Nginx verification can report a false green API-only deploy.
+      echo \"Reasserting live dist symlink to \$RELEASE_ROOT/dist\"
+      test -f \"\$RELEASE_ROOT/dist/index.html\" || (echo '❌ Promoted release is missing dist/index.html' && exit 1)
+      ln -sfn \"\$RELEASE_ROOT/dist\" .dist_next
+      mv -Tf .dist_next dist
+      test -f dist/index.html || (echo '❌ Live dist/index.html missing after source cleanup' && exit 1)
     "
 
     # CERT_STEP: app_restart_after_db_healthy
@@ -805,25 +815,28 @@ if [ "$DRY_RUN" = false ]; then
   done
 
   if [ "$DEEP_SUCCESS" = true ]; then
-    log_step "Running post-deploy verification suite..."
-    remote_ssh "
-      set -e
-      cd ${PRODUCTION_PATH}
+    if [ "${RUN_HEAVY_POST_DEPLOY_VERIFY:-false}" = true ]; then
+      log_warning "Running heavyweight post-deploy ops verification, including backup creation."
+      remote_ssh "
+        set -e
+        cd ${PRODUCTION_PATH}
 
-      export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
-      export PATH=\"\$PNPM_HOME:\$PATH\"
-      export NODE_ENV=production
-      export CI=true
+        export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
+        export PATH=\"\$PNPM_HOME:\$PATH\"
+        export NODE_ENV=production
+        export CI=true
 
-      if [ -f .env ]; then
-        set -a
-        source .env
-        set +a
-      fi
+        if [ -f .env ]; then
+          set -a
+          source .env
+          set +a
+        fi
 
-      # Run TS-native verification ops
-      DEPLOY_VERIFY_URL=http://127.0.0.1:3012 node --import tsx/esm scripts/verify_ops.ts
-    "
+        DEPLOY_VERIFY_URL=http://127.0.0.1:3012 node --import tsx/esm scripts/verify_ops.ts
+      "
+    else
+      log_step "Skipping heavyweight post-deploy ops verification by default (set RUN_HEAVY_POST_DEPLOY_VERIFY=true to run it)."
+    fi
 
     log_step "Running public live-data cutover verification against ${PUBLIC_ORIGIN}..."
     PUBLIC_VERIFY_MAX_RETRIES=12

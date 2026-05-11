@@ -1,5 +1,12 @@
 # Release Notes
 
+## 21.2.7 - 2026-05-11 - Static Root and Backup Safety
+
+### Production Reliability
+
+- **Static Root Invariant**: Reasserts the promoted `dist` symlink after source-tree cleanup and fails closed if `dist/index.html` is not present before any deploy can continue.
+- **No Foreground Backup Load**: Removes heavyweight backup verification from the default deploy critical path so interrupted deploys cannot leave `pg_dump` jobs degrading live traffic.
+
 ## 21.2.6 - 2026-05-11 - Future Deploy Detector Hardening
 
 ### Production Reliability
