@@ -119,6 +119,18 @@ async function main() {
       }
       return `total=${body.total}`;
     }),
+
+    check('email threads endpoint contract', async () => {
+      const { status, body } = await getJson(
+        '/api/emails/threads?mailboxId=all&q=&tab=all&limit=5&showYahooPostMortem=1&showEmptyBodies=1&showSuppressedJunk=1',
+      );
+      assertObject(body.meta, 'emails.meta');
+      const total = asNumber(body.meta.total);
+      if (status !== 200 || !Array.isArray(body.data) || total <= 0) {
+        throw new Error(`status=${status} dataIsArray=${Array.isArray(body.data)} total=${total}`);
+      }
+      return `threads=${body.data.length} total=${total}`;
+    }),
   ]);
 
   console.log(`== LIVE CUTOVER VERIFICATION: ${baseUrl} ==`);

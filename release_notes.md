@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.8 - 2026-05-11 - Email Workspace Incident Guardrails
+
+### Production Reliability
+
+- **Email Thread Recovery**: Corrected the email category SQL CASE expression so `/api/emails/threads` no longer fails with a Postgres syntax error.
+- **Cutover Coverage**: Added email thread verification to the live cutover gate so email workspace regressions fail before promotion.
+- **Chunk Compatibility Bridge**: Seeds retained release assets into new builds and verifies the JS asset import graph so cached clients do not lose lazy-loaded workspaces during deploys.
+
 ## 21.2.7 - 2026-05-11 - Static Root and Backup Safety
 
 ### Production Reliability

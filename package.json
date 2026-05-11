@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "21.2.7",
+  "version": "21.2.8",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -31,6 +31,7 @@
     "seed:structure": "tsx scripts/ensure_structure.ts",
     "verify": "tsx scripts/verify_ops.ts && pnpm test:bundle-smoke",
     "verify:live-cutover": "tsx scripts/verify_live_cutover.ts",
+    "verify:asset-graph": "tsx scripts/verify_asset_graph.ts",
     "seed:katie-videos": "KJ_VIDEO_ROOT=./data/media/videos/KatieJohnson tsx scripts/ingest_katie_videos.ts",
     "ingest:intelligence": "tsx scripts/ingest_intelligence.ts",
     "pipeline:backfill": "BATCH_SIZE=3 tsx scripts/unified_pipeline.ts --mode backfill",

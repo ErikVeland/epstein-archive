@@ -691,6 +691,14 @@ if [ "$DB_ONLY" = false ]; then
         cp -an \"\$RELEASE_STAGE/.prev_dist_assets/.\" dist/assets/ 2>/dev/null || true
         rm -rf \"\$RELEASE_STAGE/.prev_dist_assets\"
       fi
+      if [ -d "${PRODUCTION_PATH}/.releases" ]; then
+        echo 'Seeding retained release hashed assets (non-overwriting)...'
+        mkdir -p dist/assets
+        for asset_dir in "${PRODUCTION_PATH}"/.releases/*/dist/assets; do
+          [ -d "\$asset_dir" ] && cp -an "\$asset_dir/." dist/assets/ 2>/dev/null || true
+        done
+      fi
+      pnpm verify:asset-graph
 
       echo 'Running staged canary live-data verification...'
       pm2 delete epstein-archive-canary 2>/dev/null || true

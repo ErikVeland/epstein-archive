@@ -715,7 +715,6 @@ CASE
     OR (COALESCE(content_refined, '')) ILIKE '%manage preferences%'
     OR (COALESCE(content_refined, '')) ILIKE '%opt out%'
   THEN 'promotions'
-  THEN 'promotions'
   ELSE 'primary'
 END
 `;
