@@ -58,6 +58,41 @@ const statValue = (
   };
 };
 
+const reviewCueForDocument = (doc: DocumentListItemDto): { label: string; detail: string } => {
+  const coverage = doc.redactionCoverageAfter == null ? null : doc.redactionCoverageAfter;
+  const normalizedCoverage = coverage == null ? null : coverage > 1 ? coverage : coverage * 100;
+
+  if (doc.unredactionSucceeded) {
+    return {
+      label: 'Review recovered text',
+      detail:
+        'This document has machine-recovered text. Open it, compare the surrounding context, and only cite recovered material when the source document supports it.',
+    };
+  }
+
+  if (doc.unredactionAttempted) {
+    return {
+      label: 'Check unresolved gaps',
+      detail:
+        'An unredaction pass already ran, but gaps remain. Prioritize high-confidence guesses and corroborate them against people, emails, and related filings.',
+    };
+  }
+
+  if (normalizedCoverage != null && normalizedCoverage >= 20) {
+    return {
+      label: 'High-value review candidate',
+      detail:
+        'A large share of the document is still hidden. Start here when you need to understand whether a record has important missing names, dates, locations, or identifiers.',
+    };
+  }
+
+  return {
+    label: 'Spot-check for context',
+    detail:
+      'The remaining redaction signal is limited. Use this item to confirm whether the gaps affect search, entity matching, or evidence summaries.',
+  };
+};
+
 export const RedactionsPage: React.FC = () => {
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
 
@@ -106,6 +141,17 @@ export const RedactionsPage: React.FC = () => {
 
   const stats = statValue(analytics);
   const loading = analyticsLoading || documentsLoading;
+  const selectedReviewCue = selectedDocument ? reviewCueForDocument(selectedDocument) : null;
+  const detectedSpans = redactionDetails?.redactions ?? [];
+  const candidateCount = detectedSpans.reduce(
+    (total, span) => total + (span.candidates?.length ?? 0),
+    0,
+  );
+  const highConfidenceCount = detectedSpans.reduce(
+    (total, span) =>
+      total + (span.candidates?.filter((candidate) => candidate.confidence === 'high').length ?? 0),
+    0,
+  );
 
   return (
     <div className={styles.page}>
@@ -114,32 +160,62 @@ export const RedactionsPage: React.FC = () => {
           <div className={styles.titleRow}>
             <Icon name="ScanText" size="lg" className={styles.titleIcon} />
             <div>
-              <h1 className={styles.title}>Redaction Workbench</h1>
+              <h1 className={styles.title}>Redaction Review Workspace</h1>
               <p className={styles.subtitle}>
-                Track withheld text, unredaction attempts, and document coverage from one review
-                queue.
+                Find records where hidden text changes what you can search, cite, or trust. Use the
+                queue to inspect redacted documents, compare recovered text with source context, and
+                decide which gaps need human review.
               </p>
             </div>
           </div>
         </header>
 
+        <section className={styles.explainer} aria-label="How redaction review helps">
+          <div className={styles.explainerIntro}>
+            <span className={styles.overline}>What this workspace is for</span>
+            <p>
+              Redactions are not just black boxes on a page. They can hide names, dates, locations,
+              and identifiers that affect search results, entity pages, timelines, and evidence
+              confidence. This view turns those gaps into a review queue.
+            </p>
+          </div>
+          <div className={styles.workflowSteps}>
+            <div className={styles.workflowStep}>
+              <Icon name="SearchCheck" size="sm" />
+              <span>Find documents where hidden text may matter</span>
+            </div>
+            <div className={styles.workflowStep}>
+              <Icon name="Microscope" size="sm" />
+              <span>Inspect each span with page context and machine guesses</span>
+            </div>
+            <div className={styles.workflowStep}>
+              <Icon name="ShieldCheck" size="sm" />
+              <span>Corroborate before using recovered text in analysis</span>
+            </div>
+          </div>
+        </section>
+
         <section className={styles.statsGrid} aria-label="Redaction coverage summary">
           <Surface variant="glass-strong" className={styles.statCard}>
             <span className={styles.statLabel}>Redacted documents</span>
             <strong className={styles.statValue}>{formatNumber(stats.redacted)}</strong>
-            <span className={styles.statSubline}>of {formatNumber(stats.total)} measured docs</span>
+            <span className={styles.statSubline}>
+              records with detected hidden or withheld text
+            </span>
           </Surface>
           <Surface variant="glass-strong" className={styles.statCard}>
             <span className={styles.statLabel}>Corpus coverage</span>
             <strong className={styles.statValue}>
               {stats.pct.toLocaleString(undefined, { maximumFractionDigits: 1 })}%
             </strong>
-            <span className={styles.statSubline}>documents with redaction signals</span>
+            <span className={styles.statSubline}>
+              of {formatNumber(stats.total)} measured docs need redaction awareness
+            </span>
           </Surface>
           <Surface variant="glass-strong" className={styles.statCard}>
             <span className={styles.statLabel}>Review queue</span>
             <strong className={styles.statValue}>{formatNumber(documentsResponse?.total)}</strong>
-            <span className={styles.statSubline}>filtered by redaction evidence</span>
+            <span className={styles.statSubline}>documents ranked for hands-on inspection</span>
           </Surface>
         </section>
 
@@ -147,9 +223,11 @@ export const RedactionsPage: React.FC = () => {
           <Surface variant="glass" className={styles.documentPanel}>
             <div className={styles.panelHeader}>
               <div>
-                <h2 className={styles.panelTitle}>Documents Needing Redaction Review</h2>
+                <h2 className={styles.panelTitle}>Documents To Inspect</h2>
                 <p className={styles.panelMeta}>
-                  {loading ? 'Loading coverage...' : `${formatNumber(documents.length)} shown`}
+                  {loading
+                    ? 'Loading coverage...'
+                    : `${formatNumber(documents.length)} shown, highest risk first`}
                 </p>
               </div>
             </div>
@@ -178,8 +256,9 @@ export const RedactionsPage: React.FC = () => {
                       className={`${styles.coveragePill} ${coverageSeverity(
                         doc.redactionCoverageAfter,
                       )}`}
+                      title="Estimated share of text still hidden after recovery attempts"
                     >
-                      {formatCoverage(doc.redactionCoverageAfter)}
+                      Hidden: {formatCoverage(doc.redactionCoverageAfter)}
                     </span>
                     {doc.unredactionAttempted && (
                       <span className={styles.attemptPill}>
@@ -208,17 +287,30 @@ export const RedactionsPage: React.FC = () => {
                   </Button>
                 </div>
 
+                {selectedReviewCue && (
+                  <div className={styles.nextAction}>
+                    <div className={styles.nextActionIcon}>
+                      <Icon name="Target" size="sm" />
+                    </div>
+                    <div>
+                      <span className={styles.overline}>Recommended next step</span>
+                      <h3>{selectedReviewCue.label}</h3>
+                      <p>{selectedReviewCue.detail}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div className={styles.coverageGrid}>
                   <div>
-                    <span>Before</span>
+                    <span>Hidden before recovery</span>
                     <strong>{formatCoverage(selectedDocument.redactionCoverageBefore)}</strong>
                   </div>
                   <div>
-                    <span>After</span>
+                    <span>Hidden now</span>
                     <strong>{formatCoverage(selectedDocument.redactionCoverageAfter)}</strong>
                   </div>
                   <div>
-                    <span>Recovered gain</span>
+                    <span>Recovered text gain</span>
                     <strong>
                       {selectedDocument.unredactedTextGain == null
                         ? 'Unknown'
@@ -229,13 +321,20 @@ export const RedactionsPage: React.FC = () => {
 
                 <section className={styles.spansSection}>
                   <div className={styles.spansHeader}>
-                    <h3>Detected Redaction Spans</h3>
+                    <h3>Page-Level Redaction Spans</h3>
                     <span>
                       {redactionsLoading ? 'Loading...' : `${redactionDetails?.count ?? 0} spans`}
                     </span>
                   </div>
+                  {!redactionsLoading && detectedSpans.length > 0 && (
+                    <div className={styles.spanSummary}>
+                      <span>{formatNumber(candidateCount)} inferred candidates</span>
+                      <span>{formatNumber(highConfidenceCount)} high-confidence</span>
+                      <span>Use guesses as leads, not facts</span>
+                    </div>
+                  )}
                   <div className={styles.spansList}>
-                    {(redactionDetails?.redactions ?? []).slice(0, 12).map((span, index) => (
+                    {detectedSpans.slice(0, 12).map((span, index) => (
                       <div key={`${span.page}-${index}`} className={styles.spanRow}>
                         <div className={styles.spanRowMain}>
                           <span className={styles.spanPage}>Page {span.page}</span>

@@ -14,12 +14,13 @@
 
 .titleRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-4);
 }
 
 .titleIcon {
   color: var(--accent);
+  margin-top: var(--space-2);
 }
 
 .title {
@@ -31,11 +32,65 @@
 }
 
 .subtitle {
-  max-width: 48rem;
+  max-width: 58rem;
   margin: 0;
   color: var(--text-muted);
   font-size: 1rem;
   line-height: 1.6;
+}
+
+.explainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr);
+  gap: var(--space-5);
+  align-items: stretch;
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  background: color-mix(in srgb, var(--accent) 8%, var(--glass-bg));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+}
+
+.explainerIntro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.overline {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.explainerIntro p {
+  max-width: 54rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.workflowSteps {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.workflowStep {
+  display: grid;
+  grid-template-columns: 1.5rem 1fr;
+  gap: var(--space-3);
+  align-items: start;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.workflowStep svg {
+  color: var(--accent);
 }
 
 .statsGrid {
@@ -96,9 +151,14 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
+.detailHeader {
+  align-items: center;
+}
+
 .panelTitle,
 .detailTitle,
-.spansHeader h3 {
+.spansHeader h3,
+.nextAction h3 {
   margin: 0;
   color: var(--text-primary);
   font-size: 1rem;
@@ -191,6 +251,35 @@
   color: var(--text-muted);
 }
 
+.nextAction {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.nextActionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.nextAction p {
+  max-width: 43rem;
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
 .coverageGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -230,6 +319,27 @@
 .spansHeader span {
   color: var(--text-muted);
   font-size: 0.8125rem;
+}
+
+.spanSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 55%, transparent);
+}
+
+.spanSummary span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+  font-size: 0.75rem;
+  font-weight: var(--weight-semibold);
 }
 
 .spansList {
@@ -337,9 +447,15 @@
     padding: var(--space-4);
   }
 
+  .explainer,
   .statsGrid,
   .workspace,
   .coverageGrid {
     grid-template-columns: 1fr;
+  }
+
+  .detailHeader {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

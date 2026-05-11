@@ -1,5 +1,15 @@
 # Release Notes
 
+## 21.2.3 - 2026-05-11 - Zero-Interruption Live Data Cutover
+
+### Production Reliability
+
+- **Public Live-Data Gate**: Added a production cutover verifier that fails closed unless the public origin serves health, strict readiness with nonzero core data, Postgres metadata, analytics counts, and the redactions document contract.
+- **Canary Before Promotion**: Builds now happen in an isolated release worktree, launch a canary process, and only promote the verified artifact after live-data checks pass.
+- **Atomic Artifact Rollback**: Production `dist` promotion now uses an atomic symlink switch with rollback targeting the previous live artifact.
+- **Readiness-Gated Reloads**: Replaced destructive PM2 stop/delete restarts with cluster-mode, readiness-gated reloads to keep traffic served during cutover.
+- **Redaction Workspace Clarity**: Reframed the redaction page as a review workflow with explicit purpose, next steps, and safer interpretation of inferred candidates.
+
 ## 21.2.2 - 2026-05-11 - Entity Filtration Hardening
 
 ### Pipeline & Infrastructure

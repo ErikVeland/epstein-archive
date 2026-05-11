@@ -18,8 +18,8 @@ module.exports = {
     {
       name: 'epstein-archive',
       script: 'dist/server.js',
-      instances: 1,
-      exec_mode: 'fork',
+      instances: 2,
+      exec_mode: 'cluster',
 
       // === RELIABILITY & CRASH RECOVERY ===
       autorestart: true,

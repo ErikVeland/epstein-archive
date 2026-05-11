@@ -81,8 +81,39 @@ function main() {
     'rollback_safety',
     'Rollback safety (previous image/build retained)',
     /CERT_STEP:\s*rollback_safety_previous_image_retained/.test(deploy) &&
-      /\.rollback_(dist|commit)/.test(deploy),
+      /\.rollback_(dist|commit|dist_target)/.test(deploy),
     'deploy should retain previous build artifact/commit',
+  );
+
+  add(
+    'zero_interruption_reload',
+    'Zero-interruption PM2 reload gate',
+    /CERT_STEP:\s*zero_interruption_reload/.test(deploy) &&
+      /pm2 reload ecosystem\.config\.cjs --only epstein-archive --env production --wait-ready --update-env/.test(
+        deploy,
+      ) &&
+      /exec_mode:\s*'cluster'/.test(
+        fs.readFileSync(path.resolve(cwd, 'ecosystem.config.cjs'), 'utf8'),
+      ),
+    'deploy should readiness-gate PM2 reloads and the app should run in cluster mode',
+  );
+
+  add(
+    'public_live_data_cutover',
+    'Public live-data cutover gate',
+    /CERT_STEP:\s*public_live_data_cutover_gate/.test(deploy) &&
+      /verify:live-cutover/.test(deploy) &&
+      fs.existsSync(path.resolve(cwd, 'scripts/verify_live_cutover.ts')),
+    'deploy should verify the public origin live-data contract before declaring success',
+  );
+
+  add(
+    'staged_artifact_cutover',
+    'Staged build before live artifact switch',
+    /git worktree add --detach/.test(deploy) &&
+      /epstein-archive-canary/.test(deploy) &&
+      /mv -Tf \.dist_next dist/.test(deploy),
+    'deploy should build/canary in an isolated worktree before atomically switching dist',
   );
 
   const dbHealthyIdx = indexOrNeg(deploy, 'CERT_STEP: db_confirmed_healthy_before_restart');

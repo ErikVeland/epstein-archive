@@ -12,6 +12,8 @@ PRODUCTION_PATH="${EPSTEIN_PROD_PATH:-/home/${PRODUCTION_USER}/epstein-archive}"
 REMOTE_HOME="/home/${PRODUCTION_USER}"
 SSH_KEY_PATH="${EPSTEIN_PROD_SSH_KEY_PATH:-$HOME/.ssh/id_epstein_prod_ed25519}"
 SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
+PUBLIC_ORIGIN="${EPSTEIN_PUBLIC_ORIGIN:-https://epstein.academy}"
+CANARY_PORT="${EPSTEIN_CANARY_PORT:-3013}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -104,24 +106,16 @@ node -e '
 
 node --import tsx/esm scripts/pg_explain.ts || (echo "❌ Postgres Explain Plan regression detected" && exit 1)
 
-# 3. Application Restart
-echo "Restarting application..."
-pm2 stop epstein-archive 2>/dev/null || true
-pm2 delete epstein-archive 2>/dev/null || true
-# Belt-and-suspenders: delete any lingering entries by numeric PM2 id.
-# Handles a PM2 version quirk where delete-by-name silently fails on stopped procs,
-# which caused duplicate instances racing for port 3012 on the previous deploy.
-pm2 jlist 2>/dev/null \
-  | python3 -c "import sys,json; [print(p['pm_id']) for p in json.load(sys.stdin) if p.get('name')=='epstein-archive']" 2>/dev/null \
-  | xargs -r -I{} pm2 delete {} 2>/dev/null || true
-
-# Nuclear Option: Ensure port 3012 is free
-echo "Ensuring port 3012 is free..."
-lsof -t -i:3012 | xargs -r kill -9 || true
-sleep 1
-
-# --wait-ready blocks until process.send('ready') or listen_timeout
-pm2 start ecosystem.config.cjs --only epstein-archive --env production --wait-ready
+# 3. Application Reload
+# CERT_STEP: zero_interruption_reload
+echo "Reloading application with PM2 readiness gate..."
+if pm2 describe epstein-archive >/dev/null 2>&1; then
+  # In cluster mode this reloads workers one at a time and keeps old workers serving
+  # until replacements emit process.send('ready').
+  pm2 reload ecosystem.config.cjs --only epstein-archive --env production --wait-ready --update-env
+else
+  pm2 start ecosystem.config.cjs --only epstein-archive --env production --wait-ready
+fi
 
 # 4. Verify Process Health
 pm2 describe epstein-archive | grep -q "online" || (echo "❌ Process failed to start (crashed immediately)" && exit 1)
@@ -210,6 +204,27 @@ pnpm db:check
 CMD
 }
 
+remote_live_cutover_cmd() {
+  local verify_url="$1"
+  cat <<CMD
+set -e
+cd "${PRODUCTION_PATH}"
+export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
+export PATH="\$PNPM_HOME:\$PATH"
+export NODE_ENV=production
+export CI=true
+
+if [ -f .env ]; then
+  set -a
+  source .env
+  set +a
+fi
+
+# CERT_STEP: public_live_data_cutover_gate
+DEPLOY_VERIFY_URL="${verify_url}" pnpm verify:live-cutover
+CMD
+}
+
 # Runtime flags (used by trap/rollback)
 DEPLOY_MUTATION_STARTED=false
 ROLLBACK_IN_PROGRESS=false
@@ -256,9 +271,6 @@ perform_rollback() {
     set -e
     cd ${PRODUCTION_PATH}
 
-    echo 'Stopping service...'
-    pm2 stop epstein-archive || true
-
     if [ -f .env ]; then
       set -a
       source .env
@@ -283,7 +295,23 @@ perform_rollback() {
       export NODE_ENV=production
       export CI=true
       pnpm install --frozen-lockfile
-      pnpm build:prod
+      if [ ! -f .rollback_dist_target ]; then
+        pnpm build:prod
+      fi
+    fi
+
+    if [ \"$DB_ONLY\" = false ] && [ -f .rollback_dist_target ]; then
+      ROLLBACK_DIST_TARGET=\$(cat .rollback_dist_target)
+      if [ -n \"\$ROLLBACK_DIST_TARGET\" ] && [ -d \"\$ROLLBACK_DIST_TARGET\" ]; then
+        echo \"Restoring previous live dist symlink: \$ROLLBACK_DIST_TARGET\"
+        ln -sfn \"\$ROLLBACK_DIST_TARGET\" .dist_next
+        mv -Tf .dist_next dist
+      fi
+    elif [ \"$DB_ONLY\" = false ] && [ -f .rollback_dist.tgz ]; then
+      echo 'Restoring previous dist artifact...'
+      rm -rf dist
+      tar -xzf .rollback_dist.tgz
+      chmod -R o+rX dist || true
     fi
   "
 
@@ -588,51 +616,107 @@ if [ "$DB_ONLY" = false ]; then
       # CERT_STEP: rollback_safety_previous_image_retained
       echo 'Retaining previous build artifact for rollback...'
       rm -f .rollback_dist.tgz
+      rm -f .rollback_dist_target
+      if [ -L dist ]; then
+        readlink dist > .rollback_dist_target
+      fi
       if [ -d dist ]; then
         tar -czf .rollback_dist.tgz dist ecosystem.config.cjs package.json pnpm-lock.yaml 2>/dev/null || true
       fi
 
-      echo 'Syncing code from origin/main...'
       git fetch origin
-      git reset --hard origin/main
-      # Scorched Earth: Remove any untracked files (e.g. legacy scripts)
-      git clean -fd
+      TARGET_SHA=\$(git rev-parse origin/main)
+      RELEASE_ID=\$(date -u +%Y%m%d%H%M%S)-\${TARGET_SHA:0:12}
+      RELEASE_STAGE=\"${PRODUCTION_PATH}.stage.\$RELEASE_ID\"
+      RELEASE_ROOT=\"${PRODUCTION_PATH}/.releases/\$RELEASE_ID\"
+
+      echo \"Creating isolated release stage: \$RELEASE_STAGE\"
+      rm -rf \"\$RELEASE_STAGE\"
+      git worktree prune
+      git worktree add --detach \"\$RELEASE_STAGE\" \"\$TARGET_SHA\"
+
+      cleanup_stage() {
+        pm2 delete epstein-archive-canary 2>/dev/null || true
+        git worktree remove --force \"\$RELEASE_STAGE\" 2>/dev/null || rm -rf \"\$RELEASE_STAGE\"
+      }
+      trap cleanup_stage EXIT
 
       # Preserve previous hashed assets so open clients with cached HTML don't 404
       # on lazy-loaded chunks immediately after deploy. New build outputs overwrite
       # same-name files; old hashed files remain available for one version bridge.
       echo 'Preserving previous hashed assets for chunk-cache compatibility...'
-      rm -rf .prev_dist_assets
+      rm -rf \"\$RELEASE_STAGE/.prev_dist_assets\"
       if [ -d dist/assets ]; then
-        mkdir -p .prev_dist_assets
-        cp -a dist/assets/. .prev_dist_assets/ 2>/dev/null || true
+        mkdir -p \"\$RELEASE_STAGE/.prev_dist_assets\"
+        cp -a dist/assets/. \"\$RELEASE_STAGE/.prev_dist_assets/\" 2>/dev/null || true
       fi
 
-      # Keep the currently served build in place while the new one compiles.
-      # This prevents nginx from serving 500s/404s during the build window.
-      echo 'Keeping current build live during compile for zero-downtime static serving...'
+      # Keep the currently served build in place while the new one compiles and
+      # passes canary verification. This prevents nginx from serving 500s/404s
+      # during the build window.
+      echo 'Building staged release while current build remains live...'
 
+      cd \"\$RELEASE_STAGE\"
       export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
       export PATH="\$PNPM_HOME:\$PATH"
       export NODE_ENV=production
       export CI=true
+      export RAW_CORPUS_BASE_PATH="${PRODUCTION_PATH}/data"
+      if [ -f "${PRODUCTION_PATH}/.env" ]; then
+        set -a
+        source "${PRODUCTION_PATH}/.env"
+        set +a
+      fi
 
       pnpm install --frozen-lockfile
       pnpm build:prod
       echo 'Exporting fresh database snapshot for dashboard...'
       pnpm snapshot:export
 
-      if [ -d .prev_dist_assets ]; then
+      if [ -d \"\$RELEASE_STAGE/.prev_dist_assets\" ]; then
         echo 'Restoring previous hashed assets (non-overwriting)...'
         mkdir -p dist/assets
-        cp -an .prev_dist_assets/. dist/assets/ 2>/dev/null || true
-        rm -rf .prev_dist_assets
+        cp -an \"\$RELEASE_STAGE/.prev_dist_assets/.\" dist/assets/ 2>/dev/null || true
+        rm -rf \"\$RELEASE_STAGE/.prev_dist_assets\"
       fi
 
-      # Ensure nginx (www-data) can traverse the home dir and read dist/
-      echo 'Fixing nginx read permissions on dist...'
+      echo 'Running staged canary live-data verification...'
+      pm2 delete epstein-archive-canary 2>/dev/null || true
+      PORT="${CANARY_PORT}" RAW_CORPUS_BASE_PATH="${PRODUCTION_PATH}/data" pm2 start dist/server.js \
+        --name epstein-archive-canary \
+        --wait-ready \
+        --time \
+        --no-autorestart \
+        --update-env
+      DEPLOY_VERIFY_URL="http://127.0.0.1:${CANARY_PORT}" pnpm verify:live-cutover
+      pm2 delete epstein-archive-canary
+
+      echo 'Promoting verified release artifact...'
+      cd "${PRODUCTION_PATH}"
+      mkdir -p .releases
+
+      # Convert the legacy physical dist/ directory to a symlink once. After this,
+      # future cutovers are an atomic symlink replacement.
+      if [ -d dist ] && [ ! -L dist ]; then
+        LEGACY_RELEASE=\".releases/legacy-\$(date -u +%Y%m%d%H%M%S)\"
+        mkdir -p \"\$LEGACY_RELEASE\"
+        mv dist \"\$LEGACY_RELEASE/dist\"
+        ln -sfn \"\$LEGACY_RELEASE/dist\" dist
+        readlink dist > .rollback_dist_target
+      fi
+
+      mkdir -p \"\$RELEASE_ROOT\"
+      mv \"\$RELEASE_STAGE/dist\" \"\$RELEASE_ROOT/dist\"
       chmod o+x "${REMOTE_HOME}"
-      chmod -R o+rX dist
+      chmod -R o+rX \"\$RELEASE_ROOT/dist\"
+
+      echo \"Switching live dist symlink to \$RELEASE_ROOT/dist\"
+      ln -sfn \"\$RELEASE_ROOT/dist\" .dist_next
+      mv -Tf .dist_next dist
+
+      echo 'Syncing live source tree to promoted commit...'
+      git reset --hard \"\$TARGET_SHA\"
+      git clean -fd -e dist -e .releases -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
     "
 
     # CERT_STEP: app_restart_after_db_healthy
@@ -729,7 +813,27 @@ if [ "$DRY_RUN" = false ]; then
       DEPLOY_VERIFY_URL=http://127.0.0.1:3012 node --import tsx/esm scripts/verify_ops.ts
     "
 
-    log_success "Deployment successful (ready + deep health + post-deploy checks passed)."
+    log_step "Running public live-data cutover verification against ${PUBLIC_ORIGIN}..."
+    PUBLIC_VERIFY_MAX_RETRIES=12
+    PUBLIC_VERIFY_COUNT=0
+    PUBLIC_VERIFY_SUCCESS=false
+    while [ $PUBLIC_VERIFY_COUNT -lt $PUBLIC_VERIFY_MAX_RETRIES ]; do
+      if remote_ssh "$(remote_live_cutover_cmd "$PUBLIC_ORIGIN")"; then
+        PUBLIC_VERIFY_SUCCESS=true
+        break
+      fi
+      PUBLIC_VERIFY_COUNT=$((PUBLIC_VERIFY_COUNT+1))
+      log_step "Public live-data verification attempt ${PUBLIC_VERIFY_COUNT}/${PUBLIC_VERIFY_MAX_RETRIES} failed; retrying..."
+      sleep 5
+    done
+
+    if [ "$PUBLIC_VERIFY_SUCCESS" != true ]; then
+      log_error "Public live-data cutover verification failed. Rolling back before declaring success."
+      perform_rollback
+      exit 1
+    fi
+
+    log_success "Deployment successful (ready + deep health + post-deploy + public live-data checks passed)."
   else
     log_error "Deep health checks failed after $DEEP_MAX_RETRIES attempts."
     perform_rollback
