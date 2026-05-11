@@ -28,7 +28,7 @@ export function SensitiveContent({
   ignoreGlobalSetting = false,
   resetKey,
 }: SensitiveContentProps): React.ReactElement {
-  const { showAllSensitive } = useSensitiveSettings();
+  const { showAllSensitive, setShowAllSensitive } = useSensitiveSettings();
   const [revealed, setRevealed] = useState(false);
   const [isRevealing, setIsRevealing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,7 +42,8 @@ export function SensitiveContent({
     secondary: 'transparent',
   });
 
-  const shouldHide = isSensitive && (ignoreGlobalSetting || !showAllSensitive) && !revealed;
+  const locallyRevealed = showAllSensitive ? revealed : false;
+  const shouldHide = isSensitive && (ignoreGlobalSetting || !showAllSensitive) && !locallyRevealed;
 
   useEffect(() => {
     if (!shouldHide || !canvasRef.current || !containerRef.current) return;
@@ -64,6 +65,10 @@ export function SensitiveContent({
   const handleReveal = (e: React.MouseEvent): void => {
     e.stopPropagation();
     if (isRevealing) return;
+
+    if (isSensitive && !ignoreGlobalSetting) {
+      setShowAllSensitive(true);
+    }
 
     setIsRevealing(true);
 

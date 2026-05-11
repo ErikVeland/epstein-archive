@@ -1,7 +1,7 @@
 .browser {
   display: flex;
   flex-direction: column;
-  min-height: 500px;
+  min-height: max(500px, calc(100dvh - 8rem));
   height: 100%;
   overflow: hidden;
 }

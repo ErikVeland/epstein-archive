@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.9 - 2026-05-12 - Email Defaults and Media Visibility
+
+### Production Reliability
+
+- **Email Inbox Defaults**: Opens Emails with all people, non-junk mail, post-mortem Yahoo mail, and empty/redacted bodies visible by default.
+- **Email API Defaults**: Makes bare email thread and mailbox API calls use the same inclusive defaults so the UI cannot silently show an empty inbox.
+- **Media Sensitivity Consistency**: Aligns media warnings, thumbnails, and audio/video players behind one global sensitive-content switch.
+
 ## 21.2.8 - 2026-05-11 - Email Workspace Incident Guardrails
 
 ### Production Reliability

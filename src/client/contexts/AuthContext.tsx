@@ -91,6 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     apiClient.setAccessToken(null);
     localStorage.removeItem('epstein-archive-show-sensitive');
+    sessionStorage.removeItem('epstein-archive-show-sensitive');
   };
 
   return (

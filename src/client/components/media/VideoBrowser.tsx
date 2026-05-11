@@ -16,6 +16,7 @@ import {
 import AutoSizer from '../common/AutoSizer';
 import { VideoPlayer } from './VideoPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
 import BatchToolbar from '../common/BatchToolbar';
 import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import { AlbumSidebar } from '../shared/AlbumSidebar';
@@ -148,7 +149,6 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
         <Box className={styles.thumbnail}>
           <SensitiveContent
             isSensitive={video.isSensitive}
-            ignoreGlobalSetting
             className={styles.thumbnailMedia}
             label="Sensitive content"
             hint="Click to unblur"
@@ -233,6 +233,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
 export const VideoBrowser: React.FC = () => {
   const initialAlbumId = useMemo(() => getInitialAlbumIdFromUrl(), []);
   const [hasPeopleOnly, setHasPeopleOnly] = useState(false);
+  const { showAllSensitive } = useSensitiveSettings();
 
   const buildVideoQuery = useCallback(
     (
@@ -370,6 +371,7 @@ export const VideoBrowser: React.FC = () => {
   }, []);
 
   const showSensitiveWarning =
+    !showAllSensitive &&
     currentAlbum &&
     (currentAlbum.name.match(/Sensitive|Disturbing|Testimony|Victim|Survivor/i) ||
       (currentAlbum.sensitiveCount && currentAlbum.sensitiveCount > 0));

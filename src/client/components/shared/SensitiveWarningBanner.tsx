@@ -1,5 +1,6 @@
 import React from 'react';
 import Icon from '@client/components/common/Icon';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
 import s from './SensitiveWarningBanner.module.css';
 
 import { Button } from '@client/design-system/lib';
@@ -16,6 +17,7 @@ interface SensitiveWarningBannerProps {
 export function SensitiveWarningBanner({
   mediaType,
 }: SensitiveWarningBannerProps): React.ReactElement | null {
+  const { showAllSensitive } = useSensitiveSettings();
   const [isVisible, setIsVisible] = React.useState(true);
   const storageKey = `dismissed_warning_${mediaType}`;
 
@@ -30,7 +32,7 @@ export function SensitiveWarningBanner({
     sessionStorage.setItem(storageKey, 'true');
   };
 
-  if (!isVisible) return null;
+  if (showAllSensitive || !isVisible) return null;
 
   const mediaTypeLabel =
     mediaType === 'audio' ? 'audio' : mediaType === 'video' ? 'video' : 'image';

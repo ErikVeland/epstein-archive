@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Icon from '@client/components/common/Icon';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
 import { TranscriptSegment, Chapter } from './AudioPlayer';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '@client/hooks/useScrollLock';
@@ -33,6 +34,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { showAllSensitive, setShowAllSensitive } = useSensitiveSettings();
   const overlayRef = useRef<HTMLDivElement>(null);
   const controlsTimeoutRef = useRef<number | null>(null);
   const copyTimeoutRef = useRef<number | null>(null);
@@ -67,7 +69,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showCopied, setShowCopied] = useState(false);
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [revealedSources, setRevealedSources] = useState<Record<string, boolean>>({});
 
   useScrollLock(showFullTranscriptOverlay);
 
@@ -87,7 +88,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       .map(({ index }) => index);
   }, [transcript, normalizedTranscriptQuery]);
 
-  const hasRevealed = !isSensitive || !!revealedSources[src];
+  const hasRevealed = !isSensitive || showAllSensitive;
 
   const toggleTranscript = () => {
     setShowTranscript((prev) => {
@@ -126,10 +127,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!videoRef.current) return;
     videoRef.current.volume = volume;
     videoRef.current.playbackRate = playbackRate;
-    if (autoPlay && !isSensitive) {
+    if (autoPlay && hasRevealed) {
       videoRef.current.play().catch((e) => console.warn('Autoplay failed:', e));
     }
-  }, [autoPlay, isSensitive, playbackRate, volume]);
+  }, [autoPlay, hasRevealed, playbackRate, volume]);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -254,7 +255,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const handleReveal = () => {
-    setRevealedSources((prev) => ({ ...prev, [src]: true }));
+    setShowAllSensitive(true);
     if (!videoRef.current) return;
     videoRef.current.play().catch(console.error);
     setIsPlaying(true);

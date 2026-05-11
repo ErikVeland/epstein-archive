@@ -169,7 +169,7 @@ export const EmailClient: React.FC = () => {
   const deepLinkedMessageId = searchParams.get('messageId') || searchParams.get('id');
   const { filters: globalFilters } = useFilters();
 
-  const showSuppressedJunk = false;
+  const showSuppressedJunk = searchParams.get('showSuppressedJunk') === '1';
 
   const selectedMailboxId = searchParams.get('mailboxId') || 'all';
   const [activeTab, setActiveTab] = useState<
@@ -206,10 +206,10 @@ export const EmailClient: React.FC = () => {
   const [isNavigatingRandom, setIsNavigatingRandom] = useState(false);
 
   const [showYahooPostMortem, setShowYahooPostMortem] = useState(
-    searchParams.get('showYahooPostMortem') === '1',
+    searchParams.get('showYahooPostMortem') !== '0',
   );
   const [showEmptyBodies, setShowEmptyBodies] = useState(
-    searchParams.get('showEmptyBodies') === '1',
+    searchParams.get('showEmptyBodies') !== '0',
   );
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
@@ -266,7 +266,7 @@ export const EmailClient: React.FC = () => {
     (setting: 'showYahooPostMortem' | 'showEmptyBodies', val: boolean) => {
       if (setting === 'showYahooPostMortem') setShowYahooPostMortem(val);
       if (setting === 'showEmptyBodies') setShowEmptyBodies(val);
-      updateUrlState({ [setting]: val ? '1' : null });
+      updateUrlState({ [setting]: val ? null : '0' });
     },
     [updateUrlState],
   );
@@ -338,13 +338,8 @@ export const EmailClient: React.FC = () => {
   });
 
   const mailboxes = useMemo(() => {
-    // Filter out junk entities and unverified/non-VIP accounts if junk is suppressed
-    if (!showSuppressedJunk) {
-      return rawMailboxes.filter(
-        (m) => m.mailboxId === 'all' || ((m.isVip || m.isVerified) && !isJunkEntity(m.displayName)),
-      );
-    }
-    return rawMailboxes;
+    if (showSuppressedJunk) return rawMailboxes;
+    return rawMailboxes.filter((m) => m.mailboxId === 'all' || !isJunkEntity(m.displayName));
   }, [rawMailboxes, showSuppressedJunk]);
 
   const selectedMailbox = useMemo(() => {
@@ -747,15 +742,27 @@ export const EmailClient: React.FC = () => {
           } ${!isMobile && selectedThreadId ? styles.hiddenPane : ''}`}
         >
           <div className={styles.subTabBar}>
-            <div className={`${styles.subTabItem} ${styles.subTabItemActive}`}>
+            <button
+              className={`${styles.subTabItem} ${
+                activeTab === 'all' ? styles.subTabItemActive : ''
+              }`}
+              onClick={() => setActiveTab('all')}
+              style={{ background: 'transparent', border: 'none', font: 'inherit' }}
+            >
               <Icon name="Inbox" />
-              <span>Primary</span>
-            </div>
-            <div className={styles.subTabItem}>
+              <span>All Mail</span>
+            </button>
+            <button
+              className={`${styles.subTabItem} ${
+                activeTab === 'promotions' ? styles.subTabItemActive : ''
+              }`}
+              onClick={() => setActiveTab('promotions')}
+              style={{ background: 'transparent', border: 'none', font: 'inherit' }}
+            >
               <Icon name="Tags" />
               <span>Promotions</span>
               <span className={styles.subTabNewBadge}>6104 new</span>
-            </div>
+            </button>
             <button
               className={styles.subTabItem}
               onClick={handleRandomEmail}

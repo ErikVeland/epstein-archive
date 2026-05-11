@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Icon from '@client/components/common/Icon';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
 import { CloseButton } from '../common/CloseButton';
 
 import { Box, Button, Flex, Input, LqText, Stack, Surface, cn } from '@client/design-system/lib';
@@ -45,6 +46,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
+  const { showAllSensitive, setShowAllSensitive } = useSensitiveSettings();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -170,11 +172,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setIsPlaying(!isPlaying);
   };
 
-  const [revealed, setRevealed] = useState(!isSensitive);
+  const hasRevealed = !isSensitive || showAllSensitive;
+
+  const handleReveal = () => {
+    setShowAllSensitive(true);
+  };
 
   return (
     <Surface variant="glass" className={styles.root}>
-      {!revealed && (
+      {!hasRevealed && (
         <Flex align="center" justify="center" className={styles.warningOverlay}>
           <Surface variant="glass-highlight" className={styles.warningCard}>
             <Stack gap="lg" align="center" textAlign="center">
@@ -195,7 +201,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     Cancel
                   </Button>
                 )}
-                <Button variant="primary" onClick={() => setRevealed(true)}>
+                <Button variant="primary" onClick={handleReveal}>
                   Reveal & Play
                 </Button>
               </Flex>
@@ -399,7 +405,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={() => setIsPlaying(false)}
-        autoPlay={autoPlay && revealed}
+        autoPlay={autoPlay && hasRevealed}
       />
     </Surface>
   );

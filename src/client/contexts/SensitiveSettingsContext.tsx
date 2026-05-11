@@ -1,4 +1,14 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+const SENSITIVE_STORAGE_KEY = 'epstein-archive-show-sensitive';
+
+function readSensitivePreference(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (
+    window.localStorage.getItem(SENSITIVE_STORAGE_KEY) === 'true' ||
+    window.sessionStorage.getItem(SENSITIVE_STORAGE_KEY) === 'true'
+  );
+}
 
 interface SensitiveSettingsContextType {
   showAllSensitive: boolean;
@@ -11,16 +21,25 @@ const SensitiveSettingsContext = createContext<SensitiveSettingsContextType | un
 export const SensitiveSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [showAllSensitive, setShowAllSensitiveState] = useState(() => {
-    return sessionStorage.getItem('epstein-archive-show-sensitive') === 'true';
-  });
+  const [showAllSensitive, setShowAllSensitiveState] = useState(readSensitivePreference);
 
   const setShowAllSensitive = (show: boolean) => {
     setShowAllSensitiveState(show);
-    sessionStorage.setItem('epstein-archive-show-sensitive', String(show));
+    localStorage.setItem(SENSITIVE_STORAGE_KEY, String(show));
+    sessionStorage.setItem(SENSITIVE_STORAGE_KEY, String(show));
   };
 
   const toggleShowAllSensitive = () => setShowAllSensitive(!showAllSensitive);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === SENSITIVE_STORAGE_KEY) {
+        setShowAllSensitiveState(event.newValue === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   return (
     <SensitiveSettingsContext.Provider

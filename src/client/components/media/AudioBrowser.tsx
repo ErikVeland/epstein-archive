@@ -4,11 +4,13 @@ import { FixedSizeList as List, ListChildComponentProps, areEqual } from 'react-
 import Icon from '@client/components/common/Icon';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
+import { useSensitiveSettings } from '@client/contexts/SensitiveSettingsContext';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 
 import { usePaginatedMediaCollection } from '@client/hooks/usePaginatedMediaCollection';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { AlbumSidebar } from '../shared/AlbumSidebar';
+import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import { SEO } from '../common/SEO';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { AutoSizer } from '../common/AutoSizer';
@@ -237,6 +239,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 }) => {
   const [selectedItem, setSelectedItem] = useState<AudioItem | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
+  const { showAllSensitive } = useSensitiveSettings();
 
   const urlParams = useMemo(() => {
     if (typeof window === 'undefined') return new URLSearchParams();
@@ -288,6 +291,11 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     () => albums.find((a) => a.id === selectedAlbum),
     [albums, selectedAlbum],
   );
+  const showSensitiveWarning =
+    !showAllSensitive &&
+    currentAlbum &&
+    (/Sensitive|Disturbing|Testimony|Victim|Survivor/i.test(currentAlbum.name) ||
+      (currentAlbum.sensitiveCount ?? 0) > 0);
 
   const { data: directLinkItem } = useQuery<AudioItem | null>({
     queryKey: ['audioItem', targetAudioId],
@@ -411,6 +419,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           />
 
           <Box className={styles.virtualScrollArea} grow>
+            {showSensitiveWarning && <SensitiveWarningBanner mediaType="audio" />}
             <AutoSizer>
               {({ width, height }: { width: number; height: number }) => {
                 if (width === 0 || height === 0) return null;
