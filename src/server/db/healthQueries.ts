@@ -882,7 +882,7 @@ const getJunkFilterClause = (showSuppressedJunk: boolean) => {
 
 export async function getEmailMailboxes(showSuppressedJunk: boolean) {
   const junkFilter = getJunkFilterClause(showSuppressedJunk);
-  const mailboxScanLimit = Math.max(1_000, Number(process.env.EMAIL_MAILBOX_SCAN_LIMIT || 10_000));
+  const mailboxScanLimit = Math.max(1_000, Number(process.env.EMAIL_MAILBOX_SCAN_LIMIT || 100_000));
 
   let totals = {
     totalThreads: 0,
