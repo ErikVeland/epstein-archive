@@ -3,7 +3,7 @@ import styles from './PersonCardSkeleton.module.css';
 
 const PersonCardSkeleton: React.FC = () => {
   return (
-    <div className={styles.card}>
+    <div className={styles.card} data-testid="subject-card">
       {/* Shimmer effect */}
       <div className={styles.shimmer} />
 

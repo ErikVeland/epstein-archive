@@ -1,5 +1,12 @@
 # Release Notes
 
+## 21.1.1 - 2026-05-11 - Interface Symmetry & Grid Hardening
+
+### User Interface & Geometry
+
+- **Grid Intersection Calibration**: Solved 1.5px - 2px doubling artifact where entity cards intersect in high-density viewports. Applied absolute integer border-collapse mathematics (`margin: -1px`) ensuring unified single-pixel crisp dividing lines across all responsive scaling factors and DPI ratios.
+- **Skeleton Synchronization**: Integrated structural loading state skeleton components into the unified container geometry protocol, guaranteeing precise corner rounding synchronicity during background hydrate loops.
+
 ## 21.1.0 - 2026-05-11 - Performance & Graph Symmetry Optimization
 
 ### High Performance Traversal Engine

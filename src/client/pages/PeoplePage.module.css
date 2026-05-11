@@ -140,7 +140,7 @@
   border: 1px solid var(--glass-border);
   background: color-mix(in srgb, var(--glass-bg) 42%, transparent);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-strong) 5%, transparent) !important;
-  margin: -0.5px;
+  margin: -1px;
 }
 
 /* 1-column layout (Mobile) */
