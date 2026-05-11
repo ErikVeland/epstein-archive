@@ -1,5 +1,18 @@
 # Release Notes
 
+## 21.1.3 - 2026-05-11 - Panoramic Graphs & Telemetry Recovery
+
+### Visual Architecture & Navigability
+
+- **Panoramic Claim Graphs**: Upgraded the evidentiary relationship visualization from a 1:1 constrained view to a kinematic 320x120 viewport, doubling native point resolution and drastically improving information density.
+- **Momentum Interaction**: Native physics-enabled click-and-drag panning was integrated utilizing the Framer-Motion driver, unlocking full spatial navigability across large node clusters.
+- **Inline Relation Tokens**: Injected explicit context labeling directly onto graph connection vectors, removing label-ambiguity latency.
+
+### Monitoring & System Stability
+
+- **Widget Bridge Rehabilitation**: Re-aligned aggregate database scan queries to follow the post-cleanup v21 canonical table names, clearing silent null response loops and fully restoring standard pipeline status telemetry on external dashboard instances.
+- **Concurrency Throttle Tuning**: Extended aggregation statement boundaries to adapt strictly to million-row scalability limits, neutralizing hard timeouts.
+
 ## 21.1.2 - 2026-05-11 - Core Metadata DOJ Source Extension
 
 ### User Interface & Evidence Provenance
