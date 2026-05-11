@@ -5,7 +5,7 @@ LIMIT :limit!;
 
 /* @name getTransactionsByInvestigation */
 SELECT * FROM financial_transactions 
-WHERE investigation_id = :investigationId!
+WHERE investigation_id = :investigationId!::bigint
 ORDER BY transaction_date DESC;
 
 /* @name getTransactionsByEntity */

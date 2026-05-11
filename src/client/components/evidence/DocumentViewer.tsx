@@ -21,7 +21,7 @@ interface DocumentViewerProps {
       source_original_url?: string;
       key_excerpts?: string[];
     };
-    original_file_path?: string;
+    sourcePath?: string;
     redaction_spans?: Array<{
       span_start: number;
       span_end: number;
@@ -304,10 +304,10 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
             {copied ? 'Copied' : 'Copy'}
           </Button>
 
-          {(evidence.original_file_path || evidence.metadata?.source_original_url) && (
+          {(evidence.sourcePath || evidence.metadata?.source_original_url) && (
             <Button asChild variant="ghost" size="sm" className={styles.iconButton}>
               <a
-                href={evidence.original_file_path || evidence.metadata.source_original_url}
+                href={evidence.sourcePath || evidence.metadata.source_original_url}
                 download
                 target="_blank"
                 rel="noopener noreferrer"

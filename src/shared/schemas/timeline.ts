@@ -23,7 +23,6 @@ export const timelineEventSchema = z.object({
   // snake_case keys as returned by the repository (no global transform middleware)
   significance_score: z.string().nullable().optional(),
   file_path: z.null().optional(),
-  original_file_path: z.null().optional(),
   is_curated: z.boolean().optional(),
   source: z.string().nullable().optional(),
   related_document: z.union([timelineRelatedDocumentSchema, z.null()]).optional(),

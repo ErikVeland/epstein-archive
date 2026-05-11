@@ -312,7 +312,6 @@ export interface IGetDocumentByIdResult {
   fileType: string | null;
   id: string;
   metadataJson: Json | null;
-  originalFilePath: string | null;
   redactionCoverageAfter: number | null;
   redactionCoverageBefore: number | null;
   redFlagRating: number | null;
@@ -333,10 +332,10 @@ export interface IGetDocumentByIdQuery {
 const getDocumentByIdIR: any = {
   usedParamSet: { id: true },
   params: [
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 787, b: 790 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 752, b: 755 }] },
   ],
   statement:
-    'SELECT \n  id,\n  file_name as "fileName",\n  file_path as "filePath",\n  file_type as "fileType",\n  file_size as "fileSize",\n  date_created as "dateCreated",\n  extracted_date as "extractedDate",\n  content_hash as "contentHash",\n  word_count as "wordCount",\n  red_flag_rating as "redFlagRating",\n  metadata_json as "metadataJson",\n  content_refined as "content",\n  title,\n  evidence_type as "evidenceType",\n  unredaction_attempted as "unredactionAttempted",\n  unredaction_succeeded as "unredactionSucceeded",\n  redaction_coverage_before as "redactionCoverageBefore",\n  redaction_coverage_after as "redactionCoverageAfter",\n  unredacted_text_gain as "unredactedTextGain",\n  unredaction_baseline_vocab as "unredactionBaselineVocab",\n  file_path as "originalFilePath"\nFROM documents\nWHERE id = :id!',
+    'SELECT \n  id,\n  file_name as "fileName",\n  file_path as "filePath",\n  file_type as "fileType",\n  file_size as "fileSize",\n  date_created as "dateCreated",\n  extracted_date as "extractedDate",\n  content_hash as "contentHash",\n  word_count as "wordCount",\n  red_flag_rating as "redFlagRating",\n  metadata_json as "metadataJson",\n  content_refined as "content",\n  title,\n  evidence_type as "evidenceType",\n  unredaction_attempted as "unredactionAttempted",\n  unredaction_succeeded as "unredactionSucceeded",\n  redaction_coverage_before as "redactionCoverageBefore",\n  redaction_coverage_after as "redactionCoverageAfter",\n  unredacted_text_gain as "unredactedTextGain",\n  unredaction_baseline_vocab as "unredactionBaselineVocab"\nFROM documents\nWHERE id = :id!',
 };
 
 /**
@@ -362,8 +361,7 @@ const getDocumentByIdIR: any = {
  *   redaction_coverage_before as "redactionCoverageBefore",
  *   redaction_coverage_after as "redactionCoverageAfter",
  *   unredacted_text_gain as "unredactedTextGain",
- *   unredaction_baseline_vocab as "unredactionBaselineVocab",
- *   file_path as "originalFilePath"
+ *   unredaction_baseline_vocab as "unredactionBaselineVocab"
  * FROM documents
  * WHERE id = :id!
  * ```

@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "21.0.0",
+  "version": "21.1.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -11,7 +11,7 @@
     "dev": "vite",
     "dev:clean": "rm -rf node_modules/.vite && vite --force",
     "build": "vite build",
-    "prebuild:prod": "pnpm --filter @epstein/db build && pnpm schema:hash:check && pnpm type-check:server && bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
+    "prebuild:prod": "pnpm --filter @epstein/db build && pnpm schema:hash:check && pnpm type-check:server && pnpm check:schema-identifiers && bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "build:prod": "pnpm build:client && pnpm build:server",
     "build:client": "vite build",
     "build:server": "tsc -p tsconfig.server.json",
@@ -44,6 +44,7 @@
     "check:boundaries": "node scripts/check_client_server_boundary.mjs",
     "check:dead-schema-surfaces": "tsx scripts/check_dead_schema_surfaces.ts",
     "check:duplicate-indexes": "tsx scripts/check_duplicate_indexes.ts",
+    "check:schema-identifiers": "tsx scripts/check_forbidden_schema_identifiers.ts",
     "check:seed-conflict-policy": "node --import tsx/esm scripts/check_seed_conflict_policy.ts",
     "check:test-hygiene": "node --import tsx/esm scripts/check_test_hygiene.ts",
     "check:hygiene": "bash scripts/check_hygiene.sh",

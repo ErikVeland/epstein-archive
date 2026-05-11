@@ -411,7 +411,6 @@ export const timelineRepository = {
           entities: entityData,
           significance_score: e.significance || 'medium',
           file_path: null,
-          original_file_path: null,
           is_curated: true,
           source: e.source || null,
           related_document: relatedDocument,

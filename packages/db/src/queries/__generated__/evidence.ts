@@ -560,7 +560,6 @@ export interface IGetInvestigationEvidenceSummaryResult {
   evidenceType: string | null;
   id: string;
   notes: string | null;
-  originalFilePath: string | null;
   redFlagRating: number | null;
   relevance: string | null;
   source: string | null;
@@ -580,11 +579,11 @@ const getInvestigationEvidenceSummaryIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 461, b: 477 }],
+      locs: [{ a: 424, b: 440 }],
     },
   ],
   statement:
-    'SELECT \n  d.id,\n  d.evidence_type as "evidenceType",\n  d.title,\n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description,\n  d.red_flag_rating as "redFlagRating",\n  d.created_at as "createdAt",\n  d.file_path as "source",\n  d.file_path as "cleanedPath",\n  d.file_path as "originalFilePath",\n  ie.notes,\n  ie.relevance,\n  ie.added_at as "addedAt"\nFROM investigation_evidence ie\nINNER JOIN documents d ON d.id = ie.document_id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC',
+    'SELECT \n  d.id,\n  d.evidence_type as "evidenceType",\n  d.title,\n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description,\n  d.red_flag_rating as "redFlagRating",\n  d.created_at as "createdAt",\n  d.file_path as "source",\n  d.file_path as "cleanedPath",\n  ie.notes,\n  ie.relevance,\n  ie.added_at as "addedAt"\nFROM investigation_evidence ie\nINNER JOIN documents d ON d.id = ie.document_id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC',
 };
 
 /**
@@ -599,7 +598,6 @@ const getInvestigationEvidenceSummaryIR: any = {
  *   d.created_at as "createdAt",
  *   d.file_path as "source",
  *   d.file_path as "cleanedPath",
- *   d.file_path as "originalFilePath",
  *   ie.notes,
  *   ie.relevance,
  *   ie.added_at as "addedAt"
@@ -935,7 +933,6 @@ export interface IGetEvidenceByIdDetailedResult {
   metadataJson: Json | null;
   modifiedAt: Date | null;
   originalFilename: string | null;
-  originalFilePath: string | null;
   redFlagRating: number | null;
   sourcePath: string | null;
   title: string | null;
@@ -951,10 +948,10 @@ export interface IGetEvidenceByIdDetailedQuery {
 const getEvidenceByIdDetailedIR: any = {
   usedParamSet: { id: true },
   params: [
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 599, b: 602 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 562, b: 565 }] },
   ],
   statement:
-    'SELECT \n  d.id,\n  d.evidence_type as "evidenceType",\n  d.title,\n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description,\n  d.file_name as "originalFilename",\n  d.file_path as "sourcePath",\n  d.file_path as "cleanedPath",\n  d.file_path as "originalFilePath",\n  d.content as "extractedText",\n  d.created_at as "createdAt",\n  d.last_processed_at as "modifiedAt",\n  d.red_flag_rating as "redFlagRating",\n  COALESCE(d.metadata_json->>\'tags\', \'[]\') as "evidenceTags",\n  d.metadata_json as "metadataJson",\n  d.word_count as "wordCount",\n  d.file_size as "fileSize"\nFROM documents d\nWHERE d.id = :id!',
+    'SELECT \n  d.id,\n  d.evidence_type as "evidenceType",\n  d.title,\n  COALESCE(d.content_preview, LEFT(d.content, 320)) as description,\n  d.file_name as "originalFilename",\n  d.file_path as "sourcePath",\n  d.file_path as "cleanedPath",\n  d.content as "extractedText",\n  d.created_at as "createdAt",\n  d.last_processed_at as "modifiedAt",\n  d.red_flag_rating as "redFlagRating",\n  COALESCE(d.metadata_json->>\'tags\', \'[]\') as "evidenceTags",\n  d.metadata_json as "metadataJson",\n  d.word_count as "wordCount",\n  d.file_size as "fileSize"\nFROM documents d\nWHERE d.id = :id!',
 };
 
 /**
@@ -968,7 +965,6 @@ const getEvidenceByIdDetailedIR: any = {
  *   d.file_name as "originalFilename",
  *   d.file_path as "sourcePath",
  *   d.file_path as "cleanedPath",
- *   d.file_path as "originalFilePath",
  *   d.content as "extractedText",
  *   d.created_at as "createdAt",
  *   d.last_processed_at as "modifiedAt",

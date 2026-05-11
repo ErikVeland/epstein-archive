@@ -15,7 +15,6 @@ type DocumentMeta = {
   credibility_score?: number;
   sensitivity_flags?: string[];
   filePath?: string;
-  originalFilePath?: string;
   cleanedPath?: string;
 } | null;
 
@@ -96,12 +95,6 @@ export function useForensicDocumentData({
           ? (meta.sensitivity_flags as string[])
           : [],
         filePath: typeof data.filePath === 'string' ? data.filePath : undefined,
-        originalFilePath:
-          typeof data.original_file_path === 'string'
-            ? data.original_file_path
-            : typeof data.originalFilePath === 'string'
-              ? data.originalFilePath
-              : undefined,
         cleanedPath: typeof data.cleanedPath === 'string' ? data.cleanedPath : undefined,
       };
     },

@@ -32,7 +32,6 @@ interface TimelineEvent {
     | 'incident'
     | 'other';
   file: string;
-  original_file_path?: string;
   entities: (string | EntityLink)[];
   significance: 'high' | 'medium' | 'low';
   is_curated?: boolean;
@@ -202,7 +201,6 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
               ((event.type as string | undefined)?.toLowerCase() as TimelineEvent['type']) ||
               'document',
             file: (event.file_path as string | undefined) || '',
-            original_file_path: (event.original_file_path as string | undefined) || '',
             entities:
               (event.entities as (string | EntityLink)[] | undefined) ||
               (event.primary_entity ? [event.primary_entity as string] : []),
@@ -560,8 +558,8 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                       </span>
                       <a
                         href={
-                          selectedEvent.original_file_path
-                            ? `/files/${selectedEvent.original_file_path.replace('/data/originals/', '')}`
+                          selectedEvent.file
+                            ? `/files/${selectedEvent.file.replace('/data/originals/', '')}`
                             : '#'
                         }
                         target="_blank"

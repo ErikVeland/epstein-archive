@@ -10,7 +10,7 @@ const pool = new pg.Pool({
 async function checkDoc() {
   try {
     const res = await pool.query(
-      'SELECT id, file_name, file_path, original_file_path, metadata_json FROM documents WHERE id = 509872',
+      'SELECT id, file_name, file_path, metadata_json FROM documents WHERE id = 509872',
     );
     console.log('Document:', JSON.stringify(res.rows[0], null, 2));
 

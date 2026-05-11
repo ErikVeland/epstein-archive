@@ -184,20 +184,37 @@ LIMIT :limit!;
 DELETE FROM entity_adjacency;
 
 /* @name insertAdjacencyCache */
+WITH base_canonical AS (
+  SELECT 
+    s.canonical_id AS s_cid,
+    t.canonical_id AS t_cid,
+    er.proximity_score,
+    er.relationship_type,
+    er.risk_score,
+    er.confidence,
+    s.community_id AS s_comm,
+    t.community_id AS t_comm
+  FROM entity_relationships er
+  JOIN entities s ON er.source_entity_id = s.id
+  JOIN entities t ON er.target_entity_id = t.id
+  WHERE s.canonical_id != t.canonical_id
+),
+symmetric_edges AS (
+  SELECT s_cid AS src, t_cid AS tgt, proximity_score, relationship_type, risk_score, confidence, s_comm, t_comm FROM base_canonical
+  UNION ALL
+  SELECT t_cid AS src, s_cid AS tgt, proximity_score, relationship_type, risk_score, confidence, t_comm, s_comm FROM base_canonical
+)
 INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)
 SELECT 
-s.canonical_id as entity_id,
-t.canonical_id as neighbor_id,
-MAX(er.proximity_score) as weight,
-CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,
-STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,
-MAX(er.risk_score) as risk_score,
-MAX(er.confidence) as confidence
-FROM entity_relationships er
-JOIN entities s ON er.source_entity_id = s.id
-JOIN entities t ON er.target_entity_id = t.id
-WHERE s.canonical_id != t.canonical_id
-GROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id;
+  src as entity_id,
+  tgt as neighbor_id,
+  MAX(proximity_score) as weight,
+  CASE WHEN s_comm != t_comm THEN 1.0 ELSE 0.0 END as bridge_score,
+  STRING_AGG(DISTINCT relationship_type, ',') as relationship_types,
+  MAX(risk_score) as risk_score,
+  MAX(confidence) as confidence
+FROM symmetric_edges
+GROUP BY src, tgt, s_comm, t_comm;
 
 /* @name updateGraphCacheState */
 UPDATE graph_cache_state SET last_rebuild = CURRENT_TIMESTAMP, is_dirty = 0 WHERE id = 1;

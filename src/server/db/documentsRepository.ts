@@ -83,7 +83,6 @@ type DocumentRow = Record<string, unknown> & {
   title?: string | null;
   fileName?: string | null;
   filePath?: string | null;
-  originalFilePath?: string | null;
   fileType?: string | null;
   fileSize?: string | number | null;
   dateCreated?: string | Date | null;
@@ -862,7 +861,6 @@ export const documentsRepository = {
       entities,
       mentionedEntities: entities,
       signals,
-      original_file_path: document.filePath,
       redaction_spans: redactionSpans.map((s) => ({
         ...s,
         id: Number(s.id),

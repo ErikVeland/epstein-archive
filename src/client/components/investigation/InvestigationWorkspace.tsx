@@ -542,7 +542,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   ).length;
 
   const evidenceWithProvenance = evidenceItems.filter(
-    (item) => item.hash || item.chainOfCustody?.length || item.source || item.originalFilePath,
+    (item) => item.hash || item.chainOfCustody?.length || item.source,
   ).length;
 
   const readinessChecks = [

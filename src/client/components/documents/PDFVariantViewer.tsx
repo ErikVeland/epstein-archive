@@ -51,7 +51,6 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   type DocMeta = {
     fileName?: string;
     filePath?: string;
-    originalFilePath?: string;
     cleanedPath?: string;
     mimeType?: string;
   };
@@ -72,7 +71,6 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
       return {
         fileName: (data.fileName || data.file_name) as string | undefined,
         filePath: (data.filePath || data.file_path) as string | undefined,
-        originalFilePath: (data.originalFilePath || data.original_file_path) as string | undefined,
         cleanedPath: (data.cleanedPath || data.cleaned_path) as string | undefined,
         mimeType: (data.mimeType || data.mime_type || data.fileType || data.file_type) as
           | string
@@ -99,9 +97,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
     if (mime.includes('pdf')) return 'pdf';
     if (mime.startsWith('image/')) return 'image';
 
-    const candidatePath = String(
-      docMeta?.fileName || docMeta?.filePath || docMeta?.originalFilePath || '',
-    ).toLowerCase();
+    const candidatePath = String(docMeta?.fileName || docMeta?.filePath || '').toLowerCase();
     if (candidatePath.endsWith('.pdf')) return 'pdf';
     if (
       candidatePath.endsWith('.jpg') ||

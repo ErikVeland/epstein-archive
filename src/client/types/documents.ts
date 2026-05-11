@@ -36,7 +36,6 @@ export interface Document {
   threadId?: string;
   threadPosition?: number;
   cleanedPath?: string;
-  originalFilePath?: string;
   parentId?: string;
   startOffset?: number;
   endOffset?: number;

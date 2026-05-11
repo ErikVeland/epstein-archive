@@ -97,14 +97,14 @@ const getTransactionsByInvestigationIR: any = {
     },
   ],
   statement:
-    'SELECT * FROM financial_transactions \nWHERE investigation_id = :investigationId!\nORDER BY transaction_date DESC',
+    'SELECT * FROM financial_transactions \nWHERE investigation_id = :investigationId!::bigint\nORDER BY transaction_date DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
  * SELECT * FROM financial_transactions
- * WHERE investigation_id = :investigationId!
+ * WHERE investigation_id = :investigationId!::bigint
  * ORDER BY transaction_date DESC
  * ```
  */

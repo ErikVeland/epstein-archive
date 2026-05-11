@@ -67,14 +67,13 @@ export class VisualizationService {
 
       // Process edges
       edges = graphData.edges.flatMap((edge) => {
-        if (!('source_id' in edge)) return [];
         return [
           {
-            id: `${edge.source_id}-${edge.target_id}`,
-            source: edge.source_id.toString(),
-            target: edge.target_id.toString(),
-            type: edge.relationship_type,
-            strength: edge.proximity_score ?? 0.5,
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            type: edge.type,
+            strength: edge.weight ?? 0.5,
           },
         ];
       });

@@ -127,7 +127,6 @@ export interface Evidence {
   source?: string;
   filePath?: string;
   file_path?: string;
-  original_file_path?: string;
   fileUrl?: string;
   originalFileUrl?: string;
   isScannedDocument?: boolean;

@@ -486,13 +486,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
       metadata.originalPath,
       metadata.original_path,
     ]);
-    const originalPath = firstNonUrl([
-      docAny.originalFilePath,
-      docAny.original_file_path,
-      metadata.originalFilePath,
-      metadata.original_file_path,
-      metadata.source_path,
-    ]);
+    const originalPath = firstNonUrl([metadata.source_path]);
     const cleanedPath = firstNonUrl([
       docAny.cleanedPath,
       docAny.cleaned_path,
@@ -508,13 +502,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
       metadata.originalPath,
       metadata.original_path,
     ]);
-    const originalUrl = firstHttpUrl([
-      docAny.originalFilePath,
-      docAny.original_file_path,
-      metadata.originalFilePath,
-      metadata.original_file_path,
-      metadata.source_path,
-    ]);
+    const originalUrl = firstHttpUrl([metadata.source_path]);
     const cleanedUrl = firstHttpUrl([
       docAny.cleanedPath,
       docAny.cleaned_path,

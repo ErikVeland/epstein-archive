@@ -72,6 +72,7 @@ The Epstein Archive has accumulated substantial drift from many agent-assisted d
 | [09-ci-guardrails.md](09-ci-guardrails.md)                                       | Tests and CI checks to prevent future drift     |
 | [10-prioritised-implementation-order.md](10-prioritised-implementation-order.md) | Risk-ranked implementation order                |
 | [11-current-worktree-validation.md](11-current-worktree-validation.md)           | Current live-DB/worktree validation addendum    |
+| [12-zero-row-table-classification.md](12-zero-row-table-classification.md)       | Empty-table classification after v21 cleanup    |
 
 ---
 

@@ -71,8 +71,7 @@ SELECT
   redaction_coverage_before as "redactionCoverageBefore",
   redaction_coverage_after as "redactionCoverageAfter",
   unredacted_text_gain as "unredactedTextGain",
-  unredaction_baseline_vocab as "unredactionBaselineVocab",
-  file_path as "originalFilePath"
+  unredaction_baseline_vocab as "unredactionBaselineVocab"
 FROM documents
 WHERE id = :id!;
 

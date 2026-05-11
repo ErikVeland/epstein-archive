@@ -100,26 +100,43 @@ const rebuildAdjacencyCacheIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    "INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)\nSELECT \n  s.canonical_id as entity_id,\n  t.canonical_id as neighbor_id,\n  MAX(er.proximity_score) as weight,\n  CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,\n  STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,\n  MAX(er.risk_score) as risk_score,\n  MAX(er.confidence) as confidence\nFROM entity_relationships er\nJOIN entities s ON er.source_entity_id = s.id\nJOIN entities t ON er.target_entity_id = t.id\nWHERE s.canonical_id != t.canonical_id\nGROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id\nON CONFLICT (entity_id, neighbor_id) DO UPDATE SET\n  weight = EXCLUDED.weight,\n  bridge_score = EXCLUDED.bridge_score,\n  relationship_types = EXCLUDED.relationship_types,\n  risk_score = EXCLUDED.risk_score,\n  confidence = EXCLUDED.confidence",
+    "WITH base_canonical AS (\n  SELECT \n    s.canonical_id AS s_cid,\n    t.canonical_id AS t_cid,\n    er.proximity_score,\n    er.relationship_type,\n    er.risk_score,\n    er.confidence,\n    s.community_id AS s_comm,\n    t.community_id AS t_comm\n  FROM entity_relationships er\n  JOIN entities s ON er.source_entity_id = s.id\n  JOIN entities t ON er.target_entity_id = t.id\n  WHERE s.canonical_id != t.canonical_id\n),\nsymmetric_edges AS (\n  SELECT s_cid AS src, t_cid AS tgt, proximity_score, relationship_type, risk_score, confidence, s_comm, t_comm FROM base_canonical\n  UNION ALL\n  SELECT t_cid AS src, s_cid AS tgt, proximity_score, relationship_type, risk_score, confidence, t_comm, s_comm FROM base_canonical\n)\nINSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)\nSELECT \n  src as entity_id,\n  tgt as neighbor_id,\n  MAX(proximity_score) as weight,\n  CASE WHEN s_comm != t_comm THEN 1.0 ELSE 0.0 END as bridge_score,\n  STRING_AGG(DISTINCT relationship_type, ',') as relationship_types,\n  MAX(risk_score) as risk_score,\n  MAX(confidence) as confidence\nFROM symmetric_edges\nGROUP BY src, tgt, s_comm, t_comm\nON CONFLICT (entity_id, neighbor_id) DO UPDATE SET\n  weight = EXCLUDED.weight,\n  bridge_score = EXCLUDED.bridge_score,\n  relationship_types = EXCLUDED.relationship_types,\n  risk_score = EXCLUDED.risk_score,\n  confidence = EXCLUDED.confidence",
 };
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH base_canonical AS (
+ *   SELECT
+ *     s.canonical_id AS s_cid,
+ *     t.canonical_id AS t_cid,
+ *     er.proximity_score,
+ *     er.relationship_type,
+ *     er.risk_score,
+ *     er.confidence,
+ *     s.community_id AS s_comm,
+ *     t.community_id AS t_comm
+ *   FROM entity_relationships er
+ *   JOIN entities s ON er.source_entity_id = s.id
+ *   JOIN entities t ON er.target_entity_id = t.id
+ *   WHERE s.canonical_id != t.canonical_id
+ * ),
+ * symmetric_edges AS (
+ *   SELECT s_cid AS src, t_cid AS tgt, proximity_score, relationship_type, risk_score, confidence, s_comm, t_comm FROM base_canonical
+ *   UNION ALL
+ *   SELECT t_cid AS src, s_cid AS tgt, proximity_score, relationship_type, risk_score, confidence, t_comm, s_comm FROM base_canonical
+ * )
  * INSERT INTO entity_adjacency (entity_id, neighbor_id, weight, bridge_score, relationship_types, risk_score, confidence)
  * SELECT
- *   s.canonical_id as entity_id,
- *   t.canonical_id as neighbor_id,
- *   MAX(er.proximity_score) as weight,
- *   CASE WHEN s.community_id != t.community_id THEN 1.0 ELSE 0.0 END as bridge_score,
- *   STRING_AGG(DISTINCT er.relationship_type, ',') as relationship_types,
- *   MAX(er.risk_score) as risk_score,
- *   MAX(er.confidence) as confidence
- * FROM entity_relationships er
- * JOIN entities s ON er.source_entity_id = s.id
- * JOIN entities t ON er.target_entity_id = t.id
- * WHERE s.canonical_id != t.canonical_id
- * GROUP BY s.canonical_id, t.canonical_id, s.community_id, t.community_id
+ *   src as entity_id,
+ *   tgt as neighbor_id,
+ *   MAX(proximity_score) as weight,
+ *   CASE WHEN s_comm != t_comm THEN 1.0 ELSE 0.0 END as bridge_score,
+ *   STRING_AGG(DISTINCT relationship_type, ',') as relationship_types,
+ *   MAX(risk_score) as risk_score,
+ *   MAX(confidence) as confidence
+ * FROM symmetric_edges
+ * GROUP BY src, tgt, s_comm, t_comm
  * ON CONFLICT (entity_id, neighbor_id) DO UPDATE SET
  *   weight = EXCLUDED.weight,
  *   bridge_score = EXCLUDED.bridge_score,

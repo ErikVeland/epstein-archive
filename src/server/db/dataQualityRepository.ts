@@ -318,8 +318,8 @@ export const dataQualityRepository = {
         d.ocr_quality_score,
         d.ocr_processed_at,
         d.created_at,
-        orig.file_name as original_file_name,
-        orig.file_path as original_file_path
+        orig.file_name as original_document_name,
+        orig.file_path as original_document_path
       FROM documents d
       LEFT JOIN documents orig ON d.original_file_id = orig.id
       WHERE d.id = $1
@@ -387,8 +387,8 @@ export const dataQualityRepository = {
       originalDocument: doc.original_file_id
         ? {
             id: doc.original_file_id,
-            fileName: doc.original_file_name,
-            filePath: doc.original_file_path,
+            fileName: doc.original_document_name,
+            filePath: doc.original_document_path,
           }
         : null,
       childDocuments: children,

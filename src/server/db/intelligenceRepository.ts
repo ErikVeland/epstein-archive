@@ -91,7 +91,12 @@ async function safeQuery<T>(
   try {
     return await fn();
   } catch (err) {
-    logger.warn({ err, label }, '[Intelligence] optional queue unavailable, skipping');
+    // Silence spam for known dropped legacy tables (42P01 = undefined table)
+    if ((err as any)?.code === '42P01') {
+      logger.debug({ label }, '[Intelligence] Skipping optional queue: table missing');
+    } else {
+      logger.warn({ err, label }, '[Intelligence] optional queue unavailable, skipping');
+    }
     return fallback;
   }
 }
@@ -100,7 +105,11 @@ async function safeCount(label: string, fn: () => Promise<number>): Promise<numb
   try {
     return await fn();
   } catch (err) {
-    logger.warn({ err, label }, '[Intelligence] optional count unavailable, skipping');
+    if ((err as any)?.code === '42P01') {
+      logger.debug({ label }, '[Intelligence] Skipping optional count: table missing');
+    } else {
+      logger.warn({ err, label }, '[Intelligence] optional count unavailable, skipping');
+    }
     return 0;
   }
 }
@@ -381,7 +390,7 @@ export const intelligenceRepository = {
           e.full_name AS entity_name,
           (ft.risk_level = 'HIGH') AS needs_review
         FROM financial_transactions ft
-        LEFT JOIN entities e ON e.id = ft.from_entity
+        LEFT JOIN entities e ON e.full_name = ft.from_entity
         WHERE ft.risk_level = 'HIGH'
            OR ft.from_entity IS NULL
         ORDER BY ft.transaction_date DESC, ft.id ASC

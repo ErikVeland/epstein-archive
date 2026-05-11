@@ -135,7 +135,6 @@ SELECT
   d.created_at as "createdAt",
   d.file_path as "source",
   d.file_path as "cleanedPath",
-  d.file_path as "originalFilePath",
   ie.notes,
   ie.relevance,
   ie.added_at as "addedAt"
@@ -198,7 +197,6 @@ SELECT
   d.file_name as "originalFilename",
   d.file_path as "sourcePath",
   d.file_path as "cleanedPath",
-  d.file_path as "originalFilePath",
   d.content as "extractedText",
   d.created_at as "createdAt",
   d.last_processed_at as "modifiedAt",

@@ -289,16 +289,14 @@ export class AdvancedAnalyticsService {
 
     // Get relationships for specific entity with specified depth
     const graphSlice = await relationshipsRepository.getGraphSlice(entityId, depth);
-    return graphSlice.edges
-      .filter((edge) => 'source_id' in edge)
-      .map((edge) => ({
-        sourceEntity: String(edge.source_id),
-        targetEntity: String(edge.target_id),
-        relationshipType: String(edge.relationship_type),
-        strength: edge.proximity_score ?? 0,
-        confidence: Number(edge.confidence || 0),
-        evidence: [],
-      }));
+    return graphSlice.edges.map((edge) => ({
+      sourceEntity: edge.source,
+      targetEntity: edge.target,
+      relationshipType: edge.type,
+      strength: edge.weight ?? 0,
+      confidence: Number(edge.confidence || 0),
+      evidence: [],
+    }));
   }
 
   async getPredictiveInsights(): Promise<Record<string, unknown>[]> {
