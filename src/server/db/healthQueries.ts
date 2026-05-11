@@ -1180,3 +1180,16 @@ export async function getEmailThreads(params: {
     return { rows: [], countRow: { total: 0 } };
   }
 }
+
+export async function getRandomEmailThreadId(): Promise<string | null> {
+  const query = `
+    SELECT 
+      COALESCE(metadata_json ->> 'thread_id', metadata_json ->> 'threadId', metadata_json ->> 'conversation_id', id::text) AS "threadId"
+    FROM documents
+    WHERE evidence_type = 'email'
+    ORDER BY random()
+    LIMIT 1
+  `;
+  const { rows } = await getApiPool().query(query);
+  return rows.length > 0 ? (rows[0].threadId as string) : null;
+}

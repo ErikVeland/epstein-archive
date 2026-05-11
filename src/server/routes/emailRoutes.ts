@@ -24,6 +24,7 @@ import {
   getEmailRawMessageRecord,
   getEmailThreadMessageHeaders,
   getEmailThreads,
+  getRandomEmailThreadId,
   searchEmailMessagesLegacy,
 } from '../db/healthQueries.js';
 import { z } from 'zod';
@@ -31,7 +32,6 @@ import { validate } from '../middleware/validate.js';
 
 import { searchDocumentsSemantic } from '../semantic/search.js';
 import { communicationsRepository } from '../db/communicationsRepository.js';
-import { getApiPool } from '../db/connection.js';
 
 const router = express.Router();
 
@@ -48,20 +48,11 @@ router.get('/analytics/matrix', async (_req, res, next) => {
 // GET /api/emails/random
 router.get('/random', async (_req, res, next) => {
   try {
-    const pool = getApiPool();
-    const query = `
-      SELECT 
-        COALESCE(metadata_json ->> 'thread_id', metadata_json ->> 'threadId', metadata_json ->> 'conversation_id', id::text) AS "threadId"
-      FROM documents
-      WHERE evidence_type = 'email'
-      ORDER BY random()
-      LIMIT 1
-    `;
-    const { rows } = await pool.query(query);
-    if (rows.length === 0) {
+    const threadId = await getRandomEmailThreadId();
+    if (!threadId) {
       return res.status(404).json({ error: 'No emails found' });
     }
-    res.json({ threadId: rows[0].threadId });
+    res.json({ threadId });
   } catch (error) {
     next(error);
   }
