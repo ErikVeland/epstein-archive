@@ -312,7 +312,6 @@ export const dataQualityRepository = {
         d.source_acquisition_method,
         d.provenance_status,
         d.provenance_score,
-        d.credibility_score,
         d.original_file_id,
         d.ocr_engine,
         d.ocr_quality_score,

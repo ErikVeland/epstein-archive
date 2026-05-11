@@ -21,8 +21,7 @@
   .desktopLayout {
     display: grid;
     grid-template-columns:
-      minmax(240px, var(--mailbox-pane-width, 340px)) var(--pane-resizer-width, 10px)
-      clamp(280px, 38vw, 440px)
+      minmax(240px, var(--mailbox-pane-width, 260px))
       minmax(0, 1fr);
   }
 }
@@ -471,6 +470,170 @@
   text-transform: uppercase;
   color: var(--text-muted);
   opacity: 0.8;
+}
+
+/* New Gmail Layout Sidebar & Metric Additions */
+.sidebarCompose {
+  padding: 1rem;
+  display: flex;
+}
+
+.composeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--glass-bg-active);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-2xl);
+  font-weight: bold;
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+  border: 1px solid var(--glass-border);
+}
+
+.composeBtn:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--glass-bg-active));
+  transform: translateY(-1px);
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+}
+
+.sidebarSectionHeader {
+  padding: 0.5rem 1.5rem;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.sidebarItem {
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 0 999px 999px 0;
+  margin-right: 1rem;
+}
+
+.sidebarItem:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.sidebarItemActive {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.sidebarItemCount {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Modern Row Additions */
+.modernRow {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1.5rem !important;
+  gap: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 40%, transparent);
+}
+
+.modernRow:hover {
+  background: var(--glass-bg-highlight);
+  box-shadow: inset 1px 0 0 var(--accent), 0 2px 8px rgba(0,0,0,0.05);
+  z-index: 2;
+}
+
+.rowCheckbox {
+  width: 14px;
+  height: 14px;
+  opacity: 0.5;
+}
+
+.metricCluster {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 120px;
+}
+
+.metricItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.metricIcon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+}
+
+.providerPill {
+  padding: 0.125rem 0.5rem;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.subTabBar {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  padding: 0 1rem;
+}
+
+.subTabItem {
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-secondary);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+
+.subTabItem:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.subTabItemActive {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.subTabNewBadge {
+  background: var(--color-emerald-600);
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: bold;
 }
 
 .threadPaneVisible {
@@ -1554,4 +1717,8 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.hiddenPane {
+  display: none !important;
 }

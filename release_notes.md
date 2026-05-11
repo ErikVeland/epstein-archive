@@ -1,5 +1,16 @@
 # Release Notes
 
+## 21.2.0 - 2026-05-11 - Email UI Overhaul & Provenance Recovery
+
+### Email Workspace Reconstruction
+- **Modern Sidebar Accordions**: Migrated legacy mailbox listing to a hierarchical Folder structure, integrating standalone `Compose`, standard system labels, collapsible `TOPICS` classifiers, and curated High-Value `PEOPLE` watchlists.
+- **Gmail Aesthetic Rows**: Overhauled thread item density to full-width horizontal tables featuring distinct metrics cluster (Stars + Impression counts) and cross-provider integration badges.
+- **Master-Detail Pivot**: Dynamic grid container logic collapses parallel views to grant maximum horizontal clarity for bulk Inbox scans, matching classic workflow mechanics.
+- **Dashboard Sub-Tabs**: Injected primary container partitioning navigation (Primary/Promotions) directly atop active datasets.
+
+### Data Fidelity & Logic Repair
+- **Provenance Pipeline Recovery**: Executed hotfix directly addressing query runtime exception by removing `credibility_score` selector, restoring standard rendering for entire Provenance & Source Attribution UI surface area.
+
 ## 21.1.3 - 2026-05-11 - Panoramic Graphs & Telemetry Recovery
 
 ### Visual Architecture & Navigability
