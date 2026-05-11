@@ -1,0 +1,36 @@
+name: Production Canary
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: epstein-production-canary
+  cancel-in-progress: false
+
+jobs:
+  public-live-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify production live data
+        env:
+          DEPLOY_VERIFY_URL: https://epstein.academy
+          DEPLOY_VERIFY_TIMEOUT_MS: '15000'
+        run: pnpm verify:live-cutover

@@ -109,7 +109,18 @@ node --import tsx/esm scripts/pg_explain.ts || (echo "❌ Postgres Explain Plan 
 # 3. Application Reload
 # CERT_STEP: zero_interruption_reload
 echo "Reloading application with PM2 readiness gate..."
-if pm2 describe epstein-archive >/dev/null 2>&1; then
+PM2_MODE=\$(APP_NAME=epstein-archive pm2 jlist | node -e '
+  let input = "";
+  process.stdin.on("data", (chunk) => input += chunk);
+  process.stdin.on("end", () => {
+    const app = JSON.parse(input).find((process) => process.name === process.env.APP_NAME);
+    process.stdout.write(app?.pm2_env?.exec_mode || "missing");
+  });
+')
+if [ "\$PM2_MODE" = "fork_mode" ] && [ -x scripts/pm2_cluster_cutover.sh ]; then
+  echo "Detected fork_mode. Running zero-interruption PM2 cluster cutover."
+  bash scripts/pm2_cluster_cutover.sh
+elif pm2 describe epstein-archive >/dev/null 2>&1; then
   # In cluster mode this reloads workers one at a time and keeps old workers serving
   # until replacements emit process.send('ready').
   pm2 reload ecosystem.config.cjs --only epstein-archive --env production --wait-ready --update-env

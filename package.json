@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "21.2.3",
+  "version": "21.2.4",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -14,7 +14,7 @@
     "prebuild:prod": "pnpm --filter @epstein/db build && pnpm schema:hash:check && pnpm type-check:server && pnpm check:schema-identifiers && bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "build:prod": "pnpm build:client && pnpm build:server",
     "build:client": "vite build",
-    "build:server": "tsc -p tsconfig.server.json",
+    "build:server": "tsc -p tsconfig.server.json && pnpm check:server-runtime-imports",
     "type-check:server": "tsc -p tsconfig.server.json --noEmit",
     "start": "NODE_ENV=production RAW_CORPUS_BASE_PATH=./data node dist/server.js",
     "server": "pnpm exec tsx src/server.ts",
@@ -52,6 +52,8 @@
     "check:design-tokens": "node --import tsx/esm scripts/check_design_token_usage.ts",
     "check:design-tokens:strict": "STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "check:design-tokens:baseline": "STRICT_DESIGN_TOKENS=1 WRITE_STRICT_BASELINE=1 node --import tsx/esm scripts/check_design_token_usage.ts",
+    "check:server-runtime-imports": "tsx scripts/check_server_runtime_imports.ts",
+    "ops:pm2-cluster-cutover": "bash scripts/pm2_cluster_cutover.sh",
     "audit:design-system": "node --import tsx/esm scripts/audit_design_system_usage.ts",
     "audit:data-integrity": "node --import tsx/esm scripts/data_integrity_audit.ts",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",

@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.4 - 2026-05-11 - Production Hardening Follow-Through
+
+### Production Reliability
+
+- **Blue/Green PM2 Mode Migration**: Added a zero-interruption cluster cutover that temporarily routes Nginx to a verified cluster candidate, recreates the primary PM2 app in cluster mode, verifies it locally, and only then returns public traffic.
+- **Runtime Import Guard**: Added a built-server import resolver check so compiled output cannot ship unresolved TypeScript aliases or missing runtime modules.
+- **Scheduled Public Canary**: Added a GitHub Actions production canary that runs the live-data cutover verifier every 15 minutes against `https://epstein.academy`.
+
 ## 21.2.3 - 2026-05-11 - Zero-Interruption Live Data Cutover
 
 ### Production Reliability
