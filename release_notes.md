@@ -21,15 +21,23 @@
 - **Smoke Log Noise Suppression**: Upgraded the `intelligenceRepository` with silent `42P01` (Undefined Table) capture, entirely eliminating optional queue spam from development and production system logs.
 - **Bigint/Text Type Fix**: Patched a legacy logic defect causing runtime cast exceptions by correcting a cross-table from_entity join in the financial analyzer toolkit.
 
-## 21.0.0 - 2026-05-10 - Emergency Hotfix
+## 21.0.0 - 2026-05-10 - Technical Debt Consolidation & Schema Hardening
 
-### Critical Fixes
+### Major Architecture Upgrades
 
-- **Image Gallery Restoration**: Fixed bug where `excludeTextScans` default behavior caused all images to be filtered out of the gallery view. Now correctly defaults to filtering text scans while showing actual images.
+- **V21 Consolidated Migration Matrix**: Initiated total elimination of legacy Postgres artifacts via a rigorous, cascading 8-stage migration strategy. Purged stale taxonomies, collapsed overlapping relation tables, resolved severe duplicate-indexing inflation, and hardened referential integrity across the documents spectrum.
+- **Mapping Core Decoupling**: Eradicated thousands of lines of redundant Node.js mapping logic (`flightsDtoMapper`, `graphDtoMapper`, `analyticsDtoMapper`, `propertiesDtoMapper`) in favor of clean, database-native TypeScript serialization.
+- **Automated Quality Guards**: Introduced `check_dead_schema_surfaces.ts` and `check_duplicate_indexes.ts` into the core CI suite to mathematically prevent systemic drift proliferation going forward.
 
-### Quality Improvements
+### Features & Visualization
 
-- **Modal Navigation Context**: Implemented reliable back navigation system that captures and restores scroll position when closing modals, ensuring users return to exact context after viewing documents or entities.
+- **Sub-Graph Signal Explorer**: Materialized the dedicated `MiniClaimGraph` visualization module, decoupling granular claims telemetry from bulk workspace renders.
+- **Network Layer Stabilization**: Consolidated internal signal graph bindings across client-side mapping functions, guaranteeing clean frame loads during rapid network topology manipulations.
+
+### Critical Hotfixes
+
+- **Image Gallery Restoration**: Repaired a breaking bug where `excludeTextScans` state inversion caused all forensic captures to filter out of the gallery interface.
+- **Contextual Navigation Stability**: Shipped rigorous modal back-navigation protocols providing flawless scroll retention and historical context recovery across long entity examination workflows.
 
 ## 20.8.0 - 2026-05-10 - Intelligence & Co-Presence Release
 
