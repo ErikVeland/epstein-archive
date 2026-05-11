@@ -63,6 +63,15 @@ export function isJunkEntityName(name: unknown): boolean {
   return JUNK_NAME_REGEXES.some((regex) => regex.test(normalized));
 }
 
+export function entityBaseQualityWhereSql(alias = 'e'): string {
+  return [
+    `COALESCE(${alias}.junk_tier, 'clean') = 'clean'`,
+    `COALESCE(${alias}.quarantine_status, 0) = 0`,
+    `${alias}.full_name IS NOT NULL`,
+    `BTRIM(${alias}.full_name) != ''`,
+  ].join('\n            AND ');
+}
+
 export function entityQualityWhereSql(alias = 'e'): string {
   const nameExpr = `LOWER(COALESCE(${alias}.full_name, ''))`;
   const regexClauses = SQL_JUNK_REGEXES.map((regex) => `${nameExpr} !~* $junk$${regex}$junk$`);
@@ -74,10 +83,7 @@ export function entityQualityWhereSql(alias = 'e'): string {
   );
 
   return [
-    `COALESCE(${alias}.junk_tier, 'clean') = 'clean'`,
-    `COALESCE(${alias}.quarantine_status, 0) = 0`,
-    `${alias}.full_name IS NOT NULL`,
-    `BTRIM(${alias}.full_name) != ''`,
+    entityBaseQualityWhereSql(alias),
     ...regexClauses,
     ...partialClauses,
     ...blacklistClauses,

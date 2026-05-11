@@ -5,7 +5,11 @@ import { getApiPool } from './connection.js';
 import { queryCache } from './cache.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 import { logger } from '../services/Logger.js';
-import { canonicalEntityPriority, entityQualityWhereSql } from './entityQuality.js';
+import {
+  canonicalEntityPriority,
+  entityBaseQualityWhereSql,
+  isJunkEntityName,
+} from './entityQuality.js';
 
 export interface EntityRepositoryResult {
   entities: Record<string, unknown>[];
@@ -274,7 +278,7 @@ async function getSubjectCardsFallback(
               ) as "topPhotoId"
             FROM entities e
             WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
-              AND ${entityQualityWhereSql('e')}
+              AND ${entityBaseQualityWhereSql('e')}
               AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
               AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
               AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
@@ -292,15 +296,24 @@ async function getSubjectCardsFallback(
               e.mentions DESC
             LIMIT $7 OFFSET $8
           `,
-          values: [searchTerm, riskLevels, minRedFlag, maxRedFlag, role, pgSort, limit, offset],
+          values: [
+            searchTerm,
+            riskLevels,
+            minRedFlag,
+            maxRedFlag,
+            role,
+            pgSort,
+            Math.max(limit, Math.min(limit * 4, 100)),
+            offset,
+          ],
         })
-        .then((result) => result.rows),
+        .then((result) => result.rows.filter((row) => !isJunkEntityName(row.fullName))),
       pool.query<{ total: string }>({
         text: `
           SELECT COUNT(*) as total
           FROM entities e
           WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
-            AND ${entityQualityWhereSql('e')}
+            AND ${entityBaseQualityWhereSql('e')}
             AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
             AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
             AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
@@ -326,7 +339,7 @@ async function getSubjectCardsFallback(
   }
 
   const maxConnectivityCount = Math.max(1, Number(maxConnResult?.[0]?.maxConn || 1));
-  const subjects: SubjectCardListItemDto[] = rows.map((row) => {
+  const subjects: SubjectCardListItemDto[] = rows.slice(0, limit).map((row) => {
     const mentions = Number(row.mentions || 0);
     const mediaCount = Number(row.mediaCount || 0);
     const blackBookCount = Number(row.blackBookCount || 0);
@@ -470,7 +483,7 @@ export const entitiesRepository = {
       }
     }
 
-    whereParts.push(entityQualityWhereSql('e'));
+    whereParts.push(entityBaseQualityWhereSql('e'));
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
@@ -543,7 +556,8 @@ export const entitiesRepository = {
     orderByTerms.push(`COALESCE(e.is_vip, 0) DESC`, `LOWER(COALESCE(e.full_name, '')) ASC`);
     const orderBySql = orderByTerms.join(', ');
 
-    const listParams = [...params, limit, offset];
+    const fetchLimit = Math.max(limit, Math.min(limit * 4, 100));
+    const listParams = [...params, fetchLimit, offset];
 
     try {
       const [rawEntitiesResult, countResult, maxConnResult, vipDisplayLookup] = await Promise.all([
@@ -578,7 +592,9 @@ export const entitiesRepository = {
         buildVipDisplayLookup(),
       ]);
 
-      const rawEntities = rawEntitiesResult.rows as Array<Record<string, unknown>>;
+      const rawEntities = (rawEntitiesResult.rows as Array<Record<string, unknown>>).filter(
+        (row) => !isJunkEntityName(row.fullName),
+      );
       const total = Number(countResult.rows[0]?.total || 0);
       const maxConnectivityCount = Number(maxConnResult[0]?.maxConn || 1);
       const entitiesForPageMerge = rawEntities;
@@ -804,7 +820,7 @@ export const entitiesRepository = {
       });
 
       return {
-        subjects: normalizedSubjects,
+        subjects: normalizedSubjects.slice(0, limit),
         total,
       };
     } catch (error) {
@@ -890,7 +906,7 @@ export const entitiesRepository = {
           e.connections_summary as "connections",
           e.was_agentic as "wasAgentic"
         FROM entities e
-        WHERE ${entityQualityWhereSql('e')}
+        WHERE ${entityBaseQualityWhereSql('e')}
         ORDER BY LOWER(e.full_name) ASC
         LIMIT $1
       `,
