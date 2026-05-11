@@ -8,7 +8,7 @@ import { logger } from '../services/Logger.js';
 import {
   ENTITY_BLACKLIST_PATTERNS,
   ENTITY_PARTIAL_BLOCKLIST,
-} from '@shared/config/entityBlacklist.js';
+} from '../../shared/config/entityBlacklist.js';
 
 export interface EntityRepositoryResult {
   entities: Record<string, unknown>[];
