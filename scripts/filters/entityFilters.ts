@@ -395,8 +395,18 @@ export function isJunkEntity(name: string): boolean {
 
   const normalized = name.trim().toLowerCase();
 
-  // 1. Check blacklist
+  // 1. Check blacklist (exact and word-boundary inclusion)
   if (JUNK_PHRASES.has(normalized)) return true;
+  for (const phrase of JUNK_PHRASES) {
+    if (normalized.includes(phrase)) {
+      // Basic word boundary check without regex overhead
+      const regex = new RegExp(
+        `\\b${phrase.replace(/[-\\/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&')}\\b`,
+        'i',
+      );
+      if (regex.test(normalized)) return true;
+    }
+  }
 
   // 2. Check regex patterns
   for (const pattern of JUNK_REGEX) {

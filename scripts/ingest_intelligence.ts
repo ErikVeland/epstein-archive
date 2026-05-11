@@ -141,7 +141,13 @@ function isBlacklisted(name: string): boolean {
   if (ENTITY_PARTIAL_BLOCKLIST.some((p: string) => lower.includes(p.toLowerCase()))) {
     return true;
   }
-  return ENTITY_BLACKLIST_PATTERNS.includes(name);
+  return ENTITY_BLACKLIST_PATTERNS.some((pattern) => {
+    const regex = new RegExp(
+      `\\b${pattern.replace(/[-\\/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&')}\\b`,
+      'i',
+    );
+    return regex.test(name);
+  });
 }
 
 function normalizeName(name: string): string {
