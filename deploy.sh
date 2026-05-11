@@ -109,11 +109,12 @@ node --import tsx/esm scripts/pg_explain.ts || (echo "❌ Postgres Explain Plan 
 # 3. Application Reload
 # CERT_STEP: zero_interruption_reload
 echo "Reloading application with PM2 readiness gate..."
-PM2_MODE=\$(APP_NAME=epstein-archive pm2 jlist | node -e '
+PM2_MODE=\$(pm2 jlist | node -e '
   let input = "";
+  const appName = "epstein-archive";
   process.stdin.on("data", (chunk) => input += chunk);
   process.stdin.on("end", () => {
-    const app = JSON.parse(input).find((pm2Process) => pm2Process.name === process.env.APP_NAME);
+    const app = JSON.parse(input).find((pm2Process) => pm2Process.name === appName);
     process.stdout.write(app?.pm2_env?.exec_mode || "missing");
   });
 ')

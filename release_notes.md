@@ -1,5 +1,11 @@
 # Release Notes
 
+## 21.2.6 - 2026-05-11 - Future Deploy Detector Hardening
+
+### Production Reliability
+
+- **Pipeline-Safe PM2 Detection**: Removed the deploy detector's dependency on environment propagation across shell pipelines so future deploys reliably branch between cluster cutover and readiness-gated reload paths.
+
 ## 21.2.5 - 2026-05-11 - PM2 Cutover Detector Fix
 
 ### Production Reliability
