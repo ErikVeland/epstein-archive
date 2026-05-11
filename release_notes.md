@@ -1,5 +1,12 @@
 # Release Notes
 
+## 21.1.2 - 2026-05-11 - Core Metadata DOJ Source Extension
+
+### User Interface & Evidence Provenance
+
+- **Canonical DOJ Sourcing**: Fully wired document canonical links from the database storage directly through to the Core Metadata interface panel.
+- **Inline Link Presentation**: Added explicit "DOJ Source" row to the Apple-style metadata stack inside the primary document rail, allowing investigators to bounce directly to the original source files where accessible.
+
 ## 21.1.1 - 2026-05-11 - Interface Symmetry & Grid Hardening
 
 ### User Interface & Geometry

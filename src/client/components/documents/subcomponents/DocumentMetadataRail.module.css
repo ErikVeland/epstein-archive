@@ -575,3 +575,19 @@
   letter-spacing: 0.05em;
   margin-top: 2px;
 }
+
+.dojLink {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: var(--weight-bold);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.dojLink:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}

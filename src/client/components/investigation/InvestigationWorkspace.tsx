@@ -37,6 +37,7 @@ import { CommunicationAnalysis } from './CommunicationAnalysis';
 import { IcebergIntelligence } from './IcebergIntelligence';
 import { DocumentModal } from '../documents/DocumentModal';
 import { EvidenceModal } from '../common/EvidenceModal';
+import { AnimatedSegmentedControl } from '../common/AnimatedSegmentedControl';
 
 // Hooks & Services
 import { useToasts } from '../common/useToasts';
@@ -593,20 +594,20 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const renderCaseReadinessPanel = (compact = false) => (
     <Surface variant="glass-highlight" p={compact ? 'md' : 'lg'} className={styles.readinessPanel}>
       <Stack gap={compact ? 'sm' : 'md'}>
-        <Flex justify="between" align="center" gap="md">
-          <Stack gap="none">
-            <LqText variant="xs" color="muted" weight="bold" className={styles.kickerText}>
-              Case Readiness
-            </LqText>
+        <Stack gap="xs">
+          <LqText variant="xxs" color="muted" weight="bold" className={styles.kickerText}>
+            Case Readiness
+          </LqText>
+          <Flex justify="between" align="center" gap="md">
             <LqText variant={compact ? 'small' : 'body'} weight="bold">
               {readinessScore}/{readinessChecks.length} checks complete
             </LqText>
-          </Stack>
-          <Badge
-            variant={exportReady ? 'success' : 'warning'}
-            label={exportReady ? 'EXPORT READY' : 'NEEDS REVIEW'}
-          />
-        </Flex>
+            <Badge
+              tone={exportReady ? 'success' : 'warning'}
+              label={exportReady ? 'EXPORT READY' : 'NEEDS REVIEW'}
+            />
+          </Flex>
+        </Stack>
 
         {!compact && (
           <Grid cols={{ sm: 2, lg: 4 }} gap="sm">
@@ -705,46 +706,40 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </LqText>
               </Stack>
 
-              <Flex align="center" gap="sm">
-                <div className={styles.scopeContainer}>
-                  <span className={styles.scopeLabelText}>Scope:</span>
-                  <div className={styles.scopeToggleSurface}>
-                    <Button
-                      unstyled
-                      className={cn(
-                        styles.scopeBtn,
-                        !useGlobalContext ? styles.scopeBtnActive : styles.scopeBtnInactive,
-                      )}
-                      onClick={() => setUseGlobalContext(false)}
-                    >
-                      <Icon name="Briefcase" size="sm" />
-                      <span>This Case Only</span>
-                    </Button>
-                    <Button
-                      unstyled
-                      className={cn(
-                        styles.scopeBtn,
-                        useGlobalContext ? styles.scopeBtnActive : styles.scopeBtnInactive,
-                      )}
-                      onClick={() => setUseGlobalContext(true)}
-                    >
-                      <Icon name="Globe" size="sm" />
-                      <span>Global Archive</span>
-                    </Button>
-                  </div>
-                </div>
-                <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
-                  <Icon name="Flag" size="sm" className={styles.iconWarning} /> Tasks
-                </Button>
-                <Button variant="glass" size="sm" onClick={() => setShowLeadsPanel(true)}>
-                  <Icon name="Crosshair" size="sm" className={styles.iconWarning} /> Leads
-                </Button>
-                <Button variant="glass" size="sm" onClick={() => setShowDossierPanel(true)}>
-                  <Icon name="User" size="sm" className={styles.iconAccent} /> Subject
-                </Button>
-                <Button variant="primary" size="sm" onClick={() => setShowImportModal(true)}>
-                  <Icon name="Upload" size="sm" /> Import Report
-                </Button>
+              <Flex direction="column" align="end" gap="sm">
+                <Stack gap="xs" align="end">
+                  <span
+                    className={styles.scopeLabelText}
+                    style={{ fontSize: '0.65rem', letterSpacing: '0.1em' }}
+                  >
+                    SCOPE
+                  </span>
+                  <AnimatedSegmentedControl
+                    compact
+                    minItemWidth="6rem"
+                    ariaLabel="Exploration Scope"
+                    options={[
+                      { value: 'case', label: 'This Case Only', icon: 'Briefcase' },
+                      { value: 'global', label: 'Global Archive', icon: 'Globe' },
+                    ]}
+                    value={useGlobalContext ? 'global' : 'case'}
+                    onChange={(val) => setUseGlobalContext(val === 'global')}
+                  />
+                </Stack>
+                <Flex align="center" gap="sm">
+                  <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
+                    <Icon name="Flag" size="sm" className={styles.iconWarning} /> Tasks
+                  </Button>
+                  <Button variant="glass" size="sm" onClick={() => setShowLeadsPanel(true)}>
+                    <Icon name="Crosshair" size="sm" className={styles.iconWarning} /> Leads
+                  </Button>
+                  <Button variant="glass" size="sm" onClick={() => setShowDossierPanel(true)}>
+                    <Icon name="User" size="sm" className={styles.iconAccent} /> Subject
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={() => setShowImportModal(true)}>
+                    <Icon name="Upload" size="sm" /> Import Report
+                  </Button>
+                </Flex>
               </Flex>
             </Flex>
           ) : (

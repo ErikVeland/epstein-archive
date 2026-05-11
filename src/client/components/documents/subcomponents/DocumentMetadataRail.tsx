@@ -28,6 +28,7 @@ interface DocRecord {
   lastVerifiedAt?: string | null;
   provenanceStatus?: ProvenanceStatus;
   evidenceType?: string;
+  originalFileUrl?: string | null;
 }
 
 export interface EntityRecord {
@@ -122,6 +123,22 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
             )}
             {threadCount > 0 && (
               <HIGSettingsRow label="Thread Depth" value={`${threadCount} Messages`} />
+            )}
+            {doc.originalFileUrl && (
+              <HIGSettingsRow
+                label="DOJ Source"
+                value={
+                  <a
+                    href={doc.originalFileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.dojLink}
+                  >
+                    Open on DOJ
+                    <Icon name="ExternalLink" size="xs" />
+                  </a>
+                }
+              />
             )}
           </HIGSettingsGroup>
         </Box>
