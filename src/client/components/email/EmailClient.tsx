@@ -15,7 +15,6 @@ import { EmailThreadDTO } from '@client/services/apiClient';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { ViewerShell } from '../viewer/ViewerShell';
-import { useFilters } from '@client/contexts/useFilters';
 import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { isJunkEntity } from '@client/utils/entityFilters';
@@ -167,8 +166,6 @@ export const EmailClient: React.FC = () => {
   const { goBack } = useReliableBackNavigation('/emails');
   const [searchParams, setSearchParams] = useSearchParams();
   const deepLinkedMessageId = searchParams.get('messageId') || searchParams.get('id');
-  const { filters: globalFilters } = useFilters();
-
   const showSuppressedJunk = searchParams.get('showSuppressedJunk') === '1';
 
   const selectedMailboxId = searchParams.get('mailboxId') || 'all';
@@ -186,12 +183,8 @@ export const EmailClient: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('q') || '');
   const [fromFilter, setFromFilter] = useState(searchParams.get('from') || '');
   const [toFilter, setToFilter] = useState(searchParams.get('to') || '');
-  const [dateFrom, setDateFrom] = useState(
-    searchParams.get('dateFrom') || globalFilters.timeRange[0] || '',
-  );
-  const [dateTo, setDateTo] = useState(
-    searchParams.get('dateTo') || globalFilters.timeRange[1] || '',
-  );
+  const [dateFrom, setDateFrom] = useState(searchParams.get('dateFrom') || '');
+  const [dateTo, setDateTo] = useState(searchParams.get('dateTo') || '');
   const [hasAttachmentsOnly, setHasAttachmentsOnly] = useState(
     searchParams.get('hasAttachments') === '1',
   );
@@ -275,24 +268,6 @@ export const EmailClient: React.FC = () => {
     const timer = window.setTimeout(() => setDebouncedSearch(searchInput.trim()), 250);
     return () => window.clearTimeout(timer);
   }, [searchInput]);
-
-  // Sync global date range into local state when URL params are absent.
-  // Use a ref to track the last value we synced so that a user clearing
-  // their local date (which doesn't change globalTime*) won't be immediately
-  // re-populated on the next render.
-  const globalTimeStart = globalFilters.timeRange[0];
-  const globalTimeEnd = globalFilters.timeRange[1];
-  const [prevGlobalTimeStart, setPrevGlobalTimeStart] = useState(globalTimeStart);
-  const [prevGlobalTimeEnd, setPrevGlobalTimeEnd] = useState(globalTimeEnd);
-
-  if (!searchParams.get('dateFrom') && globalTimeStart !== prevGlobalTimeStart) {
-    setPrevGlobalTimeStart(globalTimeStart);
-    if (globalTimeStart) setDateFrom(globalTimeStart);
-  }
-  if (!searchParams.get('dateTo') && globalTimeEnd !== prevGlobalTimeEnd) {
-    setPrevGlobalTimeEnd(globalTimeEnd);
-    if (globalTimeEnd) setDateTo(globalTimeEnd);
-  }
 
   const {
     mailboxes: rawMailboxes,

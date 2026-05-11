@@ -1,5 +1,11 @@
 # Release Notes
 
+## 21.2.10 - 2026-05-12 - Email Default Filter Isolation
+
+### Production Reliability
+
+- **Email Default Isolation**: Stops the email workspace from inheriting global date filters on first load so the default inbox is all non-junk mail across all people unless the email UI or URL explicitly applies filters.
+
 ## 21.2.9 - 2026-05-12 - Email Defaults and Media Visibility
 
 ### Production Reliability
