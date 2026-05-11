@@ -3,19 +3,32 @@ import { PreparedQuery } from '@pgtyped/runtime';
 
 export type NumberOrString = number | string;
 
-/** Query 'GetGlobalStats' is invalid, so its result is assigned type 'never'.
- *  */
-export type IGetGlobalStatsResult = never;
+/** 'GetGlobalStats' parameters type */
+export type IGetGlobalStatsParams = void;
 
-/** Query 'GetGlobalStats' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IGetGlobalStatsParams = never;
+/** 'GetGlobalStats' return type */
+export interface IGetGlobalStatsResult {
+  averageRedFlagRating: string | null;
+  documentsFixed: number | null;
+  documentsWithMetadata: number | null;
+  entitiesWithDocuments: number | null;
+  totalDocuments: number | null;
+  totalEntities: number | null;
+  totalMentions: string | null;
+  totalUniqueRoles: string | null;
+}
+
+/** 'GetGlobalStats' query type */
+export interface IGetGlobalStatsQuery {
+  params: IGetGlobalStatsParams;
+  result: IGetGlobalStatsResult;
+}
 
 const getGlobalStatsIR: any = {
   usedParamSet: {},
   params: [],
   statement:
-    'SELECT\n  COUNT(*)::integer as "totalEntities",\n  SUM(COALESCE(mentions, 0)) as "totalMentions",\n  AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",\n  COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != \'\' THEN primary_role END) as "totalUniqueRoles",\n  COUNT(*)::integer FILTER (WHERE mentions > 0) as "entitiesWithDocuments",\n  (SELECT COUNT(*)::integer FROM documents) as "totalDocuments",\n  (SELECT COUNT(*)::integer FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = \'object\' AND metadata_json <> \'{}\'::jsonb)) as "documentsWithMetadata",\n  (SELECT COUNT(*)::integer FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"\nFROM entities',
+    'SELECT\n  COUNT(*)::integer as "totalEntities",\n  SUM(COALESCE(mentions, 0)) as "totalMentions",\n  AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",\n  COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != \'\' THEN primary_role END) as "totalUniqueRoles",\n  COUNT(CASE WHEN mentions > 0 THEN 1 END)::integer as "entitiesWithDocuments",\n  (SELECT COUNT(*)::integer FROM documents) as "totalDocuments",\n  (SELECT COUNT(*)::integer FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = \'object\' AND metadata_json <> \'{}\'::jsonb)) as "documentsWithMetadata",\n  (SELECT COUNT(*)::integer FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"\nFROM entities',
 };
 
 /**
@@ -26,7 +39,7 @@ const getGlobalStatsIR: any = {
  *   SUM(COALESCE(mentions, 0)) as "totalMentions",
  *   AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",
  *   COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != '' THEN primary_role END) as "totalUniqueRoles",
- *   COUNT(*)::integer FILTER (WHERE mentions > 0) as "entitiesWithDocuments",
+ *   COUNT(CASE WHEN mentions > 0 THEN 1 END)::integer as "entitiesWithDocuments",
  *   (SELECT COUNT(*)::integer FROM documents) as "totalDocuments",
  *   (SELECT COUNT(*)::integer FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = 'object' AND metadata_json <> '{}'::jsonb)) as "documentsWithMetadata",
  *   (SELECT COUNT(*)::integer FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"

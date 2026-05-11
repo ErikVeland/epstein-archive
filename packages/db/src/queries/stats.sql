@@ -4,7 +4,7 @@ SELECT
   SUM(COALESCE(mentions, 0)) as "totalMentions",
   AVG(COALESCE(red_flag_rating, 0)) as "averageRedFlagRating",
   COUNT(DISTINCT CASE WHEN primary_role IS NOT NULL AND primary_role != '' THEN primary_role END) as "totalUniqueRoles",
-  COUNT(*)::integer FILTER (WHERE mentions > 0) as "entitiesWithDocuments",
+  COUNT(CASE WHEN mentions > 0 THEN 1 END)::integer as "entitiesWithDocuments",
   (SELECT COUNT(*)::integer FROM documents) as "totalDocuments",
   (SELECT COUNT(*)::integer FROM documents WHERE metadata_json IS NOT NULL AND (jsonb_typeof(metadata_json) = 'object' AND metadata_json <> '{}'::jsonb)) as "documentsWithMetadata",
   (SELECT COUNT(*)::integer FROM documents WHERE content_refined IS NOT NULL) as "documentsFixed"
