@@ -29,7 +29,9 @@ import {
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
+import { searchDocumentsSemantic } from '../semantic/search.js';
 import { communicationsRepository } from '../db/communicationsRepository.js';
+import { getApiPool } from '../db/connection.js';
 
 const router = express.Router();
 
@@ -38,6 +40,28 @@ router.get('/analytics/matrix', async (_req, res, next) => {
   try {
     const matrix = await communicationsRepository.getCommunicationsMatrix();
     res.json({ matrix });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/emails/random
+router.get('/random', async (_req, res, next) => {
+  try {
+    const pool = getApiPool();
+    const query = `
+      SELECT 
+        COALESCE(metadata_json ->> 'thread_id', metadata_json ->> 'threadId', metadata_json ->> 'conversation_id', id::text) AS "threadId"
+      FROM documents
+      WHERE evidence_type = 'email'
+      ORDER BY random()
+      LIMIT 1
+    `;
+    const { rows } = await pool.query(query);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'No emails found' });
+    }
+    res.json({ threadId: rows[0].threadId });
   } catch (error) {
     next(error);
   }
@@ -180,6 +204,14 @@ const threadsSchema = z.object({
     limit: z.coerce.number().int().min(1).max(MAX_LIMIT).default(DEFAULT_LIMIT),
     cursor: z.string().optional(),
     showSuppressedJunk: z.preprocess((v) => v === '1', z.boolean()).optional(),
+    showYahooPostMortem: z.preprocess((v) => v === '1', z.boolean()).optional(),
+    showEmptyBodies: z.preprocess((v) => v === '1', z.boolean()).optional(),
+    topic: z.string().optional(),
+    sortBy: z
+      .enum(['date', 'subject', 'views', 'stars', 'participants'])
+      .optional()
+      .default('date'),
+    sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
   }),
 });
 
@@ -302,6 +334,21 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
     const limit = readNumber(queryParams.limit, DEFAULT_LIMIT);
     const cursor = readString(queryParams.cursor);
     const showSuppressedJunk = readOptionalBoolean(queryParams.showSuppressedJunk);
+    const showYahooPostMortem = readOptionalBoolean(queryParams.showYahooPostMortem);
+    const showEmptyBodies = readOptionalBoolean(queryParams.showEmptyBodies);
+    const topic = readString(queryParams.topic);
+    const sortBy = (readString(queryParams.sortBy) || 'date') as any;
+    const sortOrder = (readString(queryParams.sortOrder) || 'desc') as any;
+
+    let topicDocIds: string[] = [];
+    if (topic && topic.trim().length > 0) {
+      try {
+        const semanticResults = await searchDocumentsSemantic(topic, 500);
+        topicDocIds = semanticResults.map((r) => r.id);
+      } catch (err) {
+        console.warn('[emails] Semantic topic search disabled or failed:', err);
+      }
+    }
 
     res.setHeader('X-Limit-Applied', String(limit));
     const parsedCursor = parseCursor(cursor);
@@ -319,6 +366,11 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
       limit,
       parsedCursor,
       showSuppressedJunk,
+      showYahooPostMortem,
+      showEmptyBodies,
+      sortBy,
+      sortOrder,
+      topicDocIds,
     });
 
     const hasMore = rows.length > limit;
@@ -369,6 +421,10 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
                 : Number((row as Record<string, unknown>).risk),
           ladder: readString((row as Record<string, unknown>).ladder) || null,
           confidence: readOptionalNumber((row as Record<string, unknown>).confidence) ?? null,
+          signalScore: Number(threadRowField(row as Record<string, unknown>, 'signalScore') || 0),
+          significanceScore: Number(
+            threadRowField(row as Record<string, unknown>, 'significanceScore') || 0,
+          ),
         };
       }),
       meta: {

@@ -48,6 +48,11 @@ interface UseEmailWorkspaceDataOptions {
   hasAttachmentsOnly: boolean;
   minRisk: number;
   showSuppressedJunk: boolean;
+  showYahooPostMortem: boolean;
+  showEmptyBodies: boolean;
+  topic: string;
+  sortBy: string;
+  sortOrder: string;
   updateUrlState: (updates: Record<string, string | null>) => void;
 }
 
@@ -64,6 +69,11 @@ export function useEmailWorkspaceData({
   hasAttachmentsOnly,
   minRisk,
   showSuppressedJunk,
+  showYahooPostMortem,
+  showEmptyBodies,
+  topic,
+  sortBy,
+  sortOrder,
   updateUrlState,
 }: UseEmailWorkspaceDataOptions) {
   const {
@@ -154,6 +164,11 @@ export function useEmailWorkspaceData({
           cursor,
           limit: THREAD_PAGE_SIZE,
           showSuppressedJunk,
+          showYahooPostMortem,
+          showEmptyBodies,
+          topic: topic || undefined,
+          sortBy,
+          sortOrder,
         });
 
         setThreads((prev) => (append ? [...prev, ...response.data] : response.data));
@@ -190,10 +205,16 @@ export function useEmailWorkspaceData({
       fromFilter,
       hasAttachmentsOnly,
       minRisk,
+      minRisk,
       selectedMailboxId,
       selectedThreadId,
       showSuppressedJunk,
+      showYahooPostMortem,
+      showEmptyBodies,
       toFilter,
+      topic,
+      sortBy,
+      sortOrder,
     ],
   );
 
@@ -347,6 +368,11 @@ export function useEmailWorkspaceData({
       dateTo: dateTo || null,
       hasAttachments: hasAttachmentsOnly ? '1' : null,
       minRisk: minRisk > 0 ? String(minRisk) : null,
+      showYahooPostMortem: showYahooPostMortem ? '1' : null,
+      showEmptyBodies: showEmptyBodies ? '1' : null,
+      topic: topic || null,
+      sortBy: sortBy !== 'date' ? sortBy : null,
+      sortOrder: sortOrder !== 'desc' ? sortOrder : null,
     });
     void loadThreads(null, false);
   }, [
@@ -359,7 +385,12 @@ export function useEmailWorkspaceData({
     loadThreads,
     minRisk,
     selectedMailboxId,
+    showYahooPostMortem,
+    showEmptyBodies,
     toFilter,
+    topic,
+    sortBy,
+    sortOrder,
     updateUrlState,
   ]);
 

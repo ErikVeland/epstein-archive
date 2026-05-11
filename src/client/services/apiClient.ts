@@ -732,6 +732,11 @@ class ApiClient {
     cursor?: string | null;
     limit?: number;
     showSuppressedJunk?: boolean;
+    showYahooPostMortem?: boolean;
+    showEmptyBodies?: boolean;
+    topic?: string;
+    sortBy?: string;
+    sortOrder?: string;
   }): Promise<EmailThreadsResponseDto> {
     const usp = new URLSearchParams();
     if (params.mailboxId) usp.append('mailboxId', params.mailboxId);
@@ -746,6 +751,11 @@ class ApiClient {
     if (params.cursor) usp.append('cursor', params.cursor);
     if (params.limit) usp.append('limit', String(params.limit));
     if (params.showSuppressedJunk) usp.append('showSuppressedJunk', '1');
+    if (params.showYahooPostMortem) usp.append('showYahooPostMortem', '1');
+    if (params.showEmptyBodies) usp.append('showEmptyBodies', '1');
+    if (params.topic) usp.append('topic', params.topic);
+    if (params.sortBy) usp.append('sortBy', params.sortBy);
+    if (params.sortOrder) usp.append('sortOrder', params.sortOrder);
     const url = `${API_BASE_URL}/emails/threads${usp.toString() ? `?${usp.toString()}` : ''}`;
     const raw = await this.fetchWithErrorHandling<unknown>(url, {
       useCache: true,
@@ -763,6 +773,14 @@ class ApiClient {
     });
     const parsed = parseWithSchema(raw, emailThreadDetailsResponseSchema, '/emails/threads/:id');
     return parsed as EmailThreadDetailsDto;
+  }
+
+  async getRandomEmailThread(): Promise<{ threadId: string }> {
+    const url = `${API_BASE_URL}/emails/random`;
+    const raw = await this.fetchWithErrorHandling<unknown>(url, {
+      useCache: false,
+    });
+    return raw as { threadId: string };
   }
 
   async getEmailMessageBody(

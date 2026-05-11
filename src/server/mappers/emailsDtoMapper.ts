@@ -59,6 +59,8 @@ export const mapEmailThreadListItemDto = (
   risk: row.risk == null ? null : Number(row.risk),
   ladder: row.ladder ? String(row.ladder) : null,
   confidence: row.confidence == null ? null : Number(row.confidence),
+  signalScore: row.signalScore == null ? 0 : Number(row.signalScore),
+  significanceScore: row.significanceScore == null ? 0 : Number(row.significanceScore),
 });
 
 export const mapEmailThreadsResponseDto = (

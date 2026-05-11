@@ -32,6 +32,8 @@ export interface EmailThreadListItemDto {
   risk: number | null;
   ladder: string | null;
   confidence: number | null;
+  signalScore?: number;
+  significanceScore?: number;
 }
 
 export interface EmailThreadsResponseDto {

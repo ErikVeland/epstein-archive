@@ -715,24 +715,8 @@ CASE
     OR (COALESCE(content_refined, '')) ILIKE '%manage preferences%'
     OR (COALESCE(content_refined, '')) ILIKE '%opt out%'
   THEN 'promotions'
-  WHEN
-    (
-      (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%gmail.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%me.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%icloud.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%mac.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%aol.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%hotmail.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%yahoo.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%outlook.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%msn.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%ehbarak1@gmail.com%'
-      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%jeevacation@gmail.com%'
-    )
-    AND (COALESCE(content_refined, '')) NOT ILIKE '%unsubscribe%'
-    AND (COALESCE(content_refined, '')) NOT ILIKE '%manage preferences%'
-  THEN 'primary'
-  ELSE 'all'
+  THEN 'promotions'
+  ELSE 'primary'
 END
 `;
 
@@ -782,6 +766,8 @@ WITH email_docs AS (
     COALESCE(metadata_json ->> 'to', '') AS toAddress,
     COALESCE(d.content_refined, '') AS snippet,
     d.red_flag_rating,
+    COALESCE(d.signal_score, 0) AS signalScore,
+    COALESCE(d.significance_score, 0) AS significanceScore,
     d.metadata_json,
     ${buildCategoryCaseSql} AS mailboxTab
   FROM documents d
@@ -796,6 +782,8 @@ threaded AS (
     COUNT(*) AS messageCount,
     STRING_AGG(DISTINCT fromAddress, ',') AS participantsRaw,
     MAX(COALESCE(red_flag_rating, 0)) AS risk,
+    MAX(signalScore) AS signalScore,
+    MAX(significanceScore) AS significanceScore,
     MAX(
       COALESCE(
         CASE
@@ -803,11 +791,7 @@ threaded AS (
             THEN (metadata_json ->> 'confidence')::float
           ELSE NULL
         END,
-        CASE
-          WHEN (metadata_json ->> 'significance_score') ~ '^-?\\d+(\\.\\d+)?$'
-            THEN (metadata_json ->> 'significance_score')::float
-          ELSE NULL
-        END
+        signalScore
       )
     ) AS confidence,
     MAX(COALESCE(metadata_json ->> 'ladder', metadata_json ->> 'evidence_ladder')) AS ladder,
@@ -841,7 +825,9 @@ SELECT
   linkedEntityIdsRaw,
   risk,
   ladder,
-  confidence
+  confidence,
+  signalScore,
+  significanceScore
 FROM threaded
 `;
 
@@ -1018,6 +1004,11 @@ export async function getEmailThreads(params: {
   limit: number;
   parsedCursor: { lastMessageAt: string; threadId: string } | null;
   showSuppressedJunk?: boolean;
+  showYahooPostMortem?: boolean;
+  showEmptyBodies?: boolean;
+  sortBy?: 'date' | 'subject' | 'views' | 'stars' | 'participants';
+  sortOrder?: 'asc' | 'desc';
+  topicDocIds?: string[];
 }) {
   const buildConversationThreadFilter = (qualifier: string) => `
     COALESCE(${qualifier}.participantsraw, '') <> ''
@@ -1045,11 +1036,21 @@ export async function getEmailThreads(params: {
     limit,
     parsedCursor,
     showSuppressedJunk = false,
+    showYahooPostMortem = false,
+    showEmptyBodies = false,
+    sortBy = 'date',
+    sortOrder = 'desc',
+    topicDocIds = [],
   } = params;
 
   const queryParams: unknown[] = [];
   let where = getJunkFilterClause(showSuppressedJunk);
   const threadedWhere = '';
+
+  if (topicDocIds.length > 0) {
+    where += ` AND d.id = ANY($${queryParams.length + 1})`;
+    queryParams.push(topicDocIds);
+  }
 
   if (tab !== 'all') {
     where += ` AND (${buildCategoryCaseSql}) = $${queryParams.length + 1}`;
@@ -1112,6 +1113,16 @@ export async function getEmailThreads(params: {
     queryParams.push(minRisk);
   }
 
+  if (!showYahooPostMortem) {
+    // Restrict all emails to cutoff date Aug 15 2019 by default to trim post-mortem spam
+    where += ` AND COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) <= '2019-08-15T23:59:59.999Z'::timestamptz`;
+  }
+
+  if (!showEmptyBodies) {
+    // Require non-empty contents (refined content > 3 chars avoiding trivial fragments)
+    where += ` AND d.content_refined IS NOT NULL AND LENGTH(TRIM(d.content_refined)) > 3`;
+  }
+
   try {
     const baseSql = buildThreadBaseSql(where);
     const countSql =
@@ -1128,10 +1139,17 @@ export async function getEmailThreads(params: {
       cursorParams.push(parsedCursor.lastMessageAt, parsedCursor.threadId);
     }
 
+    const sortDirection = sortOrder === 'asc' ? 'ASC' : 'DESC';
+    let sortColumn = 'lastMessageAt';
+    if (sortBy === 'subject') sortColumn = 'subject';
+    if (sortBy === 'views') sortColumn = 'significanceScore';
+    if (sortBy === 'stars') sortColumn = 'signalScore';
+    if (sortBy === 'participants') sortColumn = 'participantsRaw';
+
     const listSql = `${baseSql}
         ${threadedWhere}
         ${cursorClause}
-        ORDER BY lastMessageAt DESC, threadId ASC
+        ORDER BY ${sortColumn} ${sortDirection}, threadId ASC
         LIMIT $${queryParams.length + cursorParams.length + 1}
       `;
 

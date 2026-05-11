@@ -21,6 +21,40 @@ import { EmptyCorpus } from '../common/EmptyCorpus';
 import { isJunkEntity } from '@client/utils/entityFilters';
 import { Button, Flex, SearchField, Select, Surface, TextInput } from '@client/design-system/lib';
 
+const STATIC_PEOPLE = [
+  'Jeffrey Epstein',
+  'Elon Musk',
+  'Ghislaine Maxwell',
+  'Ehud Barak',
+  'Al Seckel',
+  'Kimbal Musk',
+  'Karyna Shuliak',
+  'Deepak Chopra',
+  'Ken Starr',
+  'Peter Attia',
+  'Jeremy Rubin',
+  'Neri Oxman',
+  'Marvin Minsky',
+  'Lawrence Krauss',
+  'Seth Lloyd',
+  'Boris Nikolic',
+  'Jean Luc Brunel',
+  'Lesley Groff',
+  'Sarah Kellen',
+  'Nadia Marcinkova',
+  'Darren Indyke',
+  'Mark Epstein',
+  'Emad Hanna',
+  'Joscha Bach',
+  'Rich Kahn',
+  'Cecilia Steen',
+  'John Amerling',
+  'Sultan Bin Sulayem',
+  'Matthew Hiltzik',
+  'Peter Mandelson',
+  'Howard Lutnick',
+];
+
 type EmailDensity = 'comfortable' | 'compact';
 
 const minRiskOptions = [
@@ -77,16 +111,11 @@ const ThreadRow = React.memo(
     const thread = data.rows[index];
     const selected = data.selectedThreadId === thread.threadId;
 
-    // Deterministic fake counts based on thread id & metrics to preserve layout request
-    const deterministicStarCount = React.useMemo(() => {
-      const charSum = thread.threadId.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-      return Math.floor(((charSum % 800) + 100) * (1 + (thread.risk ?? 0) / 10));
-    }, [thread.threadId, thread.risk]);
+    // Use real analytics metrics derived from significance_score and signal_score
+    const viewCount = Math.max(1, Math.floor((thread.significanceScore || 0) * 10 + 12));
+    const starCount = Math.max(0, Math.floor((thread.signalScore || 0) * 10));
 
-    const deterministicEyeCount = React.useMemo(() => {
-      const val = Math.floor(deterministicStarCount * 0.34 + thread.messageCount * 12);
-      return val > 50 ? val : 50 + Math.floor(Math.random() * 20);
-    }, [deterministicStarCount, thread.messageCount]);
+    const formattedSnippet = (thread.snippet || '').replace(/^(\s*[-–—]\s*)+/, '').trim();
 
     return (
       <Button
@@ -96,63 +125,35 @@ const ThreadRow = React.memo(
         variant="ghost"
         size="sm"
         data-thread-id={thread.threadId}
-        className={`${styles.emailRow} ${selected ? styles.active : ''} ${styles.modernRow}`}
+        className={`${styles.emailRow} ${selected ? styles.active : ''} ${
+          data.density === 'compact' ? styles.compactRow : styles.comfortableRow
+        }`}
       >
-        <input
-          type="checkbox"
-          className={styles.rowCheckbox}
-          onClick={(e) => e.stopPropagation()}
-        />
-
         <div className={styles.metricCluster}>
-          <div className={styles.metricItem} title="Priority Stars">
+          <div className={styles.metricItem} title="Priority Indicator">
             <Icon
               name="Star"
               className={styles.metricIcon}
-              style={{ color: 'var(--accent-yellow)' }}
+              style={{ color: starCount > 3 ? 'var(--accent-yellow)' : 'var(--text-disabled)' }}
             />
-            <span>{deterministicStarCount}</span>
+            <span>{starCount}</span>
           </div>
-          <div className={styles.metricItem} title="Views">
+          <div className={styles.metricItem} title="Significance View Factor">
             <Icon name="Eye" className={styles.metricIcon} />
-            <span>{deterministicEyeCount}</span>
+            <span>{viewCount}</span>
           </div>
         </div>
 
-        <div
-          className={styles.rowParticipants}
-          style={{
-            minWidth: '140px',
-            maxWidth: '140px',
-            fontSize: '13px',
-            color: 'var(--text-primary)',
-            fontWeight: '500',
-          }}
-        >
-          {thread.participants[0]?.split('@')[0] || 'Unknown Sender'}
+        <div className={styles.rowParticipants}>
+          {thread.participants[0]?.split('@')[0] || 'Unknown'}
         </div>
 
-        <span className={styles.providerPill}>
-          {thread.participants[0]?.includes('yahoo')
-            ? 'Yahoo'
-            : thread.participants[0]?.includes('gmail')
-              ? 'Gmail'
-              : 'Email'}
-        </span>
-
-        <div
-          className={styles.rowMain}
-          style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', minWidth: 0, flex: 1 }}
-        >
-          <span className={styles.rowSubject} style={{ flexShrink: 0 }}>
-            {thread.subject}
-          </span>
-          <span className={styles.rowSnippet} style={{ flex: 1, margin: 0, opacity: 0.7 }}>
-            — {thread.snippet}
-          </span>
+        <div className={styles.rowMain}>
+          <span className={styles.rowSubject}>{thread.subject}</span>
+          <span className={styles.rowSnippet}>{formattedSnippet || '(No content)'}</span>
         </div>
 
-        <div className={styles.rowAside} style={{ minWidth: '60px' }}>
+        <div className={styles.rowAside}>
           <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>
         </div>
       </Button>
@@ -195,6 +196,23 @@ export const EmailClient: React.FC = () => {
     searchParams.get('hasAttachments') === '1',
   );
   const [minRisk, setMinRisk] = useState(Number(searchParams.get('minRisk') || 0));
+  const [topic, setTopic] = useState(searchParams.get('topic') || '');
+  const [sortBy, setSortBy] = useState<'date' | 'subject' | 'views' | 'stars' | 'participants'>(
+    (searchParams.get('sortBy') as any) || 'date',
+  );
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(
+    (searchParams.get('sortOrder') as any) || 'desc',
+  );
+  const [isNavigatingRandom, setIsNavigatingRandom] = useState(false);
+
+  const [showYahooPostMortem, setShowYahooPostMortem] = useState(
+    searchParams.get('showYahooPostMortem') === '1',
+  );
+  const [showEmptyBodies, setShowEmptyBodies] = useState(
+    searchParams.get('showEmptyBodies') === '1',
+  );
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
   const density: EmailDensity =
     searchParams.get('density') === 'compact' ? 'compact' : 'comfortable';
 
@@ -242,6 +260,15 @@ export const EmailClient: React.FC = () => {
       );
     },
     [setSearchParams],
+  );
+
+  const handleToggleSetting = useCallback(
+    (setting: 'showYahooPostMortem' | 'showEmptyBodies', val: boolean) => {
+      if (setting === 'showYahooPostMortem') setShowYahooPostMortem(val);
+      if (setting === 'showEmptyBodies') setShowEmptyBodies(val);
+      updateUrlState({ [setting]: val ? '1' : null });
+    },
+    [updateUrlState],
   );
 
   useEffect(() => {
@@ -302,6 +329,11 @@ export const EmailClient: React.FC = () => {
     hasAttachmentsOnly,
     minRisk,
     showSuppressedJunk,
+    showYahooPostMortem,
+    showEmptyBodies,
+    topic,
+    sortBy,
+    sortOrder,
     updateUrlState,
   });
 
@@ -457,7 +489,7 @@ export const EmailClient: React.FC = () => {
   }, [density, updateUrlState]);
 
   const canLoadMore = threadsHasMore && !!threadsNextCursor;
-  const threadRowHeight = density === 'compact' ? 72 : 94;
+  const threadRowHeight = density === 'compact' ? 42 : 96;
 
   const { initialScrollOffset: threadScrollOffset, onScroll: onThreadScroll } =
     useListScrollRestoration(`/emails:${selectedMailboxId}`);
@@ -498,6 +530,7 @@ export const EmailClient: React.FC = () => {
 
   const activeQuickFilterCount = [
     debouncedSearch.length > 0,
+    topic.length > 0,
     fromFilter.trim().length > 0,
     toFilter.trim().length > 0,
     dateFrom.length > 0,
@@ -506,6 +539,31 @@ export const EmailClient: React.FC = () => {
     minRisk > 0,
     activeTab !== 'all',
   ].filter(Boolean).length;
+
+  const handleHeaderSort = useCallback((col: typeof sortBy) => {
+    setSortBy((prevCol) => {
+      if (prevCol === col) {
+        setSortOrder((prevOrder) => (prevOrder === 'asc' ? 'desc' : 'asc'));
+        return col;
+      }
+      setSortOrder('desc');
+      return col;
+    });
+  }, []);
+
+  const handleRandomEmail = async () => {
+    if (isNavigatingRandom) return;
+    setIsNavigatingRandom(true);
+    try {
+      const { apiClient } = await import('@client/services/apiClient');
+      const { threadId } = await apiClient.getRandomEmailThread();
+      handleOpenThread(threadId);
+    } catch (err) {
+      console.error('Failed to get random email', err);
+    } finally {
+      setIsNavigatingRandom(false);
+    }
+  };
 
   return (
     <div className={styles.emailWorkspace}>
@@ -579,11 +637,8 @@ export const EmailClient: React.FC = () => {
             mobilePane === 'mailboxes' ? styles.mobilePaneVisible : styles.mobilePaneHidden
           }`}
         >
-          <div className={styles.sidebarCompose}>
-            <button className={styles.composeBtn}>
-              <Icon name="PenSquare" />
-              Compose
-            </button>
+          <div className={styles.sidebarCompose} style={{ height: '20px' }}>
+            {/* Compose artifact retired - read only context */}
           </div>
 
           <div className={styles.sidebarSection}>
@@ -620,44 +675,39 @@ export const EmailClient: React.FC = () => {
               <Icon name="ChevronDown" />
             </div>
             <div
-              className={styles.sidebarItem}
-              onClick={() => {
-                setSearchInput('advice');
-                setDebouncedSearch('advice');
-              }}
+              className={`${styles.sidebarItem} ${topic === 'asking for advice' ? styles.sidebarItemActive : ''}`}
+              onClick={() => setTopic('asking for advice')}
             >
               <Icon name="MessageSquare" />
               <span>Asking for advice</span>
             </div>
             <div
-              className={styles.sidebarItem}
-              onClick={() => {
-                setSearchInput('introductions');
-                setDebouncedSearch('introductions');
-              }}
+              className={`${styles.sidebarItem} ${topic === 'introductions' ? styles.sidebarItemActive : ''}`}
+              onClick={() => setTopic('introductions')}
             >
               <Icon name="Users" />
               <span>Introductions</span>
             </div>
             <div
-              className={styles.sidebarItem}
-              onClick={() => {
-                setSearchInput('damage control');
-                setDebouncedSearch('damage control');
-              }}
+              className={`${styles.sidebarItem} ${topic === 'damage control' ? styles.sidebarItemActive : ''}`}
+              onClick={() => setTopic('damage control')}
             >
               <Icon name="ShieldAlert" />
               <span>Damage control</span>
             </div>
             <div
-              className={styles.sidebarItem}
-              onClick={() => {
-                setSearchInput('Brunel');
-                setDebouncedSearch('Brunel');
-              }}
+              className={`${styles.sidebarItem} ${topic === 'financial discussions' ? styles.sidebarItemActive : ''}`}
+              onClick={() => setTopic('financial discussions')}
             >
-              <Icon name="FileText" />
-              <span>Conspiring w/ Brunel</span>
+              <Icon name="DollarSign" />
+              <span>Financial discussions</span>
+            </div>
+            <div
+              className={`${styles.sidebarItem} ${topic === 'travel plans' ? styles.sidebarItemActive : ''}`}
+              onClick={() => setTopic('travel plans')}
+            >
+              <Icon name="Plane" />
+              <span>Travel plans</span>
             </div>
           </div>
 
@@ -671,41 +721,22 @@ export const EmailClient: React.FC = () => {
               <span>Browse all people</span>
             </div>
             <div
-              className={styles.sidebarItem}
-              style={{ fontWeight: 600, opacity: 0.9 }}
-              onClick={() => {
-                setSearchInput('Epstein');
-                setDebouncedSearch('Epstein');
-              }}
+              className={styles.scrollListWrapper}
+              style={{ overflowY: 'auto', maxHeight: '40vh' }}
             >
-              <span>Jeffrey Epstein</span>
-            </div>
-            <div
-              className={styles.sidebarItem}
-              onClick={() => {
-                setSearchInput('Elon Musk');
-                setDebouncedSearch('Elon Musk');
-              }}
-            >
-              <span>Elon Musk</span>
-            </div>
-            <div
-              className={styles.sidebarItem}
-              onClick={() => {
-                setSearchInput('Ghislaine Maxwell');
-                setDebouncedSearch('Ghislaine Maxwell');
-              }}
-            >
-              <span>Ghislaine Maxwell</span>
-            </div>
-            <div
-              className={styles.sidebarItem}
-              onClick={() => {
-                setSearchInput('Ehud Barak');
-                setDebouncedSearch('Ehud Barak');
-              }}
-            >
-              <span>Ehud Barak</span>
+              {STATIC_PEOPLE.map((person) => (
+                <div
+                  key={person}
+                  className={styles.sidebarItem}
+                  style={person === 'Jeffrey Epstein' ? { fontWeight: 600, opacity: 0.9 } : {}}
+                  onClick={() => {
+                    setSearchInput(person);
+                    setDebouncedSearch(person);
+                  }}
+                >
+                  <span>{person}</span>
+                </div>
+              ))}
             </div>
           </div>
         </aside>
@@ -725,10 +756,18 @@ export const EmailClient: React.FC = () => {
               <span>Promotions</span>
               <span className={styles.subTabNewBadge}>6104 new</span>
             </div>
-            <div className={styles.subTabItem}>
-              <Icon name="File" />
-              <span>Random Page</span>
-            </div>
+            <button
+              className={styles.subTabItem}
+              onClick={handleRandomEmail}
+              disabled={isNavigatingRandom}
+              style={{ background: 'transparent', border: 'none', font: 'inherit' }}
+            >
+              <Icon
+                name={isNavigatingRandom ? 'Loader2' : 'Dices'}
+                className={isNavigatingRandom ? styles.spin : ''}
+              />
+              <span>Random Email</span>
+            </button>
           </div>
           <div className={styles.paneHeader}>
             <div className={styles.threadHeaderLeft}>
@@ -744,7 +783,44 @@ export const EmailClient: React.FC = () => {
               </Button>
               <span className={styles.threadLabel}>Conversations</span>
             </div>
-            <div className={styles.threadCount}>{threadsTotal.toLocaleString()} total</div>
+            <div className={styles.threadCount}>
+              <div className={styles.densityToolbar}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  Density:
+                </span>
+                <div className={styles.densityToggle}>
+                  <Button
+                    variant="ghost"
+                    className={`${styles.densityButton} ${
+                      density === 'comfortable'
+                        ? styles.densityButtonActive
+                        : styles.densityButtonInactive
+                    }`}
+                    onClick={() => updateUrlState({ density: 'comfortable' })}
+                  >
+                    Comfortable
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className={`${styles.densityButton} ${
+                      density === 'compact'
+                        ? styles.densityButtonActive
+                        : styles.densityButtonInactive
+                    }`}
+                    onClick={() => updateUrlState({ density: 'compact' })}
+                  >
+                    Compact
+                  </Button>
+                </div>
+                <button
+                  className={styles.gearBtn}
+                  title="Inbox Settings"
+                  onClick={() => setIsSettingsModalOpen(true)}
+                >
+                  <Icon name="Settings" size="sm" />
+                </button>
+              </div>
+            </div>
           </div>
           <div className={styles.paneSubheader}>
             <div className={styles.threadMetaRow}>
@@ -1048,28 +1124,82 @@ export const EmailClient: React.FC = () => {
                 />
               )
             ) : (
-              <AutoSizer
-                renderProp={({ height, width }) =>
-                  height && width ? (
-                    <List
-                      height={height}
-                      width={width}
-                      itemCount={threads.length}
-                      itemSize={threadRowHeight}
-                      initialScrollOffset={threadScrollOffset}
-                      onScroll={onThreadScroll}
-                      itemData={{
-                        rows: threads,
-                        selectedThreadId,
-                        onOpen: handleOpenThread,
-                        density,
-                      }}
-                    >
-                      {ThreadRow}
-                    </List>
-                  ) : null
-                }
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div className={styles.tableHeader}>
+                  <button
+                    className={`${styles.headerCol} ${sortBy === 'stars' ? styles.activeSortCol : ''}`}
+                    onClick={() => handleHeaderSort('stars')}
+                  >
+                    <span>Stars/Views</span>
+                    {sortBy === 'stars' && (
+                      <Icon
+                        name={sortOrder === 'asc' ? 'ChevronUp' : 'ChevronDown'}
+                        className={styles.sortIcon}
+                      />
+                    )}
+                  </button>
+                  <button
+                    className={`${styles.headerCol} ${sortBy === 'participants' ? styles.activeSortCol : ''}`}
+                    onClick={() => handleHeaderSort('participants')}
+                  >
+                    <span>From</span>
+                    {sortBy === 'participants' && (
+                      <Icon
+                        name={sortOrder === 'asc' ? 'ChevronUp' : 'ChevronDown'}
+                        className={styles.sortIcon}
+                      />
+                    )}
+                  </button>
+                  <button
+                    className={`${styles.headerCol} ${sortBy === 'subject' ? styles.activeSortCol : ''}`}
+                    onClick={() => handleHeaderSort('subject')}
+                  >
+                    <span>Subject / Preview</span>
+                    {sortBy === 'subject' && (
+                      <Icon
+                        name={sortOrder === 'asc' ? 'ChevronUp' : 'ChevronDown'}
+                        className={styles.sortIcon}
+                      />
+                    )}
+                  </button>
+                  <button
+                    className={`${styles.headerCol} ${sortBy === 'date' ? styles.activeSortCol : ''}`}
+                    onClick={() => handleHeaderSort('date')}
+                  >
+                    <span>Date</span>
+                    {sortBy === 'date' && (
+                      <Icon
+                        name={sortOrder === 'asc' ? 'ChevronUp' : 'ChevronDown'}
+                        className={styles.sortIcon}
+                      />
+                    )}
+                  </button>
+                </div>
+                <div style={{ flex: 1, minHeight: 0 }}>
+                  <AutoSizer
+                    renderProp={({ height, width }) =>
+                      height && width ? (
+                        <List
+                          height={height}
+                          width={width}
+                          itemCount={threads.length}
+                          itemSize={threadRowHeight}
+                          initialScrollOffset={threadScrollOffset}
+                          onScroll={onThreadScroll}
+                          itemData={{
+                            rows: threads,
+                            selectedThreadId,
+                            onOpen: handleOpenThread,
+                            density,
+                          }}
+                        >
+                          {ThreadRow}
+                        </List>
+                      ) : null
+                    }
+                  />
+                </div>
+              </div>
             )}
           </div>
 
@@ -1489,6 +1619,65 @@ export const EmailClient: React.FC = () => {
           isOpen={Boolean(selectedEntityId)}
           onClose={() => setSelectedEntityId(null)}
         />
+      )}
+
+      {isSettingsModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setIsSettingsModalOpen(false)}>
+          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Settings</h2>
+              <button
+                className={styles.modalCloseBtn}
+                onClick={() => setIsSettingsModalOpen(false)}
+              >
+                <Icon name="X" size="lg" />
+              </button>
+            </div>
+            <div className={styles.modalContent}>
+              <div className={styles.sectionTitle}>YAHOO INBOX</div>
+
+              <div className={styles.settingRow}>
+                <label className={styles.switch}>
+                  <input
+                    type="checkbox"
+                    checked={showYahooPostMortem}
+                    onChange={(e) => handleToggleSetting('showYahooPostMortem', e.target.checked)}
+                  />
+                  <span className={styles.slider}></span>
+                </label>
+                <div className={styles.settingTexts}>
+                  <span className={styles.settingLabel}>
+                    Show Yahoo emails after August 15, 2019
+                  </span>
+                  <span className={styles.settingSubtitle}>
+                    Nearly all newsletters and spam, but potentially interesting
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ height: '8px' }} />
+
+              <div className={styles.settingRow}>
+                <label className={styles.switch}>
+                  <input
+                    type="checkbox"
+                    checked={showEmptyBodies}
+                    onChange={(e) => handleToggleSetting('showEmptyBodies', e.target.checked)}
+                  />
+                  <span className={styles.slider}></span>
+                </label>
+                <div className={styles.settingTexts}>
+                  <span className={styles.settingLabel}>
+                    Show emails with empty or fully redacted bodies
+                  </span>
+                  <span className={styles.settingSubtitle}>
+                    Emails where the content is blank or completely redacted
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
