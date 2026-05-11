@@ -62,13 +62,15 @@ export class MediaService {
 
   private nonTextExtractPredicate(alias: string): string {
     return `NOT (
-      COALESCE(${alias}.has_text, false) IS TRUE
-      OR ${alias}.metadata_json->>'is_text_only' = 'true'
-      OR ${alias}.file_path ILIKE '%Unconfirmed Claims%'
-      OR ${alias}.file_path ILIKE '%textify%'
-      OR ${alias}.file_path ILIKE '%_ocr%'
-      OR ${alias}.file_path ILIKE '%-ocr-%'
-      OR (${alias}.metadata_json->>'is_document_extract' = 'true' AND LENGTH(COALESCE(${alias}.title, '')) > 80)
+      (
+        COALESCE(${alias}.has_text, false) IS TRUE
+        OR ${alias}.metadata_json->>'is_text_only' = 'true'
+        OR ${alias}.file_path ILIKE '%Unconfirmed Claims%'
+        OR ${alias}.file_path ILIKE '%textify%'
+        OR ${alias}.file_path ILIKE '%_ocr%'
+        OR ${alias}.file_path ILIKE '%-ocr-%'
+        OR (${alias}.metadata_json->>'is_document_extract' = 'true' AND LENGTH(COALESCE(${alias}.title, '')) > 80)
+      ) IS TRUE
     )`;
   }
 
