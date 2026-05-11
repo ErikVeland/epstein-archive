@@ -556,7 +556,9 @@
 
 .modernRow:hover {
   background: var(--glass-bg-highlight);
-  box-shadow: inset 1px 0 0 var(--accent), 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow:
+    inset 1px 0 0 var(--accent),
+    0 2px 8px rgba(0, 0, 0, 0.05);
   z-index: 2;
 }
 
