@@ -11,11 +11,10 @@ import {
 } from '@client/hooks/useReliableBackNavigation';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import Icon from '@client/components/common/Icon';
-import { EmailMailboxDTO, EmailThreadDTO } from '@client/services/apiClient';
+import { EmailThreadDTO } from '@client/services/apiClient';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { ViewerShell } from '../viewer/ViewerShell';
-import { riskToneFromRating } from '@client/utils/riskSemantics';
 import { useFilters } from '@client/contexts/useFilters';
 import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
@@ -23,17 +22,6 @@ import { isJunkEntity } from '@client/utils/entityFilters';
 import { Button, Flex, SearchField, Select, Surface, TextInput } from '@client/design-system/lib';
 
 type EmailDensity = 'comfortable' | 'compact';
-
-const tabOptions: Array<{
-  id: 'all' | 'primary' | 'updates' | 'promotions' | 'analytics';
-  label: string;
-}> = [
-  { id: 'all', label: 'All' },
-  { id: 'primary', label: 'Primary' },
-  { id: 'updates', label: 'Updates' },
-  { id: 'promotions', label: 'Promotions' },
-  { id: 'analytics', label: 'Forensic Analytics' },
-];
 
 const minRiskOptions = [
   { value: 0, label: 'Any' },
@@ -49,10 +37,6 @@ const ladderTone = (ladder: string | null): string => {
   if (value.includes('infer')) return styles.ladderInfer;
   if (value.includes('agentic')) return styles.ladderAgentic;
   return styles.ladderDefault;
-};
-
-const riskTone = (risk: number | null): string => {
-  return riskToneFromRating(risk).className;
 };
 
 const formatTime = (value: string | null): string => {
@@ -92,7 +76,6 @@ const ThreadRow = React.memo(
   }>) => {
     const thread = data.rows[index];
     const selected = data.selectedThreadId === thread.threadId;
-    const compact = data.density === 'compact';
 
     // Deterministic fake counts based on thread id & metrics to preserve layout request
     const deterministicStarCount = React.useMemo(() => {
@@ -101,7 +84,7 @@ const ThreadRow = React.memo(
     }, [thread.threadId, thread.risk]);
 
     const deterministicEyeCount = React.useMemo(() => {
-      const val = Math.floor(deterministicStarCount * 0.34 + (thread.messageCount * 12));
+      const val = Math.floor(deterministicStarCount * 0.34 + thread.messageCount * 12);
       return val > 50 ? val : 50 + Math.floor(Math.random() * 20);
     }, [deterministicStarCount, thread.messageCount]);
 
@@ -115,11 +98,19 @@ const ThreadRow = React.memo(
         data-thread-id={thread.threadId}
         className={`${styles.emailRow} ${selected ? styles.active : ''} ${styles.modernRow}`}
       >
-        <input type="checkbox" className={styles.rowCheckbox} onClick={(e) => e.stopPropagation()} />
-        
+        <input
+          type="checkbox"
+          className={styles.rowCheckbox}
+          onClick={(e) => e.stopPropagation()}
+        />
+
         <div className={styles.metricCluster}>
           <div className={styles.metricItem} title="Priority Stars">
-            <Icon name="Star" className={styles.metricIcon} style={{ color: 'var(--accent-yellow)' }} />
+            <Icon
+              name="Star"
+              className={styles.metricIcon}
+              style={{ color: 'var(--accent-yellow)' }}
+            />
             <span>{deterministicStarCount}</span>
           </div>
           <div className={styles.metricItem} title="Views">
@@ -128,75 +119,41 @@ const ThreadRow = React.memo(
           </div>
         </div>
 
-        <div className={styles.rowParticipants} style={{ minWidth: '140px', maxWidth: '140px', fontSize: '13px', color: 'var(--text-primary)', fontWeight: '500' }}>
+        <div
+          className={styles.rowParticipants}
+          style={{
+            minWidth: '140px',
+            maxWidth: '140px',
+            fontSize: '13px',
+            color: 'var(--text-primary)',
+            fontWeight: '500',
+          }}
+        >
           {thread.participants[0]?.split('@')[0] || 'Unknown Sender'}
         </div>
 
         <span className={styles.providerPill}>
-          {thread.participants[0]?.includes('yahoo') ? 'Yahoo' : thread.participants[0]?.includes('gmail') ? 'Gmail' : 'Email'}
+          {thread.participants[0]?.includes('yahoo')
+            ? 'Yahoo'
+            : thread.participants[0]?.includes('gmail')
+              ? 'Gmail'
+              : 'Email'}
         </span>
 
-        <div className={styles.rowMain} style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', minWidth: 0, flex: 1 }}>
-          <span className={styles.rowSubject} style={{ flexShrink: 0 }}>{thread.subject}</span>
-          <span className={styles.rowSnippet} style={{ flex: 1, margin: 0, opacity: 0.7 }}>— {thread.snippet}</span>
+        <div
+          className={styles.rowMain}
+          style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', minWidth: 0, flex: 1 }}
+        >
+          <span className={styles.rowSubject} style={{ flexShrink: 0 }}>
+            {thread.subject}
+          </span>
+          <span className={styles.rowSnippet} style={{ flex: 1, margin: 0, opacity: 0.7 }}>
+            — {thread.snippet}
+          </span>
         </div>
 
         <div className={styles.rowAside} style={{ minWidth: '60px' }}>
           <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>
-        </div>
-      </Button>
-    );
-  },
-);
-
-const MailboxRow = React.memo(
-  ({
-    index,
-    style,
-    data,
-  }: ListChildComponentProps<{
-    rows: EmailMailboxDTO[];
-    selectedMailboxId: string;
-    onSelect: (mailboxId: string) => void;
-  }>) => {
-    const mailbox = data.rows[index];
-    const active = mailbox.mailboxId === data.selectedMailboxId;
-    const isVip = mailbox.isVip;
-
-    return (
-      <Button
-        style={style}
-        onClick={() => data.onSelect(mailbox.mailboxId)}
-        type="button"
-        variant="ghost"
-        size="sm"
-        className={`${styles.emailRow} ${styles.mailboxRow} ${active ? styles.active : ''} ${
-          isVip ? styles.vipMailbox : ''
-        }`}
-      >
-        <div className={styles.mailboxRowInner}>
-          <div className={styles.rowMain}>
-            <div className={styles.mailboxTitleRow}>
-              <div className={styles.rowSubject}>{mailbox.displayName}</div>
-              {isVip && (
-                <span className={styles.mailboxVipBadge} title="VIP">
-                  <Icon name="Sparkles" className={styles.mailboxVipIcon} />
-                </span>
-              )}
-              {mailbox.isVerified && !isVip && (
-                <span className={styles.verifiedBadge} title="Verified">
-                  <Icon name="ShieldCheck" className={styles.verifiedIcon} />
-                </span>
-              )}
-            </div>
-            <div className={styles.mailboxCount}>
-              {mailbox.totalThreads.toLocaleString()} THREADS
-            </div>
-          </div>
-          <div className={styles.rowAside}>
-            <div>{formatTime(mailbox.lastActivityAt)}</div>
-            {isVip && <div className={styles.mailboxPriority}>PRIORITY VIP</div>}
-          </div>
         </div>
       </Button>
     );
@@ -211,11 +168,9 @@ export const EmailClient: React.FC = () => {
   const deepLinkedMessageId = searchParams.get('messageId') || searchParams.get('id');
   const { filters: globalFilters } = useFilters();
 
-  const [showSuppressedJunk, setShowSuppressedJunk] = useState(false);
+  const showSuppressedJunk = false;
 
-  const [selectedMailboxId, setSelectedMailboxId] = useState(
-    searchParams.get('mailboxId') || 'all',
-  );
+  const selectedMailboxId = searchParams.get('mailboxId') || 'all';
   const [activeTab, setActiveTab] = useState<
     'all' | 'primary' | 'updates' | 'promotions' | 'analytics'
   >(
@@ -240,9 +195,8 @@ export const EmailClient: React.FC = () => {
     searchParams.get('hasAttachments') === '1',
   );
   const [minRisk, setMinRisk] = useState(Number(searchParams.get('minRisk') || 0));
-  const [density, setDensity] = useState<EmailDensity>(
-    searchParams.get('density') === 'compact' ? 'compact' : 'comfortable',
-  );
+  const density: EmailDensity =
+    searchParams.get('density') === 'compact' ? 'compact' : 'comfortable';
 
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
 
@@ -315,8 +269,6 @@ export const EmailClient: React.FC = () => {
 
   const {
     mailboxes: rawMailboxes,
-    mailboxesLoading,
-    mailboxesError,
     threads,
     threadsLoading,
     threadsError,
@@ -504,11 +456,6 @@ export const EmailClient: React.FC = () => {
     });
   }, [density, updateUrlState]);
 
-  const tabsWithData = useMemo(() => {
-    if (threadsTotal === 0) return [{ id: 'all', label: 'All' }];
-    return tabOptions;
-  }, [threadsTotal]);
-
   const canLoadMore = threadsHasMore && !!threadsNextCursor;
   const threadRowHeight = density === 'compact' ? 72 : 94;
 
@@ -523,31 +470,6 @@ export const EmailClient: React.FC = () => {
     const mailbox = Math.min(Math.max(nextMailbox, 240), maxMailbox);
     return { mailbox };
   }, []);
-
-  const startResize = useCallback(
-    () => (event: React.MouseEvent<HTMLDivElement>) => {
-      if (window.innerWidth < 768) return;
-      event.preventDefault();
-      const startX = event.clientX;
-      const startMailbox = mailboxWidth;
-
-      const onMove = (moveEvent: MouseEvent) => {
-        const delta = moveEvent.clientX - startX;
-        const containerWidth = desktopLayoutRef.current?.clientWidth || window.innerWidth;
-        const { mailbox } = clampWidths(startMailbox + delta, containerWidth);
-        setMailboxWidth(mailbox);
-      };
-
-      const onUp = () => {
-        window.removeEventListener('mousemove', onMove);
-        window.removeEventListener('mouseup', onUp);
-      };
-
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-    },
-    [mailboxWidth, clampWidths],
-  );
 
   // Layout clamping using useLayoutEffect to avoid visual flickering
   // This runs synchronously after DOM updates but before paint
@@ -659,35 +581,35 @@ export const EmailClient: React.FC = () => {
         >
           <div className={styles.sidebarCompose}>
             <button className={styles.composeBtn}>
-              <Icon name="PenSquare"  />
+              <Icon name="PenSquare" />
               Compose
             </button>
           </div>
 
           <div className={styles.sidebarSection}>
             <div className={`${styles.sidebarItem} ${styles.sidebarItemActive}`}>
-              <Icon name="Inbox"  />
+              <Icon name="Inbox" />
               <span>Inbox</span>
               <span className={styles.sidebarItemCount}>13k</span>
             </div>
             <div className={styles.sidebarItem}>
-              <Icon name="Star"  />
+              <Icon name="Star" />
               <span>Starred</span>
             </div>
             <div className={styles.sidebarItem}>
-              <Icon name="AlertOctagon"  />
+              <Icon name="AlertOctagon" />
               <span>Unredaction Requests</span>
             </div>
             <div className={styles.sidebarItem}>
-              <Icon name="Send"  />
+              <Icon name="Send" />
               <span>Sent</span>
             </div>
             <div className={styles.sidebarItem}>
-              <Icon name="Paperclip"  />
+              <Icon name="Paperclip" />
               <span>Attachments</span>
             </div>
             <div className={styles.sidebarItem}>
-              <Icon name="History"  />
+              <Icon name="History" />
               <span>Daily Activity</span>
             </div>
           </div>
@@ -695,22 +617,46 @@ export const EmailClient: React.FC = () => {
           <div className={styles.sidebarSection}>
             <div className={styles.sidebarSectionHeader}>
               <span>TOPICS</span>
-              <Icon name="ChevronDown"  />
+              <Icon name="ChevronDown" />
             </div>
-            <div className={styles.sidebarItem} onClick={() => { setSearchInput('advice'); setDebouncedSearch('advice'); }}>
-              <Icon name="MessageSquare"  />
+            <div
+              className={styles.sidebarItem}
+              onClick={() => {
+                setSearchInput('advice');
+                setDebouncedSearch('advice');
+              }}
+            >
+              <Icon name="MessageSquare" />
               <span>Asking for advice</span>
             </div>
-            <div className={styles.sidebarItem} onClick={() => { setSearchInput('introductions'); setDebouncedSearch('introductions'); }}>
-              <Icon name="Users"  />
+            <div
+              className={styles.sidebarItem}
+              onClick={() => {
+                setSearchInput('introductions');
+                setDebouncedSearch('introductions');
+              }}
+            >
+              <Icon name="Users" />
               <span>Introductions</span>
             </div>
-            <div className={styles.sidebarItem} onClick={() => { setSearchInput('damage control'); setDebouncedSearch('damage control'); }}>
-              <Icon name="ShieldAlert"  />
+            <div
+              className={styles.sidebarItem}
+              onClick={() => {
+                setSearchInput('damage control');
+                setDebouncedSearch('damage control');
+              }}
+            >
+              <Icon name="ShieldAlert" />
               <span>Damage control</span>
             </div>
-            <div className={styles.sidebarItem} onClick={() => { setSearchInput('Brunel'); setDebouncedSearch('Brunel'); }}>
-              <Icon name="FileText"  />
+            <div
+              className={styles.sidebarItem}
+              onClick={() => {
+                setSearchInput('Brunel');
+                setDebouncedSearch('Brunel');
+              }}
+            >
+              <Icon name="FileText" />
               <span>Conspiring w/ Brunel</span>
             </div>
           </div>
@@ -718,22 +664,47 @@ export const EmailClient: React.FC = () => {
           <div className={styles.sidebarSection}>
             <div className={styles.sidebarSectionHeader}>
               <span>PEOPLE</span>
-              <Icon name="ChevronDown"  />
+              <Icon name="ChevronDown" />
             </div>
             <div className={styles.sidebarItem}>
-              <Icon name="BookOpen"  />
+              <Icon name="BookOpen" />
               <span>Browse all people</span>
             </div>
-            <div className={styles.sidebarItem} style={{ fontWeight: 600, opacity: 0.9 }} onClick={() => { setSearchInput('Epstein'); setDebouncedSearch('Epstein'); }}>
+            <div
+              className={styles.sidebarItem}
+              style={{ fontWeight: 600, opacity: 0.9 }}
+              onClick={() => {
+                setSearchInput('Epstein');
+                setDebouncedSearch('Epstein');
+              }}
+            >
               <span>Jeffrey Epstein</span>
             </div>
-            <div className={styles.sidebarItem} onClick={() => { setSearchInput('Elon Musk'); setDebouncedSearch('Elon Musk'); }}>
+            <div
+              className={styles.sidebarItem}
+              onClick={() => {
+                setSearchInput('Elon Musk');
+                setDebouncedSearch('Elon Musk');
+              }}
+            >
               <span>Elon Musk</span>
             </div>
-            <div className={styles.sidebarItem} onClick={() => { setSearchInput('Ghislaine Maxwell'); setDebouncedSearch('Ghislaine Maxwell'); }}>
+            <div
+              className={styles.sidebarItem}
+              onClick={() => {
+                setSearchInput('Ghislaine Maxwell');
+                setDebouncedSearch('Ghislaine Maxwell');
+              }}
+            >
               <span>Ghislaine Maxwell</span>
             </div>
-            <div className={styles.sidebarItem} onClick={() => { setSearchInput('Ehud Barak'); setDebouncedSearch('Ehud Barak'); }}>
+            <div
+              className={styles.sidebarItem}
+              onClick={() => {
+                setSearchInput('Ehud Barak');
+                setDebouncedSearch('Ehud Barak');
+              }}
+            >
               <span>Ehud Barak</span>
             </div>
           </div>
@@ -746,16 +717,16 @@ export const EmailClient: React.FC = () => {
         >
           <div className={styles.subTabBar}>
             <div className={`${styles.subTabItem} ${styles.subTabItemActive}`}>
-              <Icon name="Inbox"  />
+              <Icon name="Inbox" />
               <span>Primary</span>
             </div>
             <div className={styles.subTabItem}>
-              <Icon name="Tags"  />
+              <Icon name="Tags" />
               <span>Promotions</span>
               <span className={styles.subTabNewBadge}>6104 new</span>
             </div>
             <div className={styles.subTabItem}>
-              <Icon name="File"  />
+              <Icon name="File" />
               <span>Random Page</span>
             </div>
           </div>

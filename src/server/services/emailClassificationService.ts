@@ -154,7 +154,13 @@ export function classifyEmail(
 
   // Extract email address from sender
   const emailMatch = senderLower.match(/<([^>]+)>/) || [null, senderLower];
-  const senderEmail = emailMatch[1] || senderLower;
+  let senderEmail = emailMatch[1] || senderLower;
+
+  // OCR Error Correction: Handle case where @ was misidentified as ®
+  if (!senderEmail.includes('@') && senderEmail.includes('®')) {
+    senderEmail = senderEmail.replace(/([a-z0-9._%+-]+)®([a-z0-9.-]+\.[a-z]{2,})/i, '$1@$2');
+  }
+
   const senderDomain = senderEmail.split('@')[1] || '';
 
   // 1. Check if from known entity (highest priority)
