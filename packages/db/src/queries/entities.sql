@@ -22,11 +22,28 @@ SELECT
   ) as "topPhotoId"
 FROM entities e
 WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
+  AND COALESCE(e.junk_tier, 'clean') = 'clean'
+  AND COALESCE(e.quarantine_status, 0) = 0
+  AND e.full_name IS NOT NULL
+  AND BTRIM(e.full_name) != ''
+  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*'
+  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b'
+  AND LOWER(e.full_name) !~* '\b(mon|tue|wed|thu|fri|sat|sun)\s*$'
+  AND LOWER(e.full_name) !~* '\b([[:alpha:]]{3,})\s+\1\b'
+  AND LOWER(e.full_name) !~* '\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b'
+  AND LOWER(e.full_name) !~* '\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$'
+  AND LOWER(e.full_name) !~* '\b[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
+  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)
   AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)
   AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)
   AND (e.primary_role = :role OR :role IS NULL)
 ORDER BY 
+  CASE
+    WHEN :searchTerm::text IS NULL AND LOWER(e.full_name) = 'jeffrey epstein' THEN 0
+    WHEN :searchTerm::text IS NULL AND LOWER(e.full_name) = 'donald trump' THEN 1
+    ELSE 2
+  END ASC,
   COALESCE(e.is_vip, 0) DESC,
   CASE WHEN :sortBy = 'name' THEN e.full_name END ASC,
   CASE WHEN :sortBy = 'recent' THEN e.id END DESC,
@@ -38,6 +55,18 @@ LIMIT :limit! OFFSET :offset!;
 SELECT COUNT(*)::integer as total 
 FROM entities e
 WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
+  AND COALESCE(e.junk_tier, 'clean') = 'clean'
+  AND COALESCE(e.quarantine_status, 0) = 0
+  AND e.full_name IS NOT NULL
+  AND BTRIM(e.full_name) != ''
+  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*'
+  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b'
+  AND LOWER(e.full_name) !~* '\b(mon|tue|wed|thu|fri|sat|sun)\s*$'
+  AND LOWER(e.full_name) !~* '\b([[:alpha:]]{3,})\s+\1\b'
+  AND LOWER(e.full_name) !~* '\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b'
+  AND LOWER(e.full_name) !~* '\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$'
+  AND LOWER(e.full_name) !~* '\b[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
+  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL);
 
 /* @name getEntityById */

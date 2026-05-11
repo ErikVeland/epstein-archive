@@ -588,6 +588,8 @@ if [ "$DEPLOY_DB" = true ]; then
       pnpm db:migrate:pg
       echo 'Running document provenance backfill...'
       PROVENANCE_BACKFILL_MAX="${PROVENANCE_BACKFILL_MAX:-0}" pnpm provenance:backfill
+      echo 'Quarantining entity-quality pollution before release verification...'
+      pnpm db:quarantine-junk-entities
       echo 'Running Postgres analyze after migrate...'
       pnpm db:analyze
 

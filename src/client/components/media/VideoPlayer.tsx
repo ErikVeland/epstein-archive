@@ -18,6 +18,8 @@ interface VideoPlayerProps {
   isSensitive?: boolean;
   warningText?: string;
   documentId?: number;
+  transcriptSearchExtensionLabel?: string;
+  onExtendTranscriptSearch?: (query: string) => void;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -30,6 +32,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   isSensitive = false,
   warningText = 'This content contains graphic descriptions of violence, sexual assault, child exploitation and murder.',
   documentId,
+  transcriptSearchExtensionLabel = 'Search album',
+  onExtendTranscriptSearch,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
@@ -636,29 +640,43 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       />
                       {normalizedTranscriptQuery && (
                         <div className={styles.searchMeta}>
-                          <span>
-                            {transcriptMatches.length
-                              ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
-                              : '0/0'}
-                          </span>
-                          <Button
-                            unstyled
-                            type="button"
-                            onClick={goToPrevTranscriptMatch}
-                            disabled={!transcriptMatches.length}
-                            className={styles.navMiniButton}
-                          >
-                            ↑
-                          </Button>
-                          <Button
-                            unstyled
-                            type="button"
-                            onClick={goToNextTranscriptMatch}
-                            disabled={!transcriptMatches.length}
-                            className={styles.navMiniButton}
-                          >
-                            ↓
-                          </Button>
+                          {transcriptMatches.length ? (
+                            <>
+                              <span>
+                                {currentMatchIndex + 1}/{transcriptMatches.length}
+                              </span>
+                              <Button
+                                unstyled
+                                type="button"
+                                onClick={goToPrevTranscriptMatch}
+                                className={styles.navMiniButton}
+                              >
+                                ↑
+                              </Button>
+                              <Button
+                                unstyled
+                                type="button"
+                                onClick={goToNextTranscriptMatch}
+                                className={styles.navMiniButton}
+                              >
+                                ↓
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <span>0/0 current</span>
+                              {onExtendTranscriptSearch && (
+                                <Button
+                                  unstyled
+                                  type="button"
+                                  onClick={() => onExtendTranscriptSearch(transcriptSearch)}
+                                  className={styles.extendSearchButton}
+                                >
+                                  {transcriptSearchExtensionLabel}
+                                </Button>
+                              )}
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -767,29 +785,43 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 />
                 {normalizedTranscriptQuery && (
                   <div className={styles.searchMeta}>
-                    <span>
-                      {transcriptMatches.length
-                        ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
-                        : '0/0'}
-                    </span>
-                    <Button
-                      unstyled
-                      type="button"
-                      onClick={goToPrevTranscriptMatch}
-                      disabled={!transcriptMatches.length}
-                      className={styles.navMiniButton}
-                    >
-                      ↑
-                    </Button>
-                    <Button
-                      unstyled
-                      type="button"
-                      onClick={goToNextTranscriptMatch}
-                      disabled={!transcriptMatches.length}
-                      className={styles.navMiniButton}
-                    >
-                      ↓
-                    </Button>
+                    {transcriptMatches.length ? (
+                      <>
+                        <span>
+                          {currentMatchIndex + 1}/{transcriptMatches.length}
+                        </span>
+                        <Button
+                          unstyled
+                          type="button"
+                          onClick={goToPrevTranscriptMatch}
+                          className={styles.navMiniButton}
+                        >
+                          ↑
+                        </Button>
+                        <Button
+                          unstyled
+                          type="button"
+                          onClick={goToNextTranscriptMatch}
+                          className={styles.navMiniButton}
+                        >
+                          ↓
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <span>0/0 current</span>
+                        {onExtendTranscriptSearch && (
+                          <Button
+                            unstyled
+                            type="button"
+                            onClick={() => onExtendTranscriptSearch(transcriptSearch)}
+                            className={styles.extendSearchButton}
+                          >
+                            {transcriptSearchExtensionLabel}
+                          </Button>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
               </div>

@@ -4,6 +4,7 @@ import { logger } from '../services/Logger.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 import { getSemanticCapability, SemanticCapability } from '../semantic/capability.js';
 import { searchDocumentsSemantic, searchEntitiesSemantic } from '../semantic/search.js';
+import { entityQualityWhereSql, isJunkEntityName } from './entityQuality.js';
 
 const normalizeAliasValue = (value: string): string =>
   value
@@ -84,6 +85,7 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
       FROM entities e
       WHERE COALESCE(e.junk_tier, 'clean') = 'clean'
         AND COALESCE(e.quarantine_status, 0) = 0
+        AND ${entityQualityWhereSql('e')}
         AND (
           e.full_name ILIKE $1
           OR COALESCE(e.aliases, '') ILIKE $1
@@ -109,6 +111,33 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
     `,
     [partialPattern, normalizedSearchTerm, limit, similarityThreshold],
   );
+}
+
+async function searchEntityLexicalRows(
+  searchTerm: string,
+  limit: number,
+  isPrefix: boolean,
+): Promise<EntitySearchRow[]> {
+  const queryFn = isPrefix ? 'to_tsquery' : 'websearch_to_tsquery';
+  const rankExpr = `ts_rank_cd(e.fts_vector, ${queryFn}('english', $1), 32)`;
+  const result = await getApiPool().query<EntitySearchRow>(
+    `
+      SELECT
+        e.id,
+        e.full_name AS "fullName",
+        e.primary_role AS "primaryRole",
+        e.aliases,
+        e.red_flag_rating AS "redFlagRating",
+        ${rankExpr} AS rank
+      FROM entities e
+      WHERE e.fts_vector @@ ${queryFn}('english', $1)
+        AND ${entityQualityWhereSql('e')}
+      ORDER BY rank DESC
+      LIMIT $2
+    `,
+    [searchTerm, limit],
+  );
+  return result.rows;
 }
 
 interface ISearchDocumentsResult {
@@ -302,13 +331,14 @@ export const searchRepository = {
           }>(
             `
               SELECT
-                id,
-                full_name AS "fullName",
-                primary_role AS "primaryRole",
-                aliases,
-                red_flag_rating AS "redFlagRating"
-              FROM entities
-              WHERE id = ANY($1::bigint[])
+                e.id,
+                e.full_name AS "fullName",
+                e.primary_role AS "primaryRole",
+                e.aliases,
+                e.red_flag_rating AS "redFlagRating"
+              FROM entities e
+              WHERE e.id = ANY($1::bigint[])
+                AND ${entityQualityWhereSql('e')}
             `,
             [semanticIds],
           );
@@ -323,15 +353,7 @@ export const searchRepository = {
       }
     } else {
       // Lexical or Hybrid
-      const entityRows = isPrefix
-        ? await searchQueries.searchEntitiesPrefix.run(
-            { searchTerm: tsArg, limit: safeLimit },
-            getApiPool(),
-          )
-        : await searchQueries.searchEntities.run(
-            { searchTerm: tsArg, limit: safeLimit },
-            getApiPool(),
-          );
+      const entityRows = await searchEntityLexicalRows(tsArg, safeLimit, isPrefix);
       mergedEntityRows = [...entityRows];
       mergedEntityRows.forEach((r) => entityMatchReasons.set(String(r.id), 'text'));
 
@@ -356,13 +378,14 @@ export const searchRepository = {
             }>(
               `
                 SELECT
-                  id,
-                  full_name AS "fullName",
-                  primary_role AS "primaryRole",
-                  aliases,
-                  red_flag_rating AS "redFlagRating"
-                FROM entities
-                WHERE id = ANY($1::bigint[])
+                  e.id,
+                  e.full_name AS "fullName",
+                  e.primary_role AS "primaryRole",
+                  e.aliases,
+                  e.red_flag_rating AS "redFlagRating"
+                FROM entities e
+                WHERE e.id = ANY($1::bigint[])
+                  AND ${entityQualityWhereSql('e')}
               `,
               [semanticIdsToFetch],
             );
@@ -389,6 +412,8 @@ export const searchRepository = {
       }
     }
 
+    mergedEntityRows = mergedEntityRows.filter((row) => !isJunkEntityName(row.fullName));
+
     if (!isPrefix && mergedEntityRows.length < safeLimit && effectiveMode !== 'semantic') {
       try {
         const fallbackRows = await loadEntityFallbackRows(
@@ -399,6 +424,7 @@ export const searchRepository = {
         for (const row of fallbackRows.rows) {
           const entityId = String(row.id);
           if (seenIds.has(entityId)) continue;
+          if (isJunkEntityName(row.fullName)) continue;
           mergedEntityRows.push(row);
           entityMatchReasons.set(entityId, 'entity-alias');
           seenIds.add(entityId);
@@ -682,6 +708,7 @@ export const searchRepository = {
           matchReason: entityMatchReasons.get(String(row.id)) || 'text',
         };
       })
+      .filter((entity) => !isJunkEntityName(entity.fullName))
       .filter((entity) => matchesTextFilter(entity.entityType, filters.entityType));
 
     const documents = docRows

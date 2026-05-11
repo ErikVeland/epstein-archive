@@ -10,6 +10,16 @@ FROM entities e
 WHERE e.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
   AND COALESCE(e.junk_tier, 'clean') = 'clean'
   AND COALESCE(e.quarantine_status, 0) = 0
+  AND e.full_name IS NOT NULL
+  AND BTRIM(e.full_name) != ''
+  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*'
+  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b'
+  AND LOWER(e.full_name) !~* '\b(mon|tue|wed|thu|fri|sat|sun)\s*$'
+  AND LOWER(e.full_name) !~* '\b([[:alpha:]]{3,})\s+\1\b'
+  AND LOWER(e.full_name) !~* '\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b'
+  AND LOWER(e.full_name) !~* '\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$'
+  AND LOWER(e.full_name) !~* '\b[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
+  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
 ORDER BY rank DESC
 LIMIT :limit!;
 
@@ -25,6 +35,16 @@ FROM entities e
 WHERE e.fts_vector @@ to_tsquery('english', :searchTerm!)
   AND COALESCE(e.junk_tier, 'clean') = 'clean'
   AND COALESCE(e.quarantine_status, 0) = 0
+  AND e.full_name IS NOT NULL
+  AND BTRIM(e.full_name) != ''
+  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*'
+  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b'
+  AND LOWER(e.full_name) !~* '\b(mon|tue|wed|thu|fri|sat|sun)\s*$'
+  AND LOWER(e.full_name) !~* '\b([[:alpha:]]{3,})\s+\1\b'
+  AND LOWER(e.full_name) !~* '\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b'
+  AND LOWER(e.full_name) !~* '\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$'
+  AND LOWER(e.full_name) !~* '\b[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
+  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
 ORDER BY rank DESC
 LIMIT :limit!;
 
@@ -155,5 +175,16 @@ SELECT
   1 - (description_embedding <=> :embedding) AS similarity
 FROM entities
 WHERE COALESCE(junk_tier, 'clean') = 'clean'
+  AND COALESCE(quarantine_status, 0) = 0
+  AND full_name IS NOT NULL
+  AND BTRIM(full_name) != ''
+  AND LOWER(full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*'
+  AND LOWER(full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b'
+  AND LOWER(full_name) !~* '\b(mon|tue|wed|thu|fri|sat|sun)\s*$'
+  AND LOWER(full_name) !~* '\b([[:alpha:]]{3,})\s+\1\b'
+  AND LOWER(full_name) !~* '\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b'
+  AND LOWER(full_name) !~* '\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$'
+  AND LOWER(full_name) !~* '\b[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
+  AND LOWER(full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
 ORDER BY similarity DESC
 LIMIT :limit!;

@@ -432,6 +432,7 @@
   gap: 0.25rem;
   color: var(--text-muted);
   font-size: 10px;
+  flex-shrink: 0;
 }
 .navMiniButton {
   padding: 0.125rem 0.25rem;
@@ -441,6 +442,16 @@
 }
 .navMiniButton:disabled {
   opacity: 0.4;
+}
+.extendSearchButton {
+  padding: 0.125rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
 }
 .transcriptList,
 .chapterList {
@@ -649,11 +660,19 @@
     position: relative;
     inset: auto;
     width: 20rem;
+    height: 100%;
+    min-height: 0;
     background: color-mix(in srgb, var(--glass-bg-strong) 30%, transparent);
     transform: translateX(0) !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
   .sidebarBody {
-    max-height: none;
+    max-height: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
   }
   .sidebarClose {
     display: none;

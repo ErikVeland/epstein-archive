@@ -5,10 +5,7 @@ import { getApiPool } from './connection.js';
 import { queryCache } from './cache.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 import { logger } from '../services/Logger.js';
-import {
-  ENTITY_BLACKLIST_PATTERNS,
-  ENTITY_PARTIAL_BLOCKLIST,
-} from '../../shared/config/entityBlacklist.js';
+import { canonicalEntityPriority, entityQualityWhereSql } from './entityQuality.js';
 
 export interface EntityRepositoryResult {
   entities: Record<string, unknown>[];
@@ -251,37 +248,59 @@ async function getSubjectCardsFallback(
 
   try {
     const results = await Promise.all([
-      runQuery<
-        {
-          searchTerm: string | null;
-          riskLevels: string[] | null;
-          minRedFlag: number | null;
-          maxRedFlag: number | null;
-          role: string | null;
-          sortBy: string | null;
-          limit: number;
-          offset: number;
-        },
-        SubjectCardRow
-      >(
-        entitiesQueries.getSubjectCards,
-        {
-          searchTerm,
-          riskLevels,
-          minRedFlag,
-          maxRedFlag,
-          role,
-          sortBy: pgSort,
-          limit,
-          offset,
-        },
-        pool,
-      ),
+      pool
+        .query<SubjectCardRow>({
+          text: `
+            SELECT
+              e.id,
+              e.full_name as "fullName",
+              e.primary_role as "primaryRole",
+              e.bio,
+              e.mentions,
+              e.risk_level as "riskLevel",
+              e.red_flag_rating as "redFlagRating",
+              e.connections_summary as "connections",
+              e.was_agentic as "wasAgentic",
+              (SELECT COUNT(*)::integer FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = 'media') as "mediaCount",
+              (SELECT COUNT(*)::integer FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
+              (
+                SELECT mi.id
+                FROM media_items mi
+                LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id::text
+                WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)
+                  AND mi.file_type ILIKE 'image/%'
+                ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC
+                LIMIT 1
+              ) as "topPhotoId"
+            FROM entities e
+            WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
+              AND ${entityQualityWhereSql('e')}
+              AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
+              AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
+              AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
+              AND ($5::text IS NULL OR e.primary_role = $5)
+            ORDER BY
+              CASE
+                WHEN $1::text IS NULL AND LOWER(e.full_name) = 'jeffrey epstein' THEN 0
+                WHEN $1::text IS NULL AND LOWER(e.full_name) = 'donald trump' THEN 1
+                ELSE 2
+              END ASC,
+              COALESCE(e.is_vip, 0) DESC,
+              CASE WHEN $6::text = 'name' THEN e.full_name END ASC,
+              CASE WHEN $6::text = 'recent' THEN e.id END DESC,
+              e.red_flag_rating DESC,
+              e.mentions DESC
+            LIMIT $7 OFFSET $8
+          `,
+          values: [searchTerm, riskLevels, minRedFlag, maxRedFlag, role, pgSort, limit, offset],
+        })
+        .then((result) => result.rows),
       pool.query<{ total: string }>({
         text: `
           SELECT COUNT(*) as total
           FROM entities e
           WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
+            AND ${entityQualityWhereSql('e')}
             AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
             AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
             AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
@@ -451,44 +470,7 @@ export const entitiesRepository = {
       }
     }
 
-    // Hard exclusion: never surface junk/OCR/role-fragment entities on the front page.
-    // This is a WHERE-level filter so junk can't bubble up regardless of sort order.
-    const sqlExclusions = [
-      `e.full_name ILIKE 'dear %'`,
-      `e.full_name ILIKE 'dearest %'`,
-      `e.full_name ILIKE 'watch %'`,
-      `e.full_name ILIKE 'watching %'`,
-      `e.full_name ILIKE 'defendant %'`,
-      `e.full_name ILIKE 'defendants %'`,
-      `e.full_name ILIKE 'plaintiff %'`,
-      `e.full_name ILIKE 'plaintiffs %'`,
-      `e.full_name ILIKE 'philanthropy %'`,
-      `LOWER(e.full_name) ~* '[a-z]s lawyer$'`,
-      `LOWER(e.full_name) ~* '[a-z]s assistant$'`,
-      `LOWER(e.full_name) ~* '[a-z]s pilot$'`,
-      `LOWER(e.full_name) ~* '[a-z]s masseuse$'`,
-      `LOWER(e.full_name) ~* '[a-z]s housekeeper$'`,
-      `LOWER(e.full_name) ~* '[a-z]s aide$'`,
-      `LOWER(e.full_name) ~* '[a-z]s counsel$'`,
-    ];
-
-    if (ENTITY_PARTIAL_BLOCKLIST.length > 0) {
-      const escapedPartials = ENTITY_PARTIAL_BLOCKLIST.map((p) =>
-        p.replace(/[-\\/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&'),
-      ).join('|');
-      const pParam2 = addParam(`(${escapedPartials})`);
-      sqlExclusions.push(`e.full_name ~* ${pParam2}`);
-    }
-
-    if (ENTITY_BLACKLIST_PATTERNS.length > 0) {
-      const escapedPatterns = ENTITY_BLACKLIST_PATTERNS.map((p) =>
-        p.replace(/[-\\/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&'),
-      ).join('|');
-      const patParam = addParam(`\\\\b(${escapedPatterns})\\\\b`);
-      sqlExclusions.push(`e.full_name ~* ${patParam}`);
-    }
-
-    whereParts.push(`NOT (${sqlExclusions.join(' OR ')})`);
+    whereParts.push(entityQualityWhereSql('e'));
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
@@ -511,6 +493,15 @@ export const entitiesRepository = {
     const sortKey = ALLOWED_SORT_KEYS.has(sortKeyRaw) ? sortKeyRaw : 'red_flag';
 
     const orderByTerms: string[] = [];
+    if (!searchTerm) {
+      orderByTerms.push(
+        `CASE
+          WHEN LOWER(COALESCE(e.full_name, '')) = 'jeffrey epstein' THEN 0
+          WHEN LOWER(COALESCE(e.full_name, '')) = 'donald trump' THEN 1
+          ELSE 2
+        END ASC`,
+      );
+    }
     orderByTerms.push(`${inferredRankExpr} ASC`);
     const documentCountExpr = `e.evidence_count`;
     const mentionCountExpr = `e.mentions`;
@@ -765,6 +756,12 @@ export const entitiesRepository = {
       };
       const dir = sortOrder === 'ASC' ? 1 : -1;
       const normalizedSubjects = Array.from(mergedByNormalizedName.values()).sort((a, b) => {
+        if (!searchTerm) {
+          const aPriority = canonicalEntityPriority(a.name);
+          const bPriority = canonicalEntityPriority(b.name);
+          if (aPriority !== bPriority) return aPriority - bPriority;
+        }
+
         const aRfi = Number(a.forensics.redFlagObjective || a.forensics.redFlagSubjective || 0);
         const bRfi = Number(b.forensics.redFlagObjective || b.forensics.redFlagSubjective || 0);
         const aRisk = riskRank(a.forensics.riskLevel);
@@ -880,33 +877,26 @@ export const entitiesRepository = {
   },
 
   getAllEntities: async (limit: number = 0): Promise<Array<Record<string, unknown>>> => {
-    const rows = await runQuery<
-      {
-        searchTerm: null;
-        riskLevels: null;
-        minRedFlag: null;
-        maxRedFlag: null;
-        role: null;
-        sortBy: 'name';
-        limit: number;
-        offset: number;
-      },
-      Record<string, unknown>
-    >(
-      entitiesQueries.getSubjectCards,
-      {
-        searchTerm: null,
-        riskLevels: null,
-        minRedFlag: null,
-        maxRedFlag: null,
-        role: null,
-        sortBy: 'name',
-        limit: limit > 0 ? limit : 1000,
-        offset: 0,
-      },
-      getApiPool(),
-    );
-    return rows;
+    const result = await getApiPool().query<Record<string, unknown>>({
+      text: `
+        SELECT
+          e.id,
+          e.full_name as "fullName",
+          e.primary_role as "primaryRole",
+          e.bio,
+          e.mentions,
+          e.risk_level as "riskLevel",
+          e.red_flag_rating as "redFlagRating",
+          e.connections_summary as "connections",
+          e.was_agentic as "wasAgentic"
+        FROM entities e
+        WHERE ${entityQualityWhereSql('e')}
+        ORDER BY LOWER(e.full_name) ASC
+        LIMIT $1
+      `,
+      values: [limit > 0 ? limit : 1000],
+    });
+    return result.rows;
   },
 
   getEntityById: async (

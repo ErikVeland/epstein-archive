@@ -118,6 +118,22 @@
   color: #fecaca;
 }
 
+.extensionBanner {
+  margin: var(--space-4) var(--space-6) 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--glass-border));
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.extensionMeta {
+  min-width: 0;
+}
+
+.extensionActions {
+  flex-shrink: 0;
+}
+
 .gridViewport {
   position: relative;
   flex: 1 1 auto;

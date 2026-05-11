@@ -26,6 +26,40 @@ function asNumber(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }
 
+function normalizeName(value: unknown): string {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractArray(body: Record<string, unknown>, keys: string[]): Record<string, unknown>[] {
+  for (const key of keys) {
+    const value = body[key];
+    if (Array.isArray(value)) return value as Record<string, unknown>[];
+  }
+  if (body.data && typeof body.data === 'object' && !Array.isArray(body.data)) {
+    for (const key of keys) {
+      const value = (body.data as Record<string, unknown>)[key];
+      if (Array.isArray(value)) return value as Record<string, unknown>[];
+    }
+  }
+  return [];
+}
+
+function isJunkEntityName(value: unknown): boolean {
+  const normalized = normalizeName(value);
+  if (!normalized) return true;
+  if (normalized === 'jeffrey epstein' || normalized === 'donald trump') return false;
+  return [
+    /^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*/i,
+    /^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b/i,
+    /\b(mon|tue|wed|thu|fri|sat|sun)\s*$/i,
+    /\b([a-z]{3,})\s+\1\b/i,
+    /\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b/i,
+  ].some((regex) => regex.test(normalized));
+}
+
 async function getJson(path: string): Promise<{ status: number; body: Record<string, unknown> }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -130,6 +164,38 @@ async function main() {
         throw new Error(`status=${status} dataIsArray=${Array.isArray(body.data)} total=${total}`);
       }
       return `threads=${body.data.length} total=${total}`;
+    }),
+
+    check('entity quality gates', async () => {
+      const failures: string[] = [];
+      for (const sortBy of ['red_flag', 'mentions']) {
+        const { status, body } = await getJson(
+          `/api/entities/subjects?page=1&limit=25&sortBy=${sortBy}`,
+        );
+        const subjects = extractArray(body, ['subjects', 'data', 'entities']);
+        const names = subjects.map((subject) => subject.name ?? subject.fullName);
+        if (status !== 200 || subjects.length < 2) {
+          failures.push(`${sortBy}: status=${status} subjects=${subjects.length}`);
+          continue;
+        }
+        if (
+          normalizeName(names[0]) !== 'jeffrey epstein' ||
+          normalizeName(names[1]) !== 'donald trump'
+        ) {
+          failures.push(`${sortBy}: top=${names.slice(0, 5).map(String).join(', ')}`);
+        }
+        const junk = names.find(isJunkEntityName);
+        if (junk) failures.push(`${sortBy}: junk=${String(junk)}`);
+      }
+
+      const search = await getJson('/api/search?q=department&limit=25');
+      const searchEntities = extractArray(search.body, ['entities']);
+      const searchNames = searchEntities.map((entity) => entity.name ?? entity.fullName);
+      const junkSearchEntity = searchNames.find(isJunkEntityName);
+      if (junkSearchEntity) failures.push(`search: junk=${String(junkSearchEntity)}`);
+
+      if (failures.length > 0) throw new Error(failures.join('; '));
+      return 'Jeffrey Epstein=#1 Donald Trump=#2; no junk entity leakage';
     }),
   ]);
 

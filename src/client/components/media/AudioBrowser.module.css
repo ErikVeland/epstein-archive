@@ -31,6 +31,22 @@
   min-width: 0;
 }
 
+.extensionBanner {
+  margin: 0 var(--space-6) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--glass-border));
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.extensionMeta {
+  min-width: 0;
+}
+
+.extensionActions {
+  flex-shrink: 0;
+}
+
 /* ─── Card header (image + overlay area) ────────────────── */
 
 .cardHeader {

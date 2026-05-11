@@ -490,6 +490,7 @@
   gap: 0.25rem;
   color: var(--text-muted);
   font-size: 10px;
+  flex-shrink: 0;
 }
 .navMiniButton {
   padding: 0.125rem 0.25rem;
@@ -499,6 +500,16 @@
 }
 .navMiniButton:disabled {
   opacity: 0.4;
+}
+.extendSearchButton {
+  padding: 0.125rem 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  white-space: nowrap;
 }
 .segmentList {
   display: flex;
@@ -702,9 +713,14 @@
     position: relative;
     inset: auto;
     width: 20rem;
+    height: 100%;
+    min-height: 0;
     background: color-mix(in srgb, var(--glass-bg-strong) 30%, transparent);
     flex-shrink: 0;
     transform: translateX(0) !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   .sidebarClose {
     display: none;
@@ -807,8 +823,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: var(--control-height-compact);
-  padding: 0 var(--space-3);
+  min-height: var(--control-height-compact);
+  padding: var(--space-1) var(--space-3);
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);

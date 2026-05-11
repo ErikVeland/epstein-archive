@@ -63,6 +63,15 @@ interface Album {
   sensitiveCount?: number;
 }
 
+type TranscriptSearchScope = 'album' | 'library';
+
+interface ExtendedTranscriptSearch {
+  query: string;
+  scope: TranscriptSearchScope;
+  originTitle: string;
+  albumName?: string;
+}
+
 const naturalTitleCollator = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: 'base',
@@ -233,6 +242,8 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
 export const VideoBrowser: React.FC = () => {
   const initialAlbumId = useMemo(() => getInitialAlbumIdFromUrl(), []);
   const [hasPeopleOnly, setHasPeopleOnly] = useState(false);
+  const [extendedTranscriptSearch, setExtendedTranscriptSearch] =
+    useState<ExtendedTranscriptSearch | null>(null);
   const { showAllSensitive } = useSensitiveSettings();
 
   const buildVideoQuery = useCallback(
@@ -292,6 +303,74 @@ export const VideoBrowser: React.FC = () => {
     () => albums.find((a) => a.id === selectedAlbum),
     [albums, selectedAlbum],
   );
+
+  const handleTranscriptSearchChange = useCallback(
+    (value: string) => {
+      setExtendedTranscriptSearch(null);
+      setTranscriptSearch(value);
+    },
+    [setTranscriptSearch],
+  );
+
+  const handleAlbumSelect = useCallback(
+    (albumId: number | null) => {
+      setExtendedTranscriptSearch(null);
+      setSelectedAlbum(albumId);
+    },
+    [setSelectedAlbum],
+  );
+
+  const searchFullLibrary = useCallback(
+    (query: string, originTitle: string) => {
+      const trimmed = query.trim();
+      if (!trimmed) return;
+      setSelectedAlbum(null);
+      setTranscriptSearch(trimmed);
+      setExtendedTranscriptSearch({ query: trimmed, scope: 'library', originTitle });
+    },
+    [setSelectedAlbum, setTranscriptSearch],
+  );
+
+  const handleExtendTranscriptSearch = useCallback(
+    (query: string) => {
+      const trimmed = query.trim();
+      if (!trimmed || !selectedItem) return;
+
+      const alreadySearchedAlbum =
+        extendedTranscriptSearch?.scope === 'album' &&
+        extendedTranscriptSearch.query.toLowerCase() === trimmed.toLowerCase();
+
+      if (selectedItem.albumId && !alreadySearchedAlbum) {
+        setSelectedAlbum(selectedItem.albumId);
+        setTranscriptSearch(trimmed);
+        setExtendedTranscriptSearch({
+          query: trimmed,
+          scope: 'album',
+          originTitle: selectedItem.title,
+          albumName: selectedItem.albumName,
+        });
+        return;
+      }
+
+      searchFullLibrary(trimmed, selectedItem.title);
+    },
+    [
+      extendedTranscriptSearch,
+      searchFullLibrary,
+      selectedItem,
+      setSelectedAlbum,
+      setTranscriptSearch,
+    ],
+  );
+
+  const transcriptSearchExtensionLabel = useMemo(() => {
+    if (!selectedItem?.albumId) return 'Search full library';
+    const query = transcriptSearch.trim().toLowerCase();
+    const alreadySearchedAlbum =
+      extendedTranscriptSearch?.scope === 'album' &&
+      extendedTranscriptSearch.query.toLowerCase() === query;
+    return alreadySearchedAlbum ? 'Search full library' : 'Search rest of album';
+  }, [extendedTranscriptSearch, selectedItem, transcriptSearch]);
 
   const toggleSelection = useCallback((id: number) => {
     setSelectedItems((prev) => {
@@ -423,7 +502,7 @@ export const VideoBrowser: React.FC = () => {
             <Flex align="center" gap="sm" className={styles.headerControls}>
               <SearchField
                 value={transcriptSearch}
-                onChange={(e) => setTranscriptSearch(e.target.value)}
+                onChange={(e) => handleTranscriptSearchChange(e.target.value)}
                 placeholder={
                   selectedAlbum ? 'Search transcripts in album...' : 'Search transcripts...'
                 }
@@ -466,7 +545,7 @@ export const VideoBrowser: React.FC = () => {
             <MobileAlbumDropdown
               albums={albums}
               selectedAlbum={selectedAlbum}
-              onSelectAlbum={setSelectedAlbum}
+              onSelectAlbum={handleAlbumSelect}
               isOpen={showAlbumDropdown}
               onToggle={() => setShowAlbumDropdown((v) => !v)}
               totalItemCount={libraryTotalCount}
@@ -480,7 +559,7 @@ export const VideoBrowser: React.FC = () => {
           <AlbumSidebar
             albums={albums}
             selectedAlbum={selectedAlbum}
-            onSelectAlbum={setSelectedAlbum}
+            onSelectAlbum={handleAlbumSelect}
             totalItemCount={libraryTotalCount}
             allLabel="All Videos"
           />
@@ -493,6 +572,47 @@ export const VideoBrowser: React.FC = () => {
             )}
 
             {showSensitiveWarning && <SensitiveWarningBanner mediaType="video" />}
+
+            {extendedTranscriptSearch && transcriptSearch.trim() && (
+              <Surface variant="glass-strong" className={styles.extensionBanner}>
+                <Flex align="center" justify="between" gap="md" fullWidth>
+                  <Flex align="center" gap="sm" className={styles.extensionMeta}>
+                    <Icon name="Search" size="sm" />
+                    <LqText variant="xs" weight="bold">
+                      {extendedTranscriptSearch.scope === 'album'
+                        ? `No hit in the open transcript. Searching the rest of ${extendedTranscriptSearch.albumName || 'this album'} for "${extendedTranscriptSearch.query}".`
+                        : `No hit in the open transcript or album. Searching the full video library for "${extendedTranscriptSearch.query}".`}
+                    </LqText>
+                  </Flex>
+                  <Flex align="center" gap="xs" className={styles.extensionActions}>
+                    {extendedTranscriptSearch.scope === 'album' && (
+                      <Button
+                        variant="glass"
+                        size="sm"
+                        onClick={() =>
+                          searchFullLibrary(
+                            extendedTranscriptSearch.query,
+                            extendedTranscriptSearch.originTitle,
+                          )
+                        }
+                      >
+                        Search full library
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setExtendedTranscriptSearch(null);
+                        setTranscriptSearch('');
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </Flex>
+                </Flex>
+              </Surface>
+            )}
 
             {error && (
               <Surface variant="glass-strong" className={styles.errorBanner}>
@@ -618,6 +738,8 @@ export const VideoBrowser: React.FC = () => {
                       ? Number(selectedItem.metadata.documentId)
                       : undefined
                   }
+                  transcriptSearchExtensionLabel={transcriptSearchExtensionLabel}
+                  onExtendTranscriptSearch={handleExtendTranscriptSearch}
                 />
               </Box>
             </Box>,

@@ -32,6 +32,8 @@ interface AudioPlayerProps {
   documentId?: number;
   initialTime?: number;
   albumImages?: string[];
+  transcriptSearchExtensionLabel?: string;
+  onExtendTranscriptSearch?: (query: string) => void;
 }
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
@@ -43,6 +45,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   isSensitive = false,
   warningText = 'This content contains graphic descriptions of violence, sexual assault, child exploitation and murder.',
   initialTime = 0,
+  transcriptSearchExtensionLabel = 'Search album',
+  onExtendTranscriptSearch,
 }) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
@@ -64,11 +68,23 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [activeSegmentIndex, setActiveSegmentIndex] = useState<number>(-1);
   const [barHeights, setBarHeights] = useState<number[]>(Array.from({ length: 32 }).map(() => 20));
   const [transcriptSearch, setTranscriptSearch] = useState('');
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
   const normalizedTranscriptQuery = useMemo(
     () => transcriptSearch.trim().toLowerCase(),
     [transcriptSearch],
   );
+
+  const transcriptMatches = useMemo(() => {
+    if (!normalizedTranscriptQuery || !Array.isArray(transcript)) return [] as number[];
+    return transcript
+      .map((seg, index) => ({
+        index,
+        text: `${seg.text || ''} ${seg.speaker || ''}`.toLowerCase(),
+      }))
+      .filter(({ text }) => text.includes(normalizedTranscriptQuery))
+      .map(({ index }) => index);
+  }, [transcript, normalizedTranscriptQuery]);
 
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -157,6 +173,30 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       setCurrentTime(audioRef.current.currentTime);
     },
     [duration],
+  );
+
+  const jumpToTranscriptMatch = useCallback(
+    (nextIndex: number) => {
+      if (!transcriptMatches.length) return;
+      const wrapped = (nextIndex + transcriptMatches.length) % transcriptMatches.length;
+      const segIndex = transcriptMatches[wrapped];
+      const seg = transcript[segIndex];
+      if (!seg) return;
+      setCurrentMatchIndex(wrapped);
+      seek(seg.start);
+      scrollToSegment(segIndex);
+    },
+    [transcriptMatches, transcript, seek, scrollToSegment],
+  );
+
+  const goToNextTranscriptMatch = useCallback(
+    () => jumpToTranscriptMatch(currentMatchIndex + 1),
+    [currentMatchIndex, jumpToTranscriptMatch],
+  );
+
+  const goToPrevTranscriptMatch = useCallback(
+    () => jumpToTranscriptMatch(currentMatchIndex - 1),
+    [currentMatchIndex, jumpToTranscriptMatch],
   );
 
   const formatTime = (time: number) => {
@@ -345,45 +385,98 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       type="text"
                       placeholder="Search signals..."
                       value={transcriptSearch}
-                      onChange={(e) => setTranscriptSearch(e.target.value)}
+                      onChange={(e) => {
+                        setTranscriptSearch(e.target.value);
+                        setCurrentMatchIndex(0);
+                      }}
                       className={styles.searchInput}
                     />
+                    {normalizedTranscriptQuery && (
+                      <div className={styles.searchMeta}>
+                        {transcriptMatches.length ? (
+                          <>
+                            <span>
+                              {currentMatchIndex + 1}/{transcriptMatches.length}
+                            </span>
+                            <Button
+                              unstyled
+                              type="button"
+                              onClick={goToPrevTranscriptMatch}
+                              className={styles.navMiniButton}
+                            >
+                              ↑
+                            </Button>
+                            <Button
+                              unstyled
+                              type="button"
+                              onClick={goToNextTranscriptMatch}
+                              className={styles.navMiniButton}
+                            >
+                              ↓
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <span>0/0 current</span>
+                            {onExtendTranscriptSearch && (
+                              <Button
+                                unstyled
+                                type="button"
+                                onClick={() => onExtendTranscriptSearch(transcriptSearch)}
+                                className={styles.extendSearchButton}
+                              >
+                                {transcriptSearchExtensionLabel}
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </Box>
                 </Box>
                 <Box grow className={styles.transcriptScroll} ref={transcriptRef}>
                   {transcript.length > 0 ? (
                     <Stack gap="none">
-                      {transcript.map((seg, i) => (
-                        <Box
-                          key={i}
-                          className={cn(
-                            styles.segment,
-                            activeSegmentIndex === i && styles.segmentActive,
-                          )}
-                          onClick={() => seek(seg.start)}
-                        >
-                          <Flex align="center" justify="between" mb="xs">
-                            <LqText variant="xs" weight="bold" color="accent">
-                              {formatTime(seg.start)}
-                            </LqText>
-                            {seg.speaker && (
+                      {transcript.map((seg, i) =>
+                        (() => {
+                          const isMatch =
+                            !!normalizedTranscriptQuery && transcriptMatches.includes(i);
+                          const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === i;
+                          return (
+                            <Box
+                              key={i}
+                              className={cn(
+                                styles.segment,
+                                activeSegmentIndex === i && styles.segmentActive,
+                                isCurrent && styles.segmentCurrentMatch,
+                                !isCurrent && isMatch && styles.segmentMatch,
+                              )}
+                              onClick={() => seek(seg.start)}
+                            >
+                              <Flex align="center" justify="between" mb="xs">
+                                <LqText variant="xs" weight="bold" color="accent">
+                                  {formatTime(seg.start)}
+                                </LqText>
+                                {seg.speaker && (
+                                  <LqText
+                                    variant="xs"
+                                    color="muted"
+                                    style={css({ textTransform: 'uppercase' })}
+                                  >
+                                    {seg.speaker}
+                                  </LqText>
+                                )}
+                              </Flex>
                               <LqText
                                 variant="xs"
-                                color="muted"
-                                style={css({ textTransform: 'uppercase' })}
+                                color={activeSegmentIndex === i ? 'foreground' : 'muted'}
                               >
-                                {seg.speaker}
+                                {seg.text}
                               </LqText>
-                            )}
-                          </Flex>
-                          <LqText
-                            variant="xs"
-                            color={activeSegmentIndex === i ? 'foreground' : 'muted'}
-                          >
-                            {seg.text}
-                          </LqText>
-                        </Box>
-                      ))}
+                            </Box>
+                          );
+                        })(),
+                      )}
                     </Stack>
                   ) : (
                     <Flex align="center" justify="center" fullHeight p="xl">

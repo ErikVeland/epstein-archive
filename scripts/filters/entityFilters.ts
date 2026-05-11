@@ -181,6 +181,10 @@ const JUNK_PHRASES = new Set([
   'center',
   'medical',
   'health',
+  'attorney',
+  'professor',
+  'judge',
+  'trust agreement',
   'street',
   'avenue',
   'road',
@@ -331,6 +335,13 @@ const JUNK_PHRASES = new Set([
   'zorro automobiles',
   'search personnel sam',
   'hong kong',
+  'associates inc',
+  'department department',
+  'communication department',
+  'current department policy',
+  'treasury department',
+  'statistics department',
+  'acting department',
 ]);
 
 const JUNK_REGEX = [
@@ -388,6 +399,15 @@ const JUNK_REGEX = [
   /\.\.\.$/,
   /containessitems/i,
   /structures\s+contai/i,
+  /^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun)\b/i,
+  /^(on|at|in|with)\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i,
+  /^hi jeffrey$/i,
+  /^original message$/i,
+  /\bsubject$/i,
+  /\b([a-z]{3,})\s+\1\b/i,
+  /\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b/i,
+  /\b(?:lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$/i,
+  /\b\w+'?s\s+(?:lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b/i,
 ];
 
 export function isJunkEntity(name: string): boolean {
