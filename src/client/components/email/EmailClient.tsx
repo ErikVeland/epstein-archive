@@ -353,7 +353,9 @@ export const EmailClient: React.FC = () => {
   const mailboxes = useMemo(() => {
     // Filter out junk entities and unverified/non-VIP accounts if junk is suppressed
     if (!showSuppressedJunk) {
-      return rawMailboxes.filter((m) => (m.isVip || m.isVerified) && !isJunkEntity(m.displayName));
+      return rawMailboxes.filter(
+        (m) => m.mailboxId === 'all' || ((m.isVip || m.isVerified) && !isJunkEntity(m.displayName)),
+      );
     }
     return rawMailboxes;
   }, [rawMailboxes, showSuppressedJunk]);
