@@ -722,17 +722,25 @@ async function ocrFallbackForPdf(
   try {
     for (let i = 0; i < pageCount; i++) {
       try {
-        // Render PDF page to a high-res PNG buffer — same path sharp already
-        // uses for phash generation, so we know this works on this corpus.
-        const imageBuffer = await sharp(pdfPath, { page: i })
-          .resize({ width: 2400 }) // ~300 DPI equivalent — sweet spot for Tesseract
-          .png()
-          .toBuffer();
+        // Render PDF page to high-res PNG buffer via native pdftoppm (Poppler)
+        // This bypasses vips/sharp limitations that prevent rendering some of this corpus' PDFs.
+        const pageNum = i + 1;
+        const imageBuffer = await new Promise<Buffer>((resolve, reject) => {
+          execFile(
+            'pdftoppm',
+            ['-png', '-r', '300', '-f', `${pageNum}`, '-l', `${pageNum}`, pdfPath],
+            { encoding: 'buffer', maxBuffer: 50 * 1024 * 1024 },
+            (err, stdout) => {
+              if (err) reject(err);
+              else resolve(stdout);
+            },
+          );
+        });
 
         const {
           data: { text },
         } = await worker.recognize(imageBuffer);
-        pages.push({ text: text.trim(), pageNumber: i + 1, source: 'ocr' });
+        pages.push({ text: text.trim(), pageNumber: pageNum, source: 'ocr' });
       } catch (pageErr) {
         console.warn(`  ⚠️  OCR failed on page ${i + 1}:`, (pageErr as Error).message);
         pages.push({ text: '', pageNumber: i + 1, source: 'ocr' });

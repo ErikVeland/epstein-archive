@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.2 - 2026-05-11 - Entity Filtration Hardening
+
+### Pipeline & Infrastructure
+
+- **Entity Leakage Patch**: Upgraded entity ingestion pipeline to use RegEx word-boundary detection instead of strict string equality, preventing compound phrases (e.g., "Associates Inc", "Trust Agreement") from bypassing blacklists.
+- **Dynamic Guardrails**: Re-wired the server's endpoint filter logic to dynamically generate exclusions from the canonical shared blocklist, replacing disconnected hard-coded lists.
+- **Decontamination Sweep**: Automatically purged legacy duplicates and chronological fragments ("On Mon") that snuck in through development bypasses.
+
 ## 21.2.1 - 2026-05-11 - Entity Links & Inbox Settings
 
 ### Knowledge Graph Hardening

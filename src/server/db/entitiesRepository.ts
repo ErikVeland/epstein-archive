@@ -5,6 +5,10 @@ import { getApiPool } from './connection.js';
 import { queryCache } from './cache.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 import { logger } from '../services/Logger.js';
+import {
+  ENTITY_BLACKLIST_PATTERNS,
+  ENTITY_PARTIAL_BLOCKLIST,
+} from '@shared/config/entityBlacklist.js';
 
 export interface EntityRepositoryResult {
   entities: Record<string, unknown>[];
@@ -402,73 +406,6 @@ export const entitiesRepository = {
     const offset = (page - 1) * limit;
     const isDegradedMode = process.env.DEGRADED_MODE === '1';
 
-    if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
-      const pool = getApiPool();
-      try {
-        const { rows } = await pool.query(
-          `
-          SELECT
-            e.id,
-            e.full_name as "fullName",
-            e.primary_role as "primaryRole",
-            e.bio,
-            COALESCE(e.mentions, 0) as mentions,
-            e.risk_level as "riskLevel",
-            e.red_flag_rating as "redFlagRating",
-            e.connections_summary as "connections"
-          FROM entities e
-          ORDER BY e.mentions DESC
-          LIMIT $1 OFFSET $2
-        `,
-          [limit, offset],
-        );
-
-        const subjects: SubjectCardListItemDto[] = rows.map((e) => {
-          return {
-            id: String(e.id),
-            name: String(e.fullName || 'Unknown'),
-            role: String(e.primaryRole || 'Unknown'),
-            shortBio: typeof e.bio === 'string' ? e.bio : undefined,
-            stats: {
-              mentions: Number(e.mentions || 0),
-              documents: 1,
-              distinctSources: 1,
-              verifiedMedia: 1,
-            },
-            forensics: {
-              riskLevel: 'LOW',
-              evidenceLadder: 'L3',
-              redFlagObjective: Number(e.redFlagRating || 0),
-              redFlagSubjective: Number(e.redFlagRating || 0),
-              signalStrength: {
-                exposure: 50,
-                connectivity: 10,
-                corroboration: 10,
-              },
-              driverLabels: [],
-            },
-            topPhotoId: undefined,
-          };
-        });
-
-        const { rows: countRows } = await pool.query(
-          'SELECT COUNT(*)::bigint AS total FROM entities',
-        );
-        return {
-          subjects,
-          total: Number(countRows[0]?.total || 0),
-        };
-      } catch (err) {
-        if (isDegradedMode) {
-          logger.warn(
-            { err },
-            'Subject-card dev shortcut unavailable in degraded mode; returning empty subject list',
-          );
-          return { subjects: [], total: 0 };
-        }
-      }
-    }
-
     const searchTerm = filters?.searchTerm ? `%${filters.searchTerm.trim()}%` : null;
     const riskLevels = filters?.likelihoodScore
       ? filters.likelihoodScore.map((s) => String(s).toUpperCase())
@@ -516,24 +453,42 @@ export const entitiesRepository = {
 
     // Hard exclusion: never surface junk/OCR/role-fragment entities on the front page.
     // This is a WHERE-level filter so junk can't bubble up regardless of sort order.
-    whereParts.push(`NOT (
-      e.full_name ILIKE 'dear %'
-      OR e.full_name ILIKE 'dearest %'
-      OR e.full_name ILIKE 'watch %'
-      OR e.full_name ILIKE 'watching %'
-      OR e.full_name ILIKE 'defendant %'
-      OR e.full_name ILIKE 'defendants %'
-      OR e.full_name ILIKE 'plaintiff %'
-      OR e.full_name ILIKE 'plaintiffs %'
-      OR e.full_name ILIKE 'philanthropy %'
-      OR LOWER(e.full_name) ~* '[a-z]s lawyer$'
-      OR LOWER(e.full_name) ~* '[a-z]s assistant$'
-      OR LOWER(e.full_name) ~* '[a-z]s pilot$'
-      OR LOWER(e.full_name) ~* '[a-z]s masseuse$'
-      OR LOWER(e.full_name) ~* '[a-z]s housekeeper$'
-      OR LOWER(e.full_name) ~* '[a-z]s aide$'
-      OR LOWER(e.full_name) ~* '[a-z]s counsel$'
-    )`);
+    const sqlExclusions = [
+      `e.full_name ILIKE 'dear %'`,
+      `e.full_name ILIKE 'dearest %'`,
+      `e.full_name ILIKE 'watch %'`,
+      `e.full_name ILIKE 'watching %'`,
+      `e.full_name ILIKE 'defendant %'`,
+      `e.full_name ILIKE 'defendants %'`,
+      `e.full_name ILIKE 'plaintiff %'`,
+      `e.full_name ILIKE 'plaintiffs %'`,
+      `e.full_name ILIKE 'philanthropy %'`,
+      `LOWER(e.full_name) ~* '[a-z]s lawyer$'`,
+      `LOWER(e.full_name) ~* '[a-z]s assistant$'`,
+      `LOWER(e.full_name) ~* '[a-z]s pilot$'`,
+      `LOWER(e.full_name) ~* '[a-z]s masseuse$'`,
+      `LOWER(e.full_name) ~* '[a-z]s housekeeper$'`,
+      `LOWER(e.full_name) ~* '[a-z]s aide$'`,
+      `LOWER(e.full_name) ~* '[a-z]s counsel$'`,
+    ];
+
+    if (ENTITY_PARTIAL_BLOCKLIST.length > 0) {
+      const escapedPartials = ENTITY_PARTIAL_BLOCKLIST.map((p) =>
+        p.replace(/[-\\/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&'),
+      ).join('|');
+      const pParam2 = addParam(`(${escapedPartials})`);
+      sqlExclusions.push(`e.full_name ~* ${pParam2}`);
+    }
+
+    if (ENTITY_BLACKLIST_PATTERNS.length > 0) {
+      const escapedPatterns = ENTITY_BLACKLIST_PATTERNS.map((p) =>
+        p.replace(/[-\\/\\\\^$*+?.()|[\\]{}]/g, '\\\\$&'),
+      ).join('|');
+      const patParam = addParam(`\\\\b(${escapedPatterns})\\\\b`);
+      sqlExclusions.push(`e.full_name ~* ${patParam}`);
+    }
+
+    whereParts.push(`NOT (${sqlExclusions.join(' OR ')})`);
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
