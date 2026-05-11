@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-05-08T02:30:49.647Z",
+  "generatedAt": "2026-05-11T04:14:13.563Z",
   "source": "postgres",
   "counts": {
     "documents": 1425129,
     "refinedDocuments": 315332,
     "financialTransactions": 1383,
     "claimTriples": 713123,
-    "relations": 11721,
+    "relations": 1669453,
     "timelineEvents": 314
   },
   "financialTransactions": [
