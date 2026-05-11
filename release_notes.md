@@ -1,5 +1,11 @@
 # Release Notes
 
+## 21.2.5 - 2026-05-11 - PM2 Cutover Detector Fix
+
+### Production Reliability
+
+- **PM2 Mode Detector Fix**: Corrected the deploy-time PM2 JSON parser so the zero-interruption cluster migration can detect `fork_mode` without shadowing Node's `process` object.
+
 ## 21.2.4 - 2026-05-11 - Production Hardening Follow-Through
 
 ### Production Reliability

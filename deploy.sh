@@ -113,7 +113,7 @@ PM2_MODE=\$(APP_NAME=epstein-archive pm2 jlist | node -e '
   let input = "";
   process.stdin.on("data", (chunk) => input += chunk);
   process.stdin.on("end", () => {
-    const app = JSON.parse(input).find((process) => process.name === process.env.APP_NAME);
+    const app = JSON.parse(input).find((pm2Process) => pm2Process.name === process.env.APP_NAME);
     process.stdout.write(app?.pm2_env?.exec_mode || "missing");
   });
 ')
