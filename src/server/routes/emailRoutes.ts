@@ -328,8 +328,13 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
     const showYahooPostMortem = readOptionalBoolean(queryParams.showYahooPostMortem) ?? true;
     const showEmptyBodies = readOptionalBoolean(queryParams.showEmptyBodies) ?? true;
     const topic = readString(queryParams.topic);
-    const sortBy = (readString(queryParams.sortBy) || 'date') as any;
-    const sortOrder = (readString(queryParams.sortOrder) || 'desc') as any;
+    const sortBy = (readString(queryParams.sortBy) || 'date') as
+      | 'date'
+      | 'subject'
+      | 'views'
+      | 'stars'
+      | 'participants';
+    const sortOrder = (readString(queryParams.sortOrder) || 'desc') as 'asc' | 'desc';
 
     let topicDocIds: string[] = [];
     if (topic && topic.trim().length > 0) {

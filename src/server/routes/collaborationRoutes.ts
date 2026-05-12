@@ -10,6 +10,10 @@ interface PresenceUser {
   lastActive: number;
 }
 
+interface AuthRequest extends express.Request {
+  user?: { id: string | number; username: string };
+}
+
 const presenceStore = new Map<string, PresenceUser>();
 
 // Clear stale heartbeats (users inactive for more than 15s)
@@ -23,7 +27,7 @@ setInterval(() => {
 }, 5000);
 
 // POST /api/collaboration/heartbeat
-router.post('/heartbeat', optionalAuthenticate, (req: any, res) => {
+router.post('/heartbeat', optionalAuthenticate, (req: AuthRequest, res) => {
   const user = req.user || { id: 'anonymous', username: 'Anonymous Researcher' };
   const { path } = req.body;
 

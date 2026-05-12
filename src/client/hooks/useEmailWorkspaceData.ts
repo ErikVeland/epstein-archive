@@ -205,7 +205,6 @@ export function useEmailWorkspaceData({
       fromFilter,
       hasAttachmentsOnly,
       minRisk,
-      minRisk,
       selectedMailboxId,
       selectedThreadId,
       showSuppressedJunk,

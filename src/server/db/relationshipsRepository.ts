@@ -523,7 +523,14 @@ export const relationshipsRepository = {
     return res.rows[0] ?? null;
   },
 
-  async resolveShortestPath(sourceId: string, targetId: string): Promise<any | null> {
+  async resolveShortestPath(
+    sourceId: string,
+    targetId: string,
+  ): Promise<{
+    hops: number;
+    nodes: Array<{ id: string; name: string; type: string }>;
+    edges: Array<{ source: string; target: string; type: string }>;
+  } | null> {
     const pool = getApiPool();
     try {
       const res = await pool.query(
@@ -560,7 +567,7 @@ export const relationshipsRepository = {
           nodeMap.get(String(nid)) ?? { id: String(nid), name: String(nid), type: 'unknown' },
       );
 
-      const edges: any[] = [];
+      const edges: Array<{ source: string; target: string; type: string }> = [];
       for (let i = 0; i < nodeIds.length - 1; i++) {
         edges.push({
           source: String(nodeIds[i]),

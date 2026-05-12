@@ -376,10 +376,14 @@ wait_for_ci_green() {
   log_step "Waiting for GitHub Actions CI to pass for ${sha:0:8}..."
 
   for attempt in $(seq 1 "$max_attempts"); do
-    payload=$(curl -fsSL \
-      -H "Accept: application/vnd.github+json" \
-      -H "X-GitHub-Api-Version: 2022-11-28" \
-      "$api_url") || {
+    local curl_args=("-fsSL" "-H" "Accept: application/vnd.github+json" "-H" "X-GitHub-Api-Version: 2022-11-28")
+    if [ -n "${GH_TOKEN:-}" ]; then
+      curl_args+=("-H" "Authorization: Bearer $GH_TOKEN")
+    elif [ -n "${GITHUB_TOKEN:-}" ]; then
+      curl_args+=("-H" "Authorization: Bearer $GITHUB_TOKEN")
+    fi
+    
+    payload=$(curl "${curl_args[@]}" "$api_url") || {
         if command -v gh >/dev/null 2>&1; then
           row=$(gh run list --workflow CI --limit 20 --json headSha,status,conclusion,url,createdAt \
             | jq -r --arg sha "$sha" '

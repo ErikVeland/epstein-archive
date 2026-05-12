@@ -7,6 +7,8 @@ on:
 
 permissions:
   contents: write
+  actions: read
+  checks: read
 
 concurrency:
   group: epstein-production
@@ -73,4 +75,5 @@ jobs:
           DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test
           EPSTEIN_PROD_HOST: ${{ secrets.PROD_HOST || '194.195.248.217' }}
           EPSTEIN_PROD_SSH_USER: ${{ secrets.PROD_USER || 'svc_epstein' }}
+          GH_TOKEN: ${{ github.token }}
         run: ./deploy.sh

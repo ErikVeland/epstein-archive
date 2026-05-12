@@ -72,10 +72,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [failedCoverImages, setFailedCoverImages] = useState<Set<string>>(() => new Set());
+  const [lastAlbumImages, setLastAlbumImages] = useState(albumImages);
 
-  useEffect(() => {
+  if (albumImages !== lastAlbumImages) {
+    setLastAlbumImages(albumImages);
     setFailedCoverImages(new Set());
-  }, [albumImages]);
+  }
 
   const coverImage = useMemo(
     () => albumImages.find((image) => image && !failedCoverImages.has(image)) || null,

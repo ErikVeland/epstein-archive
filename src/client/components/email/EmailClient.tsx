@@ -200,10 +200,16 @@ export const EmailClient: React.FC = () => {
   const [minRisk, setMinRisk] = useState(Number(searchParams.get('minRisk') || 0));
   const [topic, setTopic] = useState(searchParams.get('topic') || '');
   const [sortBy, setSortBy] = useState<'date' | 'subject' | 'views' | 'stars' | 'participants'>(
-    (searchParams.get('sortBy') as any) || 'date',
+    (searchParams.get('sortBy') as
+      | 'date'
+      | 'subject'
+      | 'views'
+      | 'stars'
+      | 'participants'
+      | null) || 'date',
   );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(
-    (searchParams.get('sortOrder') as any) || 'desc',
+    (searchParams.get('sortOrder') as 'asc' | 'desc' | null) || 'desc',
   );
   const [isNavigatingRandom, setIsNavigatingRandom] = useState(false);
 

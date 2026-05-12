@@ -92,7 +92,7 @@ async function safeQuery<T>(
     return await fn();
   } catch (err) {
     // Silence spam for known dropped legacy tables (42P01 = undefined table)
-    if ((err as any)?.code === '42P01') {
+    if (err instanceof Error && (err as { code?: string }).code === '42P01') {
       logger.debug({ label }, '[Intelligence] Skipping optional queue: table missing');
     } else {
       logger.warn({ err, label }, '[Intelligence] optional queue unavailable, skipping');
@@ -105,7 +105,7 @@ async function safeCount(label: string, fn: () => Promise<number>): Promise<numb
   try {
     return await fn();
   } catch (err) {
-    if ((err as any)?.code === '42P01') {
+    if (err instanceof Error && (err as { code?: string }).code === '42P01') {
       logger.debug({ label }, '[Intelligence] Skipping optional count: table missing');
     } else {
       logger.warn({ err, label }, '[Intelligence] optional count unavailable, skipping');
