@@ -7,6 +7,8 @@
 - **WIRED Article Restoration**: Re-seeds the WIRED article by canonical link with correct publication metadata, author, publish date, and a durable archive thumbnail.
 - **Broken Media Repair**: Replaces the nonnumeric `wired_cover_1` media id with a numeric media row the thumbnail API can serve, and points it at a deployable public asset instead of ignored local data.
 - **Thumbnail Resilience**: Adds a graceful media-browser fallback so a missing thumbnail renders an archive card instead of the browser's broken-image icon.
+- **GitHub Actions Modernization**: Bumps action dependencies to the canonical v6 Node-aligned releases, formally resolving runner deprecation alerts across all workflows.
+- **Bundler Initialization Safety**: Reverts accidental activation of the experiment manualChunks directive to neutralize the `AsyncMode` runtime race condition.
 
 ## 21.2.15 - 2026-05-12 - Analytics Maintenance & Component Decoupling
 

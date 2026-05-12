@@ -37,40 +37,12 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        // manualChunks removed to fix initialization order issues
+        /*
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('pdfjs-dist') || id.includes('react-pdf')) {
-              return 'vendor-pdf';
-            }
-            if (id.includes('leaflet') || id.includes('react-leaflet')) {
-              return 'vendor-maps';
-            }
-            if (
-              id.includes('recharts') ||
-              id.includes('d3-') ||
-              id.includes('d3') ||
-              id.includes('victory')
-            ) {
-              return 'vendor-charts';
-            }
-            if (
-              id.includes('react') ||
-              id.includes('react-dom') ||
-              id.includes('react-router') ||
-              id.includes('framer-motion')
-            ) {
-              return 'vendor-core';
-            }
-            if (id.includes('@radix-ui') || id.includes('lucide-react')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('sentry')) {
-              return 'vendor-sentry';
-            }
-            // Catch-all for general node modules to prevent them spilling into main code
-            return 'vendor';
-          }
-        },
+          ...
+        }
+        */
       },
     },
     chunkSizeWarningLimit: 1000,
