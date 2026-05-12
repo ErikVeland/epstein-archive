@@ -16,6 +16,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   placeholderSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
   threshold = 0.1,
   className,
+  onError,
   ...props
 }) => {
   // Check if this image was already loaded (prevents flicker on re-render)
@@ -47,6 +48,16 @@ export const LazyImage: React.FC<LazyImageProps> = ({
     });
   }, [src]);
 
+  const handleError = useCallback(
+    (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      requestAnimationFrame(() => {
+        setIsLoaded(true);
+      });
+      onError?.(event);
+    },
+    [onError],
+  );
+
   // If src changes and it's already cached, immediately show it
   const [shouldAnimate] = useState(!wasAlreadyLoaded);
   const resolvedSrc = isInView || wasAlreadyLoaded ? src : placeholderSrc;
@@ -60,6 +71,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       loading="lazy"
       decoding="async"
       onLoad={handleLoad}
+      onError={handleError}
       className={`${s.img} ${resolvedLoaded ? s.loaded : s.loading} ${className || ''}`}
       data-animate={shouldAnimate || undefined}
       {...props}

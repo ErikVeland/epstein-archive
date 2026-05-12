@@ -68,6 +68,43 @@ interface ItemData {
   formatFileSize: (b: number | string | undefined) => string;
 }
 
+const MediaThumbnail: React.FC<{
+  image: MediaImage;
+  className: string;
+  compact?: boolean;
+}> = ({ image, className, compact = false }) => {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <Flex
+        align="center"
+        justify="center"
+        className={cn(styles.thumbnailFallback, compact && styles.thumbnailFallbackCompact)}
+      >
+        <Stack gap="xs" align="center" className={styles.thumbnailFallbackContent}>
+          <Icon name="Image" size={compact ? 'sm' : 'lg'} className={styles.iconMuted} />
+          {!compact && (
+            <LqText variant="xs" weight="bold" align="center">
+              {image.title || 'Media preview unavailable'}
+            </LqText>
+          )}
+        </Stack>
+      </Flex>
+    );
+  }
+
+  return (
+    <LazyImage
+      key={image.id}
+      src={`/api/media/images/${image.id}/thumbnail`}
+      alt={image.title}
+      className={className}
+      onError={() => setFailed(true)}
+    />
+  );
+};
+
 const GridCell = React.memo(
   ({ columnIndex, rowIndex, style, data }: GridChildComponentProps<ItemData>) => {
     const {
@@ -107,12 +144,7 @@ const GridCell = React.memo(
           )}
 
           <SensitiveContent isSensitive={img.isSensitive} className={styles.mediaSurface}>
-            <LazyImage
-              key={img.id}
-              src={`/api/media/images/${img.id}/thumbnail`}
-              alt={img.title}
-              className={styles.gridImage}
-            />
+            <MediaThumbnail image={img} className={styles.gridImage} />
           </SensitiveContent>
 
           <Box className={styles.titleOverlay}>
@@ -165,12 +197,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
 
           <Box className={styles.listThumb}>
             <SensitiveContent isSensitive={img.isSensitive} className={styles.mediaSurface}>
-              <LazyImage
-                key={img.id}
-                src={`/api/media/images/${img.id}/thumbnail`}
-                alt={img.title}
-                className={styles.listThumbImage}
-              />
+              <MediaThumbnail image={img} className={styles.listThumbImage} compact />
             </SensitiveContent>
           </Box>
 

@@ -19,11 +19,21 @@ export function resolveMediaPath(dbPath: string, fallbackDir: string = 'data'): 
   }
 
   const cwd = process.cwd();
+  const normalizedDbPath = dbPath.replace(/\\/g, '/');
+
+  if (normalizedDbPath.startsWith('/media/') || normalizedDbPath.startsWith('media/')) {
+    const publicRelativePath = normalizedDbPath.replace(/^\/?media\//, 'media/');
+    const builtPath = path.join(cwd, 'dist', publicRelativePath);
+    if (fs.existsSync(builtPath)) {
+      return builtPath;
+    }
+    return path.join(cwd, 'public', publicRelativePath);
+  }
 
   // Robust parsing: extract anything after 'data/' in the path if present.
-  const dataMatch = dbPath.match(/(?:^|[/\\])data[/\\](.+)/i);
+  const dataMatch = normalizedDbPath.match(/(?:^|[/\\])data[/\\](.+)/i);
   if (dataMatch) {
-    return path.join(cwd, 'data', dataMatch[1].replace(/\\/g, '/'));
+    return path.join(cwd, 'data', dataMatch[1]);
   }
 
   // Path starting with /data/ - resolve relative to cwd
