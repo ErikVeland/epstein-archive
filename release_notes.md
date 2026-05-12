@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.14 - 2026-05-12 - Hot Path Cutover Guard
+
+### Production Reliability
+
+- **Fast Subject Cards**: Keeps the People front page on indexed stored quality flags with JS post-filtering while deploy-time quarantine enforces the full SQL junk policy.
+- **Static Root Preservation**: Prevents the DB deployment phase from deleting the live `dist` symlink before a new release artifact is promoted.
+- **Cutover Timeout Alignment**: Extends the inline live-cutover entity gate timeout and adds the new junk patterns to the canary verifier.
+
 ## 21.2.13 - 2026-05-12 - Entity Quality Boundary Fix
 
 ### Production Reliability

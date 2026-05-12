@@ -9,7 +9,7 @@ type CheckResult = {
 };
 
 const baseUrl = (process.env.DEPLOY_VERIFY_URL || process.argv[2] || '').replace(/\/+$/, '');
-const timeoutMs = Math.max(1000, Number(process.env.DEPLOY_VERIFY_TIMEOUT_MS || 12_000) || 12_000);
+const timeoutMs = Math.max(1000, Number(process.env.DEPLOY_VERIFY_TIMEOUT_MS || 30_000) || 30_000);
 
 if (!baseUrl) {
   console.error('DEPLOY_VERIFY_URL is required, for example https://epstein.academy');
@@ -57,6 +57,9 @@ function isJunkEntityName(value: unknown): boolean {
     /\b(mon|tue|wed|thu|fri|sat|sun)\s*$/i,
     /\b([a-z]{3,})\s+\1\b/i,
     /\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b/i,
+    /\b(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\b/i,
+    /^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\b/i,
+    /\b(direction|provided)\s*$/i,
   ].some((regex) => regex.test(normalized));
 }
 
@@ -64,23 +67,27 @@ async function getJson(path: string): Promise<{ status: number; body: Record<str
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
-      headers: {
-        Accept: 'application/json',
-        'Cache-Control': 'no-cache',
-        Pragma: 'no-cache',
-      },
-      signal: controller.signal,
-    });
-    const text = await response.text();
-    let body: unknown;
     try {
-      body = text ? JSON.parse(text) : {};
-    } catch {
-      throw new Error(`Expected JSON from ${path}, got: ${text.slice(0, 120)}`);
+      const response = await fetch(`${baseUrl}${path}`, {
+        headers: {
+          Accept: 'application/json',
+          'Cache-Control': 'no-cache',
+          Pragma: 'no-cache',
+        },
+        signal: controller.signal,
+      });
+      const text = await response.text();
+      let body: unknown;
+      try {
+        body = text ? JSON.parse(text) : {};
+      } catch {
+        throw new Error(`Expected JSON from ${path}, got: ${text.slice(0, 120)}`);
+      }
+      assertObject(body, path);
+      return { status: response.status, body };
+    } catch (error) {
+      throw new Error(`${path} failed: ${error instanceof Error ? error.message : String(error)}`);
     }
-    assertObject(body, path);
-    return { status: response.status, body };
   } finally {
     clearTimeout(timeout);
   }

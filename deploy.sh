@@ -554,7 +554,7 @@ if [ "$DEPLOY_DB" = true ]; then
       echo 'Syncing code from origin/main for migration phase...'
       git fetch origin
       git reset --hard origin/main
-      git clean -fd
+      git clean -fd -e dist -e .releases -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
 
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"

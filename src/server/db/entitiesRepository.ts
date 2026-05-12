@@ -7,7 +7,7 @@ import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolve
 import { logger } from '../services/Logger.js';
 import {
   canonicalEntityPriority,
-  entityQualityWhereSql,
+  entityBaseQualityWhereSql,
   isJunkEntityName,
 } from './entityQuality.js';
 
@@ -278,7 +278,7 @@ async function getSubjectCardsFallback(
               ) as "topPhotoId"
             FROM entities e
             WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
-              AND ${entityQualityWhereSql('e')}
+              AND ${entityBaseQualityWhereSql('e')}
               AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
               AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
               AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
@@ -313,7 +313,7 @@ async function getSubjectCardsFallback(
           SELECT COUNT(*) as total
           FROM entities e
           WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
-            AND ${entityQualityWhereSql('e')}
+            AND ${entityBaseQualityWhereSql('e')}
             AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
             AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
             AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
@@ -483,7 +483,7 @@ export const entitiesRepository = {
       }
     }
 
-    whereParts.push(entityQualityWhereSql('e'));
+    whereParts.push(entityBaseQualityWhereSql('e'));
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
@@ -906,7 +906,7 @@ export const entitiesRepository = {
           e.connections_summary as "connections",
           e.was_agentic as "wasAgentic"
         FROM entities e
-        WHERE ${entityQualityWhereSql('e')}
+        WHERE ${entityBaseQualityWhereSql('e')}
         ORDER BY LOWER(e.full_name) ASC
         LIMIT $1
       `,
