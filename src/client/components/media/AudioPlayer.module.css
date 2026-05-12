@@ -755,19 +755,40 @@
 
 .playerColumn {
   flex: 1 1 auto;
-  overflow-y: auto;
+  overflow: hidden;
   min-width: 0;
+  min-height: 0;
 }
 
 .visualizerArea {
   position: relative;
-  height: 8rem;
+  flex: 1 1 auto;
+  min-height: 12rem;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  flex-shrink: 0;
+  background: var(--glass-bg-strong);
+}
+
+.coverImage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #020617;
+}
+
+.coverScrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(2, 6, 23, 0.78), rgba(2, 6, 23, 0.16)),
+    radial-gradient(circle at center, transparent 0, rgba(2, 6, 23, 0.34) 100%);
 }
 
 .bars {
+  position: relative;
+  z-index: 1;
   height: 100%;
   gap: 3px;
   padding: var(--space-3);
@@ -789,6 +810,7 @@
 
 .visualizerLabel {
   position: absolute;
+  z-index: 2;
   bottom: var(--space-2);
   right: var(--space-3);
 }
@@ -841,6 +863,7 @@
   scrollbar-color: #334155 transparent;
   flex: 1 1 auto;
   min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .segment {

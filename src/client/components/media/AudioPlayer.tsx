@@ -7,6 +7,7 @@ import { Box, Button, Flex, Input, LqText, Stack, Surface, cn } from '@client/de
 import styles from './AudioPlayer.module.css';
 
 const css = <T,>(style: T) => style;
+const EMPTY_ALBUM_IMAGES: string[] = [];
 
 export interface TranscriptSegment {
   start: number;
@@ -45,6 +46,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   isSensitive = false,
   warningText = 'This content contains graphic descriptions of violence, sexual assault, child exploitation and murder.',
   initialTime = 0,
+  albumImages = EMPTY_ALBUM_IMAGES,
   transcriptSearchExtensionLabel = 'Search album',
   onExtendTranscriptSearch,
 }) => {
@@ -69,6 +71,16 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [barHeights, setBarHeights] = useState<number[]>(Array.from({ length: 32 }).map(() => 20));
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [failedCoverImages, setFailedCoverImages] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    setFailedCoverImages(new Set());
+  }, [albumImages]);
+
+  const coverImage = useMemo(
+    () => albumImages.find((image) => image && !failedCoverImages.has(image)) || null,
+    [albumImages, failedCoverImages],
+  );
 
   const normalizedTranscriptQuery = useMemo(
     () => transcriptSearch.trim().toLowerCase(),
@@ -285,6 +297,21 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <Stack grow p="xl" gap="xl" className={styles.playerColumn}>
             {/* Visualizer Area */}
             <Surface variant="glass-highlight" className={styles.visualizerArea}>
+              {coverImage && (
+                <img
+                  src={coverImage}
+                  alt=""
+                  className={styles.coverImage}
+                  onError={() => {
+                    setFailedCoverImages((prev) => {
+                      const next = new Set(prev);
+                      next.add(coverImage);
+                      return next;
+                    });
+                  }}
+                />
+              )}
+              <Box className={styles.coverScrim} />
               <Flex align="end" justify="center" gap="xs" fullHeight className={styles.bars}>
                 {barHeights.map((h, i) => (
                   <Box key={i} className={styles.bar} style={css({ height: `${h}%` })} />

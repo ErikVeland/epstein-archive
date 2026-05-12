@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FixedSizeList as List, ListChildComponentProps, areEqual } from 'react-window';
+import { createPortal } from 'react-dom';
 import Icon from '@client/components/common/Icon';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
@@ -42,7 +43,9 @@ interface AudioItem {
     duration?: number;
     transcript?: TranscriptSegment[];
     chapters?: Chapter[];
+    thumbnail?: string;
     thumbnailPath?: string;
+    coverImagePath?: string;
     [key: string]: unknown;
   };
   createdAt: string;
@@ -68,6 +71,19 @@ interface ExtendedTranscriptSearch {
   originTitle: string;
   albumName?: string;
 }
+
+const resolveAudioImageSrc = (item: AudioItem): string | null => {
+  const raw =
+    item.metadata?.thumbnailPath ||
+    item.metadata?.thumbnail ||
+    item.metadata?.coverImagePath ||
+    null;
+  if (!raw) return null;
+  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('/')) return raw;
+  return `/${raw}`;
+};
+
+const isString = (value: string | null): value is string => Boolean(value);
 
 interface AudioRowData {
   items: AudioItem[];
@@ -104,9 +120,7 @@ const AudioRow = React.memo(({ index, style, data }: ListChildComponentProps<Aud
       >
         {rowItems.map((item) => {
           const isSelected = selectedItems.has(item.id);
-          const displayImage = item.metadata?.thumbnailPath
-            ? `/api/media/audio/${item.id}/thumbnail`
-            : null;
+          const displayImage = resolveAudioImageSrc(item);
 
           return (
             <Surface
@@ -371,6 +385,11 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     return alreadySearchedAlbum ? 'Search full library' : 'Search rest of album';
   }, [extendedTranscriptSearch, selectedItem, transcriptSearch]);
 
+  const selectedItemCoverImages = useMemo(
+    () => (selectedItem ? [resolveAudioImageSrc(selectedItem)].filter(isString) : []),
+    [selectedItem],
+  );
+
   const showSensitiveWarning =
     !showAllSensitive &&
     currentAlbum &&
@@ -584,21 +603,29 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           </Box>
         </Flex>
 
-        {selectedItem && (
-          <AudioPlayer
-            src={`/api/media/audio/${selectedItem.id}/stream`}
-            title={selectedItem.title}
-            transcript={selectedItem.metadata?.transcript}
-            chapters={selectedItem.metadata?.chapters}
-            onClose={() => setSelectedItem(null)}
-            autoPlay={true}
-            isSensitive={selectedItem.isSensitive}
-            documentId={selectedItem.documentId}
-            initialTime={initialTimestamp}
-            transcriptSearchExtensionLabel={transcriptSearchExtensionLabel}
-            onExtendTranscriptSearch={handleExtendTranscriptSearch}
-          />
-        )}
+        {selectedItem &&
+          createPortal(
+            <Box className={styles.playerModalOverlay}>
+              <Box className={styles.playerModalFrame}>
+                <AudioPlayer
+                  key={selectedItem.id}
+                  src={`/api/media/audio/${selectedItem.id}/stream`}
+                  title={selectedItem.title}
+                  transcript={selectedItem.metadata?.transcript}
+                  chapters={selectedItem.metadata?.chapters}
+                  onClose={() => setSelectedItem(null)}
+                  autoPlay={true}
+                  isSensitive={selectedItem.isSensitive}
+                  documentId={selectedItem.documentId}
+                  initialTime={initialTimestamp}
+                  albumImages={selectedItemCoverImages}
+                  transcriptSearchExtensionLabel={transcriptSearchExtensionLabel}
+                  onExtendTranscriptSearch={handleExtendTranscriptSearch}
+                />
+              </Box>
+            </Box>,
+            document.body,
+          )}
       </Box>
     </>
   );

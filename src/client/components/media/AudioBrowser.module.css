@@ -365,6 +365,25 @@
   flex-direction: column;
 }
 
+.playerModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(8px);
+}
+
+.playerModalFrame {
+  width: 100%;
+  max-width: 72rem;
+  height: 90vh;
+  max-height: 90vh;
+}
+
 /* Row rendered inside virtual list */
 .rowPadded {
   padding-left: var(--space-6);

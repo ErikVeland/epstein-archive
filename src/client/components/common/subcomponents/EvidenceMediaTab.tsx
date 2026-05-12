@@ -32,6 +32,23 @@ interface EvidenceMediaTabProps {
 
 type MediaCategory = 'all' | 'photos' | 'videos' | 'audio';
 
+const resolveAudioImageSrc = (item: EntityPhoto): string | null => {
+  const metadata = item.metadata || {};
+  const raw =
+    item.thumbnailUrl ||
+    item.thumbnail_url ||
+    item.thumbUrl ||
+    item.thumb_url ||
+    item.thumbnailPath ||
+    (typeof metadata.thumbnailPath === 'string' ? metadata.thumbnailPath : null) ||
+    (typeof metadata.thumbnail === 'string' ? metadata.thumbnail : null) ||
+    (typeof metadata.coverImagePath === 'string' ? metadata.coverImagePath : null);
+
+  if (!raw) return null;
+  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('/')) return raw;
+  return `/${raw}`;
+};
+
 export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   entity,
   mediaItems,
@@ -102,6 +119,11 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   });
 
   const finalSelectedItem = enrichedItem || selectedItem;
+  const finalSelectedAudioImages = React.useMemo(() => {
+    if (!finalSelectedItem) return [];
+    const image = resolveAudioImageSrc(finalSelectedItem);
+    return image ? [image] : [];
+  }, [finalSelectedItem]);
 
   const categories: { id: MediaCategory; label: string; icon: React.ReactNode }[] = [
     { id: 'all', label: 'All Media', icon: <Icon name="Search" size="sm" /> },
@@ -331,6 +353,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                 chapters={finalSelectedItem.metadata?.chapters}
                 isSensitive={finalSelectedItem.metadata?.isSensitive}
                 onClose={() => setSelectedItemId(null)}
+                albumImages={finalSelectedAudioImages}
                 autoPlay
               />
             ) : selectedCategory === 'videos' ? (
