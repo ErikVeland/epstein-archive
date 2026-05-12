@@ -1,5 +1,12 @@
 # Release Notes
 
+## 21.3.0 - 2026-05-12 - Production Deployment Recovery & Strict Hygiene
+
+### Production Reliability
+
+- **Auth-Injecting Deployment**: Injects the `GH_TOKEN` explicitly into production GitHub Actions workflows and updates the `deploy.sh` polling daemon to utilize standard Bearer authorization, resolving recursive rate-limit 403 starvation.
+- **Total Static Cleanse**: Achieves a 100% green `pnpm lint` state by converting all existing `any` casts, duplicate hooks dependencies, and recursive effect cycles across client React hooks and server data persistence repositories.
+
 ## 21.2.16 - 2026-05-12 - WIRED Press Archive Repair
 
 ### Production Reliability
