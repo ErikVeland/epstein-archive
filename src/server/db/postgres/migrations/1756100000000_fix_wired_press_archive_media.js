@@ -10,16 +10,14 @@ const WIRED_IMAGE = '/media/press/wired-epstein-library-cover.svg';
 export async function up(pgm) {
   pgm.sql(`
     INSERT INTO articles (
-      title, link, url, source, publication, pub_date, published_date,
+      title, link, source, publication, pub_date,
       description, summary, tags, red_flag_rating, image_url, reading_time,
       created_at, updated_at, content, author, guid
     ) VALUES (
       '${WIRED_TITLE.replace(/'/g, "''")}',
       '${WIRED_URL}',
-      '${WIRED_URL}',
       'WIRED',
       'WIRED',
-      '2026-05-06',
       '2026-05-06',
       'WIRED coverage of the public Epstein Files reading room and its physical archive in New York.',
       'WIRED reports on the Institute for Primary Facts opening a public reading room dedicated to the Epstein files and related records in New York.',
@@ -35,11 +33,9 @@ export async function up(pgm) {
     )
     ON CONFLICT (link) DO UPDATE SET
       title = EXCLUDED.title,
-      url = EXCLUDED.url,
       source = EXCLUDED.source,
       publication = EXCLUDED.publication,
       pub_date = EXCLUDED.pub_date,
-      published_date = EXCLUDED.published_date,
       description = EXCLUDED.description,
       summary = EXCLUDED.summary,
       tags = EXCLUDED.tags,
