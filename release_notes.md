@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.11 - 2026-05-12 - Design System Drift Guardrails
+
+### Production Reliability
+
+- **Shared Component Enforcement**: Adds design-system audit and shared-component drift gates so hand-rolled controls cannot silently reappear.
+- **Interaction Primitive Cleanup**: Moves custom email, evidence, redaction, connection, black book, and settings controls onto shared `Button`, `Switch`, `AnimatedSegmentedControl`, and `InteractiveBadge` primitives.
+- **Tokenized Warning and Presence UI**: Removes inline styling from sensitive-content warning and collaboration presence surfaces, ratcheting the audit baseline down for future patches.
+
 ## 21.2.10 - 2026-05-12 - Email Default Filter Isolation
 
 ### Production Reliability

@@ -1,0 +1,29 @@
+.banner {
+  max-width: 600px;
+  margin: var(--space-12) auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-align: center;
+  border-color: color-mix(in srgb, var(--accent-danger) 52%, transparent);
+  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+}
+
+.heading {
+  margin: 0;
+  color: var(--accent-danger);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+}
+
+.body {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.action {
+  align-self: center;
+  font-weight: var(--weight-bold);
+}

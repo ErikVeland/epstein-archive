@@ -13,12 +13,21 @@ import { AutoSizer } from 'react-virtualized-auto-sizer';
 import Icon from '@client/components/common/Icon';
 import { EmailThreadDTO } from '@client/services/apiClient';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import { AnimatedSegmentedControl } from '../common/AnimatedSegmentedControl';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { ViewerShell } from '../viewer/ViewerShell';
 import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { isJunkEntity } from '@client/utils/entityFilters';
-import { Button, Flex, SearchField, Select, Surface, TextInput } from '@client/design-system/lib';
+import {
+  Button,
+  Flex,
+  SearchField,
+  Select,
+  Surface,
+  Switch,
+  TextInput,
+} from '@client/design-system/lib';
 
 const STATIC_PEOPLE = [
   'Jeffrey Epstein',
@@ -717,39 +726,42 @@ export const EmailClient: React.FC = () => {
           } ${!isMobile && selectedThreadId ? styles.hiddenPane : ''}`}
         >
           <div className={styles.subTabBar}>
-            <button
+            <Button
+              unstyled
+              type="button"
               className={`${styles.subTabItem} ${
                 activeTab === 'all' ? styles.subTabItemActive : ''
               }`}
               onClick={() => setActiveTab('all')}
-              style={{ background: 'transparent', border: 'none', font: 'inherit' }}
             >
               <Icon name="Inbox" />
               <span>All Mail</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              unstyled
+              type="button"
               className={`${styles.subTabItem} ${
                 activeTab === 'promotions' ? styles.subTabItemActive : ''
               }`}
               onClick={() => setActiveTab('promotions')}
-              style={{ background: 'transparent', border: 'none', font: 'inherit' }}
             >
               <Icon name="Tags" />
               <span>Promotions</span>
               <span className={styles.subTabNewBadge}>6104 new</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              unstyled
+              type="button"
               className={styles.subTabItem}
               onClick={handleRandomEmail}
               disabled={isNavigatingRandom}
-              style={{ background: 'transparent', border: 'none', font: 'inherit' }}
             >
               <Icon
                 name={isNavigatingRandom ? 'Loader2' : 'Dices'}
                 className={isNavigatingRandom ? styles.spin : ''}
               />
               <span>Random Email</span>
-            </button>
+            </Button>
           </div>
           <div className={styles.paneHeader}>
             <div className={styles.threadHeaderLeft}>
@@ -770,37 +782,32 @@ export const EmailClient: React.FC = () => {
                 <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>
                   Density:
                 </span>
-                <div className={styles.densityToggle}>
-                  <Button
-                    variant="ghost"
-                    className={`${styles.densityButton} ${
-                      density === 'comfortable'
-                        ? styles.densityButtonActive
-                        : styles.densityButtonInactive
-                    }`}
-                    onClick={() => updateUrlState({ density: 'comfortable' })}
-                  >
-                    Comfortable
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className={`${styles.densityButton} ${
-                      density === 'compact'
-                        ? styles.densityButtonActive
-                        : styles.densityButtonInactive
-                    }`}
-                    onClick={() => updateUrlState({ density: 'compact' })}
-                  >
-                    Compact
-                  </Button>
-                </div>
-                <button
+                <AnimatedSegmentedControl<EmailDensity>
+                  ariaLabel="Email density"
+                  compact
+                  minItemWidth="6.25rem"
+                  className={styles.densityToggle}
+                  itemClassName={styles.densityButton}
+                  options={[
+                    { value: 'comfortable', label: 'Comfortable' },
+                    { value: 'compact', label: 'Compact' },
+                  ]}
+                  value={density}
+                  onChange={(nextDensity) =>
+                    updateUrlState({
+                      density: nextDensity === 'compact' ? 'compact' : null,
+                    })
+                  }
+                />
+                <Button
+                  unstyled
+                  type="button"
                   className={styles.gearBtn}
                   title="Inbox Settings"
                   onClick={() => setIsSettingsModalOpen(true)}
                 >
                   <Icon name="Settings" size="sm" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -1108,7 +1115,9 @@ export const EmailClient: React.FC = () => {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <div className={styles.tableHeader}>
-                  <button
+                  <Button
+                    unstyled
+                    type="button"
                     className={`${styles.headerCol} ${sortBy === 'stars' ? styles.activeSortCol : ''}`}
                     onClick={() => handleHeaderSort('stars')}
                   >
@@ -1119,8 +1128,10 @@ export const EmailClient: React.FC = () => {
                         className={styles.sortIcon}
                       />
                     )}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    unstyled
+                    type="button"
                     className={`${styles.headerCol} ${sortBy === 'participants' ? styles.activeSortCol : ''}`}
                     onClick={() => handleHeaderSort('participants')}
                   >
@@ -1131,8 +1142,10 @@ export const EmailClient: React.FC = () => {
                         className={styles.sortIcon}
                       />
                     )}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    unstyled
+                    type="button"
                     className={`${styles.headerCol} ${sortBy === 'subject' ? styles.activeSortCol : ''}`}
                     onClick={() => handleHeaderSort('subject')}
                   >
@@ -1143,8 +1156,10 @@ export const EmailClient: React.FC = () => {
                         className={styles.sortIcon}
                       />
                     )}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    unstyled
+                    type="button"
                     className={`${styles.headerCol} ${sortBy === 'date' ? styles.activeSortCol : ''}`}
                     onClick={() => handleHeaderSort('date')}
                   >
@@ -1155,7 +1170,7 @@ export const EmailClient: React.FC = () => {
                         className={styles.sortIcon}
                       />
                     )}
-                  </button>
+                  </Button>
                 </div>
                 <div style={{ flex: 1, minHeight: 0 }}>
                   <AutoSizer
@@ -1608,25 +1623,25 @@ export const EmailClient: React.FC = () => {
           <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>Settings</h2>
-              <button
+              <Button
+                unstyled
+                type="button"
                 className={styles.modalCloseBtn}
                 onClick={() => setIsSettingsModalOpen(false)}
               >
                 <Icon name="X" size="lg" />
-              </button>
+              </Button>
             </div>
             <div className={styles.modalContent}>
               <div className={styles.sectionTitle}>YAHOO INBOX</div>
 
               <div className={styles.settingRow}>
-                <label className={styles.switch}>
-                  <input
-                    type="checkbox"
-                    checked={showYahooPostMortem}
-                    onChange={(e) => handleToggleSetting('showYahooPostMortem', e.target.checked)}
-                  />
-                  <span className={styles.slider}></span>
-                </label>
+                <Switch
+                  checked={showYahooPostMortem}
+                  onCheckedChange={(checked) => handleToggleSetting('showYahooPostMortem', checked)}
+                  aria-label="Show Yahoo emails after August 15, 2019"
+                  className={styles.settingsSwitch}
+                />
                 <div className={styles.settingTexts}>
                   <span className={styles.settingLabel}>
                     Show Yahoo emails after August 15, 2019
@@ -1637,17 +1652,15 @@ export const EmailClient: React.FC = () => {
                 </div>
               </div>
 
-              <div style={{ height: '8px' }} />
+              <div className={styles.settingsSpacer} />
 
               <div className={styles.settingRow}>
-                <label className={styles.switch}>
-                  <input
-                    type="checkbox"
-                    checked={showEmptyBodies}
-                    onChange={(e) => handleToggleSetting('showEmptyBodies', e.target.checked)}
-                  />
-                  <span className={styles.slider}></span>
-                </label>
+                <Switch
+                  checked={showEmptyBodies}
+                  onCheckedChange={(checked) => handleToggleSetting('showEmptyBodies', checked)}
+                  aria-label="Show emails with empty or fully redacted bodies"
+                  className={styles.settingsSwitch}
+                />
                 <div className={styles.settingTexts}>
                   <span className={styles.settingLabel}>
                     Show emails with empty or fully redacted bodies

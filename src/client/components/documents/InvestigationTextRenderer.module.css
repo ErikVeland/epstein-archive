@@ -208,34 +208,14 @@
 }
 
 .densityToggleGroup {
-  display: flex;
-  padding: 2px;
-  background-color: rgba(15, 23, 42, 0.6);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
+  --segment-height: 1.875rem;
+  --segment-radius: var(--radius-md);
 }
 
 .densityButton {
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-md);
   font-size: 8px;
   font-weight: 900;
   text-transform: uppercase;
-  transition: all var(--duration-fast);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--text-primary);
-}
-
-.densityButton:hover {
-  color: var(--text-muted);
-}
-
-.densityButtonActive {
-  background-color: rgba(16, 185, 129, 0.2);
-  color: #34d399; /* emerald-400 */
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
 .recoveryToggle {

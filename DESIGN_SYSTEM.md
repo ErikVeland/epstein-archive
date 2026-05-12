@@ -13,6 +13,7 @@ Deprecated compatibility surfaces may continue to exist temporarily during migra
 3. Usable: controls must feel predictable across pages, densities, and data-heavy workflows.
 4. Accessible: keyboard support, focus visibility, semantics, and contrast are part of the component contract.
 5. Extensible: a new “custom” widget should consume shared tokens, surfaces, inputs, and states before introducing any local styling.
+6. Non-duplicative: feature teams and agents must reuse shared primitives and patterns instead of hand-rolling generic UI.
 
 ## Runtime Token Source
 
@@ -50,6 +51,40 @@ Pattern components should be built on top of the foundation primitives and shoul
 
 Feature-owned components are allowed when they encode domain behavior, but they must consume shared tokens and system primitives. They should not recreate generic controls, surfaces, form fields, or badges locally.
 
+## Shared Component Standard
+
+Shared components are the default implementation path for generic UI behavior. Before adding local markup or CSS for a reusable interaction, check the design-system primitives and common pattern components.
+
+The following must not be hand-rolled in feature code when a shared equivalent exists:
+
+- buttons and icon buttons
+- segmented controls, density controls, tabs, and view toggles
+- switches, checkboxes, radios, selects, text inputs, search fields, and textareas
+- badges, chips, pills, tags, and status indicators
+- cards, surfaces, modals, drawers, popovers, tooltips, and menus
+- empty, loading, error, retry, offline, and unavailable states
+- browser/viewer shells, toolbar groups, filter bars, and pagination
+
+If a shared component is close but insufficient, extend the shared component through typed props or add a shared variant. Do not fork the behavior locally unless the UI is truly domain-specific and unlikely to recur.
+
+Examples:
+
+- Use `AnimatedSegmentedControl` for two-or-more option segmented controls such as density, text mode, view mode, and highlight intensity.
+- Use `Switch` for binary settings.
+- Use `Button` for commands and icon buttons.
+- Use `InteractiveBadge` for clickable evidence/status chips that open local detail, popovers, or explanations.
+- Use form primitives from `src/client/design-system/lib` for inputs and selectors.
+
+Design-system drift is guarded by:
+
+```bash
+pnpm check:design-system-audit
+pnpm check:shared-component-drift
+pnpm check:design-tokens:strict
+```
+
+The drift check is intentionally narrow and should grow whenever we discover a repeated hand-rolled pattern. Adding a new shared primitive should include a matching drift rule when practical.
+
 ## Visual Direction
 
 The system refines the existing Liquid Glass forensic aesthetic rather than replacing it.
@@ -86,6 +121,7 @@ Use `semanticChartTokens` from `src/client/design-system/lib`.
 - New code imports from `src/client/design-system/lib`.
 - If a feature needs a pattern more than once, promote it.
 - CSS modules should mostly express composition and feature layout, not re-implement generic UI widgets.
+- Local implementations of generic shared-component behavior are regressions unless listed as time-boxed exceptions.
 - Exceptions belong in `scripts/design-system-exceptions.json` with owner, reason, and expiry.
 
 ## Apple HIG Design Standardization (High-Fidelity Guidelines)

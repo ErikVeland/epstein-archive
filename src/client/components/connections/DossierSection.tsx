@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Surface, Flex, LqText } from '@client/design-system/lib';
+import { Button, Surface, Flex, LqText } from '@client/design-system/lib';
 import Icon from '@client/components/common/Icon';
 import type { ReactNode } from 'react';
 import styles from './DossierSection.module.css';
@@ -24,7 +24,8 @@ export function DossierSection({
 
   return (
     <Surface variant="glass" className={styles.section}>
-      <button
+      <Button
+        unstyled
         type="button"
         className={styles.header}
         onClick={() => setOpen((v) => !v)}
@@ -40,7 +41,7 @@ export function DossierSection({
           <span className={isEmpty ? styles.countEmpty : styles.count}>{count}</span>
           <Icon name={open ? 'ChevronUp' : 'ChevronDown'} size="xs" />
         </Flex>
-      </button>
+      </Button>
       {open && (
         <div className={styles.body}>
           {isEmpty ? <p className={styles.empty}>No {title.toLowerCase()} found</p> : children}

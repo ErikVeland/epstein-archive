@@ -58,6 +58,8 @@ run_full_prechecks() {
   run "migration seed-conflict policy" pnpm run check:seed-conflict-policy
   run "test hygiene" pnpm run check:test-hygiene
   run "strict design-token policy" pnpm run check:design-tokens:strict
+  run "design-system audit baseline" pnpm run check:design-system-audit
+  run "shared component drift" pnpm run check:shared-component-drift
 }
 
 run_staged_prechecks() {
@@ -87,8 +89,15 @@ run_staged_prechecks() {
   local design_pattern='^src/client/App\.tsx$|^src/client/components/common/(FormField|SourceBadge|Card|BaseCard|CloseButton|ProgressBar|Skeleton|Tabs|BatchToolbar|FormLayout)\.tsx$|^src/client/components/ui/Glass|^src/client/design-system/'
   if has_staged_match "$design_pattern"; then
     run "strict design-token policy" pnpm run check:design-tokens:strict
+    run "design-system audit baseline" pnpm run check:design-system-audit
   else
     log "strict design-token policy skipped (no staged governed UI files)"
+  fi
+
+  if has_staged_match '^src/client/.*\.(ts|tsx|css)$|^scripts/check_shared_component_drift\.ts$'; then
+    run "shared component drift" pnpm run check:shared-component-drift
+  else
+    log "shared component drift skipped (no staged client files)"
   fi
 }
 

@@ -6,6 +6,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const clientDir = path.join(rootDir, 'src/client');
 const exceptionPath = path.join(rootDir, 'scripts/design-system-exceptions.json');
+const baselinePath = path.join(rootDir, 'scripts/design-system-audit-baseline.json');
+const strict = process.env.STRICT_DESIGN_SYSTEM_AUDIT === '1';
 
 const rules = {
   deprecatedUiImports: /from\s+['"][^'"]*components\/ui(?:\/[^'"]+)?['"]/g,
@@ -48,6 +50,13 @@ const exceptions: ExceptionEntry[] = fs.existsSync(exceptionPath)
   ? (JSON.parse(fs.readFileSync(exceptionPath, 'utf8')) as ExceptionEntry[])
   : [];
 
+interface BaselineEntry {
+  count: number;
+  files: string[];
+}
+
+type AuditSummary = Record<string, BaselineEntry>;
+
 const exceptionRuleByAuditRule: Record<keyof typeof rules, ExceptionRule> = {
   deprecatedUiImports: 'deprecated-ui-import',
   bannedPresentationClasses: 'banned-presentation-class',
@@ -74,7 +83,7 @@ function walk(dir: string): string[] {
 const files = walk(clientDir);
 const summary = Object.fromEntries(
   Object.keys(rules).map((rule) => [rule, { count: 0, files: [] as string[] }]),
-) as Record<string, { count: number; files: string[] }>;
+) as AuditSummary;
 
 for (const filePath of files) {
   const relPath = path.relative(rootDir, filePath);
@@ -90,3 +99,38 @@ for (const filePath of files) {
 }
 
 console.log(JSON.stringify(summary, null, 2));
+
+if (strict) {
+  if (!fs.existsSync(baselinePath)) {
+    console.error(
+      `[design-system-audit] Missing baseline at ${path.relative(rootDir, baselinePath)}.`,
+    );
+    process.exit(1);
+  }
+
+  const baseline = JSON.parse(fs.readFileSync(baselinePath, 'utf8')) as AuditSummary;
+  const regressions: string[] = [];
+
+  for (const rule of Object.keys(rules)) {
+    const current = summary[rule] ?? { count: 0, files: [] };
+    const allowed = baseline[rule] ?? { count: 0, files: [] };
+    const newFiles = current.files.filter((file) => !allowed.files.includes(file));
+
+    if (current.count > allowed.count || newFiles.length > 0) {
+      regressions.push(
+        `${rule}: ${current.count}/${allowed.count} files` +
+          (newFiles.length > 0 ? `; new files: ${newFiles.join(', ')}` : ''),
+      );
+    }
+  }
+
+  if (regressions.length > 0) {
+    console.error('[design-system-audit] Design-system drift exceeded the baseline:');
+    for (const regression of regressions) {
+      console.error(`- ${regression}`);
+    }
+    process.exit(1);
+  }
+
+  console.log('[design-system-audit] OK');
+}

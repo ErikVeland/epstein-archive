@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { AnimatedSegmentedControl } from '@client/components/common/AnimatedSegmentedControl';
 import Icon from '@client/components/common/Icon';
 import { prettifyOCRText } from '@client/utils/prettifyOCR';
 import styles from './InvestigationTextRenderer.module.css';
@@ -584,20 +585,20 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
             <LqText variant="xs" weight="bold" color="muted" className={styles.densityLabel}>
               Highlight Density
             </LqText>
-            <Box className={styles.densityToggleGroup}>
-              {(['off', 'subtle', 'strong'] as const).map((d) => (
-                <Button
-                  unstyled
-                  key={d}
-                  onClick={() => setHighlightDensity(d)}
-                  className={`${styles.densityButton} ${
-                    highlightDensity === d ? styles.densityButtonActive : ''
-                  }`}
-                >
-                  {d}
-                </Button>
-              ))}
-            </Box>
+            <AnimatedSegmentedControl
+              ariaLabel="Highlight density"
+              compact
+              minItemWidth="3.5rem"
+              className={styles.densityToggleGroup}
+              itemClassName={styles.densityButton}
+              options={[
+                { value: 'off', label: 'Off' },
+                { value: 'subtle', label: 'Subtle' },
+                { value: 'strong', label: 'Strong' },
+              ]}
+              value={highlightDensity}
+              onChange={setHighlightDensity}
+            />
             <Button
               unstyled
               type="button"

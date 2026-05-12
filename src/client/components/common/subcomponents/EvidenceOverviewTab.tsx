@@ -11,6 +11,7 @@ import s from './EvidenceOverviewTab.module.css';
 import { FlagButton } from '@client/components/common/FlagButton';
 
 import { Button } from '@client/design-system/lib';
+import { InteractiveBadge } from '@client/components/common/InteractiveBadge';
 
 const INITIAL_MEDIA_PREVIEW_COUNT = 4;
 const MEDIA_PREVIEW_BATCH_SIZE = 4;
@@ -115,22 +116,24 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
           <div className={s.metricsBadges}>
             {/* 1. Risk Badge */}
             <div className={s.badgeContainer}>
-              <button
+              <InteractiveBadge
+                icon="ShieldAlert"
                 className={`${s.interactiveBadge} ${s.riskBadge} ${s[getRiskClass(entity.redFlagRating || 0)]}`}
+                ariaExpanded={showRiskPopover}
                 onClick={() => {
                   setShowRiskPopover(!showRiskPopover);
                   setShowEvidencePopover(false);
                   setShowProvenancePopover(false);
                 }}
               >
-                <Icon name="ShieldAlert" size="xs" className={s.badgeIcon} />
                 Risk {(entity.redFlagRating || 0).toFixed(0)}/5
-              </button>
+              </InteractiveBadge>
               {showRiskPopover && (
                 <div className={s.badgePopover}>
                   <div className={s.popoverHeader}>
                     <span>Red Flag Risk Rating</span>
-                    <button
+                    <Button
+                      unstyled
                       className={s.popoverCloseBtn}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -138,7 +141,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                       }}
                     >
                       <Icon name="X" size="xs" />
-                    </button>
+                    </Button>
                   </div>
                   <p className={s.popoverText}>
                     Calculated from the frequency of deep connections, flight logs, financial
@@ -151,15 +154,16 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
 
             {/* 2. Evidence Ingestion Tier Badge */}
             <div className={s.badgeContainer}>
-              <button
+              <InteractiveBadge
+                icon="Sparkles"
                 className={`${s.interactiveBadge} ${s.evidenceBadge} ${s[`evidence-${forensicData.ladder.level?.toLowerCase()}`]}`}
+                ariaExpanded={showEvidencePopover}
                 onClick={() => {
                   setShowEvidencePopover(!showEvidencePopover);
                   setShowRiskPopover(false);
                   setShowProvenancePopover(false);
                 }}
               >
-                <Icon name="Sparkles" size="xs" className={s.badgeIcon} />
                 {forensicData.ladder.level === 'L1'
                   ? 'Direct Evidence'
                   : forensicData.ladder.level === 'L2'
@@ -167,12 +171,13 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                     : forensicData.ladder.level === 'L3'
                       ? 'Agentic Evidence'
                       : 'Evidence Unspecified'}
-              </button>
+              </InteractiveBadge>
               {showEvidencePopover && (
                 <div className={s.badgePopover}>
                   <div className={s.popoverHeader}>
                     <span>Evidence Ingestion Tier</span>
-                    <button
+                    <Button
+                      unstyled
                       className={s.popoverCloseBtn}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -180,7 +185,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                       }}
                     >
                       <Icon name="X" size="xs" />
-                    </button>
+                    </Button>
                   </div>
                   <p className={s.popoverText}>
                     {forensicData.ladder.level === 'L1'
@@ -197,22 +202,24 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
 
             {/* 3. Exo-Provenance Badge */}
             <div className={s.badgeContainer}>
-              <button
+              <InteractiveBadge
+                icon="ShieldCheck"
                 className={`${s.interactiveBadge} ${s.provenanceBadge}`}
+                ariaExpanded={showProvenancePopover}
                 onClick={() => {
                   setShowProvenancePopover(!showProvenancePopover);
                   setShowRiskPopover(false);
                   setShowEvidencePopover(false);
                 }}
               >
-                <Icon name="ShieldCheck" size="xs" className={s.badgeIcon} />
                 EXO-PROVENANCE v2
-              </button>
+              </InteractiveBadge>
               {showProvenancePopover && (
                 <div className={s.badgePopover}>
                   <div className={s.popoverHeader}>
                     <span>Exo-Provenance Engine</span>
-                    <button
+                    <Button
+                      unstyled
                       className={s.popoverCloseBtn}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -220,7 +227,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                       }}
                     >
                       <Icon name="X" size="xs" />
-                    </button>
+                    </Button>
                   </div>
                   <p className={s.popoverText}>
                     Cryptographically verified intelligence attribution system. Automatically traces

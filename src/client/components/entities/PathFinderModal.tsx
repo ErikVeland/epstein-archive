@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { Button } from '@client/design-system/lib';
 import { apiClient } from '@client/services/apiClient';
 import type { GraphPathDto, IcebergEntityRefDto, GraphPathEdgeDto } from '@shared/dto/iceberg';
 import styles from './PathFinderModal.module.css';
@@ -60,14 +61,15 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
             <span className={styles.titleArrow}>&rarr;</span>
             <span className={styles.titleEntity}>{targetEntityName}</span>
           </div>
-          <button
+          <Button
+            unstyled
             type="button"
             className={styles.closeBtn}
             aria-label="Close path finder"
             onClick={onClose}
           >
             &times;
-          </button>
+          </Button>
         </div>
 
         {/* Body */}
@@ -96,7 +98,8 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
                         <div className={styles.edgeLine} />
                       </div>
                     )}
-                    <button
+                    <Button
+                      unstyled
                       type="button"
                       role="listitem"
                       className={styles.nodeBtn}
@@ -104,7 +107,7 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
                       title={`Navigate to ${node.name}`}
                     >
                       {node.name}
-                    </button>
+                    </Button>
                   </React.Fragment>
                 );
               })}

@@ -160,10 +160,6 @@
   background: color-mix(in srgb, #a78bfa 10%, transparent);
 }
 
-.badgeIcon {
-  opacity: 0.8;
-}
-
 .metricsGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

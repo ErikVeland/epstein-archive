@@ -241,7 +241,8 @@ export const RedactionsPage: React.FC = () => {
 
             <div className={styles.documentList}>
               {documents.map((doc) => (
-                <button
+                <Button
+                  unstyled
                   key={doc.id}
                   type="button"
                   className={`${styles.documentRow} ${
@@ -266,7 +267,7 @@ export const RedactionsPage: React.FC = () => {
                       </span>
                     )}
                   </Flex>
-                </button>
+                </Button>
               ))}
             </div>
           </Surface>

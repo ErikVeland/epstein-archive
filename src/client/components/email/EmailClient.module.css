@@ -849,26 +849,13 @@
 }
 
 .densityToggle {
-  display: inline-flex;
-  overflow: hidden;
-  border: 1px solid var(--glass-border);
-  border-radius: 999px;
+  --segment-height: 2rem;
+  --segment-radius: var(--radius-md);
 }
 
 .densityButton {
-  height: 1.75rem;
-  padding: 0 0.625rem;
   font-size: 11px;
-}
-
-.densityButtonActive {
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
-  color: var(--accent);
-}
-
-.densityButtonInactive {
-  background: var(--glass-bg-strong);
-  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .filterCountText {
@@ -1856,32 +1843,6 @@
   margin-left: auto;
 }
 
-.densityToggle {
-  display: flex;
-  background: var(--glass-bg-strong);
-  padding: 0.125rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--glass-border);
-}
-
-.densityButton {
-  padding: 0.25rem 0.75rem;
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--text-muted);
-  background: transparent;
-  border: none;
-  transition: all 0.2s;
-}
-
-.densityButtonActive {
-  background: var(--glass-bg-active);
-  color: var(--accent);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 /* Settings Modal Styling */
 .modalOverlay {
   position: fixed;
@@ -2004,57 +1965,13 @@
   line-height: 1.4;
 }
 
-/* Premium IOS-style Switch */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
+.settingsSwitch {
   flex-shrink: 0;
   margin-top: 4px;
 }
 
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.15);
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: '';
-  height: 20px;
-  width: 20px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-input:checked + .slider {
-  background-color: #34c759; /* iOS Green */
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #34c759;
-}
-
-input:checked + .slider:before {
-  transform: translateX(20px);
+.settingsSpacer {
+  height: 8px;
 }
 
 .gearBtn {

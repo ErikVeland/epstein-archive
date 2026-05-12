@@ -1,0 +1,70 @@
+.indicator {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-color: var(--status-success);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--status-success) 10%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg);
+  animation: collaborationPulse 2s infinite;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--status-success);
+}
+
+.icon {
+  color: var(--status-success);
+}
+
+.label {
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+}
+
+.tooltip {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  display: none;
+  margin-bottom: var(--space-2);
+  padding: var(--space-2);
+  white-space: nowrap;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+}
+
+.indicator:hover .tooltip {
+  display: block;
+}
+
+.tooltipUser {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+@keyframes collaborationPulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--status-success) 40%, transparent);
+  }
+
+  70% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--status-success) 0%, transparent);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--status-success) 0%, transparent);
+  }
+}

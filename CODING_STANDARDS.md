@@ -14,6 +14,7 @@ pnpm lint               # Run ESLint validation
 pnpm format:check       # Ensure formatting aligns with Prettier specs
 pnpm check:boundaries   # Verify src/client never imports from src/server
 pnpm schema:hash:check  # Check PostgreSQL schema hash integrity
+pnpm check:shared-component-drift # Verify shared design-system components are not hand-rolled
 ```
 
 No code with warnings or errors under these gates may be committed.
@@ -43,6 +44,9 @@ No code with warnings or errors under these gates may be committed.
 
 - **React 18 Standards**: Use functional components, custom hooks, and strict props interfaces.
 - **Component Splitting**: Feature-specific views must reside in separate chunks (e.g., `feature-media`, `feature-documents`) to optimize bundle delivery.
+- **No Hand-Rolled Shared UI**: If a design-system primitive or shared pattern exists, it **must** be used. Feature code must not recreate generic buttons, segmented controls, toggles, switches, inputs, selects, tabs, badges, cards, modals, drawers, tooltips, empty states, loading states, or browser/viewer shells locally.
+- **Promote Repeated Patterns**: If a feature needs a generic UI pattern that does not exist yet and is likely to recur, create or promote a shared component before duplicating local markup and CSS.
+- **Feature CSS Scope**: CSS Modules may express feature layout and domain-specific composition, but must not re-implement shared interaction states, focus rings, active states, density controls, or generic component chrome.
 - **Liquid Glass Aesthetics**: All new components must use the customized CSS Modules styling system matching the macOS liquid-glass visual theme:
   - Leverage CSS variables for dynamic themes (`hsl(...)`).
   - Use relative/absolute tooltips to avoid disrupting underlying grid layouts.

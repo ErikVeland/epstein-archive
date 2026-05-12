@@ -631,7 +631,13 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
 
   return createPortal(
     <div className={styles.backdrop}>
-      <button className={styles.dismissLayer} onClick={onClose} aria-label="Close details modal" />
+      <Button
+        unstyled
+        type="button"
+        className={styles.dismissLayer}
+        onClick={onClose}
+        aria-label="Close details modal"
+      />
       <div
         ref={modalRef}
         className={styles.modalDialog}
@@ -703,7 +709,8 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                         >
                           <Icon name="PhoneCall" size="sm" />
                         </a>
-                        <button
+                        <Button
+                          unstyled
                           type="button"
                           className={styles.detailCardAction}
                           onClick={() => handleCopy(displayPhone, `phone-${idx}`)}
@@ -714,7 +721,7 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                             size="sm"
                             style={isCopied ? { color: '#4ade80' } : undefined}
                           />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   );
@@ -744,7 +751,8 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                         >
                           <Icon name="Mail" size="sm" />
                         </a>
-                        <button
+                        <Button
+                          unstyled
                           type="button"
                           className={styles.detailCardAction}
                           onClick={() => handleCopy(email, `email-${idx}`)}
@@ -755,7 +763,7 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                             size="sm"
                             style={isCopied ? { color: '#4ade80' } : undefined}
                           />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   );
@@ -777,7 +785,8 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                   return (
                     <div key={idx} className={styles.detailCard}>
                       <span className={styles.detailCardValue}>{address}</span>
-                      <button
+                      <Button
+                        unstyled
                         type="button"
                         className={styles.detailCardAction}
                         onClick={() => handleCopy(address, `address-${idx}`)}
@@ -788,7 +797,7 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
                           size="sm"
                           style={isCopied ? { color: '#4ade80' } : undefined}
                         />
-                      </button>
+                      </Button>
                     </div>
                   );
                 })}

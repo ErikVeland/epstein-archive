@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { SEO } from '@client/components/common/SEO';
-import { LqText, Surface } from '@client/design-system/lib';
+import { Button, LqText, Surface } from '@client/design-system/lib';
 import { apiClient } from '@client/services/apiClient';
 import { EntityPicker } from '@client/components/connections/EntityPicker';
 import { DossierSection } from '@client/components/connections/DossierSection';
@@ -93,14 +93,15 @@ export function ConnectionDossierPage() {
             onChange={(e) => setEntity('a', e)}
             placeholder="Search for a person..."
           />
-          <button
+          <Button
+            unstyled
             type="button"
             className={styles.swapBtn}
             onClick={swap}
             aria-label="Swap entities"
           >
             ⇄
-          </button>
+          </Button>
           <EntityPicker
             label="Entity B"
             value={entityBOption}

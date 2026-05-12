@@ -1,0 +1,39 @@
+{
+  "deprecatedUiImports": {
+    "count": 0,
+    "files": []
+  },
+  "bannedPresentationClasses": {
+    "count": 0,
+    "files": []
+  },
+  "rawInteractiveElements": {
+    "count": 0,
+    "files": []
+  },
+  "presentationalInlineStyles": {
+    "count": 8,
+    "files": [
+      "src/client/components/common/Icon.tsx",
+      "src/client/components/email/EmailClient.tsx",
+      "src/client/components/layout/GlobalSearch.tsx",
+      "src/client/pages/CorroborationPage.tsx",
+      "src/client/pages/LegalTrackerPage.tsx",
+      "src/client/pages/LoginPage.tsx",
+      "src/client/pages/NetworkPage.tsx",
+      "src/client/pages/SurvivorTrackingPage.tsx"
+    ]
+  },
+  "hardcodedColors": {
+    "count": 7,
+    "files": [
+      "src/client/components/BlackBookViewer.tsx",
+      "src/client/components/common/Icon.tsx",
+      "src/client/components/email/EmailClient.tsx",
+      "src/client/pages/CorroborationPage.tsx",
+      "src/client/pages/LegalTrackerPage.tsx",
+      "src/client/pages/NetworkPage.tsx",
+      "src/client/pages/SurvivorTrackingPage.tsx"
+    ]
+  }
+}

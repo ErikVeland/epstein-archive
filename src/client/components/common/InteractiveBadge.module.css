@@ -1,0 +1,7 @@
+.badge {
+  composes: semantic-chip from global;
+}
+
+.icon {
+  opacity: 0.8;
+}

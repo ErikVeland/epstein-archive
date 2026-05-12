@@ -69,7 +69,8 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
               className={styles.riskIcon}
             />
           )}
-          <button
+          <Button
+            unstyled
             type="button"
             className={styles.entityName}
             onClick={handleNameClick}
@@ -77,7 +78,7 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
             title={`Open profile for ${connection.entityName}`}
           >
             {connection.entityName}
-          </button>
+          </Button>
         </Flex>
         <span className={styles.totalScore}>{connection.totalScore}</span>
       </Flex>

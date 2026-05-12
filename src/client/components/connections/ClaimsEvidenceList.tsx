@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '@client/design-system/lib';
 import type { SharedClaimDto } from '@shared/dto/connections';
 import styles from './EvidenceList.module.css';
 
@@ -27,9 +28,14 @@ export function ClaimsEvidenceList({ claims }: Props) {
             {c.subjectName ?? 'Unknown'} <em>{c.predicate ?? ''}</em>{' '}
             {c.objectName ?? c.objectText ?? 'Unknown'}
           </div>
-          <button type="button" className={styles.corrobBadge} onClick={() => toggle(c.id)}>
+          <Button
+            unstyled
+            type="button"
+            className={styles.corrobBadge}
+            onClick={() => toggle(c.id)}
+          >
             {c.documentCount} doc{c.documentCount !== 1 ? 's' : ''}
-          </button>
+          </Button>
         </div>
       ))}
     </div>
