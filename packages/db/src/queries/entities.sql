@@ -26,17 +26,17 @@ WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_r
   AND COALESCE(e.quarantine_status, 0) = 0
   AND e.full_name IS NOT NULL
   AND BTRIM(e.full_name) != ''
-  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*'
-  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b'
-  AND LOWER(e.full_name) !~* '\b(mon|tue|wed|thu|fri|sat|sun)\s*$'
-  AND LOWER(e.full_name) !~* '\b([[:alpha:]]{3,})\s+\1\b'
-  AND LOWER(e.full_name) !~* '\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b'
-  AND LOWER(e.full_name) !~* '\b(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\b'
-  AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\b'
-  AND LOWER(e.full_name) !~* '\b(direction|provided)\s*$'
-  AND LOWER(e.full_name) !~* '\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$'
-  AND LOWER(e.full_name) !~* '\b[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
-  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
+  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*'
+  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M'
+  AND LOWER(e.full_name) !~* '\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$'
+  AND LOWER(e.full_name) !~* '\m([[:alpha:]]{3,})\s+\1\M'
+  AND LOWER(e.full_name) !~* '\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M'
+  AND LOWER(e.full_name) !~* '\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M'
+  AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M'
+  AND LOWER(e.full_name) !~* '\m(direction|provided)\M\s*$'
+  AND LOWER(e.full_name) !~* '\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$'
+  AND LOWER(e.full_name) !~* '\m[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
+  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)
   AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)
   AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)
@@ -62,17 +62,17 @@ WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_r
   AND COALESCE(e.quarantine_status, 0) = 0
   AND e.full_name IS NOT NULL
   AND BTRIM(e.full_name) != ''
-  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*'
-  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b'
-  AND LOWER(e.full_name) !~* '\b(mon|tue|wed|thu|fri|sat|sun)\s*$'
-  AND LOWER(e.full_name) !~* '\b([[:alpha:]]{3,})\s+\1\b'
-  AND LOWER(e.full_name) !~* '\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b'
-  AND LOWER(e.full_name) !~* '\b(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\b'
-  AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\b'
-  AND LOWER(e.full_name) !~* '\b(direction|provided)\s*$'
-  AND LOWER(e.full_name) !~* '\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$'
-  AND LOWER(e.full_name) !~* '\b[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
-  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b'
+  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*'
+  AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M'
+  AND LOWER(e.full_name) !~* '\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$'
+  AND LOWER(e.full_name) !~* '\m([[:alpha:]]{3,})\s+\1\M'
+  AND LOWER(e.full_name) !~* '\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M'
+  AND LOWER(e.full_name) !~* '\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M'
+  AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M'
+  AND LOWER(e.full_name) !~* '\m(direction|provided)\M\s*$'
+  AND LOWER(e.full_name) !~* '\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$'
+  AND LOWER(e.full_name) !~* '\m[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
+  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL);
 
 /* @name getEntityById */

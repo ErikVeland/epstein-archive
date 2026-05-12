@@ -23,17 +23,17 @@ const JUNK_NAME_REGEXES = [
 ];
 
 const SQL_JUNK_REGEXES = [
-  String.raw`^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\b[:\s-]*`,
-  String.raw`^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\b`,
-  String.raw`\b(mon|tue|wed|thu|fri|sat|sun)\s*$`,
-  String.raw`\b([[:alpha:]]{3,})\s+\1\b`,
-  String.raw`\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b`,
-  String.raw`\b(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\b`,
-  String.raw`^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\b`,
-  String.raw`\b(direction|provided)\s*$`,
-  String.raw`\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$`,
-  String.raw`\b[[:alpha:]]+'?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b`,
-  String.raw`^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\b`,
+  String.raw`^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*`,
+  String.raw`^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M`,
+  String.raw`\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$`,
+  String.raw`\m([[:alpha:]]{3,})\s+\1\M`,
+  String.raw`\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M`,
+  String.raw`\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M`,
+  String.raw`^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M`,
+  String.raw`\m(direction|provided)\M\s*$`,
+  String.raw`\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$`,
+  String.raw`\m[[:alpha:]]+'?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M`,
+  String.raw`^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M`,
 ];
 
 function normalizeName(name: string): string {

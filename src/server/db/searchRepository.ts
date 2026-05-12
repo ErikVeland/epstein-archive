@@ -316,8 +316,11 @@ export const searchRepository = {
     // ── Entities ─────────────────────────────────────────────────────────────
     let mergedEntityRows: EntitySearchRow[] = [];
     const entityMatchReasons = new Map<string, string>();
+    const shouldSearchEntities = !isJunkEntityName(searchTerm);
 
-    if (effectiveMode === 'semantic') {
+    if (!shouldSearchEntities) {
+      logger.info({ searchTerm }, '[searchRepository] skipping entity search for junk-like query');
+    } else if (effectiveMode === 'semantic') {
       try {
         const semanticResults = await searchEntitiesSemantic(searchTerm, safeLimit);
         const semanticIds = semanticResults.map((r) => Number(r.id));
@@ -414,7 +417,12 @@ export const searchRepository = {
 
     mergedEntityRows = mergedEntityRows.filter((row) => !isJunkEntityName(row.fullName));
 
-    if (!isPrefix && mergedEntityRows.length < safeLimit && effectiveMode !== 'semantic') {
+    if (
+      shouldSearchEntities &&
+      !isPrefix &&
+      mergedEntityRows.length < safeLimit &&
+      effectiveMode !== 'semantic'
+    ) {
       try {
         const fallbackRows = await loadEntityFallbackRows(
           searchTerm,

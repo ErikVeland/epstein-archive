@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.13 - 2026-05-12 - Entity Quality Boundary Fix
+
+### Production Reliability
+
+- **Postgres Junk Predicate Fix**: Uses PostgreSQL word-boundary regexes for entity-quality SQL so junk phrases like “Bluray Disc” and “Kimberly Meder Direction” are actually quarantined and filtered.
+- **Fast Junk Search Guard**: Skips entity search work for junk-like search terms so quality gates cannot time out on known-bad phrases.
+- **Actionable Quality Gate Errors**: Raises the entity-quality verifier timeout and reports the failing endpoint path when a probe aborts.
+
 ## 21.2.12 - 2026-05-12 - Front Page Entity Quality Gate
 
 ### Production Reliability

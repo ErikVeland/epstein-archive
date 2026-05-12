@@ -16,17 +16,17 @@ const junkPredicate = `
   AND (
     full_name IS NULL
     OR BTRIM(full_name) = ''
-    OR LOWER(full_name) ~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\\b[:\\s-]*'
-    OR LOWER(full_name) ~* '^(on|at|in|with)\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\\b'
-    OR LOWER(full_name) ~* '\\b(mon|tue|wed|thu|fri|sat|sun)\\s*$'
-    OR LOWER(full_name) ~* '\\b([[:alpha:]]{3,})\\s+\\1\\b'
-    OR LOWER(full_name) ~* '\\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\\b'
-    OR LOWER(full_name) ~* '\\b(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\\b'
-    OR LOWER(full_name) ~* '^(east|west|north|south)\\s+(if|aft|aftstreet|street|road|avenue)\\b'
-    OR LOWER(full_name) ~* '\\b(direction|provided)\\s*$'
-    OR LOWER(full_name) ~* '\\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\s*$'
-    OR LOWER(full_name) ~* '\\b[[:alpha:]]+''?s\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\b'
-    OR LOWER(full_name) ~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\b'
+    OR LOWER(full_name) ~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\\M[:\\s-]*'
+    OR LOWER(full_name) ~* '^(on|at|in|with)\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\\M'
+    OR LOWER(full_name) ~* '\\m(mon|tue|wed|thu|fri|sat|sun)\\M\\s*$'
+    OR LOWER(full_name) ~* '\\m([[:alpha:]]{3,})\\s+\\1\\M'
+    OR LOWER(full_name) ~* '\\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\\M'
+    OR LOWER(full_name) ~* '\\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\\M'
+    OR LOWER(full_name) ~* '^(east|west|north|south)\\s+(if|aft|aftstreet|street|road|avenue)\\M'
+    OR LOWER(full_name) ~* '\\m(direction|provided)\\M\\s*$'
+    OR LOWER(full_name) ~* '\\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M\\s*$'
+    OR LOWER(full_name) ~* '\\m[[:alpha:]]+''?s\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'
+    OR LOWER(full_name) ~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'
   )
 `;
 

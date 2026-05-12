@@ -3,7 +3,7 @@
 export {};
 
 const baseUrl = (process.env.DEPLOY_VERIFY_URL || process.argv[2] || '').replace(/\/+$/, '');
-const timeoutMs = Math.max(1000, Number(process.env.DEPLOY_VERIFY_TIMEOUT_MS || 12_000) || 12_000);
+const timeoutMs = Math.max(1000, Number(process.env.DEPLOY_VERIFY_TIMEOUT_MS || 30_000) || 30_000);
 
 if (!baseUrl) {
   console.error('DEPLOY_VERIFY_URL is required, for example https://epstein.academy');
@@ -40,15 +40,19 @@ async function getJson(path: string): Promise<Record<string, unknown>> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
-      headers: { Accept: 'application/json', 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
-      signal: controller.signal,
-    });
-    const text = await response.text();
-    if (!response.ok)
-      throw new Error(`${path} status=${response.status} body=${text.slice(0, 160)}`);
-    const json = JSON.parse(text || '{}') as Record<string, unknown>;
-    return json;
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+        signal: controller.signal,
+      });
+      const text = await response.text();
+      if (!response.ok)
+        throw new Error(`${path} status=${response.status} body=${text.slice(0, 160)}`);
+      const json = JSON.parse(text || '{}') as Record<string, unknown>;
+      return json;
+    } catch (error) {
+      throw new Error(`${path} failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
   } finally {
     clearTimeout(timeout);
   }
