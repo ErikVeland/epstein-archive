@@ -4,7 +4,7 @@ import { logger } from '../services/Logger.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 import { getSemanticCapability, SemanticCapability } from '../semantic/capability.js';
 import { searchDocumentsSemantic, searchEntitiesSemantic } from '../semantic/search.js';
-import { entityBaseQualityWhereSql, isJunkEntityName } from './entityQuality.js';
+import { entityQualityWhereSql, isJunkEntityName } from './entityQuality.js';
 
 const normalizeAliasValue = (value: string): string =>
   value
@@ -85,7 +85,7 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
       FROM entities e
       WHERE COALESCE(e.junk_tier, 'clean') = 'clean'
         AND COALESCE(e.quarantine_status, 0) = 0
-        AND ${entityBaseQualityWhereSql('e')}
+        AND ${entityQualityWhereSql('e')}
         AND (
           e.full_name ILIKE $1
           OR COALESCE(e.aliases, '') ILIKE $1
@@ -131,7 +131,7 @@ async function searchEntityLexicalRows(
         ${rankExpr} AS rank
       FROM entities e
       WHERE e.fts_vector @@ ${queryFn}('english', $1)
-        AND ${entityBaseQualityWhereSql('e')}
+        AND ${entityQualityWhereSql('e')}
       ORDER BY rank DESC
       LIMIT $2
     `,
@@ -338,7 +338,7 @@ export const searchRepository = {
                 e.red_flag_rating AS "redFlagRating"
               FROM entities e
               WHERE e.id = ANY($1::bigint[])
-                AND ${entityBaseQualityWhereSql('e')}
+                AND ${entityQualityWhereSql('e')}
             `,
             [semanticIds],
           );
@@ -385,7 +385,7 @@ export const searchRepository = {
                   e.red_flag_rating AS "redFlagRating"
                 FROM entities e
                 WHERE e.id = ANY($1::bigint[])
-                  AND ${entityBaseQualityWhereSql('e')}
+                  AND ${entityQualityWhereSql('e')}
               `,
               [semanticIdsToFetch],
             );

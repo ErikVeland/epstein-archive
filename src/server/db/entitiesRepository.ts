@@ -7,7 +7,7 @@ import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolve
 import { logger } from '../services/Logger.js';
 import {
   canonicalEntityPriority,
-  entityBaseQualityWhereSql,
+  entityQualityWhereSql,
   isJunkEntityName,
 } from './entityQuality.js';
 
@@ -278,7 +278,7 @@ async function getSubjectCardsFallback(
               ) as "topPhotoId"
             FROM entities e
             WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
-              AND ${entityBaseQualityWhereSql('e')}
+              AND ${entityQualityWhereSql('e')}
               AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
               AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
               AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
@@ -313,7 +313,7 @@ async function getSubjectCardsFallback(
           SELECT COUNT(*) as total
           FROM entities e
           WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
-            AND ${entityBaseQualityWhereSql('e')}
+            AND ${entityQualityWhereSql('e')}
             AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
             AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
             AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
@@ -483,7 +483,7 @@ export const entitiesRepository = {
       }
     }
 
-    whereParts.push(entityBaseQualityWhereSql('e'));
+    whereParts.push(entityQualityWhereSql('e'));
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
@@ -515,7 +515,7 @@ export const entitiesRepository = {
         END ASC`,
       );
     }
-    orderByTerms.push(`${inferredRankExpr} ASC`);
+    orderByTerms.push(`COALESCE(e.is_vip, 0) DESC`, `${inferredRankExpr} ASC`);
     const documentCountExpr = `e.evidence_count`;
     const mentionCountExpr = `e.mentions`;
 
@@ -553,7 +553,7 @@ export const entitiesRepository = {
       orderByTerms.push(`LOWER(COALESCE(e.full_name, '')) ${sortOrder}`);
     }
 
-    orderByTerms.push(`COALESCE(e.is_vip, 0) DESC`, `LOWER(COALESCE(e.full_name, '')) ASC`);
+    orderByTerms.push(`LOWER(COALESCE(e.full_name, '')) ASC`);
     const orderBySql = orderByTerms.join(', ');
 
     const fetchLimit = Math.max(limit, Math.min(limit * 4, 100));
@@ -906,7 +906,7 @@ export const entitiesRepository = {
           e.connections_summary as "connections",
           e.was_agentic as "wasAgentic"
         FROM entities e
-        WHERE ${entityBaseQualityWhereSql('e')}
+        WHERE ${entityQualityWhereSql('e')}
         ORDER BY LOWER(e.full_name) ASC
         LIMIT $1
       `,

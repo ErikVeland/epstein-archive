@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.12 - 2026-05-12 - Front Page Entity Quality Gate
+
+### Production Reliability
+
+- **Front Page Entity Integrity**: Enforces the full junk-entity predicate in the subject-card repository path so polluted OCR/object fragments cannot surface on the People front page.
+- **VIP Canonical Sync**: Promotes the canonical 300+ person VIP rules into clean, reviewed database entities during deploy so the front page respects the investigation priority list.
+- **Cutover Gate Coverage**: Expands production entity-quality verification across both subject and entity APIs, including the exact junk patterns found in the live screenshots.
+
 ## 21.2.11 - 2026-05-12 - Design System Drift Guardrails
 
 ### Production Reliability

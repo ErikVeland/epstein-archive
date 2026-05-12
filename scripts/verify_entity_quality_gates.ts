@@ -16,6 +16,9 @@ const junkNameRegexes = [
   /\b(mon|tue|wed|thu|fri|sat|sun)\s*$/i,
   /\b([a-z]{3,})\s+\1\b/i,
   /\b(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\b/i,
+  /\b(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\b/i,
+  /^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\b/i,
+  /\b(direction|provided)\s*$/i,
   /\b(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\s*$/i,
 ];
 
@@ -82,6 +85,24 @@ async function assertSubjectGate(sortBy: string) {
   console.log(`[PASS] ${sortBy} subject gate: ${names.slice(0, 2).join(' > ')}`);
 }
 
+async function assertEntitiesGate(sortBy: string) {
+  const body = await getJson(`/api/entities?page=1&limit=25&sortBy=${sortBy}`);
+  const entities = extractArray(body, ['entities', 'data', 'subjects']);
+  const names = entities.map((entity) => entity.name ?? entity.fullName ?? entity.full_name);
+
+  if (normalizeName(names[0]) !== 'jeffrey epstein' || normalizeName(names[1]) !== 'donald trump') {
+    throw new Error(
+      `${sortBy} top entities failed: got ${names.slice(0, 5).map(String).join(', ')}`,
+    );
+  }
+
+  const junk = names.find(isJunkName);
+  if (junk)
+    throw new Error(`${sortBy} surfaced junk entity through /api/entities: ${String(junk)}`);
+
+  console.log(`[PASS] ${sortBy} entities gate: ${names.slice(0, 2).join(' > ')}`);
+}
+
 async function assertSearchGate(query: string) {
   const body = await getJson(`/api/search?q=${encodeURIComponent(query)}&limit=25`);
   const entities = extractArray(body, ['entities']);
@@ -94,8 +115,13 @@ async function assertSearchGate(query: string) {
 async function main() {
   await assertSubjectGate('red_flag');
   await assertSubjectGate('mentions');
+  await assertEntitiesGate('red_flag');
+  await assertEntitiesGate('mentions');
   await assertSearchGate('department');
   await assertSearchGate('associates inc');
+  await assertSearchGate('bluray disc');
+  await assertSearchGate('dumpster hauls provided');
+  await assertSearchGate('search persoanel name');
 }
 
 main().catch((error) => {
