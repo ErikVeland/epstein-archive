@@ -173,19 +173,24 @@
 }
 
 .documentRow {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
+  display: block;
   width: 100%;
-  min-height: 6.75rem;
-  padding: var(--space-4) var(--space-5);
+  padding: 0;
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 55%, transparent);
   background: transparent;
   color: inherit;
   text-align: left;
   cursor: pointer;
+}
+
+.documentRowInner {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+  min-height: 6.75rem;
+  padding: var(--space-4) var(--space-5);
 }
 
 .documentRow:hover,

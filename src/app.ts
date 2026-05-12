@@ -83,6 +83,7 @@ import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
 import { queryCounter } from './server/queryCounter.js';
 import { shouldBootInDegradedMode } from './server/utils/startupMode.js';
+import { initMatViewScheduler } from './server/services/matViewRefresh.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1228,6 +1229,10 @@ export class App {
         warmTopConnectedCache();
         // Refresh every 30 minutes to keep the cache warm after it expires.
         setInterval(warmTopConnectedCache, 30 * 60 * 1000).unref();
+
+        // Start materialised view background scheduler
+        initMatViewScheduler();
+
         resolve();
       });
     });

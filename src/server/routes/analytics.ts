@@ -116,7 +116,15 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       topConnectedEntities: topConnectedRows,
       entityTypeDistribution: entityDistRows,
       riskByType: riskByTypeRows,
-      redactionStats: redactionStatsRows[0] ?? null,
+      redactionStats: redactionStatsRows[0]
+        ? {
+            totalDocuments: Number(redactionStatsRows[0].totalDocuments || 0),
+            redactedDocuments: Number(redactionStatsRows[0].redactedDocuments || 0), // legacy compat
+            redactedCount: Number(redactionStatsRows[0].redactedDocuments || 0),
+            redactionPercentage: Number(redactionStatsRows[0].redactionPercentage || 0),
+            totalRedactions: Number(redactionStatsRows[0].totalRedactions || 0),
+          }
+        : null,
       topRelationships: filteredTopRelationshipsRows,
       totalCounts: {
         entities: Number(tc.entities),

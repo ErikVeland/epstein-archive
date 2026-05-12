@@ -33,6 +33,7 @@ export class AIEnrichmentService {
   private static discoveredExoModel: string | null = process.env.EXO_MODEL || null;
   private static discoveredExoGraphModel: string | null =
     process.env.GRAPH_EXTRACTION_MODEL || null;
+  private static discoveredExoVisionModel: string | null = process.env.VISION_MODEL || null;
   // Models confirmed as not running (404 from EXO) — skipped during re-discovery
   private static exoUnavailableModels: Set<string> = new Set();
   private static EXO_DISCOVERY_TIMEOUT_MS = Math.max(
@@ -146,6 +147,7 @@ export class AIEnrichmentService {
 
       interface ExoModel {
         id: string;
+        capabilities?: string[];
       }
       interface ExoModelsResponse {
         data?: ExoModel[];
@@ -194,13 +196,80 @@ export class AIEnrichmentService {
   }
 
   /**
+   * Discovers the explicit vision-capable model on the Exo cluster.
+   * Checks both model IDs (VL suffix) and explicit "vision" capability tag.
+   */
+  private static async autoDiscoverExoVisionModel(): Promise<string> {
+    // 1. Explicit env override takes highest priority
+    if (process.env.VISION_MODEL && !this.exoUnavailableModels.has(process.env.VISION_MODEL)) {
+      logger.info(`🤖 Using VISION_MODEL from environment: ${process.env.VISION_MODEL}`);
+      return process.env.VISION_MODEL;
+    }
+
+    // 2. Return cached discovery result
+    if (this.discoveredExoVisionModel) return this.discoveredExoVisionModel;
+
+    try {
+      const response = await fetch(`${this.EXO_HOST}/v1/models`, {
+        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+      });
+      if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
+
+      interface ExoModel {
+        id: string;
+        capabilities?: string[];
+      }
+      interface ExoModelsResponse {
+        data?: ExoModel[];
+      }
+
+      const data = (await response.json()) as ExoModelsResponse;
+      if (data.data && data.data.length > 0) {
+        const available = (m: ExoModel) => !this.exoUnavailableModels.has(m.id);
+        const id = (m: ExoModel) => m.id.toLowerCase();
+
+        // 1st Priority: Explicit "vision" capability
+        const hasVisionCap = data.data.filter(
+          (m) => available(m) && m.capabilities?.includes('vision'),
+        );
+
+        // Within vision models, prefer manageable sizes first for cluster efficiency (4B-35B)
+        const midVision = hasVisionCap.find(
+          (m) => !id(m).includes('397b') && !id(m).includes('122b'),
+        );
+
+        // 2nd Priority: "vl" suffix in the name
+        const hasVlName = data.data.find(
+          (m) => available(m) && (id(m).includes('-vl-') || id(m).endsWith('-vl')),
+        );
+
+        const selected = midVision || hasVisionCap[0] || hasVlName;
+
+        if (selected) {
+          this.discoveredExoVisionModel = selected.id;
+          logger.info(`👁️ Auto-discovered Exo Vision model: ${this.discoveredExoVisionModel}`);
+          return this.discoveredExoVisionModel;
+        }
+      }
+    } catch (err: unknown) {
+      logger.warn({ err }, '⚠️ Failed to discover Exo vision model — falling back to standard');
+    }
+
+    // Fallback to whatever autoDiscover picks if we fail to find dedicated vision metadata
+    return await this.autoDiscoverExoModel();
+  }
+
+  /**
    * Get the model name for the current provider
    */
   private static async getModelId(
-    task: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph' = 'repair',
+    task: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph' | 'vision' = 'repair',
   ): Promise<string> {
     const provider = process.env.AI_PROVIDER || 'local_ollama';
     if (provider === 'exo_cluster') {
+      if (task === 'vision') {
+        return await this.autoDiscoverExoVisionModel();
+      }
       // Graph extraction tasks get the heavier model (14B+) when available
       if (task === 'graph') {
         return await this.autoDiscoverExoGraphModel();
@@ -231,11 +300,12 @@ export class AIEnrichmentService {
       maxTokens?: number;
       temperature?: number;
       retryCount?: number;
-      task?: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph';
+      task?: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph' | 'vision';
+      images?: Buffer[];
     } = {},
   ): Promise<string> {
     const provider = process.env.AI_PROVIDER || 'local_ollama';
-    const { maxTokens = 100, temperature = 0.1, retryCount = 2, task } = options;
+    const { maxTokens = 100, temperature = 0.1, retryCount = 2, task, images } = options;
 
     let attempt = 0;
     // Track how many different models we've tried to avoid an infinite model-switch loop
@@ -249,12 +319,24 @@ export class AIEnrichmentService {
           const url = `${this.EXO_HOST}/v1/chat/completions`;
           logger.info(`[AIEnrichment] Calling Exo LLM: ${modelId} at ${url}`);
 
+          // Construct user message content. Standard text, or multi-modal content array if images present.
+          const messageContent =
+            images && images.length > 0
+              ? [
+                  { type: 'text', text: prompt },
+                  ...images.map((img) => ({
+                    type: 'image_url',
+                    image_url: { url: `data:image/png;base64,${img.toString('base64')}` },
+                  })),
+                ]
+              : prompt;
+
           const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               model: modelId,
-              messages: [{ role: 'user', content: prompt }],
+              messages: [{ role: 'user', content: messageContent }],
               max_tokens: maxTokens,
               temperature,
               // Disable Qwen3/thinking-model chain-of-thought so content is
@@ -284,6 +366,8 @@ export class AIEnrichmentService {
               // Invalidate caches so we re-discover a DIFFERENT available model
               if (task === 'graph') {
                 this.discoveredExoGraphModel = null;
+              } else if (task === 'vision') {
+                this.discoveredExoVisionModel = null;
               } else {
                 this.discoveredExoModel = null;
               }
@@ -318,6 +402,8 @@ export class AIEnrichmentService {
             body: JSON.stringify({
               model: modelId,
               prompt,
+              images:
+                images && images.length > 0 ? images.map((i) => i.toString('base64')) : undefined,
               stream: false,
               options: { temperature, num_predict: maxTokens },
             }),
@@ -469,6 +555,36 @@ export class AIEnrichmentService {
       .replace(/\uFEFF/g, '');
 
     return r;
+  }
+
+  /**
+   * VLM: Structured Visual Page Parsing (Reducto Standard)
+   * Uses a Vision model to translate visual page layouts, text, and photos into structured MD.
+   */
+  static async parseDocumentPageVisual(imageBuffer: Buffer): Promise<string> {
+    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    if (!isAiEnabled) return '';
+
+    try {
+      const prompt = `Task: Perform rigorous visual-linguistic document analysis.
+1. Transcribe all visible text perfectly, preserving grammatical structure and flow.
+2. Represent all tabular data exactly as clean GitHub Flavored Markdown tables.
+3. For ANY graphics, charts, or photos, inject an inline markdown blockquote right where the item appears, providing an extremely meticulous detailed physical description of the visual scene.
+4. Use proper markdown headings for layout structure.
+5. Do NOT output conversational preambles or conclusions. Output ONLY the resulting document markdown.`;
+
+      const result = await this.callLLM(prompt, {
+        task: 'vision',
+        images: [imageBuffer],
+        maxTokens: 3000, // Highly detailed page parsing requires adequate token headroom
+        temperature: 0.1, // Low temperature for transcription accuracy
+      });
+
+      return result || '';
+    } catch (e) {
+      logger.warn({ err: e }, '⚠️ parseDocumentPageVisual failed');
+      return '';
+    }
   }
 
   /**

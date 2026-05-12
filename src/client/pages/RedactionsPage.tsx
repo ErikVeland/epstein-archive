@@ -250,23 +250,27 @@ export const RedactionsPage: React.FC = () => {
                   }`}
                   onClick={() => setSelectedDocumentId(doc.id)}
                 >
-                  <span className={styles.documentTitle}>{doc.title}</span>
-                  <span className={styles.documentPreview}>{doc.previewText || doc.fileName}</span>
-                  <Flex align="center" gap="xs" className={styles.documentMeta}>
-                    <span
-                      className={`${styles.coveragePill} ${coverageSeverity(
-                        doc.redactionCoverageAfter,
-                      )}`}
-                      title="Estimated share of text still hidden after recovery attempts"
-                    >
-                      Hidden: {formatCoverage(doc.redactionCoverageAfter)}
+                  <div className={styles.documentRowInner}>
+                    <span className={styles.documentTitle}>{doc.title}</span>
+                    <span className={styles.documentPreview}>
+                      {doc.previewText || doc.fileName}
                     </span>
-                    {doc.unredactionAttempted && (
-                      <span className={styles.attemptPill}>
-                        {doc.unredactionSucceeded ? 'Resolved' : 'Attempted'}
+                    <Flex align="center" gap="xs" className={styles.documentMeta}>
+                      <span
+                        className={`${styles.coveragePill} ${coverageSeverity(
+                          doc.redactionCoverageAfter,
+                        )}`}
+                        title="Estimated share of text still hidden after recovery attempts"
+                      >
+                        Hidden: {formatCoverage(doc.redactionCoverageAfter)}
                       </span>
-                    )}
-                  </Flex>
+                      {doc.unredactionAttempted && (
+                        <span className={styles.attemptPill}>
+                          {doc.unredactionSucceeded ? 'Resolved' : 'Attempted'}
+                        </span>
+                      )}
+                    </Flex>
+                  </div>
                 </Button>
               ))}
             </div>

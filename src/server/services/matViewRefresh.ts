@@ -109,3 +109,31 @@ export async function forceRefresh(): Promise<void> {
   lastRefreshedAt = 0;
   await refreshIfDue();
 }
+
+/**
+ * Initializes the background scheduler for materialised view maintenance.
+ * Called once at app startup.
+ */
+export function initMatViewScheduler(): void {
+  if (
+    process.env.DISABLE_MATVIEW_REFRESH === '1' ||
+    process.env.DISABLE_MATVIEW_REFRESH === 'true'
+  ) {
+    return;
+  }
+
+  // 1. High-frequency cycle to catch reactive "dirty" marks from API writes.
+  // Checks every 30s, will actually refresh only if markViewsDirty() was called.
+  setInterval(() => {
+    refreshIfDue().catch((err) => logger.error({ err }, '[MatViewRefresh] Auto-cycle failed'));
+  }, 30_000).unref();
+
+  // 2. Low-frequency safety valve to catch background backfill writes that bypass the web API.
+  // Forces an unconditional refresh every 10 minutes regardless of the dirty flag.
+  setInterval(() => {
+    logger.info('[MatViewRefresh] Executing scheduled periodic safety-valve refresh...');
+    forceRefresh().catch((err) => logger.error({ err }, '[MatViewRefresh] Periodic cycle failed'));
+  }, 10 * 60_000).unref();
+
+  logger.info('[MatViewRefresh] Scheduler initialized (30s reactive, 10m periodic)');
+}

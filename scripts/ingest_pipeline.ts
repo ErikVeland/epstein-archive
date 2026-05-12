@@ -617,16 +617,39 @@ async function extractTextFromPdf(buffer: Buffer): Promise<{
 
 async function extractTextFromImage(
   filePath: string,
-): Promise<{ text: string; pageCount: number }> {
+): Promise<{ text: string; pageCount: number; vlm_parsed?: boolean }> {
   try {
-    const worker = await createWorker('eng');
-    const {
-      data: { text },
-    } = await worker.recognize(filePath);
-    await worker.terminate();
+    let vlm_parsed = false;
+    let text = '';
+    if (process.env.ENABLE_AI_ENRICHMENT === 'true') {
+      try {
+        const buffer = readFileSync(filePath);
+        text = await AIEnrichmentService.parseDocumentPageVisual(buffer);
+        if (text) {
+          vlm_parsed = true;
+          console.log(`   🧠 Image parsed via VLM Vision Engine (${text.length} chars)`);
+        }
+      } catch (err) {
+        console.warn(
+          '  ⚠️  VLM Image parsing failed, falling back to Tesseract:',
+          (err as Error).message,
+        );
+      }
+    }
+
+    if (!text) {
+      const worker = await createWorker('eng');
+      const {
+        data: { text: ocrText },
+      } = await worker.recognize(filePath);
+      text = ocrText;
+      await worker.terminate();
+    }
+
     return {
       text: text || '',
       pageCount: 1,
+      vlm_parsed,
     };
   } catch (e) {
     console.warn('  ⚠️  Image OCR failed:', (e as Error).message);
@@ -715,15 +738,15 @@ async function ocrFallbackForPdf(
 ): Promise<{
   text: string;
   pages: { text: string; pageNumber: number; source: 'ocr' }[];
+  vlm_parsed?: boolean;
 }> {
   const pages: { text: string; pageNumber: number; source: 'ocr' }[] = [];
-  const worker = await createWorker('eng');
+  let worker: any = null;
+  let vlm_parsed_any = false;
 
   try {
     for (let i = 0; i < pageCount; i++) {
       try {
-        // Render PDF page to high-res PNG buffer via native pdftoppm (Poppler)
-        // This bypasses vips/sharp limitations that prevent rendering some of this corpus' PDFs.
         const pageNum = i + 1;
         const imageBuffer = await new Promise<Buffer>((resolve, reject) => {
           execFile(
@@ -737,22 +760,44 @@ async function ocrFallbackForPdf(
           );
         });
 
-        const {
-          data: { text },
-        } = await worker.recognize(imageBuffer);
-        pages.push({ text: text.trim(), pageNumber: pageNum, source: 'ocr' });
+        let pageText = '';
+
+        // Try high-fidelity VLM parser first
+        if (process.env.ENABLE_AI_ENRICHMENT === 'true') {
+          try {
+            pageText = await AIEnrichmentService.parseDocumentPageVisual(imageBuffer);
+            if (pageText) {
+              vlm_parsed_any = true;
+              console.log(`   🧠 Page ${pageNum} parsed via VLM (${pageText.length} chars)`);
+            }
+          } catch (_err) {
+            console.warn(`  ⚠️ VLM parse failed on page ${pageNum}, trying Tesseract...`);
+          }
+        }
+
+        // Fallback to Tesseract if VLM is disabled or produced no content
+        if (!pageText) {
+          if (!worker) worker = await createWorker('eng');
+          const {
+            data: { text },
+          } = await worker.recognize(imageBuffer);
+          pageText = text.trim();
+        }
+
+        pages.push({ text: pageText, pageNumber: pageNum, source: 'ocr' });
       } catch (pageErr) {
-        console.warn(`  ⚠️  OCR failed on page ${i + 1}:`, (pageErr as Error).message);
+        console.warn(`  ⚠️  Image analysis failed on page ${i + 1}:`, (pageErr as Error).message);
         pages.push({ text: '', pageNumber: i + 1, source: 'ocr' });
       }
     }
   } finally {
-    await worker.terminate();
+    if (worker) await worker.terminate();
   }
 
   return {
     text: pages.map((p) => p.text).join('\n\n'),
     pages,
+    vlm_parsed: vlm_parsed_any,
   };
 }
 
@@ -1864,6 +1909,9 @@ async function processDocument(
           console.log(`   ✅ OCR yielded ${ocrWords} words (vs ${extractedWords} from text layer)`);
           pdfTextForCleaning = ocrResult.text;
           granularPages = ocrResult.pages; // override with per-page OCR results
+          if (ocrResult.vlm_parsed) {
+            metadataObj.vlm_parsed = true;
+          }
         } else {
           console.log(
             `   ⚠️  OCR (${ocrWords} words) did not improve on text layer — keeping original`,
@@ -1908,6 +1956,7 @@ async function processDocument(
       pageCount = 1;
     } else if (mimeType.startsWith('image/')) {
       const result = await extractTextFromImage(filePath);
+      if (result.vlm_parsed) metadataObj.vlm_parsed = true;
 
       // AI Forensic Repair Integration
       content = await TextCleaner.cleanOcrTextAsync(

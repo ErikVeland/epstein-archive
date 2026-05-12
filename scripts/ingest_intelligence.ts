@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { execSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import 'dotenv/config';
 import pg from 'pg';
 import { getIngestPool } from '../src/server/db/connection.js';
 

@@ -562,6 +562,21 @@ async function runProvenanceBackfillPhase(): Promise<{ documentsTouched: number 
 }
 
 /**
+ * Phase 2.7: VLM BACKFILL - run visual LLM parsing on historical images/PDFs
+ */
+async function runVLMBackfillPhase(): Promise<{ documentsTouched: number }> {
+  console.log('\n' + '='.repeat(70));
+  console.log('👁️  PHASE 2.7: VLM VISUAL ANALYSIS BACKFILL');
+  console.log('='.repeat(70));
+
+  const exitCode = await runScript('scripts/backfill_vlm_visuals.ts');
+
+  return {
+    documentsTouched: exitCode === 0 ? 1 : 0,
+  };
+}
+
+/**
  * Phase 3: ENRICH - AI-powered enrichment for all documents
  */
 async function runEnrichPhase(
@@ -829,6 +844,8 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
   if (mode === 'backfill') {
     updateHeartbeat({ phase: 'Provenance Backfill' });
     await runProvenanceBackfillPhase();
+    updateHeartbeat({ phase: 'VLM Visual Analysis' });
+    await runVLMBackfillPhase();
     updateHeartbeat({ phase: 'Enrichment' });
     stats.enrichStats = await runEnrichPhase('backfill');
   } else if (mode === 'ingest') {

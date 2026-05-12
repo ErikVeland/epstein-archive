@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.2.15 - 2026-05-12 - Analytics Maintenance & Component Decoupling
+
+### Production Reliability
+
+- **Analytics Scheduler Activation**: Formally bootstrapped the maintenance lifecycle daemon to provide continuous analytical view refreshes, catching out-of-band data ingestion signals and resolving stagnant corpus stats.
+- **Redaction Contract Realignment**: Overlaid explicit `redactedCount` property definitions into the production DTO map to restore direct, backward-compatible connectivity with standard component telemetry.
+- **Component Collapsing Prevention**: Re-engineered the native list-grouping mechanism inside standard Flex button containers to eliminate rendering overlaps and typography collision hazards on high-density viewports.
+
 ## 21.2.14 - 2026-05-12 - Hot Path Cutover Guard
 
 ### Production Reliability
