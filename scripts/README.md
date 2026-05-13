@@ -12,7 +12,18 @@ Continuous processing engine that runs ingestion, intelligence, and AI enrichmen
 ```bash
 npx tsx scripts/unified_pipeline.ts --mode ingest  # New data only
 npx tsx scripts/unified_pipeline.ts --mode full    # Full re-scan
+npx tsx scripts/unified_pipeline.ts --mode backfill # Provenance, VLM, AI, graph, semantic, analytics
+npx tsx scripts/unified_pipeline.ts --list-stages   # Inspect every registered stage
+npx tsx scripts/unified_pipeline.ts --mode backfill --stage semantic-embeddings
 ```
+
+The orchestrator registers every stage in `pipeline_steps`, records aggregate
+and document-level stage attempts in `document_stage_runs`, and stores AI
+outputs in `document_ai_artifacts` with model, prompt version, provenance,
+confidence, and review state. Legacy `documents.metadata_json` markers remain
+for compatibility, but backfill safety now comes from stage version + input hash
+
+- model identity.
 
 ### `deploy.sh` — **Canonical Production Deployer**
 
@@ -42,13 +53,23 @@ Run the full suite to verify repository health and database performance.
 
 ## Specialized Processing
 
-| Script                   | Category     | Purpose                                                  |
-| :----------------------- | :----------- | :------------------------------------------------------- |
-| `ingest_pipeline.ts`     | Ingestion    | Phase 1: OCR, Text Extraction, and Parsing.              |
-| `ingest_intelligence.ts` | Intelligence | Phase 2: Entity Resolution and Relationship Mapping.     |
-| `unredact.py`            | Forensic     | Removes standard redaction layers from complex PDFs.     |
-| `scan_faces_deepface.py` | Forensic     | Local Deepface clustering for biometric identification.  |
-| `backfill_thumbnails.ts` | Assets       | Generates standard-res previews for all visual evidence. |
+| Script                             | Category     | Purpose                                                            |
+| :--------------------------------- | :----------- | :----------------------------------------------------------------- |
+| `ingest_pipeline.ts`               | Ingestion    | Phase 1: OCR, Text Extraction, and Parsing.                        |
+| `ingest_intelligence.ts`           | Intelligence | Phase 2: Entity Resolution and Relationship Mapping.               |
+| `unredact.py`                      | Forensic     | Removes standard redaction layers from complex PDFs.               |
+| `scan_faces_deepface.py`           | Forensic     | Local Deepface clustering for biometric identification.            |
+| `backfill_thumbnails.ts`           | Assets       | Generates standard-res previews for all visual evidence.           |
+| `backfill_semantic_embeddings.ts`  | Semantic     | Backfills pgvector document/entity embeddings.                     |
+| `refresh_analytics_views.ts`       | Analytics    | Refreshes materialized views and planner stats after stage writes. |
+| `backfill_image_ocr.ts`            | OCR          | Backfills image text extraction gaps.                              |
+| `backfill_image_media.ts`          | Media        | Backfills image media records and album bindings.                  |
+| `backfill_email_headers_pg.ts`     | Email        | Backfills structured email metadata.                               |
+| `backfill_extracted_date.ts`       | Dates        | Backfills normalized extracted document dates.                     |
+| `extract_media_from_docs.ts`       | Media        | Extracts embedded media from documents.                            |
+| `ingest_faces.ts`                  | Forensic     | Ingests face-cluster intelligence.                                 |
+| `compute_document_significance.ts` | Intelligence | Recomputes document significance signals.                          |
+| `recalculate_entity_risk.ts`       | Intelligence | Recomputes entity risk from graph/evidence signals.                |
 
 ---
 

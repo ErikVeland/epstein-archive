@@ -22,6 +22,28 @@ export interface GlobalStatsPayload {
       downloaded: number;
     }>;
     eta_minutes?: number;
+    throughput_docs_sec?: number;
+    active_workers?: number;
+    remaining_docs?: number;
+    stage_status?: Record<string, Record<string, number | string | null>>;
+    ai_artifacts?: {
+      total: number;
+      reviewed: number;
+    };
+    media?: {
+      total: number;
+      processed: number;
+      percent: number;
+    };
+    current_run?: {
+      id: number;
+      status: string;
+      control_signal: string | null;
+    } | null;
+    exo?: {
+      host: string;
+      model: string;
+    };
   };
 }
 

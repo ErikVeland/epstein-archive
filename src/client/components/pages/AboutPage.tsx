@@ -34,6 +34,11 @@ interface PipelineStatus {
     processed: number;
     percent: number;
   };
+  stage_status?: Record<string, Record<string, number | string | null>>;
+  ai_artifacts?: {
+    total: number;
+    reviewed: number;
+  };
   current_run?: {
     id: number;
     status: string;
@@ -83,6 +88,29 @@ const faqs = [
       'den.',
   },
 ];
+
+const STAGE_LABELS: Record<string, string> = {
+  ingest: 'Ingest',
+  'entity-intelligence': 'Entities',
+  'provenance-backfill': 'Provenance',
+  'vlm-visuals': 'VLM visuals',
+  'image-ocr': 'Image OCR',
+  'image-media': 'Image media',
+  'email-headers': 'Email headers',
+  'extracted-dates': 'Dates',
+  'media-extraction': 'Media extract',
+  'ai-enrichment': 'AI enrichment',
+  'face-ingest': 'Faces',
+  'graph-relations': 'Relations',
+  'graph-timeline': 'Timeline',
+  'graph-financial': 'Finance',
+  'graph-claim-triples': 'Claims',
+  'document-significance': 'Doc scores',
+  'entity-risk': 'Entity risk',
+  'semantic-embeddings': 'Embeddings',
+  'media-thumbnails': 'Thumbnails',
+  'analytics-refresh': 'Analytics',
+};
 
 // Helper to get status dot class
 const getStatusDotClass = (color: string): string => {
@@ -267,6 +295,28 @@ export const AboutPage: React.FC = () => {
       pipelineOverview.ingested >= pipelineOverview.target || pipelineOverview.ingestPercent >= 99.9
     );
   }, [pipelineOverview]);
+
+  const pipelineStages = useMemo(() => {
+    const stageStatus = pipelineStatus?.stage_status || {};
+    return Object.entries(STAGE_LABELS)
+      .map(([name, label]) => {
+        const stage = stageStatus[name] || {};
+        const succeeded = asNumber(stage.succeeded);
+        const failed = asNumber(stage.failed);
+        const running = asNumber(stage.running);
+        const total = succeeded + failed + running;
+        return {
+          name,
+          label,
+          succeeded,
+          failed,
+          running,
+          total,
+          state: running > 0 ? 'running' : failed > 0 ? 'failed' : succeeded > 0 ? 'done' : 'idle',
+        };
+      })
+      .filter((stage) => stage.total > 0);
+  }, [pipelineStatus]);
 
   useEffect(() => {
     const kickoff = setTimeout(() => {
@@ -633,6 +683,34 @@ export const AboutPage: React.FC = () => {
               </span>
             </h3>
             <div className={s.datasetList}>
+              {pipelineStages.length > 0 && (
+                <div className={s.stagePanel}>
+                  <div className={s.stagePanelHeader}>
+                    <span className={s.datasetName}>Unified Pipeline Stages</span>
+                    {pipelineStatus?.ai_artifacts && (
+                      <span className={s.datasetIngestStat}>
+                        AI ARTIFACTS: {pipelineStatus.ai_artifacts.total.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
+                  <div className={s.stageGrid}>
+                    {pipelineStages.map((stage) => (
+                      <div
+                        key={stage.name}
+                        className={`${s.stageChip} ${s[`stageChip_${stage.state}`]}`}
+                      >
+                        <span className={s.stageDot} />
+                        <span className={s.stageName}>{stage.label}</span>
+                        <span className={s.stageCount}>
+                          {stage.succeeded.toLocaleString()}
+                          {stage.failed > 0 ? ` / ${stage.failed.toLocaleString()} failed` : ''}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Media Optimization Pass Progress */}
               {pipelineStatus?.media && (
                 <div className={s.mediaProgressRow}>

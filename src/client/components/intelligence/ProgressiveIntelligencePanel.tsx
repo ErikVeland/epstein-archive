@@ -18,6 +18,16 @@ interface BackfillStatus {
     docsLastHour: number;
     triplesLastHour: number;
     etaHours: number | null;
+    semanticDocumentEmbeddings?: number;
+    semanticEntityEmbeddings?: number;
+    aiArtifacts?: number;
+    reviewedAiArtifacts?: number;
+  };
+  stages?: Record<string, Record<string, number | string | null>>;
+  reducto?: {
+    stageTracking: boolean;
+    aiArtifacts: boolean;
+    semanticEmbeddings: boolean;
   };
 }
 
@@ -83,10 +93,19 @@ export function ProgressiveIntelligencePanel() {
           <div className={styles.value}>{fmtEta(counts?.etaHours)}</div>
           <div className={styles.label}>Rolling ETA</div>
         </div>
+        <div className={styles.metric}>
+          <div className={styles.value}>{fmt(counts?.aiArtifacts)}</div>
+          <div className={styles.label}>AI Artifacts</div>
+        </div>
+        <div className={styles.metric}>
+          <div className={styles.value}>{fmt(counts?.semanticDocumentEmbeddings)}</div>
+          <div className={styles.label}>Semantic Docs</div>
+        </div>
       </div>
       <div className={styles.footer}>
         <span>{fmt(counts?.remainingClaimDocs)} claim-docs remaining</span>
         <span>{fmt(counts?.triplesLastHour)} triples in the last hour</span>
+        <span>{data?.reducto?.stageTracking ? 'Stage-tracked' : 'Legacy status'}</span>
         <span>
           Heartbeat {data?.heartbeatAt ? new Date(data.heartbeatAt).toLocaleTimeString() : '—'}
         </span>

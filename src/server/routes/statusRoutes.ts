@@ -67,6 +67,47 @@ router.get('/backfill', async (_req, res, next) => {
       FROM refined, done, empty_docs, error_docs, recent
     `);
     const row = counts.rows[0];
+    const semanticRows = await pool
+      .query<{
+        document_embeddings: string;
+        entity_embeddings: string;
+      }>(
+        `
+        SELECT
+          CASE
+            WHEN EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema = 'public' AND table_name = 'documents' AND column_name = 'content_embedding'
+            )
+            THEN (SELECT COUNT(*)::text FROM documents WHERE content_embedding IS NOT NULL)
+            ELSE '0'
+          END AS document_embeddings,
+          CASE
+            WHEN EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema = 'public' AND table_name = 'entities' AND column_name = 'description_embedding'
+            )
+            THEN (SELECT COUNT(*)::text FROM entities WHERE description_embedding IS NOT NULL)
+            ELSE '0'
+          END AS entity_embeddings
+      `,
+      )
+      .catch(() => ({ rows: [] }));
+    const artifactRows = await pool
+      .query<{
+        ai_artifacts: string;
+        reviewed_ai_artifacts: string;
+      }>(
+        `
+        SELECT
+          COUNT(*)::text AS ai_artifacts,
+          COUNT(*) FILTER (WHERE review_state <> 'unreviewed')::text AS reviewed_ai_artifacts
+        FROM document_ai_artifacts
+      `,
+      )
+      .catch(() => ({ rows: [] }));
+    const semantic = semanticRows.rows[0];
+    const artifacts = artifactRows.rows[0];
     const refined = Number(row?.refined_documents || 0);
     const done = Number(row?.docs_with_triples || 0);
     const empty = Number(row?.marked_empty || 0);
@@ -74,6 +115,28 @@ router.get('/backfill', async (_req, res, next) => {
     const remaining = Math.max(0, refined - done - empty - errors);
     const docsLastHour = Number(row?.docs_last_hour || 0);
     const etaHours = docsLastHour > 0 ? remaining / docsLastHour : null;
+    const stageRows = await pool
+      .query<{
+        stage_name: string;
+        status: string;
+        count: string;
+        latest_at: string | null;
+      }>(
+        `
+        SELECT stage_name, status, COUNT(*)::text AS count, MAX(updated_at)::text AS latest_at
+        FROM document_stage_runs
+        GROUP BY stage_name, status
+        ORDER BY stage_name, status
+      `,
+      )
+      .catch(() => ({ rows: [] }));
+
+    const stages: Record<string, Record<string, number | string | null>> = {};
+    for (const stage of stageRows.rows) {
+      stages[stage.stage_name] = stages[stage.stage_name] || {};
+      stages[stage.stage_name][stage.status] = Number(stage.count || 0);
+      stages[stage.stage_name].latestAt = stage.latest_at;
+    }
 
     res.json({
       ...checkpoint,
@@ -90,6 +153,17 @@ router.get('/backfill', async (_req, res, next) => {
         docsLastHour,
         triplesLastHour: Number(row?.triples_last_hour || 0),
         etaHours,
+        semanticDocumentEmbeddings: Number(semantic?.document_embeddings || 0),
+        semanticEntityEmbeddings: Number(semantic?.entity_embeddings || 0),
+        aiArtifacts: Number(artifacts?.ai_artifacts || 0),
+        reviewedAiArtifacts: Number(artifacts?.reviewed_ai_artifacts || 0),
+      },
+      stages,
+      reducto: {
+        standard: 'source-grounded visual and text extraction with durable stage runs',
+        stageTracking: true,
+        aiArtifacts: true,
+        semanticEmbeddings: true,
       },
     });
   } catch (error) {

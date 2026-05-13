@@ -31,11 +31,7 @@ interface CollectionStatsRow {
   data?: CollectionCount[];
 }
 
-interface PipelineStatus {
-  status?: string;
-  lastRun?: string;
-  nextRun?: string;
-}
+type PipelineStatus = Record<string, unknown>;
 
 export interface RawStatsRow {
   totalEntities?: number;
@@ -110,6 +106,7 @@ export function mapStatsDto(source: RawStatsRow): StatsDto {
       : [],
     collectionCounts: Array.isArray(source.collectionCounts) ? source.collectionCounts : [],
     collectionStats: extractCollectionStats(colStats),
+    pipeline_status: source.pipeline_status || source.pipelineStatus || null,
     pipelineStatus: source.pipeline_status || source.pipelineStatus || null,
     _meta: {
       degraded: degradedSources.length > 0,

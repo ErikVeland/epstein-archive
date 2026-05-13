@@ -7,9 +7,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { spawn, spawnSync } from 'child_process';
 import { Client } from 'pg';
+import crypto from 'crypto';
 import 'dotenv/config';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { getIngestPool } from '../src/server/db/connection.js';
+import { PipelineService, type PipelineRun } from '../src/server/services/pipelineService.js';
 
 /**
  * Ensure the database is reachable, starting the Docker container if necessary.
@@ -393,7 +395,192 @@ interface PipelineStats {
   intelStats?: { entitiesExtracted: number; relationsFound: number };
   enrichStats?: { documentsEnriched: number; summariesGenerated: number };
   graphStats?: { subPhasesRun: number };
+  stageStats?: Record<string, { exitCode: number; status: string }>;
 }
+
+interface UnifiedStage {
+  name: string;
+  description: string;
+  script?: string;
+  args?: string[];
+  phase: string;
+  version: string;
+  modes: Array<'full' | 'ingest' | 'backfill'>;
+  requiresAi?: boolean;
+}
+
+const PIPELINE_VERSION = process.env.UNIFIED_PIPELINE_VERSION || 'unified-reducto-2.0';
+
+const UNIFIED_STAGES: UnifiedStage[] = [
+  {
+    name: 'ingest',
+    description: 'Discover assets, extract content, OCR/VLM fallback, provenance, media sync',
+    script: 'scripts/ingest_pipeline.ts',
+    phase: 'Ingest',
+    version: 'ingest-v3',
+    modes: ['full', 'ingest'],
+  },
+  {
+    name: 'entity-intelligence',
+    description:
+      'Resolve entities, mentions, contacts, credentials, and first-order evidence links',
+    script: 'scripts/ingest_intelligence.ts',
+    phase: 'Intelligence',
+    version: 'entity-intel-v2',
+    modes: ['full', 'ingest'],
+  },
+  {
+    name: 'provenance-backfill',
+    description: 'Rebuild durable source and chain-of-custody provenance for legacy documents',
+    script: 'scripts/backfill_document_provenance.ts',
+    phase: 'Provenance Backfill',
+    version: 'provenance-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'vlm-visuals',
+    description: 'Reducto-style visual document parsing for image-heavy evidence',
+    script: 'scripts/backfill_vlm_visuals.ts',
+    phase: 'VLM Visual Analysis',
+    version: 'reducto-vlm-1',
+    modes: ['backfill'],
+    requiresAi: true,
+  },
+  {
+    name: 'image-ocr',
+    description: 'Backfill OCR text for image documents before AI summarization',
+    script: 'scripts/backfill_image_ocr.ts',
+    phase: 'Image OCR Backfill',
+    version: 'image-ocr-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'image-media',
+    description: 'Backfill image media rows and album bindings',
+    script: 'scripts/backfill_image_media.ts',
+    phase: 'Image Media Backfill',
+    version: 'image-media-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'email-headers',
+    description: 'Backfill parsed email headers for communication analysis',
+    script: 'scripts/backfill_email_headers_pg.ts',
+    phase: 'Email Header Backfill',
+    version: 'email-headers-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'extracted-dates',
+    description: 'Backfill extracted document dates for timeline and search filters',
+    script: 'scripts/backfill_extracted_date.ts',
+    phase: 'Extracted Date Backfill',
+    version: 'dates-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'media-extraction',
+    description: 'Extract embedded media assets from document containers',
+    script: 'scripts/extract_media_from_docs.ts',
+    phase: 'Embedded Media Extraction',
+    version: 'media-extract-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'ai-enrichment',
+    description: 'AI OCR repair, summaries, document-level semantic artifacts',
+    phase: 'Enrichment',
+    version: 'ai-enrich-v2',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
+    name: 'face-ingest',
+    description: 'Ingest face clusters and link visual entities where available',
+    script: 'scripts/ingest_faces.ts',
+    phase: 'Face Intelligence',
+    version: 'faces-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'graph-relations',
+    description: 'Extract directed entity relationships with evidence snippets',
+    script: 'scripts/extract_directed_relations.ts',
+    phase: 'Graph: Directed Relations',
+    version: 'graph-relations-v1',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
+    name: 'graph-timeline',
+    description: 'Extract dated timeline events from refined content',
+    script: 'scripts/extract_timeline_events.ts',
+    phase: 'Graph: Timeline Events',
+    version: 'graph-timeline-v1',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
+    name: 'graph-financial',
+    description: 'Extract financial transactions and counterparties',
+    script: 'scripts/extract_financial_transactions.ts',
+    phase: 'Graph: Financial Transactions',
+    version: 'graph-financial-v1',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
+    name: 'graph-claim-triples',
+    description: 'Extract claim triples for corroboration and contradiction analysis',
+    script: 'scripts/extract_claim_triples.ts',
+    phase: 'Graph: Claim Triples',
+    version: 'graph-triples-v2',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
+    name: 'document-significance',
+    description: 'Compute document significance scores from extracted evidence signals',
+    script: 'scripts/compute_document_significance.ts',
+    phase: 'Document Significance',
+    version: 'significance-v1',
+    modes: ['full', 'ingest', 'backfill'],
+  },
+  {
+    name: 'entity-risk',
+    description: 'Recalculate entity risk from mentions, relationships, claims, and reviews',
+    script: 'scripts/recalculate_entity_risk.ts',
+    phase: 'Entity Risk Recalculation',
+    version: 'entity-risk-v1',
+    modes: ['full', 'ingest', 'backfill'],
+  },
+  {
+    name: 'semantic-embeddings',
+    description: 'Backfill pgvector embeddings for documents and entities',
+    script: 'scripts/backfill_semantic_embeddings.ts',
+    phase: 'Semantic Embeddings',
+    version: 'semantic-v1',
+    modes: ['full', 'ingest', 'backfill'],
+  },
+  {
+    name: 'media-thumbnails',
+    description: 'Generate thumbnails and visual previews for evidence assets',
+    script: 'scripts/backfill_thumbnails.ts',
+    phase: 'Media Thumbnails',
+    version: 'thumbs-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'analytics-refresh',
+    description: 'Refresh analytics materialized views and planner stats after backfills',
+    script: 'scripts/refresh_analytics_views.ts',
+    phase: 'Analytics Refresh',
+    version: 'analytics-refresh-v1',
+    modes: ['full', 'ingest', 'backfill'],
+  },
+];
+
+let currentPipelineRun: PipelineRun | null = null;
 
 /**
  * Run a subprocess and stream its output
@@ -417,6 +604,109 @@ function runScript(scriptPath: string, args: string[] = []): Promise<number> {
   });
 }
 
+function stageByName(name: string): UnifiedStage {
+  const stage = UNIFIED_STAGES.find((candidate) => candidate.name === name);
+  if (!stage) throw new Error(`Unknown unified stage: ${name}`);
+  return stage;
+}
+
+function stagesForMode(mode: 'full' | 'ingest' | 'backfill'): UnifiedStage[] {
+  const requestedStageIndex = process.argv.indexOf('--stage');
+  const requestedStage =
+    requestedStageIndex >= 0 ? process.argv[requestedStageIndex + 1]?.trim() : '';
+
+  const stages = UNIFIED_STAGES.filter((stage) => stage.modes.includes(mode));
+  if (!requestedStage) return stages;
+
+  const matched = stages.filter((stage) => stage.name === requestedStage);
+  if (matched.length === 0) {
+    throw new Error(`Stage "${requestedStage}" is not registered for mode "${mode}"`);
+  }
+  return matched;
+}
+
+async function checkPipelineControlSignal(): Promise<void> {
+  if (!currentPipelineRun) return;
+
+  const state = await PipelineService.getRunStatus(currentPipelineRun.id);
+  if (state.control_signal === 'stop') {
+    shuttingDown = true;
+    await PipelineService.updateRunStatus(
+      currentPipelineRun.id,
+      'cancelled',
+      'Stopped by control signal',
+    );
+    await PipelineService.setControlSignal(currentPipelineRun.id, null);
+    return;
+  }
+
+  if (state.control_signal === 'pause') {
+    updateHeartbeat({ phase: 'Paused', pausedAt: new Date().toISOString() });
+    await PipelineService.updateRunStatus(currentPipelineRun.id, 'paused');
+    while (!shuttingDown) {
+      await sleep(2000);
+      const next = await PipelineService.getRunStatus(currentPipelineRun.id);
+      if (next.control_signal === 'stop') {
+        shuttingDown = true;
+        await PipelineService.updateRunStatus(
+          currentPipelineRun.id,
+          'cancelled',
+          'Stopped while paused',
+        );
+        await PipelineService.setControlSignal(currentPipelineRun.id, null);
+        return;
+      }
+      if (next.control_signal === 'resume') {
+        await PipelineService.updateRunStatus(currentPipelineRun.id, 'running');
+        await PipelineService.setControlSignal(currentPipelineRun.id, null);
+        updateHeartbeat({ phase: 'Resuming', resumedAt: new Date().toISOString() });
+        return;
+      }
+    }
+  }
+}
+
+async function runRegisteredScriptStage(stage: UnifiedStage): Promise<number> {
+  if (!stage.script) throw new Error(`Stage ${stage.name} has no script`);
+  await checkPipelineControlSignal();
+  if (shuttingDown) return 0;
+
+  if (!existsSync(stage.script)) {
+    throw new Error(`Unified stage script is missing: ${stage.script}`);
+  }
+
+  const stageRun = await PipelineService.startStageRun({
+    runId: currentPipelineRun?.id,
+    stageName: stage.name,
+    stageVersion: stage.version,
+    modelId: stage.requiresAi ? process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto' : null,
+    metrics: { script: stage.script, args: stage.args || [] },
+  });
+
+  updateHeartbeat({
+    phase: stage.phase,
+    activeStage: stage.name,
+    activeStageVersion: stage.version,
+    activeStageDescription: stage.description,
+  });
+
+  const startedAt = Date.now();
+  const exitCode = await runScript(stage.script, stage.args || []);
+  await PipelineService.finishStageRun(stageRun?.id, {
+    status: exitCode === 0 ? 'succeeded' : 'failed',
+    errorMessage: exitCode === 0 ? null : `${stage.script} exited with ${exitCode}`,
+    metrics: { durationMs: Date.now() - startedAt, exitCode },
+  });
+
+  updateHeartbeat({
+    phase: stage.phase,
+    activeStage: stage.name,
+    activeStageExitCode: exitCode,
+  });
+
+  return exitCode;
+}
+
 /**
  * Phase 1: INGEST - Process raw files from source directory
  */
@@ -433,7 +723,20 @@ async function runIngestPhase(
     return { filesProcessed: 0, errors: 0 };
   }
 
+  const stage = stageByName('ingest');
+  const stageRun = await PipelineService.startStageRun({
+    runId: currentPipelineRun?.id,
+    stageName: stage.name,
+    stageVersion: stage.version,
+    metrics: { sourceDir },
+  });
+  const startedAt = Date.now();
   const exitCode = await runScript('scripts/ingest_pipeline.ts');
+  await PipelineService.finishStageRun(stageRun?.id, {
+    status: exitCode === 0 ? 'succeeded' : 'failed',
+    errorMessage: exitCode === 0 ? null : `ingest_pipeline exited with ${exitCode}`,
+    metrics: { durationMs: Date.now() - startedAt, sourceDir },
+  });
 
   return {
     filesProcessed: exitCode === 0 ? 1 : 0,
@@ -449,130 +752,23 @@ async function runIntelPhase(): Promise<{ entitiesExtracted: number; relationsFo
   console.log('🔍 PHASE 2: INTELLIGENCE (Entity Extraction, Relations)');
   console.log('='.repeat(70));
 
+  const stage = stageByName('entity-intelligence');
+  const stageRun = await PipelineService.startStageRun({
+    runId: currentPipelineRun?.id,
+    stageName: stage.name,
+    stageVersion: stage.version,
+  });
+  const startedAt = Date.now();
   const exitCode = await runScript('scripts/ingest_intelligence.ts');
+  await PipelineService.finishStageRun(stageRun?.id, {
+    status: exitCode === 0 ? 'succeeded' : 'failed',
+    errorMessage: exitCode === 0 ? null : `ingest_intelligence exited with ${exitCode}`,
+    metrics: { durationMs: Date.now() - startedAt },
+  });
 
   return {
     entitiesExtracted: exitCode === 0 ? 1 : 0,
     relationsFound: 0,
-  };
-}
-
-/**
- * Phase 4: GRAPH EXTRACTION — relations, timeline events, financial transactions, claim triples
- */
-async function runGraphPhase(): Promise<{ subPhasesRun: number }> {
-  console.log('\n' + '='.repeat(70));
-  console.log('🕸️  PHASE 4: GRAPH EXTRACTION (Relations, Timeline, Financial, Triples)');
-  console.log('='.repeat(70));
-
-  // Each entry mirrors the WHERE clause used by the corresponding extraction script
-  // so we can accurately count pending docs before/after each sub-phase.
-  const subPhases = [
-    {
-      script: 'scripts/extract_directed_relations.ts',
-      label: '4a: Directed Relations',
-      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
-                     AND (metadata_json IS NULL OR metadata_json->>'graph_relations_at' IS NULL)`,
-    },
-    {
-      script: 'scripts/extract_timeline_events.ts',
-      label: '4b: Timeline Events',
-      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
-                     AND (metadata_json IS NULL OR metadata_json->>'graph_timeline_at' IS NULL)`,
-    },
-    {
-      script: 'scripts/extract_financial_transactions.ts',
-      label: '4c: Financial Transactions',
-      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
-                     AND (metadata_json IS NULL OR metadata_json->>'graph_financial_at' IS NULL)`,
-    },
-    {
-      script: 'scripts/extract_claim_triples.ts',
-      label: '4d: Claim Triples',
-      pendingQuery: `SELECT COUNT(*) AS n FROM documents WHERE content_refined IS NOT NULL
-                     AND (metadata_json IS NULL OR metadata_json->>'graph_triples_at' IS NULL)`,
-    },
-  ];
-
-  const pool = getIngestPool();
-  const graphStartedAt = new Date().toISOString();
-
-  // Sum all pending docs across all sub-phases to get the total scope
-  let graphTotal = 0;
-  for (const sp of subPhases) {
-    try {
-      const { rows } = await pool.query(sp.pendingQuery);
-      graphTotal += Number(rows[0]?.n ?? 0);
-    } catch {
-      /* non-fatal */
-    }
-  }
-
-  let graphProcessed = 0; // cumulative docs completed across finished sub-phases
-
-  let ran = 0;
-  for (const { script, label, pendingQuery } of subPhases) {
-    if (shuttingDown) break;
-
-    let subPhaseRemaining = 0;
-    try {
-      const { rows } = await pool.query(pendingQuery);
-      subPhaseRemaining = Number(rows[0]?.n ?? 0);
-    } catch {
-      /* non-fatal */
-    }
-
-    console.log(`\n   ▶ ${label} (${subPhaseRemaining.toLocaleString()} docs pending)`);
-    updateHeartbeat({ phase: `Graph: ${label}`, graphProcessed, graphTotal, graphStartedAt });
-
-    const code = await runScript(script);
-    if (code !== 0) {
-      console.warn(`   ⚠️  ${label} exited with code ${code} — continuing`);
-    }
-
-    // Measure actual progress by comparing before/after pending counts
-    try {
-      const { rows } = await pool.query(pendingQuery);
-      const stillPending = Number(rows[0]?.n ?? 0);
-      graphProcessed += Math.max(0, subPhaseRemaining - stillPending);
-    } catch {
-      graphProcessed += subPhaseRemaining; // best-effort fallback
-    }
-
-    updateHeartbeat({ graphProcessed, graphTotal, graphStartedAt });
-    ran++;
-  }
-
-  return { subPhasesRun: ran };
-}
-
-/**
- * Phase 2.5: PROVENANCE BACKFILL - rebuild durable provenance for legacy rows
- */
-async function runProvenanceBackfillPhase(): Promise<{ documentsTouched: number }> {
-  console.log('\n' + '='.repeat(70));
-  console.log('🧾 PHASE 2.5: PROVENANCE BACKFILL');
-  console.log('='.repeat(70));
-
-  const exitCode = await runScript('scripts/backfill_document_provenance.ts');
-
-  return {
-    documentsTouched: exitCode === 0 ? 1 : 0,
-  };
-}
-
-/**
- * Phase 2.7: VLM BACKFILL - run visual LLM parsing on historical images/PDFs
- */
-async function runVLMBackfillPhase(): Promise<{ documentsTouched: number }> {
-  console.log('\n' + '='.repeat(70));
-  console.log('👁️  PHASE 2.7: VLM VISUAL ANALYSIS BACKFILL');
-  console.log('='.repeat(70));
-
-  const exitCode = await runScript('scripts/backfill_vlm_visuals.ts');
-
-  return {
-    documentsTouched: exitCode === 0 ? 1 : 0,
   };
 }
 
@@ -597,6 +793,14 @@ async function runEnrichPhase(
   }
 
   const pool = getIngestPool();
+  const stage = stageByName('ai-enrichment');
+  const aggregateStageRun = await PipelineService.startStageRun({
+    runId: currentPipelineRun?.id,
+    stageName: stage.name,
+    stageVersion: stage.version,
+    modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+    metrics: { mode },
+  });
 
   let whereClause =
     "content IS NOT NULL AND length(content) > 50 AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
@@ -672,6 +876,7 @@ async function runEnrichPhase(
     // anyway, while concurrent fetches multiply Node.js heap usage for no throughput gain.
     for (const doc of docs) {
       if (shuttingDown) break;
+      let documentStageRun: { id: number } | null = null;
       try {
         pipelineRuntime.currentDocId = Number(doc.id);
         pipelineRuntime.currentFile = doc.file_name || null;
@@ -703,6 +908,20 @@ async function runEnrichPhase(
           (meta.subject as string) || (meta.title as string) || doc.file_name || 'Unknown Document';
 
         let refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
+        const inputHash = crypto
+          .createHash('sha256')
+          .update(refinedText)
+          .digest('hex')
+          .slice(0, 40);
+        documentStageRun = await PipelineService.startStageRun({
+          runId: currentPipelineRun?.id,
+          documentId: Number(doc.id),
+          stageName: stage.name,
+          stageVersion: stage.version,
+          inputHash,
+          modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+          metrics: { mode, fileName: doc.file_name },
+        });
 
         // LLM OCR Re-Correction Pipeline Phase:
         // Reconstruct highly garbled text (ocr_confidence < 0.6 or containing equals signs) into readable sentences using Ollama or Exo.
@@ -752,6 +971,35 @@ async function runEnrichPhase(
           'UPDATE documents SET metadata_json = $1, content_refined = $2 WHERE id = $3',
           [JSON.stringify(meta), refinedText, doc.id],
         );
+
+        const outputHash = crypto
+          .createHash('sha256')
+          .update(refinedText + summary)
+          .digest('hex');
+        await PipelineService.upsertAiArtifact({
+          runId: currentPipelineRun?.id,
+          stageRunId: documentStageRun?.id,
+          documentId: Number(doc.id),
+          artifactType: 'summary',
+          artifactVersion: 'summary-v2',
+          modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+          promptVersion: 'forensic-summary-v1',
+          sourceExcerpt: refinedText.slice(0, 2000),
+          outputText: summary,
+          confidence: summary.startsWith('Document "') ? 0.35 : 0.75,
+          provenance: {
+            provider: process.env.AI_PROVIDER,
+            mode,
+            inputHash,
+            outputHash,
+            contentRefined: true,
+          },
+        });
+        await PipelineService.finishStageRun(documentStageRun?.id, {
+          status: 'succeeded',
+          outputHash,
+          metrics: { summaryChars: summary.length, refinedChars: refinedText.length },
+        });
         summariesGenerated++;
         documentsEnriched++;
         markProgress({
@@ -764,6 +1012,10 @@ async function runEnrichPhase(
       } catch (error) {
         console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
         failedDocIds.add(Number(doc.id));
+        await PipelineService.finishStageRun(documentStageRun?.id, {
+          status: 'failed',
+          errorMessage: String((error as Error)?.message || error),
+        });
 
         try {
           const meta =
@@ -808,6 +1060,10 @@ async function runEnrichPhase(
   pipelineRuntime.currentDocId = null;
   pipelineRuntime.currentFile = null;
   pipelineRuntime.currentDocStartedAt = 0;
+  await PipelineService.finishStageRun(aggregateStageRun?.id, {
+    status: 'succeeded',
+    metrics: { documentsEnriched, summariesGenerated, mode },
+  });
   return { documentsEnriched, summariesGenerated };
 }
 
@@ -823,6 +1079,7 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
   const stats: PipelineStats = {
     mode,
     startTime: new Date().toISOString(),
+    stageStats: {},
   };
 
   updateHeartbeat({
@@ -836,29 +1093,46 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
     currentDocId: null,
     currentDocStartedAt: null,
   });
-  if (mode === 'ingest' || mode === 'full') {
-    stats.ingestStats = await runIngestPhase(sourceDir);
-    updateHeartbeat({ phase: 'Intelligence' });
-    stats.intelStats = await runIntelPhase();
-  }
-  if (mode === 'backfill') {
-    updateHeartbeat({ phase: 'Provenance Backfill' });
-    await runProvenanceBackfillPhase();
-    updateHeartbeat({ phase: 'VLM Visual Analysis' });
-    await runVLMBackfillPhase();
-    updateHeartbeat({ phase: 'Enrichment' });
-    stats.enrichStats = await runEnrichPhase('backfill');
-  } else if (mode === 'ingest') {
-    updateHeartbeat({ phase: 'Enrichment' });
-    stats.enrichStats = await runEnrichPhase('new');
-  } else if (mode === 'full') {
-    updateHeartbeat({ phase: 'Enrichment' });
-    stats.enrichStats = await runEnrichPhase('all');
-  }
+  const typedMode = mode as 'full' | 'ingest' | 'backfill';
+  for (const stage of stagesForMode(typedMode)) {
+    if (shuttingDown) break;
+    await checkPipelineControlSignal();
+    if (shuttingDown) break;
 
-  // Phase 4: Graph extraction runs after enrichment in all non-intel modes
-  if (mode !== 'intel' && !shuttingDown) {
-    await runGraphPhase();
+    updateHeartbeat({
+      phase: stage.phase,
+      activeStage: stage.name,
+      activeStageDescription: stage.description,
+    });
+
+    if (stage.name === 'ai-enrichment') {
+      const enrichMode =
+        typedMode === 'backfill' ? 'backfill' : typedMode === 'ingest' ? 'new' : 'all';
+      stats.enrichStats = await runEnrichPhase(enrichMode);
+      stats.stageStats![stage.name] = { exitCode: 0, status: 'succeeded' };
+      continue;
+    }
+
+    if (stage.name === 'ingest') {
+      stats.ingestStats = await runIngestPhase(sourceDir);
+      stats.stageStats![stage.name] = {
+        exitCode: stats.ingestStats.errors === 0 ? 0 : 1,
+        status: stats.ingestStats.errors === 0 ? 'succeeded' : 'failed',
+      };
+      continue;
+    }
+
+    if (stage.name === 'entity-intelligence') {
+      stats.intelStats = await runIntelPhase();
+      stats.stageStats![stage.name] = { exitCode: 0, status: 'succeeded' };
+      continue;
+    }
+
+    const exitCode = await runRegisteredScriptStage(stage);
+    stats.stageStats![stage.name] = {
+      exitCode,
+      status: exitCode === 0 ? 'succeeded' : 'failed',
+    };
   }
 
   updateHeartbeat({ phase: 'Idle' });
@@ -877,6 +1151,12 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
  * Main orchestrator — runs continuously until killed.
  */
 async function main() {
+  const args = process.argv.slice(2);
+  if (args.includes('--list-stages')) {
+    process.stdout.write(JSON.stringify(UNIFIED_STAGES, null, 2) + '\n');
+    return;
+  }
+
   // Catch silent crashes
   process.on('uncaughtException', (err: Error) => {
     console.error('\n💀 UNCAUGHT EXCEPTION:', err);
@@ -930,7 +1210,6 @@ async function main() {
     });
   });
 
-  const args = process.argv.slice(2);
   const modeIndex = args.indexOf('--mode');
   const sourceIndex = args.indexOf('--source');
 
@@ -956,6 +1235,24 @@ async function main() {
     'Postgres health check failed during pipeline startup',
     'Postgres stayed unhealthy after automatic recovery. Pipeline cannot continue.',
   );
+  currentPipelineRun = await PipelineService.startRun(PIPELINE_VERSION, {
+    mode,
+    sourceDir,
+    stages: stagesForMode(mode).map((stage) => ({
+      name: stage.name,
+      version: stage.version,
+      script: stage.script || null,
+    })),
+  });
+  for (const stage of UNIFIED_STAGES) {
+    await PipelineService.registerStep(stage.name, stage.description);
+  }
+  updateHeartbeat({
+    currentRunId: currentPipelineRun.id,
+    currentRunUuid: currentPipelineRun.run_uuid,
+    pipelineVersion: PIPELINE_VERSION,
+    unifiedStages: stagesForMode(mode).map((stage) => stage.name),
+  });
   startWatchdog();
 
   let cycleCount = 0;
@@ -978,6 +1275,9 @@ async function main() {
         currentDocId: null,
         currentDocStartedAt: null,
       });
+      if (currentPipelineRun) {
+        await PipelineService.updateRunStatus(currentPipelineRun.id, 'running', msg);
+      }
       if (!shuttingDown) {
         for (let i = 0; i < 60; i++) {
           if (shuttingDown) break;
@@ -996,6 +1296,9 @@ async function main() {
   }
   if (pipelineRuntime.watchdog) clearInterval(pipelineRuntime.watchdog);
   pipelineRuntime.exitReason = pipelineRuntime.exitReason || 'Pipeline stopped cleanly';
+  if (currentPipelineRun && !shuttingDown) {
+    await PipelineService.updateRunStatus(currentPipelineRun.id, 'succeeded');
+  }
   updateHeartbeat({
     running: false,
     phase: 'Stopped',

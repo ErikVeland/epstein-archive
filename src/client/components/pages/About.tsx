@@ -24,6 +24,11 @@ interface PipelineDataset {
 interface PipelineStatus {
   datasets?: PipelineDataset[];
   eta_minutes?: number;
+  stage_status?: Record<string, Record<string, number | string | null>>;
+  ai_artifacts?: {
+    total: number;
+    reviewed: number;
+  };
 }
 
 export const About: React.FC = () => {

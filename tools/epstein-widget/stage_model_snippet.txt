@@ -1,0 +1,41 @@
+  const stageStatus = data.pipeline_status?.stage_status || data.stages || {};
+  const counts = data.counts || {};
+  const activeStage = data.activeStage || data.pipeline_status?.activeStage || data.phase;
+  const aiArtifacts = counts.aiArtifacts || data.pipeline_status?.ai_artifacts?.total || 0;
+  const semanticDocumentEmbeddings = counts.semanticDocumentEmbeddings || 0;
+  const STAGE_LABELS = {
+    ingest: 'Ingest',
+    'entity-intelligence': 'Entities',
+    'provenance-backfill': 'Provenance',
+    'vlm-visuals': 'VLM visuals',
+    'image-ocr': 'Image OCR',
+    'image-media': 'Image media',
+    'email-headers': 'Email headers',
+    'extracted-dates': 'Dates',
+    'media-extraction': 'Media extract',
+    'ai-enrichment': 'AI enrichment',
+    'face-ingest': 'Faces',
+    'graph-relations': 'Relations',
+    'graph-timeline': 'Timeline',
+    'graph-financial': 'Finance',
+    'graph-claim-triples': 'Claims',
+    'document-significance': 'Doc scores',
+    'entity-risk': 'Entity risk',
+    'semantic-embeddings': 'Embeddings',
+    'media-thumbnails': 'Thumbnails',
+    'analytics-refresh': 'Analytics',
+  };
+  const stageRows = Object.entries(STAGE_LABELS).map(([name, label]) => {
+    const s = stageStatus[name] || {};
+    const done = Number(s.succeeded || s.skipped || 0);
+    const failed = Number(s.failed || 0);
+    const running = Number(s.running || 0);
+    const total = done + failed + running;
+    return {
+      name,
+      label,
+      done,
+      total,
+      state: running > 0 || activeStage === name ? 'running' : failed > 0 ? 'failed' : done > 0 ? 'done' : 'idle',
+    };
+  });

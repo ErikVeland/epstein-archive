@@ -15,7 +15,8 @@ export interface StatsDto {
   redFlagDistribution: Array<{ rating: number; count: number }>;
   collectionCounts: Array<{ collection: string; count: number }>;
   collectionStats: Array<{ collection: string; count: number }>;
-  pipelineStatus: { status?: string; lastRun?: string; nextRun?: string } | null;
+  pipeline_status: Record<string, unknown> | null;
+  pipelineStatus?: Record<string, unknown> | null;
   _meta: {
     degraded: boolean;
     degradedSources?: string[];

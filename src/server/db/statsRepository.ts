@@ -489,6 +489,42 @@ export const statsRepository = {
       "SELECT id, status, control_signal FROM pipeline_runs WHERE status IN ('running', 'paused') ORDER BY started_at DESC LIMIT 1",
     );
     const currentRun = currentRunRes.rows[0] || null;
+    const stageRows = await getApiPool()
+      .query<{
+        stage_name: string;
+        status: string;
+        count: string;
+        latest_at: string | null;
+      }>(
+        `
+        SELECT stage_name, status, COUNT(*)::text AS count, MAX(updated_at)::text AS latest_at
+        FROM document_stage_runs
+        GROUP BY stage_name, status
+        ORDER BY stage_name, status
+      `,
+      )
+      .catch(() => ({ rows: [] }));
+
+    const stage_status = stageRows.rows.reduce<
+      Record<string, Record<string, number | string | null>>
+    >((acc, row) => {
+      acc[row.stage_name] = acc[row.stage_name] || {};
+      acc[row.stage_name][row.status] = Number(row.count || 0);
+      acc[row.stage_name].latest_at = row.latest_at;
+      return acc;
+    }, {});
+
+    const artifactRows = await getApiPool()
+      .query<{ total: string; reviewed: string }>(
+        `
+        SELECT
+          COUNT(*)::text AS total,
+          COUNT(*) FILTER (WHERE review_state <> 'unreviewed')::text AS reviewed
+        FROM document_ai_artifacts
+      `,
+      )
+      .catch(() => ({ rows: [] }));
+    const artifactStats = artifactRows.rows[0];
 
     let throughput_docs_sec = 0;
     try {
@@ -520,6 +556,11 @@ export const statsRepository = {
       datasets: results,
       media,
       current_run: currentRun,
+      stage_status,
+      ai_artifacts: {
+        total: Number(artifactStats?.total || 0),
+        reviewed: Number(artifactStats?.reviewed || 0),
+      },
       eta_minutes: total_eta_minutes,
       remaining_docs: remaining,
       active_workers: activeWorkers,

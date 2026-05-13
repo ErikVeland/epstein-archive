@@ -1698,6 +1698,78 @@
   border-bottom: 1px dashed var(--glass-border);
 }
 
+.stagePanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px dashed var(--glass-border);
+}
+
+.stagePanelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.stageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-2);
+}
+
+.stageChip {
+  display: grid;
+  grid-template-columns: 0.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--glass-bg) 70%, transparent);
+}
+
+.stageDot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--text-muted);
+}
+
+.stageChip_running .stageDot {
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.stageChip_done .stageDot {
+  background: var(--accent-success);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-success) 50%, transparent);
+}
+
+.stageChip_failed .stageDot {
+  background: var(--accent-danger);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-danger) 50%, transparent);
+}
+
+.stageName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.stageCount {
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+}
+
 .mediaProgressHeader {
   display: flex;
   flex-direction: column;

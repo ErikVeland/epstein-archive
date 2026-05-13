@@ -106,3 +106,71 @@
     border-radius: 10px;
   }
 
+  .stage-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 5px;
+    margin: 6px 0 10px;
+  }
+
+  .stage-row {
+    display: grid;
+    grid-template-columns: 8px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    min-height: 24px;
+    padding: 4px 7px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.045);
+  }
+
+  .stage-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.22);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
+  }
+
+  .stage-row--running .stage-dot {
+    background: #0a84ff;
+    box-shadow: 0 0 10px rgba(10,132,255,0.55);
+  }
+
+  .stage-row--done .stage-dot {
+    background: #30d158;
+    box-shadow: 0 0 10px rgba(48,209,88,0.45);
+  }
+
+  .stage-row--failed .stage-dot {
+    background: #ff453a;
+    box-shadow: 0 0 10px rgba(255,69,58,0.45);
+  }
+
+  .stage-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px;
+    color: rgba(255,255,255,0.72);
+  }
+
+  .stage-count {
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    color: rgba(255,255,255,0.42);
+  }
+
+  .artifact-strip {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin: -2px 0 10px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.44);
+  }

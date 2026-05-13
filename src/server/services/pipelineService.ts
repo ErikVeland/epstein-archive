@@ -9,7 +9,16 @@ export interface PipelineRun {
   config_json?: string;
   environment_json?: string;
   started_at: string;
-  status: 'running' | 'succeeded' | 'failed' | 'cancelled';
+  status: 'running' | 'paused' | 'succeeded' | 'failed' | 'cancelled';
+}
+
+export interface PipelineStageRun {
+  id: number;
+  runId: number | null;
+  documentId: number | null;
+  stageName: string;
+  stageVersion: string;
+  status: string;
 }
 
 export const PipelineService = {
@@ -117,5 +126,168 @@ export const PipelineService = {
     `,
       [name, description],
     );
+  },
+
+  async startStageRun(params: {
+    runId?: number | null;
+    documentId?: number | null;
+    stageName: string;
+    stageVersion?: string;
+    inputHash?: string | null;
+    modelId?: string | null;
+    metrics?: Record<string, unknown>;
+  }): Promise<PipelineStageRun | null> {
+    const pool = getApiPool();
+    try {
+      const stageVersion = params.stageVersion || '1';
+      const { rows } = await pool.query(
+        `
+        INSERT INTO document_stage_runs (
+          run_id, document_id, stage_name, stage_version, input_hash, model_id,
+          status, attempts, metrics_json, started_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, 'running', 1, $7::jsonb, NOW(), NOW())
+        ON CONFLICT (
+          COALESCE(document_id, 0),
+          stage_name,
+          stage_version,
+          COALESCE(input_hash, ''),
+          COALESCE(model_id, '')
+        )
+        DO UPDATE SET
+          run_id = EXCLUDED.run_id,
+          status = 'running',
+          attempts = document_stage_runs.attempts + 1,
+          error_message = NULL,
+          metrics_json = document_stage_runs.metrics_json || EXCLUDED.metrics_json,
+          started_at = NOW(),
+          finished_at = NULL,
+          updated_at = NOW()
+        RETURNING id, run_id, document_id, stage_name, stage_version, status
+      `,
+        [
+          params.runId || null,
+          params.documentId || null,
+          params.stageName,
+          stageVersion,
+          params.inputHash || null,
+          params.modelId || null,
+          JSON.stringify(params.metrics || {}),
+        ],
+      );
+
+      const row = rows[0];
+      if (!row) return null;
+      return {
+        id: Number(row.id),
+        runId: row.run_id === null ? null : Number(row.run_id),
+        documentId: row.document_id === null ? null : Number(row.document_id),
+        stageName: row.stage_name,
+        stageVersion: row.stage_version,
+        status: row.status,
+      };
+    } catch {
+      return null;
+    }
+  },
+
+  async finishStageRun(
+    id: number | null | undefined,
+    params: {
+      status: 'succeeded' | 'failed' | 'skipped' | 'cancelled';
+      outputHash?: string | null;
+      errorMessage?: string | null;
+      metrics?: Record<string, unknown>;
+    },
+  ): Promise<void> {
+    if (!id) return;
+    const pool = getApiPool();
+    try {
+      await pool.query(
+        `
+        UPDATE document_stage_runs
+        SET status = $1,
+            output_hash = $2,
+            error_message = $3,
+            metrics_json = metrics_json || $4::jsonb,
+            finished_at = NOW(),
+            updated_at = NOW()
+        WHERE id = $5
+      `,
+        [
+          params.status,
+          params.outputHash || null,
+          params.errorMessage || null,
+          JSON.stringify(params.metrics || {}),
+          id,
+        ],
+      );
+    } catch {
+      // Stage telemetry should never fail the pipeline itself.
+    }
+  },
+
+  async upsertAiArtifact(params: {
+    runId?: number | null;
+    stageRunId?: number | null;
+    documentId: number;
+    artifactType: string;
+    artifactVersion?: string;
+    modelId?: string | null;
+    promptVersion?: string | null;
+    sourceExcerpt?: string | null;
+    outputText?: string | null;
+    outputJson?: Record<string, unknown> | unknown[] | null;
+    confidence?: number | null;
+    reviewState?: string;
+    provenance?: Record<string, unknown>;
+  }): Promise<void> {
+    const pool = getApiPool();
+    try {
+      await pool.query(
+        `
+        INSERT INTO document_ai_artifacts (
+          run_id, stage_run_id, document_id, artifact_type, artifact_version,
+          model_id, prompt_version, source_excerpt, output_text, output_json,
+          confidence, review_state, provenance_json, created_at, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11, $12, $13::jsonb, NOW(), NOW())
+        ON CONFLICT (
+          document_id,
+          artifact_type,
+          artifact_version,
+          COALESCE(model_id, ''),
+          COALESCE(prompt_version, '')
+        )
+        DO UPDATE SET
+          run_id = EXCLUDED.run_id,
+          stage_run_id = EXCLUDED.stage_run_id,
+          source_excerpt = EXCLUDED.source_excerpt,
+          output_text = EXCLUDED.output_text,
+          output_json = EXCLUDED.output_json,
+          confidence = EXCLUDED.confidence,
+          review_state = EXCLUDED.review_state,
+          provenance_json = EXCLUDED.provenance_json,
+          updated_at = NOW()
+      `,
+        [
+          params.runId || null,
+          params.stageRunId || null,
+          params.documentId,
+          params.artifactType,
+          params.artifactVersion || '1',
+          params.modelId || null,
+          params.promptVersion || null,
+          params.sourceExcerpt || null,
+          params.outputText || null,
+          params.outputJson ? JSON.stringify(params.outputJson) : null,
+          params.confidence ?? null,
+          params.reviewState || 'unreviewed',
+          JSON.stringify(params.provenance || {}),
+        ],
+      );
+    } catch {
+      // Artifact writes are additive telemetry; never break document processing.
+    }
   },
 };
