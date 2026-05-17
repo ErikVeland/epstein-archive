@@ -1,8 +1,10 @@
 import rateLimit from 'express-rate-limit';
 
+const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+
 export const apiRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
+  max: isDevOrTest ? 10000 : 100,
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -14,7 +16,7 @@ export const apiRateLimiter = rateLimit({
 
 export const analyticsRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 10,
+  max: isDevOrTest ? 10000 : 10,
   message: { error: 'Too many analytics requests, please try again later.' },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
@@ -26,7 +28,7 @@ export const analyticsRateLimiter = rateLimit({
 
 export const mapRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 20,
+  max: isDevOrTest ? 10000 : 20,
   message: { error: 'Too many map requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -38,7 +40,7 @@ export const mapRateLimiter = rateLimit({
 
 export const graphRateLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 10,
+  max: isDevOrTest ? 10000 : 10,
   message: { error: 'Too many graph requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
