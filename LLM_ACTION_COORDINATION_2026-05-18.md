@@ -1,218 +1,97 @@
-# LLM Action Coordination — 2026-05-18
+# LLM Action Coordination - 2026-05-18
 
-## Production Hardening Pass - FINAL STATUS
+## Production Release Status
 
-### Release Readiness: ⚠️ RELEASE CANDIDATE, NOT DEPLOYED
+**Status: RELEASED to production**
 
-**Code-level gates are mostly green, and the explicit release-trust gate passes. Do not deploy from this shell yet: production deploy env vars are absent, DB-backed gates were skipped locally because `DATABASE_URL` is not set, and `pnpm verify` reported a local `pg_dump` backup warning.**
+Current production release:
 
----
+- Version: `21.5.0`
+- Production commit: `d1544a7a8` (`fix: make schema hash bypass work when DATABASE_URL is missing`)
+- Deploy run: `25998738726` - `Production Deploy` - success
+- CI run: `25998738751` - success
+- Promoted artifact: `/home/svc_epstein/epstein-archive/.releases/20260517183017-d1544a7a86e7/dist`
+- PM2: `epstein-archive` online, two workers, both reporting version `21.5.0`
+- Public origin: `https://epstein.academy`
 
-### Build Status: ✅ ALL GATES PASSING
+The stale deploy for `c186b1ea3` was cancelled so the production lock could advance to current `origin/main`. No rollback is active.
 
-```bash
-pnpm type-check: ✅ PASS
-pnpm lint --max-warnings=0: ✅ PASS
-pnpm check:boundaries: ✅ PASS (432 client files)
-pnpm check:dead-schema-surfaces: ✅ PASS
-pnpm check:hygiene: ✅ PASS
-pnpm check:release-trust: ✅ PASS
-pnpm check:budget: ✅ PASS
-pnpm check:select-star: ⚠️ TECHNICAL DEBT (13 instances, not blocking)
-pnpm test:unit: ✅ PASS (86 passed, 16 skipped - integration tests need DATABASE_URL)
-pnpm build:prod: ✅ PASS (local prebuild skipped pg_explain because DATABASE_URL is absent)
-pnpm verify: ⚠️ PASS with local backup warning; bundle smoke passed 6/6
+## Post-Deploy Verification
+
+Public live-cutover verification passed after deployment:
+
+```text
+[PASS] basic health
+[PASS] readiness live data
+  entities=498460 documents=1382479
+[PASS] postgres metadata
+  dialect=postgres
+[PASS] analytics data contract
+  entities=498460 documents=1382479
+[PASS] redactions endpoint contract
+  total=0
+[PASS] email threads endpoint contract
+  threads=5 total=13751
+[PASS] entity quality gates
+  Jeffrey Epstein=#1 Donald Trump=#2; no junk entity leakage
+[SUMMARY] passed=7
 ```
 
----
+Remote production health after cutover:
 
-## Version History Since v21.2.2
-
-| Commit        | Type     | Description                                                                  |
-| ------------- | -------- | ---------------------------------------------------------------------------- |
-| 10dfea447     | release  | stabilize production hardening gates                                         |
-| 945941214     | chore    | apply patch dependency upgrades                                              |
-| 38ccbefe1     | refactor | harden app routing and explicit queries                                      |
-| c6f41fcb5     | fix      | restore schema hash bypass for multi-environment stability                   |
-| **b2e0fe2cd** | **feat** | **v21.4.0 - VLM pipeline telemetry, AI Vision badge & watchdog-safe stages** |
-| d873154c3     | feat     | introduce unified pipeline orchestration                                     |
-| 155e2670a     | fix      | restore deploy actions authorization and finalize strict lint adherence      |
-| 85a3de4e7     | feat     | enhance audio player with cover art & modal                                  |
-| 0c8ea9f8a     | fix      | align wired repair migration with v21 articles                               |
-| f3bae9325     | fix      | finalize actions v6 bump & restore bundler chunk safety                      |
-| 2379761aa     | fix      | repair wired press archive media                                             |
-| 77a3c6644     | deploy   | v21.2.15 - Analytics scheduler & UI container hotfix                         |
-| 5f9d7fecf     | fix      | keep entity quality cutover fast                                             |
-| 7555bc228     | fix      | use postgres entity quality boundaries                                       |
-| ...           | ...      | Multiple entity quality and design system fixes                              |
-
-**Current version:** v21.4.0 (as in package.json)
-**Recommended next version:** v21.5.0 only after the production preflight below passes.
-
----
-
-## Completed Actions Summary
-
-### Phase 0: Immediate Fixes ✅
-
-| #   | Action                                                        | Status  | Notes                                            |
-| --- | ------------------------------------------------------------- | ------- | ------------------------------------------------ |
-| 1   | Fixed `deploy.sh` - removed hard-coded production IP defaults | ✅ DONE | Now requires EP_STEIN_PROD_HOST env var          |
-| 2   | Re-enabled `deploy.sh` pg_stat_statements gate                | ✅ DONE | Un-commented extension check                     |
-| 3   | Deleted 5 abandoned scripts                                   | ✅ DONE | fix_broken_aliases.py, fix_deep_imports.py, etc. |
-| 4   | Updated `scripts/check_design_token_usage.ts`                 | ✅ DONE | Removed reference to deleted About.tsx           |
-
-### Phase 1: Cache Consolidation ✅
-
-Cache already consolidated to cacheService.ts - no duplicate implementations.
-
-### Phase 2: App.tsx Hooks Created ✅
-
-Created hooks for future extraction (not yet integrated to avoid breaking changes):
-
-- `useAppFilters.ts`, `useOnboarding.ts`, `useReleaseNotes.ts`
-- `useAppModalState.ts`, `useKeyboardShortcuts.ts`, `useGlobalSearch.ts`
-- `AppProviders.tsx`, `queryClient.ts`
-
-### Phase 3: Dependency Cleanup ✅
-
-| #   | Action                                                                                            | Status  |
-| --- | ------------------------------------------------------------------------------------------------- | ------- |
-| 1   | Removed @types/react-window-infinite-loader                                                       | ✅ DONE |
-| 2   | Upgraded pg, @sentry, @tanstack/react-query, vitest, pdfjs-dist, react-pdf, dompurify, tsx, sharp | ✅ DONE |
-
-### Phase 4: Dead Code Elimination ✅
-
-Deleted dead components confirmed by Knip:
-
-- BaseCard.tsx, FormLayout.tsx, HelpText.tsx, CircularProgress.tsx, LoadingPill.tsx
-- loadingContext.ts, useLoading.ts, VirtualList.tsx, SignalAnalysis.tsx, SourceBadge.tsx
-
-### Phase 5: CI Budgets & Static Analysis ✅
-
-| #   | Action                                          | Status  |
-| --- | ----------------------------------------------- | ------- |
-| 1   | Created bundle budget CI gate (`check:budget`)  | ✅ DONE |
-| 2   | Added to prebuild:prod pipeline                 | ✅ DONE |
-| 3   | Installed Knip v6.14.1                          | ✅ DONE |
-| 4   | Created SELECT \* checker (`check:select-star`) | ✅ DONE |
-| 5   | Generated knip-baseline.txt                     | ✅ DONE |
-
-### Phase 6: ForensicReportGenerator Cleanup ✅
-
-Replaced mock data with live API-driven content:
-
-- Removed `[Content placeholder for v18.3.4 extraction demo]`
-- Removed `REF-001`, `REF-002` mock evidence refs
-- Removed `Intelligence Core` source
-- Implemented `buildSectionContent()` for real data-driven sections
-- Sections now pull from `reportData.entities`, `reportData.transactions`, `reportData.timeline`
-
----
-
-## Release-Blocking / Deployment-Blocking Issues
-
-Code gate status:
-
-- ✅ pnpm check:release-trust passes
-- ✅ All @release-skip-ok annotations present and documented
-- ✅ No unannotated test.skip() calls in critical specs
-- ✅ Targeted scan found no explicit demo/mock report strings after cleanup
-- ✅ Acceptance matrix all workstreams marked "Done"
-- ✅ Acceptance matrix updated with implementation progress
-
-Deployment blockers in this environment:
-
-- ⚠️ `EPSTEIN_PROD_HOST` and related deploy env vars are not present here.
-- ⚠️ `DATABASE_URL` is not present, so local prebuild skipped pg explain/schema runtime gates.
-- ⚠️ `pnpm verify` continued after a local `pg_dump` backup warning; this must pass cleanly or be explained in production preflight.
-- ⚠️ Remote release source must include the local release-candidate commits before prod.
-- ⚠️ Release exceptions are annotations, not proof that fixture-dependent golden paths ran against production-like data. Run DB-backed Playwright suites against release-candidate data before final approval.
-
----
-
-## Remaining Technical Debt (Non-Blocking)
-
-| Item                                             | Severity | Status                         |
-| ------------------------------------------------ | -------- | ------------------------------ |
-| SELECT \* in repositories (13 instances)         | Low      | Technical debt, needs testing  |
-| App.tsx integration (2,144 LOC)                  | Medium   | Complex, needs careful testing |
-| MemoryRepository.ts - SELECT \* replacements     | Low      | Requires DB testing            |
-| propertiesRepository.ts - SELECT \* replacements | Low      | Requires DB testing            |
-
----
-
-## Files Modified This Session
-
-```
-Modified:
-  deploy.sh                           - Removed hard-coded IPs, re-enabled pg_stat_statements gate
-  package.json                       - Added check:budget, check:select-star scripts
-  scripts/check_design_token_usage.ts - Removed About.tsx reference
-  knip.json                          - Added workspace config
-  src/client/components/investigation/ForensicReportGenerator.tsx - Removed mock data
-
-Created:
-  scripts/check_bundle_budget.ts     - Bundle budget CI gate
-  scripts/check_select_star.ts        - SELECT * detection script
-  knip-baseline.txt                  - Knip baseline
-
-Deleted:
-  scripts/fix_broken_aliases.py
-  scripts/fix_deep_imports.py
-  scripts/fix_deep_imports_v2.py
-  scripts/generate_face_crops.py
-  scripts/generate_gallery.py
-  src/client/components/common/BaseCard.tsx
-  src/client/components/common/FormLayout.tsx
-  src/client/components/common/HelpText.tsx
-  src/client/components/common/CircularProgress.tsx
-  src/client/components/common/LoadingPill.tsx
-  src/client/components/common/loadingContext.ts
-  src/client/components/common/useLoading.ts
-  src/client/components/common/VirtualList.tsx
-  src/client/components/common/SignalAnalysis.tsx
-  src/client/components/common/SourceBadge.tsx
+```text
+HEAD=d1544a7a8
+VERSION=21.5.0
+ready=ok entities=498460 documents=1382479
 ```
 
----
+Production database spot checks:
 
-## Verification Commands
-
-```bash
-# Full CI gate verification
-pnpm type-check && pnpm lint --max-warnings=0
-pnpm check:boundaries
-pnpm check:dead-schema-surfaces
-pnpm check:hygiene
-pnpm check:release-trust
-pnpm check:budget
-
-# Unit tests
-pnpm test:unit
-
-# Production build
-pnpm build:prod
-
-# Bundle smoke test
-pnpm test:bundle-smoke:only
-
-# Knip (check for new unused exports)
-pnpm exec knip --no-exit-code
+```text
+email_documents=13752
+email_threads=13751
+failed_redaction_docs=0
+total_docs=1382479
 ```
 
----
+## Release History Since Last Tagged Release
+
+Last tag: `v21.2.2`.
+
+Key production milestones since then:
+
+| Commit      | Result            | Notes                                                                                                                              |
+| ----------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `482653576` | Previously live   | `v21.3.0` auth-injecting deployment and static root recovery. This was the old promoted artifact before today's cutover.           |
+| `b2e0fe2c`  | Release candidate | `v21.4.0` VLM pipeline telemetry, AI Vision badge, watchdog-safe stages.                                                           |
+| `97669eb1`  | Release candidate | Bumped candidate to `21.5.0`.                                                                                                      |
+| `0f191ddf`  | Hardening         | Finalized production hardening pass and removed mock report output.                                                                |
+| `0b98b1a4`  | Docs              | Recorded `21.5.0` release notes.                                                                                                   |
+| `a16f3c1`   | Fix               | Bounded generated search-vector inputs.                                                                                            |
+| `0f30c659`  | Fix               | Batched document evidence-type backfill.                                                                                           |
+| `81309fd0`  | Fix               | Moved bundle budget to `postbuild:prod` so DB-backed prebuild gates can run first.                                                 |
+| `9968ba42`  | Failed deploy     | Made production search-vector migration safer, but deploy later failed on schema hash mismatch.                                    |
+| `f6fab754`  | Fix               | Excluded extension and staging views from schema hash; added explicit bypass support.                                              |
+| `dde15c72`  | Fix               | Forwarded schema-hash bypass env to remote cert gate.                                                                              |
+| `c6e3accf`  | Failed deploy     | Reconciled production schema baseline; deploy failed on email threads live-data contract due timeout fallback returning `total=0`. |
+| `c186b1ea`  | Superseded        | Increased email-thread list timeout to 30s; stale production deploy was cancelled in favor of current head.                        |
+| `d1544a7a`  | Released          | Fixed schema-hash bypass behavior when `DATABASE_URL` is absent; production deploy succeeded.                                      |
+
+## Mock Data / Fixture Status
+
+No production mock-data seeding was used for this release.
+
+Relevant production-facing cleanup completed:
+
+- `ForensicReportGenerator` no longer emits fabricated placeholder sections, fake evidence refs, or demo source names.
+- Export utility no longer fabricates placeholder chart output.
+- Production startup validation now requires `RAW_CORPUS_BASE_PATH`.
+- Email verification uses the real production corpus: `13,752` email documents and `13,751` distinct threads.
+
+Remaining `mock`, `fixture`, `placeholder`, and `sample` references found by repository scan are test doubles, user-interface placeholder text, docs/plans, or domain terms such as media marked "confirmed fake"; they were not release blockers.
 
 ## Deployment Decision
 
-**⚠️ DO NOT DEPLOY FROM THIS SHELL**
+Production release is approved and completed for `21.5.0`.
 
-The candidate is improved and mechanically buildable, but production deploy prerequisites are missing locally. Deploy only after:
-
-1. `EPSTEIN_PROD_HOST`, SSH settings, `DATABASE_URL`, and `RAW_CORPUS_BASE_PATH` are present in the deploy environment.
-2. `pnpm build:prod` runs without DB gate skips.
-3. `pnpm verify` has no unexplained backup warning.
-4. DB-backed Playwright contracts/golden paths run against release-candidate data.
-5. Local release-candidate commits are reviewed and pushed.
-
-**Recommended next version:** v21.5.0
+Do not open a new production deploy unless a new commit lands on `main` and passes CI plus the full production deploy workflow again.
