@@ -190,7 +190,7 @@ export default function ForensicReportGenerator({
       case 'executive_summary':
         return `This briefing summarizes the currently loaded archive data for ${investigationId ? `investigation ${investigationId}` : 'the global corpus'}. Scope includes ${metrics.join(', ')}. ${entityNames ? `Primary entities in the current extraction window: ${entityNames}.` : 'No entities were returned by the current data window.'}`;
       case 'methodology':
-        return `The report was assembled from live API responses at generation time. Counts and entity references are derived from the active archive endpoints; no synthetic evidence identifiers or placeholder findings are inserted.`;
+        return `The report was assembled from live API responses at generation time. Counts and entity references are derived from the active archive endpoints; no synthetic evidence identifiers or fabricated findings are inserted.`;
       case 'findings':
         return entityNames
           ? `Current high-priority entity window: ${entityNames}. Review source-linked evidence before treating any relationship, claim, or risk score as a final finding.`

@@ -46,12 +46,6 @@ export const exportData = {
     const summary = generateSummary(people);
     downloadFile(summary, filename, 'text/plain');
   },
-
-  // Export chart as image
-  exportChart: (_chartElement: HTMLElement, _filename: string = 'chart.png') => {
-    // This would require html2canvas or similar library
-    // For now, we'll create a placeholder function
-  },
 };
 
 function downloadFile(content: string, filename: string, mimeType: string) {
