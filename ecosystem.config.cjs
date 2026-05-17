@@ -92,8 +92,9 @@ module.exports = {
     },
     {
       name: 'unified-pipeline',
-      script: 'npx',
-      args: 'tsx scripts/unified_pipeline.ts --mode backfill',
+      script: './node_modules/.bin/tsx',
+      interpreter: 'none',
+      args: 'scripts/unified_pipeline.ts --mode backfill',
       instances: 1,
       exec_mode: 'fork',
       autorestart: true, // Auto-restart on exit or watchdog-triggered crash
@@ -101,7 +102,8 @@ module.exports = {
       max_memory_restart: '2G',
       env: {
         NODE_ENV: 'production',
-        EXO_MODEL: 'mlx-community/Qwen3-30B-A3B-4bit',
+        EXO_MODEL: 'mlx-community/Qwen3.5-2B-MLX-8bit',
+        VISION_MODEL: 'mlx-community/Qwen3-VL-4B-Instruct-4bit',
         ENABLE_AI_ENRICHMENT: 'true',
         AI_PROVIDER: 'exo_cluster',
       },

@@ -1,4 +1,6 @@
 import { statsQueries } from '@epstein/db';
+import { existsSync, readFileSync } from 'fs';
+import { resolve } from 'path';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import type { ArchiveStatusDto } from '../../shared/schemas/stats.js';
@@ -17,6 +19,18 @@ interface TopRoleRow {
   role: string | null;
   count: string | number | null;
 }
+
+const readLivePipelineStatus = () => {
+  const checkpointPath = resolve(process.cwd(), 'pipeline_checkpoints/live_status.json');
+  if (!existsSync(checkpointPath)) return null;
+
+  try {
+    return JSON.parse(readFileSync(checkpointPath, 'utf8')) as Record<string, unknown>;
+  } catch (e) {
+    logger.warn({ detail: e }, 'Failed to read live pipeline status checkpoint');
+    return null;
+  }
+};
 
 // Known metadata for DOJ datasets (manually curated for accuracy)
 const KNOWN_COLLECTION_METADATA: Record<
@@ -552,6 +566,12 @@ export const statsRepository = {
     const total_eta_minutes =
       throughput_docs_sec > 0 ? Math.ceil(remaining / throughput_docs_sec / 60) : 0;
 
+    const cp = readLivePipelineStatus();
+    const vlmTotal = Number(cp?.vlmTotal || 0);
+    const vlmProcessed = Number(cp?.vlmProcessed || 0);
+    const blockedReason = typeof cp?.blockedReason === 'string' ? cp.blockedReason : null;
+    const currentFile = typeof cp?.currentFile === 'string' ? cp.currentFile : null;
+
     return {
       datasets: results,
       media,
@@ -570,6 +590,28 @@ export const statsRepository = {
         host: process.env.EXO_HOST || 'http://127.0.0.1:52415',
         model: process.env.EXO_MODEL || 'auto',
       },
+      vlm:
+        vlmTotal > 0
+          ? {
+              processed: vlmProcessed,
+              total: vlmTotal,
+              percent: Math.min(100, (vlmProcessed / vlmTotal) * 100),
+            }
+          : undefined,
+      blocked: Boolean(cp?.blocked || blockedReason),
+      blockedReason,
+      activeStage:
+        typeof cp?.activeStage === 'string'
+          ? cp.activeStage
+          : currentFile
+            ? 'VLM Visual Analysis'
+            : null,
+      activeStageDescription:
+        typeof cp?.activeStageDescription === 'string'
+          ? cp.activeStageDescription
+          : currentFile
+            ? `Analyzing ${currentFile}`
+            : null,
     };
   },
 

@@ -52,6 +52,16 @@ router.get('/', cacheMiddleware(300), async (_req, res, next) => {
   }
 });
 
+// Public Realtime Pipeline Stats (un-cached for widget updates)
+router.get('/pipeline', async (_req, res, next) => {
+  try {
+    const progress = await statsRepository.getPipelineProgress();
+    res.json(progress);
+  } catch (e) {
+    next(e);
+  }
+});
+
 // Health check endpoint - Basic
 router.get('/health', async (_req, res) => {
   let dbStatus = 'not_initialized';

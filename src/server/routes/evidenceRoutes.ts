@@ -349,6 +349,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
         null,
       fileUrl: `/api/documents/${id}/file?variant=clean`,
       originalFileUrl: `/api/documents/${id}/file?variant=dirty`,
+      textSource: metadata?.vlm_parsed === true ? 'vlm_vision' : null,
       entities: Array.isArray(evidence.entities)
         ? evidence.entities.map((entity: Record<string, unknown>) => ({
             id: entity.id,

@@ -34,6 +34,15 @@ interface PipelineStatus {
     processed: number;
     percent: number;
   };
+  vlm?: {
+    processed: number;
+    total: number;
+    percent: number;
+  };
+  blocked?: boolean;
+  blockedReason?: string | null;
+  activeStage?: string | null;
+  activeStageDescription?: string | null;
   stage_status?: Record<string, Record<string, number | string | null>>;
   ai_artifacts?: {
     total: number;
@@ -239,6 +248,19 @@ export const AboutPage: React.FC = () => {
     }
   }, []);
 
+  const fetchPipelineStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/stats/pipeline');
+      const contentType = response.headers.get('content-type') || '';
+      if (response.ok && contentType.includes('application/json')) {
+        const data = await response.json();
+        setPipelineStatus(data as PipelineStatus);
+      }
+    } catch (e) {
+      console.error('Failed to fetch real-time pipeline status', e);
+    }
+  }, []);
+
   const handlePipelineControl = async (signal: 'pause' | 'resume' | 'stop') => {
     if (!pipelineStatus?.current_run?.id) return;
 
@@ -318,18 +340,39 @@ export const AboutPage: React.FC = () => {
       .filter((stage) => stage.total > 0);
   }, [pipelineStatus]);
 
+  const livePipelineStatus = useMemo(() => {
+    if (!pipelineStatus?.vlm && !pipelineStatus?.activeStage && !pipelineStatus?.blocked)
+      return null;
+
+    const vlm = pipelineStatus.vlm;
+    return {
+      blocked: Boolean(pipelineStatus.blocked),
+      blockedReason: pipelineStatus.blockedReason ?? null,
+      activeStage: pipelineStatus.activeStage ?? null,
+      activeStageDescription: pipelineStatus.activeStageDescription ?? null,
+      processed: vlm?.processed ?? 0,
+      total: vlm?.total ?? 0,
+      percent: vlm?.percent ?? 0,
+    };
+  }, [pipelineStatus]);
+
   useEffect(() => {
     const kickoff = setTimeout(() => {
       void fetchData();
+      void fetchPipelineStatus();
     }, 0);
     const timer = setInterval(() => {
       setActiveFaq((prev) => (prev + 1) % faqs.length);
     }, 8000);
+    const pollTimer = setInterval(() => {
+      void fetchPipelineStatus();
+    }, 5000);
     return () => {
       clearTimeout(kickoff);
       clearInterval(timer);
+      clearInterval(pollTimer);
     };
-  }, [fetchData]);
+  }, [fetchData, fetchPipelineStatus]);
 
   return (
     <div className={s.pageRoot}>
@@ -708,6 +751,54 @@ export const AboutPage: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {livePipelineStatus && (
+                <div className={s.stagePanel}>
+                  {livePipelineStatus.blocked && livePipelineStatus.blockedReason && (
+                    <div className={s.blockedBanner}>
+                      <Icon name="Clock" size="xs" className={s.iconAccent} />
+                      <span>{livePipelineStatus.blockedReason}</span>
+                    </div>
+                  )}
+                  {livePipelineStatus.activeStage && (
+                    <div className={s.activeStageRow}>
+                      <span className={s.activeStageName}>{livePipelineStatus.activeStage}</span>
+                      {livePipelineStatus.activeStageDescription && (
+                        <span className={s.activeStageDesc}>
+                          {livePipelineStatus.activeStageDescription}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {livePipelineStatus.total > 0 && (
+                    <div className={s.datasetRowMeta}>
+                      <div className={s.mediaProgressHeader}>
+                        <span className={s.datasetName}>VLM Vision Analysis (AI)</span>
+                        <span className={s.mediaSubtext}>
+                          Extracting text & descriptions from images via vision model
+                        </span>
+                      </div>
+                      <div className={s.datasetNumbers}>
+                        <span className={s.datasetIngestStat}>
+                          PROCESSED: {livePipelineStatus.processed.toLocaleString()} /{' '}
+                          {livePipelineStatus.total.toLocaleString()} (
+                          {livePipelineStatus.percent.toFixed(1)}%)
+                        </span>
+                      </div>
+                      <div className={`soft-glass-inset ${s.progressTrack}`}>
+                        <div
+                          className={s.progressVlm}
+                          style={{ width: `${livePipelineStatus.percent}%` }}
+                        >
+                          {livePipelineStatus.percent < 100 && (
+                            <div className={s.progressShimmer} />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

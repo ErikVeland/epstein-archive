@@ -66,6 +66,7 @@ entities.json
 eng.traineddata
 data/media/
 data/thumbnails/
+data/derivatives/
 data/faces_crops/
 data/temp/
 thumbnails/

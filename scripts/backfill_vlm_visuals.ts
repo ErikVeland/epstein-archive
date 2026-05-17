@@ -18,7 +18,12 @@ if (!process.env.AI_PROVIDER) process.env.AI_PROVIDER = 'exo_cluster';
 const PIPELINE_VERSION = 'reducto-vlm-1.0';
 const RUN_ID = `vlm-backfill-${Date.now()}`;
 
-function writeLiveStatus(processed: number, total: number, file: string) {
+function writeLiveStatus(
+  processed: number,
+  total: number,
+  file: string | null,
+  blockedReason?: string,
+) {
   try {
     if (!fs.existsSync('./pipeline_checkpoints')) fs.mkdirSync('./pipeline_checkpoints');
     fs.writeFileSync(
@@ -31,6 +36,11 @@ function writeLiveStatus(processed: number, total: number, file: string) {
           vlmProcessed: processed,
           vlmTotal: total,
           currentFile: file,
+          blocked: Boolean(blockedReason),
+          blockedReason,
+          activeStage: blockedReason ? 'Vision Model Readiness' : 'VLM Visual Analysis',
+          activeStageDescription:
+            blockedReason || (file ? `Analyzing ${file}` : 'Preparing visual backfill batch'),
         },
         null,
         2,
@@ -38,6 +48,64 @@ function writeLiveStatus(processed: number, total: number, file: string) {
     );
   } catch (_e) {
     // non-fatal
+  }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function ensureVisionModelReady(processed: number, total: number) {
+  const modelId = process.env.VISION_MODEL;
+  if (!modelId) return;
+
+  const exoHost = process.env.EXO_HOST || 'http://127.0.0.1:52415';
+  let lastPlaceAttempt = 0;
+  let ready = false;
+
+  while (!ready) {
+    try {
+      const response = await fetch(`${exoHost}/state`, { signal: AbortSignal.timeout(5000) });
+      const state = (await response.json()) as {
+        instances?: Record<
+          string,
+          { MlxRingInstance?: { shardAssignments?: { modelId?: string } } }
+        >;
+      };
+      const active = Object.values(state.instances || {}).some(
+        (instance) => instance.MlxRingInstance?.shardAssignments?.modelId === modelId,
+      );
+      if (active) {
+        ready = true;
+        continue;
+      }
+
+      const now = Date.now();
+      if (now - lastPlaceAttempt > 5 * 60_000) {
+        lastPlaceAttempt = now;
+        await fetch(`${exoHost}/place_instance`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model_id: modelId,
+            sharding: 'Pipeline',
+            instance_meta: 'MlxRing',
+            min_nodes: 1,
+          }),
+          signal: AbortSignal.timeout(5000),
+        }).catch(() => undefined);
+      }
+
+      const reason = `Waiting for EXO vision model ${modelId} to become active`;
+      console.warn(`  ⏳ ${reason}`);
+      writeLiveStatus(processed, total, null, reason);
+    } catch (err) {
+      const reason = `Waiting for EXO state API: ${(err as Error).message}`;
+      console.warn(`  ⏳ ${reason}`);
+      writeLiveStatus(processed, total, null, reason);
+    }
+
+    await sleep(30_000);
   }
 }
 
@@ -66,6 +134,8 @@ async function backfillVlm() {
 
   let hasMore = true;
   while (hasMore) {
+    await ensureVisionModelReady(successCount + failCount + skippedCount, totalDocs);
+
     const query = `
       SELECT id, file_name, file_path, source_collection, metadata_json 
       ${targetQuery}
@@ -171,7 +241,7 @@ async function backfillVlm() {
       }
 
       // Short sleep to yield to the Exo API cluster
-      await new Promise((r) => setTimeout(r, 500));
+      await sleep(500);
     }
   }
 

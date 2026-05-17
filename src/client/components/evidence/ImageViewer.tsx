@@ -15,6 +15,7 @@ interface ImageViewerProps {
     sourcePath: string;
     originalFilename: string;
     extractedText?: string;
+    textSource?: string | null;
     metadata: {
       width?: number;
       height?: number;
@@ -108,7 +109,14 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
 
         {evidence.extractedText && evidence.extractedText.trim().length > 10 && (
           <div className={styles.ocrCard}>
-            <h4 className={styles.cardTitle}>OCR Text</h4>
+            <div className={styles.ocrCardHeader}>
+              <h4 className={styles.cardTitle}>
+                {evidence.textSource === 'vlm_vision' ? 'Vision Analysis' : 'OCR Text'}
+              </h4>
+              {evidence.textSource === 'vlm_vision' && (
+                <span className={styles.vlmBadge}>AI Vision</span>
+              )}
+            </div>
             <div className={styles.ocrText}>{evidence.extractedText}</div>
           </div>
         )}

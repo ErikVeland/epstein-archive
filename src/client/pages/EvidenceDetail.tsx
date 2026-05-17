@@ -59,6 +59,7 @@ interface Evidence {
   fileSize: number;
   signalScore?: number;
   ocrQualityScore?: number;
+  textSource?: string | null;
   claims?: Record<string, unknown>[];
   sentences?: Record<string, unknown>[];
   unredaction_metrics?: {

@@ -1,5 +1,15 @@
 # Release Notes
 
+## 21.4.0 - 2026-05-18 - Pipeline Recovery & Visual Intelligence Stabilization
+
+### Production Reliability
+
+- **VLM Backfill Readiness**: Waits for the configured EXO vision model before visual parsing, attempts model placement when capacity is missing, and writes a live blocked reason while backfill is waiting.
+- **Watchdog-Safe Pipeline Stages**: Keeps the unified pipeline heartbeat fresh while long-running subprocesses are active so legitimate VLM and enrichment work is not mistaken for a dead job.
+- **Production Pipeline Launch Repair**: Runs the PM2 unified pipeline through the local `tsx` binary and pins production enrichment to lighter text and vision model defaults.
+- **Live Pipeline Telemetry**: Adds an uncached public pipeline status endpoint and refreshes the About page status widget in real time.
+- **Schema Contract Alignment**: Updates the committed schema hash to the current verified Postgres contract for the release.
+
 ## 21.3.0 - 2026-05-12 - Production Deployment Recovery & Strict Hygiene
 
 ### Production Reliability

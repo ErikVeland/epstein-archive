@@ -548,7 +548,8 @@ const UNIFIED_STAGES: UnifiedStage[] = [
   },
   {
     name: 'entity-risk',
-    description: 'Recalculate entity risk from mentions, relationships, claims, and reviews',
+    description:
+      'Recalculate entity risk based on entity mentions, relationships, claims, and reviews',
     script: 'scripts/recalculate_entity_risk.ts',
     phase: 'Entity Risk Recalculation',
     version: 'entity-risk-v1',
@@ -587,18 +588,30 @@ let currentPipelineRun: PipelineRun | null = null;
  */
 function runScript(scriptPath: string, args: string[] = []): Promise<number> {
   return new Promise((resolve, reject) => {
-    console.log(`\n📜 Running: npx tsx ${scriptPath} ${args.join(' ')}`);
-    const child = spawn('npx', ['tsx', scriptPath, ...args], {
+    const tsxBin = join(process.cwd(), 'node_modules', '.bin', 'tsx');
+    console.log(`\n📜 Running: ${tsxBin} ${scriptPath} ${args.join(' ')}`);
+    const child = spawn(tsxBin, [scriptPath, ...args], {
       stdio: 'inherit',
       cwd: process.cwd(),
       env: process.env,
     });
 
+    // Periodic heartbeat while subprocess is active to prevent watchdog timeouts
+    const keepAliveTimer = setInterval(() => {
+      updateHeartbeat();
+    }, 30_000);
+
+    const cleanup = () => {
+      clearInterval(keepAliveTimer);
+    };
+
     child.on('close', (code: number | null) => {
+      cleanup();
       resolve(code || 0);
     });
 
     child.on('error', (err: Error) => {
+      cleanup();
       reject(err);
     });
   });
