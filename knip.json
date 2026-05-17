@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/client/main.tsx", "src/server.ts"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/server/db/postgres/migrations/**", "**/*.d.ts"]
+}

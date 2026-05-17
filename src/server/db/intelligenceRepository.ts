@@ -159,7 +159,7 @@ export const intelligenceRepository = {
         [QUEUE_LIMIT],
       );
       return result.rows.map((r) => ({
-        documentId: r.document_id,
+        documentId: Number(r.document_id),
         fileName: r.file_name,
         docType: r.file_type,
         entityMentionCount: Number(r.entity_mention_count),
@@ -351,10 +351,10 @@ export const intelligenceRepository = {
         [QUEUE_LIMIT],
       );
       return result.rows.map((r) => ({
-        claimId: r.claim_id,
+        claimId: Number(r.claim_id),
         predicateText: r.predicate,
         objectText: r.object_text,
-        subjectEntityId: r.subject_entity_id,
+        subjectEntityId: r.subject_entity_id != null ? Number(r.subject_entity_id) : null,
         subjectEntityName: r.subject_entity_name,
         confidence: r.confidence !== null ? Number(r.confidence) : null,
       }));
@@ -399,11 +399,11 @@ export const intelligenceRepository = {
         [QUEUE_LIMIT],
       );
       return result.rows.map((r) => ({
-        itemId: r.item_id,
+        itemId: Number(r.item_id),
         itemType: r.item_type,
         description: r.description,
         entityName: r.entity_name,
-        needsReview: r.needs_review,
+        needsReview: Boolean(r.needs_review),
       }));
     });
   },
@@ -437,35 +437,25 @@ export const intelligenceRepository = {
       semanticAvailable = false;
     }
 
-    // Provenance coverage: fraction of documents with at least one entity mention
-    let provenanceCoveragePct: number | null = null;
-    try {
-      const covResult = await pool.query(`
-        SELECT
-          COUNT(DISTINCT d.id) AS total,
-          COUNT(DISTINCT em.document_id) AS covered
-        FROM documents d
-        LEFT JOIN entity_mentions em ON em.document_id = d.id
-      `);
-      const row = covResult.rows[0];
-      const total = Number(row?.total ?? 0);
-      const covered = Number(row?.covered ?? 0);
-      provenanceCoveragePct = total > 0 ? Math.round((covered / total) * 100) : null;
-    } catch {
-      provenanceCoveragePct = null;
-    }
+    const provenanceCoveragePct: number | null = null;
 
     const [pendingMentionReviews, pendingClaimReviews] = await Promise.all([
       safeCount('pendingMentions', async () => {
-        const r = await pool.query(
-          `SELECT COUNT(*) AS cnt FROM entity_mentions WHERE COALESCE(verified, 0) = 0`,
-        );
+        const r = await pool.query(`
+          SELECT COUNT(*) AS cnt
+          FROM (
+            SELECT 1 FROM entity_mentions WHERE COALESCE(verified, 0) = 0 LIMIT 10000
+          ) bounded
+        `);
         return Number(r.rows[0]?.cnt ?? 0);
       }),
       safeCount('pendingClaims', async () => {
-        const r = await pool.query(
-          `SELECT COUNT(*) AS cnt FROM claim_triples WHERE COALESCE(verified, 0) = 0`,
-        );
+        const r = await pool.query(`
+          SELECT COUNT(*) AS cnt
+          FROM (
+            SELECT 1 FROM claim_triples WHERE COALESCE(verified, 0) = 0 LIMIT 10000
+          ) bounded
+        `);
         return Number(r.rows[0]?.cnt ?? 0);
       }),
     ]);

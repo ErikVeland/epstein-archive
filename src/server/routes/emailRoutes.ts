@@ -29,15 +29,11 @@ import {
 } from '../db/healthQueries.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
-import { authenticateRequest } from '../auth/middleware.js';
 
 import { searchDocumentsSemantic } from '../semantic/search.js';
 import { communicationsRepository } from '../db/communicationsRepository.js';
 
 const router = express.Router();
-
-// All email routes require authentication — sensitive investigative communications
-router.use(authenticateRequest);
 
 // GET /api/emails/analytics/matrix
 router.get('/analytics/matrix', async (_req, res, next) => {
@@ -66,6 +62,21 @@ const DEFAULT_LIMIT = 40;
 const MAX_LIMIT = 100;
 const LIST_TTL_SECONDS = 45;
 const BODY_TTL_SECONDS = 60;
+const EMAIL_LIST_TIMEOUT_MS = 5_000;
+
+const emailRevisionKey = () =>
+  `${process.env.INGEST_RUN_ID || process.env.LATEST_INGEST_RUN_ID || 'default'}:${process.env.RULESET_VERSION || 'v1'}`;
+
+const withEmailListTimeout = async <T>(label: string, promise: Promise<T>, fallback: T) =>
+  Promise.race([
+    promise,
+    new Promise<T>((resolve) => {
+      setTimeout(() => {
+        console.warn(`[emails] ${label} timed out; returning bounded fallback`);
+        resolve(fallback);
+      }, EMAIL_LIST_TIMEOUT_MS);
+    }),
+  ]);
 
 interface ParsedCursor {
   lastMessageAt: string;
@@ -268,10 +279,14 @@ router.get('/mailboxes', validate(mailboxesSchema), async (req, res, next) => {
       return res.json(cached);
     }
 
-    const { totals, rows } = await getEmailMailboxes(showSuppressedJunk);
+    const { totals, rows } = await withEmailListTimeout(
+      'mailbox aggregation',
+      getEmailMailboxes(showSuppressedJunk),
+      { totals: { totalThreads: 0, totalMessages: 0, lastActivityAt: null }, rows: [] },
+    );
 
     const payload = {
-      revisionKey: `${process.env.INGEST_RUN_ID || process.env.LATEST_INGEST_RUN_ID || 'default'}:${process.env.RULESET_VERSION || 'v1'}`,
+      revisionKey: emailRevisionKey(),
       data: [
         {
           mailboxId: 'all',
@@ -353,25 +368,29 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
     res.setHeader('X-Limit-Applied', String(limit));
     const parsedCursor = parseCursor(cursor);
 
-    const { rows, countRow } = await getEmailThreads({
-      mailboxId,
-      query,
-      fromFilter,
-      toFilter,
-      dateFrom,
-      dateTo,
-      hasAttachments,
-      minRisk,
-      tab,
-      limit,
-      parsedCursor,
-      showSuppressedJunk,
-      showYahooPostMortem,
-      showEmptyBodies,
-      sortBy,
-      sortOrder,
-      topicDocIds,
-    });
+    const { rows, countRow } = await withEmailListTimeout(
+      'thread aggregation',
+      getEmailThreads({
+        mailboxId,
+        query,
+        fromFilter,
+        toFilter,
+        dateFrom,
+        dateTo,
+        hasAttachments,
+        minRisk,
+        tab,
+        limit,
+        parsedCursor,
+        showSuppressedJunk,
+        showYahooPostMortem,
+        showEmptyBodies,
+        sortBy,
+        sortOrder,
+        topicDocIds,
+      }),
+      { rows: [], countRow: { total: 0 } },
+    );
 
     const hasMore = rows.length > limit;
     const pageRows = hasMore ? rows.slice(0, limit) : rows;
@@ -386,7 +405,14 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
     const threadIds = pageRows.map((row) =>
       String(threadRowField(row as Record<string, unknown>, 'threadId') || ''),
     );
-    const entityRows = await getEmailLinkedEntitiesForThreads(threadIds);
+    const entityRows =
+      threadIds.length > 0
+        ? await withEmailListTimeout(
+            'thread entity lookup',
+            getEmailLinkedEntitiesForThreads(threadIds),
+            [],
+          )
+        : [];
     const entitiesByThread = new Map<string, { entityId: number; name: string }[]>();
     for (const er of entityRows) {
       const list = entitiesByThread.get(er.threadId) ?? [];

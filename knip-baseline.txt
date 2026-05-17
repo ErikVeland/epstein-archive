@@ -1,0 +1,496 @@
+Unused files (94)
+packages/db/check_media_tables.cjs                                    
+packages/db/src/queries/__generated__/forensic.ts                     
+src/client/AppProviders.tsx                                           
+src/client/components/common/BaseCard.tsx                             
+src/client/components/common/Card.tsx                                 
+src/client/components/common/CircularProgress.tsx                     
+src/client/components/common/FormLayout.tsx                           
+src/client/components/common/HelpText.tsx                             
+src/client/components/common/loadingContext.ts                        
+src/client/components/common/LoadingPill.tsx                          
+src/client/components/common/SignalAnalysis.tsx                       
+src/client/components/common/SourceBadge.tsx                          
+src/client/components/common/useLoading.ts                            
+src/client/components/common/VirtualList.tsx                          
+src/client/components/documents/DocumentContentRenderer.tsx           
+src/client/components/documents/DocumentDiffView.tsx                  
+src/client/components/documents/DocumentHoverPreview.tsx              
+src/client/components/documents/DocumentProvenance.tsx                
+src/client/components/documents/DocumentUploader.tsx                  
+src/client/components/documents/subcomponents/PDFAnnotationOverlay.tsx
+src/client/components/email/mobile/MobileEmailBottomNav.tsx           
+src/client/components/email/mobile/MobileEmailFilterSheet.tsx         
+src/client/components/email/mobile/MobileEmailShell.tsx               
+src/client/components/email/mobile/MobileMailboxList.tsx              
+src/client/components/email/mobile/MobileMessageView.tsx              
+src/client/components/email/mobile/MobileThreadList.tsx               
+src/client/components/entities/cards/types.ts                         
+src/client/components/entities/EntityConfidenceDisplay.tsx            
+src/client/components/entities/EntityEvidencePanel.tsx                
+src/client/components/entities/EntityGraphPanel.tsx                   
+src/client/components/entities/EntityMediaGallery.tsx                 
+src/client/components/evidence/EvidenceLadder.tsx                     
+src/client/components/evidence/PDFViewer.tsx                          
+src/client/components/FileBrowser.tsx                                 
+src/client/components/flights/FlightDetailPanel.tsx                   
+src/client/components/intelligence/ProgressiveIntelligencePanel.tsx   
+src/client/components/investigation/AgenticDiscoveryBoard.tsx         
+src/client/components/investigation/InvestigationMemoryPanel.tsx      
+src/client/components/investigation/ProvenancePanel.tsx               
+src/client/components/layout/GlobalSearch.tsx                         
+src/client/components/layout/Layout.tsx                               
+src/client/components/layout/SearchFilters.tsx                        
+src/client/components/media/ArticleViewerModal.tsx                    
+src/client/components/media/MediaCard.tsx                             
+src/client/components/media/MediaViewer.tsx                           
+src/client/components/pages/DataQualityDashboard.tsx                  
+src/client/components/pages/MemoryDashboard.tsx                       
+src/client/components/pages/StatsDashboard.tsx                        
+src/client/components/RedFlagIndex.test.tsx                           
+src/client/components/shared/index.ts                                 
+src/client/components/shared/MediaBrowserLayout.tsx                   
+src/client/components/visualizations/AreaTimeline.tsx                 
+src/client/components/visualizations/DataVisualizationEnhanced.tsx    
+src/client/components/visualizations/TimelineVisualization.tsx        
+src/client/contexts/MemoryContext.tsx                                 
+src/client/hooks/useAppModalState.ts                                  
+src/client/hooks/useGlobalSearch.ts                                   
+src/client/hooks/useKeyboardShortcuts.ts                              
+src/client/hooks/useOnboarding.ts                                     
+src/client/hooks/usePrefetch.ts                                       
+src/client/hooks/useReleaseNotes.ts                                   
+src/client/hooks/useVirtualScroll.ts                                  
+src/client/pages/AdminPage.tsx                                        
+src/client/pages/EvidencePage.tsx                                     
+src/client/queryClient.ts                                             
+src/client/services/evidenceChainService.ts                           
+src/client/types/visualizations.ts                                    
+src/client/utils/export.ts                                            
+src/client/utils/prefetchManager.ts                                   
+src/client/utils/productionVitalsCollector.ts                         
+src/client/utils/webVitalsMonitor.ts                                  
+src/designTokens.ts                                                   
+src/server/db/discoveryRepository.ts                                  
+src/server/middleware/security.ts                                     
+src/server/services/assetService.ts                                   
+src/server/services/BoilerplateService.ts                             
+src/server/services/ContentAccessService.ts                           
+src/server/services/DatabaseDataService.ts                            
+src/server/services/ForensicSignalService.ts                          
+src/server/services/JobManager.ts                                     
+src/server/services/OgService.ts                                      
+src/server/services/RedactionClassifier.ts                            
+src/server/utils/envValidator.ts                                      
+src/server/utils/paths.ts                                             
+src/server/utils/url.ts                                               
+src/shared/constants.ts                                               
+src/shared/dto/flights.ts                                             
+src/shared/dto/graph.ts                                               
+src/shared/dto/index.ts                                               
+src/shared/dto/media.ts                                               
+src/shared/dto/properties.ts                                          
+src/shared/dto/relationships.ts                                       
+src/shared/index.ts                                                   
+src/shared/types.ts                                                   
+Unused dependencies (18)
+@radix-ui/react-accordion            package.json:98:6            
+@radix-ui/react-popover              package.json:101:6           
+@tensorflow/tfjs-backend-cpu         package.json:109:6           
+@tensorflow/tfjs-core                package.json:110:6           
+@tensorflow/tfjs-node                package.json:111:6           
+@types/quoted-printable              package.json:116:6           
+@types/react-window-infinite-loader  package.json:117:6           
+@vladmandic/face-api                 package.json:118:6           
+csv-parse                            package.json:127:6           
+d3-scale                             package.json:129:6           
+diff                                 package.json:132:6           
+dompurify                            package.json:133:6           
+open                                 package.json:152:6           
+quoted-printable                     package.json:157:6           
+tailwind-merge                       package.json:169:6           
+tesseract.js                         package.json:170:6           
+@types/express                       packages/db/package.json:14:6
+@types/express-rate-limit            packages/db/package.json:15:6
+Unused devDependencies (8)
+@esbuild/linux-arm64            package.json:176:6
+@rollup/rollup-linux-arm64-gnu  package.json:178:6
+@types/d3-scale                 package.json:183:6
+@types/node-cache               package.json:191:6
+@types/pdf-parse                package.json:192:6
+node-pg-migrate                 package.json:211:6
+pdf-parse                       package.json:212:6
+pino-pretty                     package.json:213:6
+Unused exports (184)
+BatchToolbar                                   src/client/components/common/BatchToolbar.tsx:39:14                      
+default                              variable  src/client/components/common/CloseButton.tsx:40:16                       
+default                              variable  src/client/components/common/CollapsibleSplitPane.tsx:213:16             
+LazyImage                                      src/client/components/common/LazyImage.tsx:13:14                         
+default                              function  src/client/components/common/SheetDialog.tsx:60:16                       
+TagSelector                                    src/client/components/common/TagSelector.tsx:39:14                       
+default                              variable  src/client/components/documents/InvestigationTextRenderer.tsx:685:16     
+default                              variable  src/client/components/documents/PDFAnnotationOverlay.tsx:70:16           
+default                              variable  src/client/components/documents/PDFVariantViewer.tsx:331:16              
+default                              variable  src/client/components/documents/ProvenancePanel.tsx:397:16               
+default                              variable  src/client/components/documents/subcomponents/DocumentHeader.tsx:116:16  
+default                              variable  …ent/components/documents/subcomponents/DocumentInsightsDrawer.tsx:234:16
+default                              variable  …lient/components/documents/subcomponents/DocumentMetadataRail.tsx:346:16
+default                              variable  …/client/components/documents/subcomponents/DocumentUnifiedTab.tsx:398:16
+EmailClient                                    src/client/components/email/EmailClient.tsx:172:14                       
+default                              variable  src/client/components/entities/ConnectionCard.tsx:134:16                 
+default                              variable  src/client/components/entities/ConnectionsList.tsx:116:16                
+EntityRelationshipMapper                       src/client/components/entities/EntityRelationshipMapper.tsx:45:14        
+default                              variable  src/client/components/entities/PathFinderModal.tsx:132:16                
+PeopleSelector                                 src/client/components/entities/PeopleSelector.tsx:25:14                  
+FlightTracker                                  src/client/components/flights/FlightTracker.tsx:37:14                    
+default                              variable  src/client/components/investigation/ChainOfCustodyModal.tsx:228:16       
+default                              variable  src/client/components/investigation/ForensicDocumentAnalyzer.tsx:853:16  
+default                              variable  src/client/components/investigation/InvestigationActivityFeed.tsx:249:16 
+default                              variable  src/client/components/investigation/InvestigationCaseFolder.tsx:513:16   
+MobileBottomNav                      function  src/client/components/layout/MobileBottomNav.tsx:15:17                   
+MobileMenu                                     src/client/components/layout/MobileMenu.tsx:22:14                        
+ArticleCard                                    src/client/components/media/ArticleCard.tsx:29:14                        
+default                              variable  src/client/components/media/AudioPlayer.tsx:536:16                       
+default                              variable  src/client/components/media/MediaAndArticlesTab.tsx:283:16               
+PhotoBrowser                                   src/client/components/media/PhotoBrowser.tsx:237:14                      
+default                              variable  src/client/components/media/VideoBrowser.tsx:753:16                      
+default                              variable  src/client/components/pages/EnhancedAnalytics.tsx:893:16                 
+PropertyBrowser                      function  src/client/components/PropertyBrowser.tsx:19:17                          
+default                              variable  src/client/components/RedactedLogo.tsx:244:16                            
+default                              variable  src/client/components/shared/AlbumSidebar.tsx:53:16                      
+default                              variable  src/client/components/shared/MobileAlbumDropdown.tsx:82:16               
+default                              function  src/client/components/shared/SensitiveWarningBanner.tsx:77:16            
+UndoProvider                                   src/client/components/UndoManager.tsx:46:14                              
+default                              variable  src/client/components/viewer/ViewerShell.tsx:66:16                       
+default                              variable  src/client/components/visualizations/DocumentBarChart.tsx:251:16         
+LocationMap                                    src/client/components/visualizations/LocationMap.tsx:15:14               
+default                              variable  src/client/components/visualizations/NetworkGraph.tsx:1133:16            
+default                              variable  src/client/components/visualizations/SunburstChart.tsx:239:16            
+Timeline                                       src/client/components/visualizations/Timeline.tsx:51:14                  
+DialogTrigger                                  src/client/design-system/components/interactive/Dialog.tsx:7:14          
+DialogClose                                    src/client/design-system/components/interactive/Dialog.tsx:8:14          
+DialogPortal                                   src/client/design-system/components/interactive/Dialog.tsx:9:14          
+DialogOverlay                                  src/client/design-system/components/interactive/Dialog.tsx:11:14         
+DropdownMenuGroup                              src/client/design-system/components/interactive/DropdownMenu.tsx:8:14    
+DropdownMenuPortal                             src/client/design-system/components/interactive/DropdownMenu.tsx:9:14    
+DropdownMenuSub                                src/client/design-system/components/interactive/DropdownMenu.tsx:10:14   
+DropdownMenuRadioGroup                         src/client/design-system/components/interactive/DropdownMenu.tsx:11:14   
+DropdownMenuLabel                              src/client/design-system/components/interactive/DropdownMenu.tsx:41:14   
+DropdownMenuSeparator                          src/client/design-system/components/interactive/DropdownMenu.tsx:54:14   
+Responsive                           function  src/client/design-system/components/layout/Responsive.tsx:28:17          
+resolveSpace                                   src/client/design-system/lib/index.ts:2:10                               
+resolveSize                                    src/client/design-system/lib/index.ts:2:24                               
+buildSpacingStyles                             src/client/design-system/lib/index.ts:2:37                               
+resolveSpace                         function  src/client/design-system/lib/resolveSpace.ts:34:17                       
+resolveSize                          function  src/client/design-system/lib/resolveSpace.ts:60:17                       
+useNavigationState                   function  src/client/hooks/useAppFilters.ts:77:17                                  
+useMediaBrowser                      function  src/client/hooks/useMediaBrowser.ts:81:17                                
+formatMediaDate                      function  src/client/hooks/useMediaBrowser.ts:264:17                               
+capturePageState                               src/client/hooks/useNavigationContextManager.ts:15:14                    
+getPageState                                   src/client/hooks/useNavigationContextManager.ts:41:14                    
+clearPageState                                 src/client/hooks/useNavigationContextManager.ts:52:14                    
+BREAKPOINT_VALUES                              src/client/hooks/useResponsive.ts:85:14                                  
+useIsTablet                          function  src/client/hooks/useResponsive.ts:100:17                                 
+useIsDesktop                         function  src/client/hooks/useResponsive.ts:105:17                                 
+usePullToRefresh                     function  src/client/hooks/useSwipeGesture.ts:91:17                                
+mapEntityDetailToPerson              function  src/client/mappers/entityMapper.ts:31:17                                 
+default                              variable  src/client/services/ContentNavigationService.tsx:79:16                   
+renderHighlightedText                          src/client/utils/documentUtils.tsx:24:14                                 
+looksLikePreviewJunk                           src/client/utils/documentUtils.tsx:44:14                                 
+getRiskLabel                                   src/client/utils/documentUtils.tsx:98:14                                 
+formatFileSize                                 src/client/utils/documentUtils.tsx:143:14                                
+toRiskLevel                                    src/client/utils/entityRisk.ts:122:14                                    
+ENTITY_TYPE_ICONS                              src/client/utils/entityTypeIcons.tsx:23:14                               
+ENTITY_CATEGORY_ICONS                          src/client/utils/entityTypeIcons.tsx:52:14                               
+getEntityTypeIconName                function  src/client/utils/entityTypeIcons.tsx:79:17                               
+textLooksLikeGibberish                         src/client/utils/evidenceUtils.tsx:30:14                                 
+isLikelyOCR                          function  src/client/utils/prettifyOCR.ts:213:17                                   
+default                              variable  src/client/utils/ResourcePreloader.ts:69:16                              
+searchPeople                         function  src/client/utils/search.ts:17:17                                         
+getEvidenceByPerson                  function  src/client/utils/search.ts:58:23                                         
+getRoleCategories                    function  src/client/utils/search.ts:69:17                                         
+getStatusCategories                  function  src/client/utils/search.ts:78:17                                         
+getLikelihoodColor                   function  src/client/utils/search.ts:88:17                                         
+ArticlesRepository                   class     src/server/db/articlesRepository.ts:43:14                                
+getIngressPool                                 src/server/db/connection.ts:4:3                                          
+getSlowQueryLogThresholdMs                     src/server/db/connection.ts:10:3                                         
+getEmailMetadataPage                 function  src/server/db/healthQueries.ts:618:23                                    
+getEmailBodyById                     function  src/server/db/healthQueries.ts:665:23                                    
+ingestRunsRepository                           src/server/db/ingestRunsRepository.ts:118:14                             
+default                              variable  src/server/db/legalProceedingsRepository.ts:40:16                        
+reconcileHistoricalMigrationLedger   function  src/server/db/migrator.ts:32:23                                          
+maintenancePool                                src/server/db/runtime.ts:9:12                                            
+getIngressPool                       function  src/server/db/runtime.ts:157:17                                          
+getSlowQueryLogThresholdMs           function  src/server/db/runtime.ts:170:17                                          
+default                              variable  src/server/db/testimoniesRepository.ts:37:16                             
+mapEmailMailboxDto                             src/server/mappers/emailsDtoMapper.ts:12:14                              
+mapEmailThreadListItemDto                      src/server/mappers/emailsDtoMapper.ts:37:14                              
+mapSubjectCardDto                              src/server/mappers/entitiesDtoMapper.ts:39:14                            
+mapInvestigationEvidenceListItemDto            src/server/mappers/investigationsDtoMapper.ts:80:14                      
+mapInvestigationCaseEvidenceItemDto            src/server/mappers/investigationsDtoMapper.ts:115:14                     
+toApiErrorEnvelope                             src/server/middleware/apiErrorEnvelope.ts:45:14                          
+apiCache                                       src/server/middleware/cache.ts:5:14                                      
+purgeCache                                     src/server/middleware/cache.ts:68:14                                     
+entitySchema                                   src/server/middleware/validate.ts:46:14                                  
+entityParamSchema                              src/server/middleware/validate.ts:123:14                                 
+paginationSchema                               src/server/middleware/validate.ts:130:14                                 
+entityDocumentsQuerySchema                     src/server/middleware/validate.ts:135:14                                 
+dateRangeSchema                                src/server/middleware/validate.ts:149:14                                 
+emailMailboxesQuerySchema                      src/server/middleware/validate.ts:187:14                                 
+mediaQuerySchema                               src/server/middleware/validate.ts:194:14                                 
+updateEntitySchema                             src/server/middleware/validate.ts:271:14                                 
+QueryCounter                         class     src/server/queryCounter.ts:24:14                                         
+DatasetRevisionManager               class     src/server/revisionManager.ts:24:14                                      
+getRevisionManager                   function  src/server/revisionManager.ts:144:17                                     
+getRevisionToken                     function  src/server/revisionManager.ts:151:17                                     
+classifyEmail                        function  src/server/services/emailClassificationService.ts:140:17                 
+buildCategoryWhereClause             function  src/server/services/emailClassificationService.ts:331:17                 
+addKnownEntitySender                 function  src/server/services/emailClassificationService.ts:380:17                 
+markViewsDirty                       function  src/server/services/matViewRefresh.ts:21:17                              
+refreshIfDue                         function  src/server/services/matViewRefresh.ts:30:23                              
+forceRefresh                         function  src/server/services/matViewRefresh.ts:107:23                             
+AppError                             class     src/server/utils/errorHandler.ts:6:14                                    
+NotFoundError                        class     src/server/utils/errorHandler.ts:26:14                                   
+UnauthorizedError                    class     src/server/utils/errorHandler.ts:32:14                                   
+ForbiddenError                       class     src/server/utils/errorHandler.ts:38:14                                   
+ConflictError                        class     src/server/utils/errorHandler.ts:44:14                                   
+catchAsync                                     src/server/utils/errorHandler.ts:153:14                                  
+makeId                               function  src/server/utils/id_utils.ts:8:17                                        
+parseEntityId                        function  src/server/utils/id_utils.ts:25:17                                       
+resolveAndCheckPath                  function  src/server/utils/pathResolver.ts:76:17                                   
+ENTITY_BLACKLIST                               src/shared/config/entityBlacklist.ts:6:14                                
+ENTITY_BLACKLIST_REGEX                         src/shared/config/entityBlacklist.ts:9:14                                
+blackBookEntrySchema                           src/shared/schemas/blackBook.ts:3:14                                     
+emailMailboxSchema                             src/shared/schemas/emails.ts:3:14                                        
+emailThreadListItemSchema                      src/shared/schemas/emails.ts:21:14                                       
+subjectCardStatsSchema                         src/shared/schemas/entities.ts:4:14                                      
+subjectCardForensicsSchema                     src/shared/schemas/entities.ts:11:14                                     
+subjectCardTopPreviewSchema                    src/shared/schemas/entities.ts:24:14                                     
+subjectCardListItemSchema                      src/shared/schemas/entities.ts:36:14                                     
+entityListResponseSchema                       src/shared/schemas/entities.ts:76:14                                     
+entityMinimalItemSchema                        src/shared/schemas/entities.ts:85:14                                     
+entityMediaItemSchema                          src/shared/schemas/entityTabs.ts:3:14                                    
+entityDocumentItemSchema                       src/shared/schemas/entityTabs.ts:26:14                                   
+exportManifestIncludedFileSchema               src/shared/schemas/exportManifest.ts:3:14                                
+exportManifestSkippedFileSchema                src/shared/schemas/exportManifest.ts:13:14                               
+exportManifestSchema                           src/shared/schemas/exportManifest.ts:26:14                               
+flightItemSchema                               src/shared/schemas/flights.ts:17:14                                      
+flightCoOccurrenceSchema                       src/shared/schemas/flights.ts:63:14                                      
+dangerMotifTypeSchema                          src/shared/schemas/iceberg.ts:3:14                                       
+harmTypeSchema                                 src/shared/schemas/iceberg.ts:18:14                                      
+icebergReviewStateSchema                       src/shared/schemas/iceberg.ts:30:14                                      
+icebergEntityRefSchema                         src/shared/schemas/iceberg.ts:38:14                                      
+icebergSupportingDocumentSchema                src/shared/schemas/iceberg.ts:45:14                                      
+icebergLeadSchema                              src/shared/schemas/iceberg.ts:54:14                                      
+graphPathEdgeSchema                            src/shared/schemas/iceberg.ts:83:14                                      
+graphPathSchema                                src/shared/schemas/iceberg.ts:97:14                                      
+relationshipExplanationSchema                  src/shared/schemas/iceberg.ts:109:14                                     
+evidenceChainItemSchema                        src/shared/schemas/iceberg.ts:122:14                                     
+weakProvenanceDocSchema                        src/shared/schemas/intelligenceSchema.ts:3:14                            
+lowOcrDocSchema                                src/shared/schemas/intelligenceSchema.ts:11:14                           
+fuzzyEntityAliasSchema                         src/shared/schemas/intelligenceSchema.ts:18:14                           
+thinHighRiskEntitySchema                       src/shared/schemas/intelligenceSchema.ts:25:14                           
+unlinkedClaimSchema                            src/shared/schemas/intelligenceSchema.ts:33:14                           
+reviewableFinancialItemSchema                  src/shared/schemas/intelligenceSchema.ts:42:14                           
+queueCountsSchema                              src/shared/schemas/intelligenceSchema.ts:50:14                           
+investigationItemSchema                        src/shared/schemas/investigations.ts:9:14                                
+investigationEvidenceListItemSchema            src/shared/schemas/investigations.ts:32:14                               
+investigationCaseEvidenceItemSchema            src/shared/schemas/investigations.ts:52:14                               
+investigativeLeadSchema                        src/shared/schemas/investigations.ts:82:14                               
+investigativeLeadResponseSchema                src/shared/schemas/investigations.ts:100:14                              
+investigativeDiscoveryPayloadSchema            src/shared/schemas/investigations.ts:105:14                              
+propertyItemSchema                             src/shared/schemas/properties.ts:3:14                                    
+reviewStateSchema                              src/shared/schemas/provenance.ts:3:14                                    
+extractionMethodSchema                         src/shared/schemas/provenance.ts:11:14                                   
+provenanceStatusSchema                         src/shared/schemas/provenance.ts:13:14                                   
+mentionQueueItemSchema                         src/shared/schemas/reviewQueueSchema.ts:3:14                             
+claimQueueItemSchema                           src/shared/schemas/reviewQueueSchema.ts:13:14                            
+timelineEventSchema                            src/shared/schemas/timeline.ts:16:14                                     
+Unused exported types (121)
+AnimatedSegmentOption            interface  src/client/components/common/AnimatedSegmentedControl.tsx:7:18        
+CardAction                       interface  src/client/components/common/CardActionSheet.tsx:7:18                 
+EvidenceDocument                 interface  src/client/components/common/subcomponents/EvidenceCard.tsx:14:18     
+Flight                           type       src/client/components/flights/FlightTracker.tsx:18:15                 
+FlightStats                      type       src/client/components/flights/FlightTracker.tsx:18:23                 
+AirportCoords                    type       src/client/components/flights/FlightTracker.tsx:18:36                 
+CoOccurrence                     type       src/client/components/flights/FlightTracker.tsx:18:51                 
+ViewMode                         type       src/client/components/flights/FlightTracker.tsx:18:65                 
+CommunicationPattern             interface  src/client/components/investigation/CommunicationAnalysis.tsx:21:18   
+Property                         type       src/client/components/PropertyBrowser.tsx:15:15                       
+PropertyStats                    type       src/client/components/PropertyBrowser.tsx:15:25                       
+ValueDistribution                type       src/client/components/PropertyBrowser.tsx:15:40                       
+TopOwner                         type       src/client/components/PropertyBrowser.tsx:15:59                       
+PersonLike                       interface  src/client/components/visualizations/TreeMap.tsx:9:18                 
+DesignSystemSelectOption         interface  src/client/design-system/components/forms/Select.tsx:6:18             
+GridBreakpoints                  interface  src/client/design-system/components/layout/Grid.tsx:10:18             
+ResponsiveProps                  interface  src/client/design-system/components/layout/Responsive.tsx:5:18        
+AppNavTone                       type       src/client/design-system/components/navigation/AppNavigation.tsx:7:13 
+AppNavDensity                    type       src/client/design-system/components/navigation/AppNavigation.tsx:21:13
+SpaceValue                       type       src/client/design-system/lib/index.ts:3:15                            
+SizeValue                        type       src/client/design-system/lib/index.ts:3:27                            
+SpacingProps                     type       src/client/design-system/lib/index.ts:3:38                            
+SizingProps                      type       src/client/design-system/lib/index.ts:3:52                            
+SizeValue                        type       src/client/design-system/lib/resolveSpace.ts:49:13                    
+SortBy                           type       src/client/hooks/useAppFilters.ts:4:13                                
+SortOrder                        type       src/client/hooks/useAppFilters.ts:5:13                                
+RiskLevel                        type       src/client/hooks/useAppFilters.ts:6:13                                
+NavigationState                  interface  src/client/hooks/useAppFilters.ts:62:18                               
+UseNavigationStateReturn         interface  src/client/hooks/useAppFilters.ts:67:18                               
+MediaBrowserConfig               interface  src/client/hooks/useMediaBrowser.ts:7:18                              
+BaseMediaItem                    interface  src/client/hooks/useMediaBrowser.ts:30:18                             
+MediaBrowserState                interface  src/client/hooks/useMediaBrowser.ts:50:18                             
+MediaBrowserActions              interface  src/client/hooks/useMediaBrowser.ts:63:18                             
+ReadinessResponse                interface  src/client/services/apiClient.ts:38:18                                
+DownloadResponse                 interface  src/client/services/apiClient.ts:76:18                                
+MediaBatchResult                 interface  src/client/services/apiClient.ts:82:18                                
+MediaBatchResponse               interface  src/client/services/apiClient.ts:90:18                                
+RealPerson                       interface  src/client/services/apiClient.ts:95:18                                
+PaginatedResponse                interface  src/client/services/apiClient.ts:113:18                               
+GraphEdge                        interface  src/client/services/GraphService.ts:34:18                             
+GraphPayload                     interface  src/client/services/GraphService.ts:45:18                             
+User                             interface  src/client/types.ts:1:18                                              
+Mention                          interface  src/client/types.ts:105:18                                            
+SeoSchema                        type       src/client/types/api.ts:1:13                                          
+EntityConnectionSignal           interface  src/client/types/api.ts:76:18                                         
+GraphNode                        interface  src/client/types/api.ts:122:18                                        
+GraphRelationship                interface  src/client/types/api.ts:130:18                                        
+ForensicSignal                   interface  src/client/types/documents.ts:1:18                                    
+EntityContext                    interface  src/client/types/documents.ts:145:18                                  
+DocumentSearchResult             interface  src/client/types/documents.ts:168:18                                  
+SearchHighlight                  interface  src/client/types/documents.ts:176:18                                  
+BrowseOptions                    interface  src/client/types/documents.ts:216:18                                  
+EvidenceChain                    interface  src/client/types/investigation.ts:3:18                                
+SourceProvenance                 interface  src/client/types/investigation.ts:13:18                               
+CustodyEvent                     interface  src/client/types/investigation.ts:23:18                               
+TransformationEvent              interface  src/client/types/investigation.ts:33:18                               
+AuthenticityScore                interface  src/client/types/investigation.ts:44:18                               
+AccessControl                    interface  src/client/types/investigation.ts:87:18                               
+TextPosition                     interface  src/client/types/investigation.ts:112:18                              
+LeadStatus                       type       src/client/types/investigation.ts:124:13                              
+LeadPriority                     type       src/client/types/investigation.ts:125:13                              
+InvestigationLead                interface  src/client/types/investigation.ts:127:18                              
+ChainOfCustodyEvent              interface  src/client/types/investigation.ts:203:18                              
+EvidenceAnalysis                 interface  src/client/types/investigation.ts:212:18                              
+InvestigationTimeline            interface  src/client/types/investigation.ts:221:18                              
+TimelineLayer                    interface  src/client/types/investigation.ts:232:18                              
+InvestigationReport              interface  src/client/types/investigation.ts:267:18                              
+Finding                          interface  src/client/types/investigation.ts:285:18                              
+EvidenceSummary                  interface  src/client/types/investigation.ts:298:18                              
+NetworkAnalysis                  interface  src/client/types/investigation.ts:308:18                              
+NetworkEntity                    interface  src/client/types/investigation.ts:315:18                              
+NetworkRelationship              interface  src/client/types/investigation.ts:326:18                              
+NetworkCommunity                 interface  src/client/types/investigation.ts:335:18                              
+NetworkMetrics                   interface  src/client/types/investigation.ts:344:18                              
+ExifData                         interface  src/client/types/media.types.ts:3:18                                  
+ProvenanceInfo                   interface  src/client/types/memory.ts:3:18                                       
+EntityType                       type       src/client/utils/entityTypeIcons.tsx:10:13                            
+EntityCategory                   type       src/client/utils/entityTypeIcons.tsx:37:13                            
+ConfidenceAlgorithmVersion       type       src/client/utils/forensicConfidence.ts:1:13                           
+ConfidenceWeights                interface  src/client/utils/forensicConfidence.ts:3:18                           
+RiskSemanticLevel                type       src/client/utils/riskSemantics.ts:1:13                                
+AnnotationEventType              type       src/server/db/annotationEventsRepository.ts:5:13                      
+Article                          interface  src/server/db/articlesRepository.ts:5:18                              
+EntityConnectionSignal           interface  src/server/db/entityConnectionsRepository.ts:3:18                     
+EmailMetadata                    interface  src/server/db/healthQueries.ts:606:18                                 
+DbRow                            interface  src/server/db/rowTypes.ts:8:18                                        
+EmailCategory                    type       src/server/services/emailClassificationService.ts:118:13              
+ClassifiedEmail                  interface  src/server/services/emailClassificationService.ts:120:18              
+EmailClassificationResult        interface  src/server/services/emailClassificationService.ts:128:18              
+CorrelationDto                   interface  src/shared/dto/analytics.ts:37:18                                     
+CorrelationResponseDto           interface  src/shared/dto/analytics.ts:50:18                                     
+CreateAnnotationPayload          interface  src/shared/dto/annotations.ts:43:18                                   
+ConnectionEntityDto              interface  src/shared/dto/connections.ts:43:18                                   
+SemanticCapabilityDto            interface  src/shared/dto/connections.ts:68:18                                   
+EmailRiskSummary                 type       src/shared/dto/emails.ts:1:13                                         
+EmailLinkedEntityDto             interface  src/shared/dto/emails.ts:49:18                                        
+EmailThreadMessageHeaderDto      interface  src/shared/dto/emails.ts:55:18                                        
+EmailSearchResultItemDto         interface  src/shared/dto/emails.ts:112:18                                       
+SubjectCardStatsDto              interface  src/shared/dto/entities.ts:5:18                                       
+SubjectCardForensicsDto          interface  src/shared/dto/entities.ts:12:18                                      
+SubjectCardTopPreviewDto         interface  src/shared/dto/entities.ts:25:18                                      
+IcebergExplainabilityDto         interface  src/shared/dto/iceberg.ts:49:18                                       
+InvestigationEvidenceRelevance   type       src/shared/dto/investigations.ts:50:13                                
+InvestigationEvidenceTargetType  type       src/shared/dto/investigations.ts:52:13                                
+SearchEntityResultDto            interface  src/shared/dto/search.ts:1:18                                         
+SearchDocumentResultDto          interface  src/shared/dto/search.ts:10:18                                        
+ExportManifestSkipReason         type       src/shared/schemas/exportManifest.ts:49:13                            
+WeakProvenanceDoc                type       src/shared/schemas/intelligenceSchema.ts:77:13                        
+LowOcrDoc                        type       src/shared/schemas/intelligenceSchema.ts:78:13                        
+FuzzyEntityAlias                 type       src/shared/schemas/intelligenceSchema.ts:79:13                        
+ThinHighRiskEntity               type       src/shared/schemas/intelligenceSchema.ts:80:13                        
+UnlinkedClaim                    type       src/shared/schemas/intelligenceSchema.ts:81:13                        
+ReviewableFinancialItem          type       src/shared/schemas/intelligenceSchema.ts:82:13                        
+QueueCounts                      type       src/shared/schemas/intelligenceSchema.ts:83:13                        
+IntelligenceReviewResponse       type       src/shared/schemas/intelligenceSchema.ts:84:13                        
+IntelligenceReadinessResponse    type       src/shared/schemas/intelligenceSchema.ts:85:13                        
+Provenance                       type       src/shared/schemas/provenance.ts:25:13                                
+MentionQueueItem                 type       src/shared/schemas/reviewQueueSchema.ts:27:13                         
+ClaimQueueItem                   type       src/shared/schemas/reviewQueueSchema.ts:28:13                         
+MentionsQueueResponse            type       src/shared/schemas/reviewQueueSchema.ts:29:13                         
+ClaimsQueueResponse              type       src/shared/schemas/reviewQueueSchema.ts:30:13                         
+Duplicate exports (65)
+AutoSizer|default                          src/client/components/common/AutoSizer.tsx                              
+BatchToolbar|default                       src/client/components/common/BatchToolbar.tsx                           
+CloseButton|default                        src/client/components/common/CloseButton.tsx                            
+CollapsibleSplitPane|default               src/client/components/common/CollapsibleSplitPane.tsx                   
+LazyImage|default                          src/client/components/common/LazyImage.tsx                              
+SheetDialog|default                        src/client/components/common/SheetDialog.tsx                            
+TagSelector|default                        src/client/components/common/TagSelector.tsx                            
+DocumentModal|default                      src/client/components/documents/DocumentModal.tsx                       
+InvestigationTextRenderer|default          src/client/components/documents/InvestigationTextRenderer.tsx           
+PDFAnnotationOverlay|default               src/client/components/documents/PDFAnnotationOverlay.tsx                
+PDFVariantViewer|default                   src/client/components/documents/PDFVariantViewer.tsx                    
+ProvenancePanel|default                    src/client/components/documents/ProvenancePanel.tsx                     
+DocumentHeader|default                     src/client/components/documents/subcomponents/DocumentHeader.tsx        
+DocumentInsightsDrawer|default             src/client/components/documents/subcomponents/DocumentInsightsDrawer.tsx
+DocumentMetadataRail|default               src/client/components/documents/subcomponents/DocumentMetadataRail.tsx  
+DocumentUnifiedTab|default                 src/client/components/documents/subcomponents/DocumentUnifiedTab.tsx    
+EmailClient|default                        src/client/components/email/EmailClient.tsx                             
+ConnectionCard|default                     src/client/components/entities/ConnectionCard.tsx                       
+ConnectionsList|default                    src/client/components/entities/ConnectionsList.tsx                      
+EntityRelationshipMapper|default           src/client/components/entities/EntityRelationshipMapper.tsx             
+PathFinderModal|default                    src/client/components/entities/PathFinderModal.tsx                      
+PeopleSelector|default                     src/client/components/entities/PeopleSelector.tsx                       
+FaceGallery|default                        src/client/components/faces/FaceGallery.tsx                             
+FlightTracker|default                      src/client/components/flights/FlightTracker.tsx                         
+ChainOfCustodyModal|default                src/client/components/investigation/ChainOfCustodyModal.tsx             
+ForensicDocumentAnalyzer|default           src/client/components/investigation/ForensicDocumentAnalyzer.tsx        
+InvestigationActivityFeed|default          src/client/components/investigation/InvestigationActivityFeed.tsx       
+InvestigationCaseFolder|default            src/client/components/investigation/InvestigationCaseFolder.tsx         
+MultiSourceCorrelationEngine|default       src/client/components/investigation/MultiSourceCorrelationEngine.tsx    
+MobileBottomNav|default                    src/client/components/layout/MobileBottomNav.tsx                        
+MobileMenu|default                         src/client/components/layout/MobileMenu.tsx                             
+ArticlesTab|default                        src/client/components/media/ArticlesTab.tsx                             
+AudioPlayer|default                        src/client/components/media/AudioPlayer.tsx                             
+MediaAndArticlesTab|default                src/client/components/media/MediaAndArticlesTab.tsx                     
+MediaTab|default                           src/client/components/media/MediaTab.tsx                                
+PhotoBrowser|default                       src/client/components/media/PhotoBrowser.tsx                            
+VideoBrowser|default                       src/client/components/media/VideoBrowser.tsx                            
+AboutPage|default                          src/client/components/pages/AboutPage.tsx                               
+EnhancedAnalytics|default                  src/client/components/pages/EnhancedAnalytics.tsx                       
+PropertyBrowser|default                    src/client/components/PropertyBrowser.tsx                               
+RedactedLogo|default                       src/client/components/RedactedLogo.tsx                                  
+AlbumSidebar|default                       src/client/components/shared/AlbumSidebar.tsx                           
+MobileAlbumDropdown|default                src/client/components/shared/MobileAlbumDropdown.tsx                    
+SensitiveWarningBanner|default             src/client/components/shared/SensitiveWarningBanner.tsx                 
+UndoProvider|default                       src/client/components/UndoManager.tsx                                   
+ViewerShell|default                        src/client/components/viewer/ViewerShell.tsx                            
+DocumentBarChart|default                   src/client/components/visualizations/DocumentBarChart.tsx               
+LocationMap|default                        src/client/components/visualizations/LocationMap.tsx                    
+NetworkGraph|default                       src/client/components/visualizations/NetworkGraph.tsx                   
+SunburstChart|default                      src/client/components/visualizations/SunburstChart.tsx                  
+Timeline|default                           src/client/components/visualizations/Timeline.tsx                       
+LqText|Text                                src/client/design-system/components/typography/Text.tsx                 
+AdminDashboard|default                     src/client/pages/AdminDashboard.tsx                                     
+CorroborationPage|default                  src/client/pages/CorroborationPage.tsx                                  
+LegalTrackerPage|default                   src/client/pages/LegalTrackerPage.tsx                                   
+NetworkPage|default                        src/client/pages/NetworkPage.tsx                                        
+RedactionsPage|default                     src/client/pages/RedactionsPage.tsx                                     
+SurvivorTrackingPage|default               src/client/pages/SurvivorTrackingPage.tsx                               
+TheEpsteinFilesPage|default                src/client/pages/TheEpsteinFilesPage.tsx                                
+NavigationProvider|default                 src/client/services/ContentNavigationService.tsx                        
+preloader|default                          src/client/utils/ResourcePreloader.ts                                   
+IngestRunsRepository|ingestRunsRepository  src/server/db/ingestRunsRepository.ts                                   
+legalProceedingsRepository|default         src/server/db/legalProceedingsRepository.ts                             
+getIngressPool|getIngestPool               src/server/db/runtime.ts                                                
+testimoniesRepository|default              src/server/db/testimoniesRepository.ts                                  

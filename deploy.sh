@@ -7,7 +7,7 @@ set -euo pipefail
 
 # Configuration
 PRODUCTION_USER="${EPSTEIN_PROD_SSH_USER:-svc_epstein}"
-PRODUCTION_HOST="${EPSTEIN_PROD_HOST:-194.195.248.217}"
+PRODUCTION_HOST="${EPSTEIN_PROD_HOST:-}"
 PRODUCTION_PATH="${EPSTEIN_PROD_PATH:-/home/${PRODUCTION_USER}/epstein-archive}"
 REMOTE_HOME="/home/${PRODUCTION_USER}"
 SSH_KEY_PATH="${EPSTEIN_PROD_SSH_KEY_PATH:-$HOME/.ssh/id_epstein_prod_ed25519}"
@@ -28,6 +28,7 @@ log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}"; }
 require_cmd() { command -v "$1" >/dev/null 2>&1 || { log_error "Required command not found: $1"; exit 1; }; }
 require_file() { [ -f "$1" ] || { log_error "Required file not found: $1"; exit 1; }; }
+require_env() { [ -n "${!1:-}" ] || { log_error "Required environment variable not set: $1"; exit 1; }; }
 remote_ssh() { ssh "${SSH_OPTS[@]}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$@"; }
 
 ensure_local_git_identity() {
@@ -94,10 +95,10 @@ node -e '
   if (!process.env.DATABASE_URL) { console.error("❌ DATABASE_URL missing"); process.exit(1); }
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   client.connect()
-     //.then(() => client.query("SELECT 1 FROM pg_extension WHERE extname=\047pg_stat_statements\047"))
+     .then(() => client.query("SELECT 1 FROM pg_extension WHERE extname=\047pg_stat_statements\047"))
      .then((res) => {
-       //if (res.rows.length === 0) { console.error("❌ Missing pg_stat_statements"); process.exit(1); }
-       console.log("✅ DB Connected");
+       if (res.rows.length === 0) { console.error("❌ Missing pg_stat_statements"); process.exit(1); }
+       console.log("✅ DB Connected and pg_stat_statements Verified");
        client.end();
        process.exit(0);
      })
@@ -269,6 +270,8 @@ fi
 if [ "$CODE_ONLY" = true ]; then
   DEPLOY_DB=false
 fi
+
+require_env EPSTEIN_PROD_HOST
 
 perform_rollback() {
   if [ "$ROLLBACK_IN_PROGRESS" = true ]; then

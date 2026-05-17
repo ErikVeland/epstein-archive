@@ -67,14 +67,13 @@ export const mapInvestigationListItemDto = (
   evidenceCount: Number(row.evidenceCount ?? row.evidence_count ?? 0),
 });
 
-const asJsonValue = (value: unknown): unknown => {
+const asJsonString = (value: unknown): string | null => {
   if (value == null) return null;
-  if (typeof value === 'object') return value;
-  if (typeof value !== 'string') return value;
+  if (typeof value === 'string') return value;
   try {
-    return JSON.parse(value);
+    return JSON.stringify(value);
   } catch {
-    return value;
+    return String(value);
   }
 };
 
@@ -89,7 +88,7 @@ export const mapInvestigationEvidenceListItemDto = (
     title: row.title != null ? String(row.title) : null,
     description: row.description != null ? String(row.description) : null,
     sourcePath: String(row.sourcePath ?? row.source_path ?? ''),
-    metadataJson: asJsonValue(row.metadataJson ?? row.metadata_json),
+    metadataJson: asJsonString(row.metadataJson ?? row.metadata_json),
     investigationEvidenceId: Number(
       row.investigationEvidenceId ?? row.investigation_evidence_id ?? 0,
     ),

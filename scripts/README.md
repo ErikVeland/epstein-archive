@@ -53,23 +53,25 @@ Run the full suite to verify repository health and database performance.
 
 ## Specialized Processing
 
-| Script                             | Category     | Purpose                                                            |
-| :--------------------------------- | :----------- | :----------------------------------------------------------------- |
-| `ingest_pipeline.ts`               | Ingestion    | Phase 1: OCR, Text Extraction, and Parsing.                        |
-| `ingest_intelligence.ts`           | Intelligence | Phase 2: Entity Resolution and Relationship Mapping.               |
-| `unredact.py`                      | Forensic     | Removes standard redaction layers from complex PDFs.               |
-| `scan_faces_deepface.py`           | Forensic     | Local Deepface clustering for biometric identification.            |
-| `backfill_thumbnails.ts`           | Assets       | Generates standard-res previews for all visual evidence.           |
-| `backfill_semantic_embeddings.ts`  | Semantic     | Backfills pgvector document/entity embeddings.                     |
-| `refresh_analytics_views.ts`       | Analytics    | Refreshes materialized views and planner stats after stage writes. |
-| `backfill_image_ocr.ts`            | OCR          | Backfills image text extraction gaps.                              |
-| `backfill_image_media.ts`          | Media        | Backfills image media records and album bindings.                  |
-| `backfill_email_headers_pg.ts`     | Email        | Backfills structured email metadata.                               |
-| `backfill_extracted_date.ts`       | Dates        | Backfills normalized extracted document dates.                     |
-| `extract_media_from_docs.ts`       | Media        | Extracts embedded media from documents.                            |
-| `ingest_faces.ts`                  | Forensic     | Ingests face-cluster intelligence.                                 |
-| `compute_document_significance.ts` | Intelligence | Recomputes document significance signals.                          |
-| `recalculate_entity_risk.ts`       | Intelligence | Recomputes entity risk from graph/evidence signals.                |
+| Script                             | Category     | Purpose                                                               |
+| :--------------------------------- | :----------- | :-------------------------------------------------------------------- |
+| `ingest_pipeline.ts`               | Ingestion    | Phase 1: OCR, Text Extraction, and Parsing.                           |
+| `ingest_intelligence.ts`           | Intelligence | Phase 2: Entity Resolution and Relationship Mapping.                  |
+| `unredact.py`                      | Forensic     | Removes standard redaction layers from complex PDFs.                  |
+| `scan_faces_deepface.py`           | Forensic     | Extracts local DeepFace embeddings for image evidence.                |
+| `cluster_faces.py`                 | Forensic     | Migrates face embeddings into `faces` and assigns generated clusters. |
+| `generate_face_crops.py`           | Forensic     | Creates cropped face thumbnails used by media and people views.       |
+| `backfill_thumbnails.ts`           | Assets       | Generates standard-res previews for all visual evidence.              |
+| `backfill_semantic_embeddings.ts`  | Semantic     | Backfills pgvector document/entity embeddings.                        |
+| `refresh_analytics_views.ts`       | Analytics    | Refreshes materialized views and planner stats after stage writes.    |
+| `backfill_image_ocr.ts`            | OCR          | Backfills image text extraction gaps.                                 |
+| `backfill_image_media.ts`          | Media        | Backfills image media records and album bindings.                     |
+| `backfill_email_headers_pg.ts`     | Email        | Backfills structured email metadata.                                  |
+| `backfill_extracted_date.ts`       | Dates        | Backfills normalized extracted document dates.                        |
+| `extract_media_from_docs.ts`       | Media        | Extracts embedded media from documents.                               |
+| `ingest_faces.ts`                  | Forensic     | Ingests face-cluster intelligence.                                    |
+| `compute_document_significance.ts` | Intelligence | Recomputes document significance signals.                             |
+| `recalculate_entity_risk.ts`       | Intelligence | Recomputes entity risk from graph/evidence signals.                   |
 
 ---
 
@@ -87,3 +89,6 @@ Run the full suite to verify repository health and database performance.
 The following legacy systems are no longer supported:
 
 - All RTF-specific one-off extraction scripts.
+- `scan_faces.py`: superseded by the unified DeepFace-backed `face-ingest` stage.
+- `generate_gallery.py`: local HTML preview artifact; face review now uses app surfaces.
+- `fix_broken_aliases.py`, `fix_deep_imports.py`, `fix_deep_imports_v2.py`: completed one-time migrations.

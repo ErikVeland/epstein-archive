@@ -14,12 +14,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, Link, Routes, Route } from 'react-router-dom';
 // Icons imported as needed via Icon component
 import { Person, Photo } from './types';
-import type {
-  GlobalStatsPayload,
-  SearchResponsePayload,
-  EntityByIdResponse,
-  SearchDocumentPayload,
-} from './types/api';
+import type { GlobalStatsPayload, EntityByIdResponse } from './types/api';
 
 import { useNavigation } from './services/NavigationContext';
 import { apiClient } from './services/apiClient';
@@ -40,6 +35,8 @@ import { RedactedLogo } from './components/RedactedLogo';
 import { FirstRunOnboarding } from './components/FirstRunOnboarding';
 import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
 import { useCommandPalette } from './hooks/useCommandPalette';
+import { useAppFilters } from './hooks/useAppFilters';
+import { useGlobalSearch } from './hooks/useGlobalSearch';
 import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
@@ -148,25 +145,16 @@ function App() {
   // UNUSED STATE REMOVED:  const [people, setPeople] = useState<Person[]>([]);
   // filteredPeople removed - unused
 
-  // People filter state — initialized from URL params on first load so that
-  // sharing or refreshing a people URL restores the active filters.
-  const [sortBy, setSortBy] = useState<'name' | 'mentions' | 'red_flag' | 'risk'>(() => {
-    const v = new URLSearchParams(window.location.search).get('sort');
-    return v === 'name' || v === 'mentions' || v === 'red_flag' || v === 'risk' ? v : 'red_flag';
-  });
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => {
-    const v = new URLSearchParams(window.location.search).get('order');
-    return v === 'asc' ? 'asc' : 'desc';
-  });
-  const [entityType, setEntityType] = useState<string>(() => {
-    return new URLSearchParams(window.location.search).get('type') ?? 'all';
-  });
-  const [selectedRiskLevel, setSelectedRiskLevel] = useState<'HIGH' | 'MEDIUM' | 'LOW' | null>(
-    () => {
-      const v = new URLSearchParams(window.location.search).get('risk');
-      return v === 'HIGH' || v === 'MEDIUM' || v === 'LOW' ? v : null;
-    },
-  );
+  const {
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    entityType,
+    setEntityType,
+    selectedRiskLevel,
+    setSelectedRiskLevel,
+  } = useAppFilters();
 
   // Modal State
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
@@ -219,88 +207,9 @@ function App() {
   const navigation = useNavigation();
   const { searchTerm, setSearchTerm } = navigation;
 
-  type SearchSuggestion = Person & {
-    canonicalName?: string;
-    matchedAlias?: string | null;
-  };
-  type SearchDocumentSuggestion = {
-    kind: 'document';
-    id: string;
-    title: string;
-    snippet?: string;
-    evidenceType?: string;
-  };
-  type HeaderSuggestion = ({ kind: 'entity' } & SearchSuggestion) | SearchDocumentSuggestion;
-
-  // Debounced search term for suggestions query key
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearchTerm(searchTerm), 200);
-    return () => clearTimeout(t);
-  }, [searchTerm]);
-
-  const { data: searchSuggestions = [], isFetching: searchSuggestionsLoading } = useQuery<
-    HeaderSuggestion[]
-  >({
-    queryKey: ['searchSuggestions', debouncedSearchTerm],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/search?q=${encodeURIComponent(debouncedSearchTerm)}&limit=10`,
-      );
-      const data = (await response.json()) as SearchResponsePayload;
-      const entities = Array.isArray(data.entities) ? data.entities : [];
-      const documents = Array.isArray(data.documents) ? data.documents : [];
-      type SearchEntityPayload = Partial<{
-        id: string | number;
-        fullName: string;
-        name: string;
-        canonicalName: string;
-        matchedAlias: string;
-        primaryRole: string;
-        role: string;
-        mention_count: number;
-        mentions: number;
-        redFlagRating: number;
-        document_count: number;
-        files: number;
-      }> &
-        Record<string, unknown>;
-
-      const entitySuggestions: HeaderSuggestion[] = (entities as SearchEntityPayload[])
-        .filter(
-          (entity): entity is SearchEntityPayload & { id: string | number } =>
-            entity.id !== undefined && entity.id !== null,
-        )
-        .map((entity) => ({
-          kind: 'entity',
-          id: entity.id ?? 'unknown',
-          name: entity.fullName || entity.name || 'Unknown',
-          fullName: entity.fullName || entity.name || 'Unknown',
-          canonicalName: entity.canonicalName || entity.fullName || entity.name || 'Unknown',
-          matchedAlias: entity.matchedAlias || null,
-          role: entity.primaryRole || entity.role || 'Unknown',
-          mentions: entity.mention_count || entity.mentions || 0,
-          redFlagRating: entity.redFlagRating ?? 0,
-          files: entity.document_count || entity.files || 0,
-          contexts: [],
-          evidenceTypes: [],
-          significantPassages: [],
-          fileReferences: [],
-        }));
-      const documentSuggestions: HeaderSuggestion[] = documents
-        .slice(0, 4)
-        .map((document: SearchDocumentPayload) => ({
-          kind: 'document',
-          id: String(document.id),
-          title: document.title || document.fileName || 'Untitled document',
-          snippet: document.snippet || undefined,
-          evidenceType: document.evidenceType || undefined,
-        }));
-      return [...entitySuggestions, ...documentSuggestions];
-    },
-    enabled: apiEnabled && debouncedSearchTerm.trim().length >= 2,
-    staleTime: 30_000,
-    placeholderData: (prev) => prev,
+  const { searchSuggestions, searchSuggestionsLoading } = useGlobalSearch({
+    searchTerm,
+    apiEnabled,
   });
 
   // First  // Onboarding
@@ -884,10 +793,12 @@ function App() {
   }, [sortBy, sortOrder, entityType, selectedRiskLevel, location.pathname]);
 
   // Handler for risk level click clicks
-  const handleRiskLevelClick = useCallback((level: 'HIGH' | 'MEDIUM' | 'LOW') => {
-    // Toggle: if clicking the same level, deselect it
-    setSelectedRiskLevel((prev) => (prev === level ? null : level));
-  }, []);
+  const handleRiskLevelClick = useCallback(
+    (level: 'HIGH' | 'MEDIUM' | 'LOW') => {
+      setSelectedRiskLevel(selectedRiskLevel === level ? null : level);
+    },
+    [selectedRiskLevel, setSelectedRiskLevel],
+  );
 
   // Handler to reset all filters
   const handleResetFilters = useCallback(() => {

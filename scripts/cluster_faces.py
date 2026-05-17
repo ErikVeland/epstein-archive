@@ -17,6 +17,21 @@ CLUSTERING_EPS = 0.5 # Cosine distance threshold (0.4-0.6 is typical for DeepFac
 CLUSTERING_METRIC = 'cosine'
 MIN_SAMPLES = 3 # Minimum faces to form a "person" cluster
 
+def parse_embedding(raw):
+    if raw is None:
+        return None
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            return None
+    if not isinstance(raw, (list, tuple)):
+        return None
+    try:
+        return [float(value) for value in raw]
+    except Exception:
+        return None
+
 def connect_db():
     try:
         return psycopg2.connect(DB_CONNECTION)
@@ -56,14 +71,14 @@ def migrate_json_to_table(conn):
         faces_list = meta.get('faces_deepface', [])
         
         for face in faces_list:
-            embedding = face.get('embedding')
+            embedding = parse_embedding(face.get('embedding'))
             box = face.get('box') or face.get('facial_area')
             
             if embedding:
                 cursor.execute("""
                     INSERT INTO faces (media_item_id, embedding, bounding_box)
                     VALUES (%s, %s, %s)
-                """, (media_id, embedding, json.dumps(box)))
+                """, (media_id, json.dumps(embedding), json.dumps(box)))
                 migrated_count += 1
     
     conn.commit()
@@ -78,7 +93,13 @@ def cluster_faces(conn):
     print("🧩 Starting Face Clustering...")
 
     # 1. Load all embeddings
-    cursor.execute("SELECT id, embedding FROM faces")
+    cursor.execute("""
+        SELECT f.id, f.embedding
+        FROM faces f
+        LEFT JOIN face_clusters fc ON fc.id = f.cluster_id
+        WHERE f.cluster_id IS NULL
+           OR (fc.name LIKE 'Person %' AND fc.entity_id IS NULL)
+    """)
     rows = cursor.fetchall()
     
     if not rows:
@@ -87,8 +108,18 @@ def cluster_faces(conn):
 
     print(f"   Loaded {len(rows)} faces.")
     
-    face_ids = [r['id'] for r in rows]
-    embeddings = [r['embedding'] for r in rows]
+    face_ids = []
+    embeddings = []
+    for row in rows:
+        embedding = parse_embedding(row['embedding'])
+        if embedding:
+            face_ids.append(row['id'])
+            embeddings.append(embedding)
+
+    if not embeddings:
+        print("   No usable face embeddings found to cluster.")
+        return
+
     X = np.array(embeddings)
     
     # 2. Run DBSCAN
@@ -107,12 +138,26 @@ def cluster_faces(conn):
     # 3. Update Database
     # We need to map cluster_label -> face_cluster_id (UUID)
     
-    # First, let's get existing clusters or clear them?
-    # For this MVP, let's just create new clusters for now or reuse if we had a persistent mapping.
-    # To avoid duplicates on re-run, we should probably wipe existing cluster assignments or be smarter.
-    # Let's wipe assignments for re-clustering (simplest for MVP).
+    # Rebuild generated clusters idempotently while preserving manually named or
+    # entity-linked clusters for investigator review workflows.
     
     print("   Updating database...")
+
+    cursor.execute("""
+        UPDATE faces
+        SET cluster_id = NULL
+        WHERE cluster_id IN (
+            SELECT id
+            FROM face_clusters
+            WHERE name LIKE 'Person %'
+            AND entity_id IS NULL
+        )
+    """)
+    cursor.execute("""
+        DELETE FROM face_clusters
+        WHERE name LIKE 'Person %'
+        AND entity_id IS NULL
+    """)
     
     # Create a mapping for this run: label_id -> database_uuid
     cluster_uuid_map = {}

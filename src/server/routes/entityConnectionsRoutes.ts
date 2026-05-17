@@ -5,6 +5,18 @@ import { logger } from '../services/Logger.js';
 import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
 
 const router = Router();
+const CONNECTIONS_TIMEOUT_MS = 5_000;
+
+const withConnectionsTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
+  Promise.race([
+    promise,
+    new Promise<T>((resolve) => {
+      setTimeout(() => {
+        logger.warn('entityConnections: query timed out; returning bounded fallback');
+        resolve(fallback);
+      }, CONNECTIONS_TIMEOUT_MS);
+    }),
+  ]);
 
 router.param('entityId', async (req, res, next, value) => {
   try {
@@ -35,12 +47,19 @@ router.get('/:entityId/connections', async (req: Request, res: Response, next: N
   const minScore = Number.isFinite(rawMinScore) ? rawMinScore : 0;
 
   try {
-    const connections = await entityConnectionsRepository.getConnections(entityId, {
-      limit,
-      minScore,
-    });
+    if (res.locals.entityFound === false) {
+      return res.status(404).json({ error: 'Entity not found' });
+    }
 
-    if (connections.length === 0) {
+    const connections = await withConnectionsTimeout(
+      entityConnectionsRepository.getConnections(entityId, {
+        limit,
+        minScore,
+      }),
+      [],
+    );
+
+    if (connections.length === 0 && res.locals.entityFound !== true) {
       const exists = await entitiesRepository.entityExists(entityId);
       if (!exists) {
         return res.status(404).json({ error: 'Entity not found' });

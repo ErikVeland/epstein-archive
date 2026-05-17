@@ -4,12 +4,12 @@
  * Verifies that concurrent cache misses only trigger ONE computation
  */
 
-import { PerformanceCacheV2 } from '../src/server/performanceCache';
+import { CacheService } from '../src/server/cache/cacheService';
 
 async function testStampedePrevention(): Promise<void> {
   console.log('🧪 Testing Cache Stampede Prevention\n');
 
-  const cache = new PerformanceCacheV2({ ttl: 60 });
+  const cache = new CacheService();
 
   let computeCount = 0;
   const computeFn = async (): Promise<string> => {
@@ -22,7 +22,9 @@ async function testStampedePrevention(): Promise<void> {
   // Simulate 50 concurrent requests on cache miss
   console.log('Simulating 50 concurrent requests on cache miss...\n');
 
-  const promises = Array.from({ length: 50 }, () => cache.getOrCompute('test-key', computeFn));
+  const promises = Array.from({ length: 50 }, () =>
+    cache.getOrCompute('general', 'test-key', computeFn, 60),
+  );
 
   const results = await Promise.all(promises);
 
@@ -41,12 +43,14 @@ async function testStampedePrevention(): Promise<void> {
   }
 
   // Test metrics
-  const metrics = cache.getMetrics();
+  const metrics = cache.getMetricsSnapshot('general');
+  const totalReads = metrics.hits + metrics.misses;
+  const hitRate = totalReads === 0 ? 0 : metrics.hits / totalReads;
   console.log('\nCache Metrics:');
   console.log(`  Hits: ${metrics.hits}`);
   console.log(`  Misses: ${metrics.misses}`);
-  console.log(`  Hit rate: ${(metrics.hitRate * 100).toFixed(1)}%`);
-  console.log(`  Avg compute duration: ${metrics.avgComputeDuration.toFixed(2)}ms`);
+  console.log(`  Hit rate: ${(hitRate * 100).toFixed(1)}%`);
+  console.log(`  Sets: ${metrics.sets}`);
 }
 
 testStampedePrevention().catch(console.error);

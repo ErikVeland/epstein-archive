@@ -152,6 +152,7 @@ test.describe('API DTO Contracts', () => {
         : [];
 
     if (investigations.length === 0) {
+      // @release-skip-ok
       test.skip(true, 'No investigations available in test dataset');
       return;
     }
@@ -229,6 +230,7 @@ test.describe('API DTO Contracts', () => {
         ? listBody
         : [];
     if (entities.length === 0) {
+      // @release-skip-ok
       test.skip(true, 'No entities available in test dataset');
       return;
     }
@@ -247,6 +249,7 @@ test.describe('API DTO Contracts', () => {
     const listBody = await listResponse.json();
     const docs = Array.isArray(listBody?.data) ? listBody.data : [];
     if (docs.length === 0) {
+      // @release-skip-ok
       test.skip(true, 'No documents available in test dataset');
       return;
     }
@@ -343,6 +346,7 @@ test.describe('API DTO Contracts', () => {
   }) => {
     const entityId = await resolveHighMentionEntityId(request);
     if (!entityId) {
+      // @release-skip-ok
       test.skip(true, 'No entities available in test dataset');
       return;
     }
@@ -396,6 +400,7 @@ test.describe('API DTO Contracts', () => {
   test('entity with verified media returns non-empty media tab response', async ({ request }) => {
     const entityId = await resolveEntityWithVerifiedMedia(request);
     if (!entityId) {
+      // @release-skip-ok
       test.skip(true, 'No entity with verifiedMedia > 0 found in test dataset');
       return;
     }
@@ -442,6 +447,7 @@ test.describe('API DTO Contracts', () => {
   test('relationships endpoint matches shared DTO schema', async ({ request }) => {
     const entityId = await resolveHighMentionEntityId(request);
     if (!entityId) {
+      // @release-skip-ok
       test.skip(true, 'No entities available in test dataset');
       return;
     }
@@ -457,6 +463,7 @@ test.describe('API DTO Contracts', () => {
   test('entity graph endpoint matches shared DTO schema', async ({ request }) => {
     const entityId = await resolveHighMentionEntityId(request);
     if (!entityId) {
+      // @release-skip-ok
       test.skip(true, 'No entities available in test dataset');
       return;
     }
@@ -478,6 +485,7 @@ test.describe('API DTO Contracts', () => {
   test('entity evidence endpoint matches shared DTO schema', async ({ request }) => {
     const entityId = await resolveHighMentionEntityId(request);
     if (!entityId) {
+      // @release-skip-ok
       test.skip(true, 'No entities available in test dataset');
       return;
     }
@@ -534,10 +542,12 @@ test.describe('Review Queue contract tests', () => {
       timeout: 15000,
     });
     if (res.status() === 401 || res.status() === 403) {
+      // @release-skip-ok
       test.skip(true, 'Review queue requires admin auth — skipping in unauthenticated context');
       return;
     }
     if (!res.ok()) {
+      // @release-skip-ok
       test.skip(true, `Review mentions queue not available (${res.status()})`);
       return;
     }
@@ -552,10 +562,12 @@ test.describe('Review Queue contract tests', () => {
       timeout: 15000,
     });
     if (res.status() === 401 || res.status() === 403) {
+      // @release-skip-ok
       test.skip(true, 'Review queue requires admin auth — skipping in unauthenticated context');
       return;
     }
     if (!res.ok()) {
+      // @release-skip-ok
       test.skip(true, `Review claims queue not available (${res.status()})`);
       return;
     }
@@ -570,6 +582,7 @@ test.describe('Intelligence dashboard contract tests', () => {
       timeout: 20000,
     });
     if (!res.ok()) {
+      // @release-skip-ok
       test.skip(true, `Intelligence review endpoint not available (${res.status()})`);
       return;
     }
@@ -582,6 +595,7 @@ test.describe('Intelligence dashboard contract tests', () => {
       timeout: 20000,
     });
     if (!res.ok()) {
+      // @release-skip-ok
       test.skip(true, `Intelligence readiness endpoint not available (${res.status()})`);
       return;
     }
@@ -594,6 +608,7 @@ test.describe('Entity connections contract tests', () => {
   test('GET /api/entities/:id/connections matches shared DTO schema', async ({ request }) => {
     const entityId = await resolveHighMentionEntityId(request);
     if (!entityId) {
+      // @release-skip-ok
       test.skip(true, 'No entities available in test dataset');
       return;
     }

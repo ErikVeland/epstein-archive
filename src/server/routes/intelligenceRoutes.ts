@@ -4,6 +4,43 @@ import { cacheResponse } from '../middleware/cache.js';
 import { logger } from '../services/Logger.js';
 
 const router = express.Router();
+const DASHBOARD_TIMEOUT_MS = 5_000;
+
+const emptyReviewResponse = () => ({
+  weakProvenanceDocs: [],
+  lowOcrDocs: [],
+  fuzzyEntityAliases: [],
+  thinHighRiskEntities: [],
+  unlinkedClaims: [],
+  reviewableFinancialItems: [],
+  counts: {
+    weakProvenanceDocs: 0,
+    lowOcrDocs: 0,
+    fuzzyEntityAliases: 0,
+    thinHighRiskEntities: 0,
+    unlinkedClaims: 0,
+    reviewableFinancialItems: 0,
+  },
+});
+
+const emptyReadinessResponse = () => ({
+  semanticAvailable: false,
+  provenanceCoveragePct: null,
+  pendingMentionReviews: 0,
+  pendingClaimReviews: 0,
+  exportTestsNote: 'Run pnpm test:contracts to verify export API coverage',
+});
+
+const withDashboardTimeout = async <T>(label: string, promise: Promise<T>, fallback: T) =>
+  Promise.race([
+    promise,
+    new Promise<T>((resolve) => {
+      setTimeout(() => {
+        logger.warn(`[Intelligence] ${label} timed out; returning bounded fallback`);
+        resolve(fallback);
+      }, DASHBOARD_TIMEOUT_MS);
+    }),
+  ]);
 
 /**
  * GET /api/intelligence/review
@@ -17,7 +54,11 @@ const router = express.Router();
 router.get('/review', cacheResponse(300), async (_req, res, next) => {
   try {
     logger.info('[Intelligence] Fetching review queues');
-    const data = await intelligenceRepository.getFullReview();
+    const data = await withDashboardTimeout(
+      'review queues',
+      intelligenceRepository.getFullReview(),
+      emptyReviewResponse(),
+    );
     res.json(data);
   } catch (err) {
     next(err);
@@ -35,7 +76,11 @@ router.get('/review', cacheResponse(300), async (_req, res, next) => {
 router.get('/readiness', cacheResponse(120), async (_req, res, next) => {
   try {
     logger.info('[Intelligence] Fetching release readiness state');
-    const data = await intelligenceRepository.getReleaseReadiness();
+    const data = await withDashboardTimeout(
+      'release readiness',
+      intelligenceRepository.getReleaseReadiness(),
+      emptyReadinessResponse(),
+    );
     res.json(data);
   } catch (err) {
     next(err);

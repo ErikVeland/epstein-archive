@@ -5,6 +5,23 @@ import { logger } from '../services/Logger.js';
 import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
 
 const router = Router();
+const ENTITY_TAB_TIMEOUT_MS = 1_000;
+
+const withEntityTabTimeout = async <T>(
+  label: string,
+  entityId: string,
+  promise: Promise<T>,
+  fallback: T,
+): Promise<T> =>
+  Promise.race([
+    promise,
+    new Promise<T>((resolve) => {
+      setTimeout(() => {
+        logger.warn({ entityId }, `Entity tab ${label} timed out; returning bounded fallback`);
+        resolve(fallback);
+      }, ENTITY_TAB_TIMEOUT_MS);
+    }),
+  ]);
 
 router.param('entityId', async (req, res, next, value) => {
   try {
@@ -88,7 +105,12 @@ const getEntityGraph = async (req: Request, res: Response) => {
       ? Math.min(4, Math.max(1, parseInt(req.query.depth as string)))
       : 2;
     const { relationshipsRepository } = await import('../db/relationshipsRepository.js');
-    const graph = await relationshipsRepository.getGraphSlice(dbEntityId, depth);
+    const graph = await withEntityTabTimeout(
+      'analytics graph',
+      entityId,
+      relationshipsRepository.getGraphSlice(dbEntityId, depth),
+      { nodes: [], edges: [] },
+    );
     res.json(graph);
   } catch (error) {
     logger.error({ err: error }, 'Error building entity graph');
@@ -115,10 +137,15 @@ router.get('/:entityId/documents', async (req: Request, res: Response) => {
     const { entitiesRepository } = await import('../db/entitiesRepository.js');
 
     const filters = { search, source, sort };
-    const [docs, total] = await Promise.all([
-      entitiesRepository.getEntityDocumentsPaginated(entityId, page, limit, filters),
-      entitiesRepository.getEntityDocumentCount(entityId, filters),
-    ]);
+    const [docs, total] = await withEntityTabTimeout(
+      'documents',
+      entityId,
+      Promise.all([
+        entitiesRepository.getEntityDocumentsPaginated(entityId, page, limit, filters),
+        entitiesRepository.getEntityDocumentCount(entityId, filters),
+      ]),
+      [[], 0],
+    );
 
     res.json({
       data: docs,
@@ -137,8 +164,21 @@ router.get('/:entityId/investigations', async (req: Request, res: Response) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const { investigationsRepository } = await import('../db/investigationsRepository.js');
-    const result = await investigationsRepository.getInvestigationsByEntityId(Number(entityId));
-    res.json(result);
+    const result = await withEntityTabTimeout(
+      'investigations',
+      entityId,
+      investigationsRepository.getInvestigationsByEntityId(Number(entityId)),
+      [],
+    );
+    res.json(
+      result.map((investigation: Record<string, unknown>) => ({
+        ...investigation,
+        status:
+          investigation.status === 'archived' || investigation.status === 'closed'
+            ? investigation.status
+            : 'active',
+      })),
+    );
   } catch (_error) {
     logger.error({ err: _error }, 'Error fetching entity investigations');
     res.status(500).json({ error: 'Failed to fetch entity investigations' });
@@ -150,7 +190,12 @@ router.get('/:entityId/media', async (req: Request, res: Response) => {
   const { entityId } = req.params as { entityId: string };
   try {
     const { mediaRepository } = await import('../db/mediaRepository.js');
-    const result = await mediaRepository.getMediaItems(entityId);
+    const result = await withEntityTabTimeout(
+      'media',
+      entityId,
+      mediaRepository.getMediaItems(entityId),
+      [],
+    );
 
     if (!result || result.length === 0) {
       // Return 200 OK with empty array instead of 204 No Content
@@ -226,7 +271,12 @@ router.get('/:entityId/claims', async (req: Request, res: Response) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const { claimTriplesRepository } = await import('../db/claimTriplesRepository.js');
-    const claims = await claimTriplesRepository.getByEntityId(entityId);
+    const claims = await withEntityTabTimeout(
+      'claims',
+      entityId,
+      claimTriplesRepository.getByEntityId(entityId),
+      [],
+    );
     res.json(claims);
   } catch (_error) {
     logger.error({ err: _error, entityId: req.params.entityId }, 'Error fetching entity claims');
@@ -238,7 +288,12 @@ router.get('/:entityId/claims', async (req: Request, res: Response) => {
 router.get('/:entityId/flights', async (req: Request, res: Response) => {
   try {
     const { entityId } = req.params as { entityId: string };
-    const flights = await entityEvidenceRepository.getFlightsForEntity(entityId);
+    const flights = await withEntityTabTimeout(
+      'flights',
+      entityId,
+      entityEvidenceRepository.getFlightsForEntity(entityId),
+      [],
+    );
     res.json({ flights });
   } catch (error) {
     logger.error({ err: error, entityId: req.params.entityId }, 'Error fetching entity flights');
@@ -250,7 +305,12 @@ router.get('/:entityId/flights', async (req: Request, res: Response) => {
 router.get('/:entityId/transactions', async (req: Request, res: Response) => {
   try {
     const { entityId } = req.params as { entityId: string };
-    const result = await entityEvidenceRepository.getTransactionsForEntity(entityId);
+    const result = await withEntityTabTimeout(
+      'transactions',
+      entityId,
+      entityEvidenceRepository.getTransactionsForEntity(entityId),
+      { entityName: '', transactions: [] },
+    );
     if (!result) {
       return res.status(404).json({ error: 'Entity not found' });
     }
@@ -268,7 +328,12 @@ router.get('/:entityId/transactions', async (req: Request, res: Response) => {
 router.get('/:entityId/properties', async (req: Request, res: Response) => {
   try {
     const { entityId } = req.params as { entityId: string };
-    const properties = await entityEvidenceRepository.getPropertiesForEntity(entityId);
+    const properties = await withEntityTabTimeout(
+      'properties',
+      entityId,
+      entityEvidenceRepository.getPropertiesForEntity(entityId),
+      [],
+    );
     res.json({ properties });
   } catch (error) {
     logger.error({ err: error, entityId: req.params.entityId }, 'Error fetching entity properties');

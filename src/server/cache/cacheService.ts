@@ -14,7 +14,7 @@ type InFlightRequest<T> = {
   startedAt: number;
 };
 
-class CacheService {
+export class CacheService {
   private cache = new NodeCache({
     stdTTL: 60,
     checkperiod: 120,
@@ -119,6 +119,10 @@ class CacheService {
       keys,
       metrics: namespace ? { ...this.getMetrics(namespace) } : undefined,
     };
+  }
+
+  getMetricsSnapshot(namespace: CacheNamespace): CacheMetrics {
+    return { ...this.getMetrics(namespace) };
   }
 }
 
