@@ -1,15 +1,51 @@
-import { Router, Request, Response } from 'express';
+import { Router } from 'express';
+import { z } from 'zod';
 import { authenticateRequest } from '../auth/middleware.js';
 import { evidenceRepository } from '../db/evidenceRepository.js';
 import { logger } from '../services/Logger.js';
+import { validate } from '../middleware/validate.js';
 
 const router = Router();
+
+const entityIdParamSchema = z.object({
+  params: z.object({
+    entityId: z.string().min(1),
+  }),
+});
+
+const addEvidenceSchema = z.object({
+  body: z.object({
+    investigationId: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    evidenceId: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    notes: z.string().max(8000).optional().nullable(),
+    relevance: z.string().max(128).optional().nullable(),
+  }),
+});
+
+const addMediaSchema = z.object({
+  body: z.object({
+    investigationId: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    mediaItemId: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    notes: z.string().max(8000).optional().nullable(),
+    relevance: z.string().max(128).optional().nullable(),
+  }),
+});
+
+const addSnippetSchema = z.object({
+  body: z.object({
+    investigationId: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    documentId: z.union([z.string(), z.number()]).transform((v) => String(v)),
+    snippetText: z.string().min(1).max(20000),
+    notes: z.string().max(8000).optional().nullable(),
+    relevance: z.string().max(128).optional().nullable(),
+  }),
+});
 
 /**
  * GET /api/investigation/evidence/:entityId
  * Get evidence summary for a specific entity
  */
-router.get('/evidence/:entityId', async (req: Request, res: Response) => {
+router.get('/evidence/:entityId', validate(entityIdParamSchema), async (req, res) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const result = await evidenceRepository.getEntityEvidence(entityId);
@@ -29,12 +65,9 @@ router.get('/evidence/:entityId', async (req: Request, res: Response) => {
  * POST /api/investigation/add-evidence
  * Add evidence to an investigation session
  */
-router.post('/add-evidence', authenticateRequest, async (req: Request, res: Response) => {
+router.post('/add-evidence', authenticateRequest, validate(addEvidenceSchema), async (req, res) => {
   try {
     const { investigationId, evidenceId, notes, relevance } = req.body;
-    if (!investigationId || !evidenceId) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
     const result = await evidenceRepository.addEvidenceToInvestigation(
       investigationId,
       evidenceId,
@@ -51,12 +84,9 @@ router.post('/add-evidence', authenticateRequest, async (req: Request, res: Resp
   }
 });
 
-router.post('/add-media', authenticateRequest, async (req: Request, res: Response) => {
+router.post('/add-media', authenticateRequest, validate(addMediaSchema), async (req, res) => {
   try {
     const { investigationId, mediaItemId, notes, relevance } = req.body;
-    if (!investigationId || !mediaItemId) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
     const result = await evidenceRepository.addMediaToInvestigation(
       investigationId,
       mediaItemId,
@@ -77,12 +107,9 @@ router.post('/add-media', authenticateRequest, async (req: Request, res: Respons
  * POST /api/investigation/add-snippet
  * Add a text snippet from a document to an investigation
  */
-router.post('/add-snippet', authenticateRequest, async (req: Request, res: Response) => {
+router.post('/add-snippet', authenticateRequest, validate(addSnippetSchema), async (req, res) => {
   try {
     const { investigationId, documentId, snippetText, notes, relevance } = req.body;
-    if (!investigationId || !documentId || !snippetText) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
     const result = await evidenceRepository.addSnippetToInvestigation(
       investigationId,
       documentId,
@@ -100,29 +127,13 @@ router.post('/add-snippet', authenticateRequest, async (req: Request, res: Respo
   }
 });
 /**
- * GET /api/investigation/:investigationId/evidence-summary
- * Legacy route alias (backward compatibility) for /api/investigations/:id/analytics/evidence-summary
- * Get evidence summary for an investigation
- */
-router.get('/:investigationId/evidence-summary', async (req: Request, res: Response) => {
-  try {
-    const { investigationId } = req.params as { investigationId: string };
-    const summary = await evidenceRepository.getInvestigationEvidenceSummary(investigationId);
-    res.json(summary);
-  } catch (error) {
-    logger.error({ err: error }, 'Error fetching investigation evidence summary');
-    res.status(500).json({ error: 'Failed to fetch investigation evidence summary' });
-  }
-});
-
-/**
  * DELETE /api/investigation/remove-evidence/:investigationEvidenceId
  * Remove evidence from an investigation
  */
 router.delete(
   '/remove-evidence/:investigationEvidenceId',
   authenticateRequest,
-  async (req: Request, res: Response) => {
+  async (req, res) => {
     try {
       const { investigationEvidenceId } = req.params as { investigationEvidenceId: string };
 

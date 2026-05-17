@@ -6,6 +6,7 @@
  * absent the module is a no-op so local dev is unaffected.
  */
 import * as Sentry from '@sentry/node';
+import type { ErrorRequestHandler } from 'express';
 import { logger } from './Logger.js';
 
 export function initSentry(): void {
@@ -44,4 +45,4 @@ export function initSentry(): void {
  * Express error handler that forwards unhandled errors to Sentry.
  * Mount this AFTER all routes and BEFORE your own error handler.
  */
-export const sentryErrorHandler = Sentry.expressErrorHandler();
+export const sentryErrorHandler = Sentry.expressErrorHandler() as unknown as ErrorRequestHandler;

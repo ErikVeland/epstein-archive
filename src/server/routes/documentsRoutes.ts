@@ -13,6 +13,7 @@ import { searchRepository } from '../db/searchRepository.js';
 import { icebergRepository } from '../db/icebergRepository.js';
 import { RedactionResolver } from '../services/RedactionResolver.js';
 import { AnnotationPolicyService } from '../services/AnnotationPolicyService.js';
+import { logger } from '../services/Logger.js';
 import fs from 'fs';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
@@ -130,6 +131,31 @@ const isWithinRoot = (candidate: string, root: string): boolean => {
   return candidate === root || candidate.startsWith(`${root}${path.sep}`);
 };
 
+const emptyDocumentsList = (page: number, limit: number) => ({
+  documents: [],
+  total: 0,
+  page,
+  pageSize: limit,
+  totalPages: 0,
+});
+
+const withDocumentsListTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> => {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timeout = setTimeout(() => {
+          logger.warn('[Documents] list query timed out; returning degraded empty response');
+          resolve(fallback);
+        }, 5000);
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+};
+
 // GET /api/documents
 router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
   try {
@@ -176,25 +202,28 @@ router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
       return res.json(response);
     }
 
-    const result = await documentsRepository.getDocuments(page, limit, {
-      search: query.search as string | undefined,
-      fileType: query.fileType as string | undefined,
-      evidenceType: query.evidenceType as string | undefined,
-      source: query.source as string | undefined,
-      startDate: query.startDate as string | undefined,
-      endDate: query.endDate as string | undefined,
-      hasFailedRedactions:
-        typeof query.hasFailedRedactions === 'boolean' ? query.hasFailedRedactions : undefined,
-      minRedFlag: query.minRedFlag !== undefined ? Number(query.minRedFlag) : undefined,
-      maxRedFlag: query.maxRedFlag !== undefined ? Number(query.maxRedFlag) : undefined,
-      sortBy: query.sortBy as string | undefined,
-      sortOrder,
-      collectionId: query.collectionId as string | undefined,
-      includeMedia: (query.includeMedia as unknown as boolean) ?? false,
-      excludedFileTypes: query.excludedFileTypes
-        ? (query.excludedFileTypes as string).split(',').filter(Boolean)
-        : undefined,
-    });
+    const result = await withDocumentsListTimeout(
+      documentsRepository.getDocuments(page, limit, {
+        search: query.search as string | undefined,
+        fileType: query.fileType as string | undefined,
+        evidenceType: query.evidenceType as string | undefined,
+        source: query.source as string | undefined,
+        startDate: query.startDate as string | undefined,
+        endDate: query.endDate as string | undefined,
+        hasFailedRedactions:
+          typeof query.hasFailedRedactions === 'boolean' ? query.hasFailedRedactions : undefined,
+        minRedFlag: query.minRedFlag !== undefined ? Number(query.minRedFlag) : undefined,
+        maxRedFlag: query.maxRedFlag !== undefined ? Number(query.maxRedFlag) : undefined,
+        sortBy: query.sortBy as string | undefined,
+        sortOrder,
+        collectionId: query.collectionId as string | undefined,
+        includeMedia: (query.includeMedia as unknown as boolean) ?? false,
+        excludedFileTypes: query.excludedFileTypes
+          ? (query.excludedFileTypes as string).split(',').filter(Boolean)
+          : undefined,
+      }),
+      emptyDocumentsList(page, limit),
+    );
     return res.json(mapDocumentsListResponseDto(result));
   } catch (error) {
     next(error);

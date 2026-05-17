@@ -19,10 +19,22 @@ import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
+const STATS_TIMEOUT_MS = 5_000;
 const READINESS_TIMEOUT_MS = Math.max(
   100,
   Number.parseInt(process.env.READINESS_TIMEOUT_MS ?? '250', 10) || 250,
 );
+
+const withStatsTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
+  Promise.race([
+    promise,
+    new Promise<T>((resolve) => {
+      setTimeout(() => {
+        logger.warn('[Stats] aggregate stats timed out; returning degraded fallback');
+        resolve(fallback);
+      }, STATS_TIMEOUT_MS);
+    }),
+  ]);
 
 // ── /meta/db ─── Canary endpoint: database dialect, version, timeouts, pool stats
 router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
@@ -45,8 +57,11 @@ router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
 // Cache for 5 minutes (300 seconds)
 router.get('/', cacheMiddleware(300), async (_req, res, next) => {
   try {
-    const stats = await statsRepository.getStatistics();
-    res.json(mapStatsDto(stats as unknown as RawStatsRow));
+    const stats = await withStatsTimeout<RawStatsRow>(
+      statsRepository.getStatistics() as unknown as Promise<RawStatsRow>,
+      { collectionStats: { degraded: true, data: [] } },
+    );
+    res.json(mapStatsDto(stats));
   } catch (e) {
     next(e);
   }

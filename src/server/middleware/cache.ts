@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { cacheService } from '../cache/cacheService.js';
 import { getRevisionTokenAsync } from '../revisionManager.js';
 
@@ -14,40 +14,9 @@ export const apiCache = {
   flushAll: (): void => cacheService.flush('http'),
 };
 
-// Cache middleware helper
-export const cacheMiddleware = (ttl?: number) => {
-  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const urlKey = req.originalUrl || req.url;
-    const revision = await getRevisionTokenAsync().catch(() => 'no-rev');
-    const cacheKey = `${revision}:${urlKey}`;
-
-    // Try to get cached response
-    const cachedResponse = apiCache.get(cacheKey);
-    if (cachedResponse) {
-      // Send cached response
-      res.set('X-Cache', 'HIT');
-      res.set('X-Cache-Revision', revision);
-      return res.json(cachedResponse);
-    }
-
-    // Store original res.json to intercept response
-    const originalJson = res.json.bind(res);
-    res.json = function (body: unknown) {
-      // Only cache successful responses
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        apiCache.set(cacheKey, body, ttl || 300);
-        res.set('X-Cache', 'MISS');
-        res.set('X-Cache-Revision', revision);
-      } else {
-        res.set('X-Cache', 'BYPASS');
-        res.set('X-Cache-Revision', revision);
-      }
-      return originalJson(body);
-    };
-
-    next();
-  };
-};
+export function cacheMiddleware(ttl?: number) {
+  return cacheResponse(ttl ?? 300);
+}
 
 // Deterministic JSON response cache for GET routes that need query-order-stable
 // keys, with one owner for HTTP cache invalidation.
@@ -67,7 +36,10 @@ export const cacheResponse = (ttlSeconds: number) => {
       return next();
     }
 
-    const revision = await getRevisionTokenAsync().catch(() => 'no-rev');
+    const revision = await Promise.race([
+      getRevisionTokenAsync(),
+      new Promise<string>((resolve) => setTimeout(() => resolve('no-rev'), 250)),
+    ]).catch(() => 'no-rev');
     const cacheKey = `${revision}:${req.method}:${req.path}:${stableStringify(req.query)}`;
     const cachedData = apiCache.get<string>(cacheKey);
 
