@@ -191,6 +191,17 @@ interface ISearchMediaResult {
   title: string | null;
 }
 
+interface ISearchSentencesResult {
+  id: string;
+  document_id: string | number;
+  page_id: string | number | null;
+  sentence_text: string;
+  signal_score: number | string | null;
+  file_name: string | null;
+  page_number: number | string | null;
+  snippet: string | null;
+}
+
 interface EntitySearchRow {
   aliases: string | null;
   fullName: string | null;
@@ -221,6 +232,110 @@ type SearchMediaDto = {
   snippet: string | null;
   rank: number | null;
 };
+
+async function searchInvestigationRows(searchTerm: string, limit: number) {
+  return getApiPool().query<ISearchInvestigationsResult>(
+    `
+      SELECT
+        id::text,
+        uuid::text,
+        title,
+        description,
+        status,
+        ts_headline(
+          'english',
+          title || ' ' || coalesce(description, ''),
+          websearch_to_tsquery('english', $1),
+          'MaxWords=25,MinWords=8'
+        ) AS snippet,
+        ts_rank_cd(fts_vector, websearch_to_tsquery('english', $1), 32) AS rank
+      FROM investigations
+      WHERE fts_vector @@ websearch_to_tsquery('english', $1)
+      ORDER BY rank DESC
+      LIMIT $2
+    `,
+    [searchTerm, limit],
+  );
+}
+
+async function searchArticleRows(searchTerm: string, limit: number) {
+  return getApiPool().query<ISearchArticlesResult>(
+    `
+      SELECT
+        id::text,
+        title,
+        source,
+        author,
+        pub_date AS "pubDate",
+        ts_headline(
+          'english',
+          title || ' ' || coalesce(description, '') || ' ' || coalesce(content, ''),
+          websearch_to_tsquery('english', $1),
+          'MaxWords=25,MinWords=8'
+        ) AS snippet,
+        ts_rank_cd(fts_vector, websearch_to_tsquery('english', $1), 32) AS rank
+      FROM articles
+      WHERE fts_vector @@ websearch_to_tsquery('english', $1)
+      ORDER BY rank DESC
+      LIMIT $2
+    `,
+    [searchTerm, limit],
+  );
+}
+
+async function searchMediaRows(searchTerm: string, limit: number) {
+  return getApiPool().query<ISearchMediaResult>(
+    `
+      SELECT
+        id::text,
+        file_path AS "filename",
+        title,
+        description,
+        file_path AS "filePath",
+        file_type AS "fileType",
+        ts_headline(
+          'english',
+          file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, ''),
+          websearch_to_tsquery('english', $1),
+          'MaxWords=25,MinWords=8'
+        ) AS snippet,
+        ts_rank_cd(fts_vector, websearch_to_tsquery('english', $1), 32) AS rank
+      FROM media_items
+      WHERE fts_vector @@ websearch_to_tsquery('english', $1)
+      ORDER BY rank DESC
+      LIMIT $2
+    `,
+    [searchTerm, limit],
+  );
+}
+
+async function searchSentenceRows(searchTerm: string, limit: number) {
+  return getApiPool().query<ISearchSentencesResult>(
+    `
+      SELECT
+        s.id::text,
+        s.document_id,
+        s.page_id,
+        s.sentence_text,
+        s.signal_score,
+        d.file_name,
+        COALESCE(p.page_number, 1) AS page_number,
+        ts_headline(
+          'english',
+          s.sentence_text,
+          websearch_to_tsquery('english', $1),
+          'MaxWords=15,MinWords=5'
+        ) AS snippet
+      FROM document_sentences s
+      JOIN documents d ON d.id = s.document_id
+      LEFT JOIN document_pages p ON p.id = s.page_id
+      WHERE s.fts_vector @@ websearch_to_tsquery('english', $1)
+      ORDER BY ts_rank_cd(s.fts_vector, websearch_to_tsquery('english', $1), 32) DESC
+      LIMIT $2
+    `,
+    [searchTerm, limit],
+  );
+}
 
 export interface UnifiedSearchResult {
   entities: Record<string, unknown>[];
@@ -594,22 +709,13 @@ export const searchRepository = {
     }
 
     // ── Investigations ───────────────────────────────────────────────────────
-    const investigationRows = await searchQueries.searchInvestigations.run(
-      { searchTerm: tsArg, limit: safeLimit },
-      getApiPool(),
-    );
+    const investigationRows = (await searchInvestigationRows(tsArg, safeLimit)).rows;
 
     // ── Articles ─────────────────────────────────────────────────────────────
-    const articleRows = await searchQueries.searchArticles.run(
-      { searchTerm: tsArg, limit: safeLimit },
-      getApiPool(),
-    );
+    const articleRows = (await searchArticleRows(tsArg, safeLimit)).rows;
 
     // ── Media ────────────────────────────────────────────────────────────────
-    const mediaRows = await searchQueries.searchMedia.run(
-      { searchTerm: tsArg, limit: safeLimit },
-      getApiPool(),
-    );
+    const mediaRows = (await searchMediaRows(tsArg, safeLimit)).rows;
 
     const entityIds = mergedEntityRows
       .map((row: { id: string | number }) => Number(row.id))
@@ -799,11 +905,7 @@ export const searchRepository = {
     const safeLimit = Math.min(100, Math.max(1, limit));
 
     try {
-      const rows = await searchQueries.searchSentences.run(
-        { searchTerm, limit: safeLimit },
-        getApiPool(),
-      );
-      return rows;
+      return (await searchSentenceRows(searchTerm, safeLimit)).rows;
     } catch (error) {
       logger.error({ err: error }, '[searchRepository] searchSentences error');
       return [];
