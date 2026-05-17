@@ -1,5 +1,21 @@
 # Release Notes
 
+## 21.5.0 - 2026-05-18 - Production Hardening Release Candidate
+
+### Production Reliability
+
+- **Release Trust Gate Closure**: Brings the 20.0 acceptance matrix and release-critical skip annotations into alignment with the explicit `check:release-trust` gate.
+- **No Mock Report Output**: Replaces fabricated forensic report content, fake evidence IDs, and demo export text with deterministic sections derived from live archive API responses.
+- **Deployment Guard Tightening**: Removes the hard-coded production host default, requires `EPSTEIN_PROD_HOST`, restores the `pg_stat_statements` production gate, and fails production startup when `RAW_CORPUS_BASE_PATH` is missing.
+- **Bundle Budget Gate**: Adds a production bundle budget check and wires it into `prebuild:prod`.
+- **Static Analysis Baselines**: Adds Knip and SELECT-star audit helpers to make cleanup debt visible without blocking this release candidate.
+- **Client OCR Surface Removal**: Deletes unused browser OCR services from the client bundle surface.
+
+### Release Caveats
+
+- Production deployment must be run from an environment with `EPSTEIN_PROD_HOST`, SSH configuration, `DATABASE_URL`, and `RAW_CORPUS_BASE_PATH` available.
+- DB-backed Playwright suites should be run against release-candidate data before final promotion.
+
 ## 21.4.0 - 2026-05-18 - Pipeline Recovery & Visual Intelligence Stabilization
 
 ### Production Reliability
