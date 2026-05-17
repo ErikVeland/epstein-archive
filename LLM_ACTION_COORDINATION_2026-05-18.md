@@ -2,7 +2,7 @@
 
 ## Production Release Status
 
-**Status: RELEASED to production**
+**Status: RELEASED to production, with stricter follow-up gates pending deploy**
 
 Current production release:
 
@@ -15,6 +15,14 @@ Current production release:
 - Public origin: `https://epstein.academy`
 
 The stale deploy for `c186b1ea3` was cancelled so the production lock could advance to current `origin/main`. No rollback is active.
+
+Follow-up strictness changes after the deployed `d1544a7a8` release:
+
+- Removed Playwright/Vitest release skip APIs and legacy release-skip annotations from the test suite.
+- Tightened `check:release-trust` so any test skip API is release-blocking.
+- Tightened DB gates so missing/mismatched PostgreSQL client tooling fails instead of bypassing DB-backed checks.
+- Replaced sparse-CI plan bypass with an explicit SQL plan syntax gate; production deploy still runs full `pg_explain` against production data.
+- Local strict quality gate passed with `CI=true`, `DATABASE_URL` set, and PostgreSQL 16 tooling on PATH.
 
 ## Post-Deploy Verification
 
@@ -76,6 +84,7 @@ Key production milestones since then:
 | `c6e3accf`  | Failed deploy     | Reconciled production schema baseline; deploy failed on email threads live-data contract due timeout fallback returning `total=0`. |
 | `c186b1ea`  | Superseded        | Increased email-thread list timeout to 30s; stale production deploy was cancelled in favor of current head.                        |
 | `d1544a7a`  | Released          | Fixed schema-hash bypass behavior when `DATABASE_URL` is absent; production deploy succeeded.                                      |
+| `07a999f8`  | Local baseline    | Formatting-only checkpoint already on `origin/main`; strict no-skip/DB-gate follow-up is next to deploy after CI passes.           |
 
 ## Mock Data / Fixture Status
 
@@ -88,10 +97,10 @@ Relevant production-facing cleanup completed:
 - Production startup validation now requires `RAW_CORPUS_BASE_PATH`.
 - Email verification uses the real production corpus: `13,752` email documents and `13,751` distinct threads.
 
-Remaining `mock`, `fixture`, `placeholder`, and `sample` references found by repository scan are test doubles, user-interface placeholder text, docs/plans, or domain terms such as media marked "confirmed fake"; they were not release blockers.
+Remaining `mock`, `placeholder`, and `sample` references found by repository scan are test doubles, user-interface placeholder text, docs/plans, or domain terms such as media marked "confirmed fake"; no production mock-data seeding or fabricated report output is allowed.
 
 ## Deployment Decision
 
-Production release is approved and completed for `21.5.0`.
+The deployed `21.5.0` production release is healthy. The stricter no-skip gate changes should only be deployed after CI and the production deploy workflow pass for the new commit.
 
 Do not open a new production deploy unless a new commit lands on `main` and passes CI plus the full production deploy workflow again.

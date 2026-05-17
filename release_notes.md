@@ -7,17 +7,18 @@
 - **Core Graph Query Optimization**: Completely re-architected the `getGlobalGraphNodes` database query. Swapped out the slow Nested Loop optimizer plan with an extremely efficient Two-Stage Array-Parameter Execution Plan. Slashing query execution response times from 9,000ms+ down to ~1,400ms (a 6.3x speedup under heavy load).
 - **Playwright Rate Limit Stabilization**: Resolved intermittent `429 Too Many Requests` API failures during concurrent end-to-end testing by dynamically raising the rate limit window max requests to 10,000 in development and test environments.
 - **Strict Database Telemetry Guard**: Re-enabled and secured the strict `pg_stat_statements` database connectivity and query profile extension check in the production deploy preflight checks.
-- **Release Trust Gate Closure**: Brings the 20.0 acceptance matrix and release-critical skip annotations into alignment with the explicit `check:release-trust` gate.
+- **Strict No-Skip Release Gates**: Removes release-skip exceptions from the test suite, turns fixture/data preconditions into hard assertions, and makes `check:release-trust` fail on any Playwright/Vitest skip API.
+- **Fail-Closed DB Gates**: Requires matching PostgreSQL client tooling for DB-backed gates, fails when `DATABASE_URL` is absent in CI, and runs an explicit plan syntax gate on sparse CI databases instead of silently skipping explain coverage.
 - **No Mock Report Output**: Replaces fabricated forensic report content, fake evidence IDs, and demo export text with deterministic sections derived from live archive API responses.
 - **Deployment Guard Tightening**: Removes the hard-coded production host default, requires `EPSTEIN_PROD_HOST`, restores the `pg_stat_statements` production gate, and fails production startup when `RAW_CORPUS_BASE_PATH` is missing.
 - **Bundle Budget Gate**: Adds a production bundle budget check and wires it into `prebuild:prod`.
 - **Static Analysis Baselines**: Adds Knip and SELECT-star audit helpers to make cleanup debt visible without blocking this release candidate.
 - **Client OCR Surface Removal**: Deletes unused browser OCR services from the client bundle surface.
 
-### Release Caveats
+### Release Preconditions
 
 - Production deployment must be run from an environment with `EPSTEIN_PROD_HOST`, SSH configuration, `DATABASE_URL`, and `RAW_CORPUS_BASE_PATH` available.
-- DB-backed Playwright suites should be run against release-candidate data before final promotion.
+- No release test skips or release-skip annotations are allowed.
 
 ## 21.4.0 - 2026-05-18 - Pipeline Recovery & Visual Intelligence Stabilization
 

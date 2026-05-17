@@ -97,30 +97,21 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
 fi
 
 if ! command -v pg_dump >/dev/null 2>&1; then
-  log "pg_dump not installed locally; skipping DB-backed gates (pg_explain/schema hash/pg_dump snapshot)"
-  exit 0
+  fail "❌ pg_dump is required for DB-backed gates"
 fi
 
 # Check pg_dump version matches server version to avoid "server version mismatch" errors
 PGDUMP_MAJOR="$(pg_dump --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
 SERVER_MAJOR="$(psql "$DATABASE_URL" -Atc "SHOW server_version_num" 2>/dev/null | cut -c1-2)"
 if [[ -n "$PGDUMP_MAJOR" && -n "$SERVER_MAJOR" && "$PGDUMP_MAJOR" != "$SERVER_MAJOR" ]]; then
-  if is_strict_ci; then
-    fail "❌ pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR)"
-  fi
-  log "pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR); skipping DB-backed gates"
-  exit 0
+  fail "❌ pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR)"
 fi
 if command -v sha256sum >/dev/null 2>&1; then
   HASH_CMD="sha256sum"
 elif command -v shasum >/dev/null 2>&1; then
   HASH_CMD="shasum -a 256"
 else
-  if is_strict_ci; then
-    fail "❌ sha256sum/shasum is required"
-  fi
-  log "sha256 tool not installed locally; skipping DB-backed gates"
-  exit 0
+  fail "❌ sha256sum/shasum is required"
 fi
 
 log "Schema snapshot hash via pg_dump --schema-only"
@@ -153,18 +144,20 @@ if command -v psql >/dev/null 2>&1; then
   fi
   if [[ "${DOC_COUNT:-0}" =~ ^[0-9]+$ && "${ENTITY_COUNT:-0}" =~ ^[0-9]+$ && "${REL_COUNT:-0}" =~ ^[0-9]+$ ]]; then
     if [[ "${DOC_COUNT:-0}" -lt 1000 || "${ENTITY_COUNT:-0}" -lt 1000 || "${REL_COUNT:-0}" -lt 10000 ]]; then
-      log "Skipping plan regression gate on non-representative database cardinality"
+      log "Running plan syntax gate on non-representative database cardinality"
       SKIP_PLAN_GATE=1
     fi
   elif [[ "${DOC_COUNT:-0}" == "0" && "${ENTITY_COUNT:-0}" == "0" && "${REL_COUNT:-0}" == "0" ]]; then
     # Defensive fallback if numeric check above changes unexpectedly.
-    log "Skipping plan regression gate on empty database (no representative data yet)"
+    log "Running plan syntax gate on empty database"
     SKIP_PLAN_GATE=1
   fi
 fi
 
-if [[ "$SKIP_PLAN_GATE" != "1" ]]; then
-  node --import tsx/esm scripts/pg_explain.ts
+if [[ "$SKIP_PLAN_GATE" = "1" ]]; then
+  PG_EXPLAIN_REGRESSION_MODE=syntax-only PG_EXPLAIN_WRITE_OUTPUT=0 node --import tsx/esm scripts/pg_explain.ts
+else
+  PG_EXPLAIN_WRITE_OUTPUT=0 node --import tsx/esm scripts/pg_explain.ts
 fi
 
 if command -v psql >/dev/null 2>&1; then
@@ -203,7 +196,7 @@ if command -v psql >/dev/null 2>&1; then
     fi
   fi
 else
-  log "psql not installed locally; skipping media/documents metadata completeness gates"
+  fail "❌ psql is required for media/documents metadata completeness gates"
 fi
 
 log "Schema hash baseline gate"

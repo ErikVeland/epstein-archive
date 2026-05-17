@@ -79,11 +79,15 @@ async function main() {
   const results: Record<string, unknown> = {};
   const regressions: string[] = [];
   const failures: string[] = [];
+  const syntaxOnly = process.env.PG_EXPLAIN_REGRESSION_MODE === 'syntax-only';
 
   for (const { name, sql, params } of QUERIES) {
     console.log(`\nEXPLAIN: ${name}`);
     try {
-      const { rows } = await pool.query(`EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${sql}`, params);
+      const explainOptions = syntaxOnly
+        ? 'EXPLAIN (FORMAT JSON)'
+        : 'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)';
+      const { rows } = await pool.query(`${explainOptions} ${sql}`, params);
       const plan = rows[0]['QUERY PLAN'];
       results[name] = plan;
 
@@ -91,14 +95,16 @@ async function main() {
       const planStr = JSON.stringify(plan);
       const hasSeqScan = planStr.includes('"Seq Scan"');
       const hasExternalMerge = planStr.includes('"External Merge"');
-      if (name === 'graph_neighbors' && hasSeqScan) {
-        regressions.push(`❌ ${name}: Seq Scan detected on entity_relationships`);
-      }
-      if ((name === 'entity_fts_websearch' || name === 'document_fts_websearch') && hasSeqScan) {
-        regressions.push(`❌ ${name}: Seq Scan detected (GIN index not used)`);
-      }
-      if (hasExternalMerge) {
-        regressions.push(`⚠️  ${name}: External Merge sort (consider raising work_mem)`);
+      if (!syntaxOnly) {
+        if (name === 'graph_neighbors' && hasSeqScan) {
+          regressions.push(`❌ ${name}: Seq Scan detected on entity_relationships`);
+        }
+        if ((name === 'entity_fts_websearch' || name === 'document_fts_websearch') && hasSeqScan) {
+          regressions.push(`❌ ${name}: Seq Scan detected (GIN index not used)`);
+        }
+        if (hasExternalMerge) {
+          regressions.push(`⚠️  ${name}: External Merge sort (consider raising work_mem)`);
+        }
       }
 
       console.log(`  → OK`);
@@ -110,9 +116,11 @@ async function main() {
     }
   }
 
-  const outFile = `${outDir}/${ts}-${gitSha}.json`;
-  fs.writeFileSync(outFile, JSON.stringify(results, null, 2));
-  console.log(`\nEXPLAIN outputs written to ${outFile}`);
+  if (process.env.PG_EXPLAIN_WRITE_OUTPUT !== '0') {
+    const outFile = `${outDir}/${ts}-${gitSha}.json`;
+    fs.writeFileSync(outFile, JSON.stringify(results, null, 2));
+    console.log(`\nEXPLAIN outputs written to ${outFile}`);
+  }
 
   if (failures.length > 0) {
     console.error('\nEXPLAIN execution failures:');
