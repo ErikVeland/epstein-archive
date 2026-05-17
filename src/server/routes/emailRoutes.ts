@@ -62,7 +62,7 @@ const DEFAULT_LIMIT = 40;
 const MAX_LIMIT = 100;
 const LIST_TTL_SECONDS = 45;
 const BODY_TTL_SECONDS = 60;
-const EMAIL_LIST_TIMEOUT_MS = 5_000;
+const EMAIL_LIST_TIMEOUT_MS = 30_000;
 
 const emailRevisionKey = () =>
   `${process.env.INGEST_RUN_ID || process.env.LATEST_INGEST_RUN_ID || 'default'}:${process.env.RULESET_VERSION || 'v1'}`;
