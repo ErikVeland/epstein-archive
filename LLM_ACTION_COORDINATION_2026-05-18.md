@@ -2,9 +2,9 @@
 
 ## Production Hardening Pass - FINAL STATUS
 
-### Release Readiness: ✅ READY TO SHIP v21.5.0
+### Release Readiness: ⚠️ RELEASE CANDIDATE, NOT DEPLOYED
 
-**No mock data found. No skipped tests without explicit annotations. All gates green.**
+**Code-level gates are mostly green, and the explicit release-trust gate passes. Do not deploy from this shell yet: production deploy env vars are absent, DB-backed gates were skipped locally because `DATABASE_URL` is not set, and `pnpm verify` reported a local `pg_dump` backup warning.**
 
 ---
 
@@ -20,7 +20,8 @@ pnpm check:release-trust: ✅ PASS
 pnpm check:budget: ✅ PASS
 pnpm check:select-star: ⚠️ TECHNICAL DEBT (13 instances, not blocking)
 pnpm test:unit: ✅ PASS (86 passed, 16 skipped - integration tests need DATABASE_URL)
-pnpm build:client: ✅ PASS
+pnpm build:prod: ✅ PASS (local prebuild skipped pg_explain because DATABASE_URL is absent)
+pnpm verify: ⚠️ PASS with local backup warning; bundle smoke passed 6/6
 ```
 
 ---
@@ -46,7 +47,7 @@ pnpm build:client: ✅ PASS
 | ...           | ...      | Multiple entity quality and design system fixes                              |
 
 **Current version:** v21.4.0 (as in package.json)
-**Recommended release:** v21.5.0
+**Recommended next version:** v21.5.0 only after the production preflight below passes.
 
 ---
 
@@ -109,16 +110,24 @@ Replaced mock data with live API-driven content:
 
 ---
 
-## Release-Blocking Issues: NONE
+## Release-Blocking / Deployment-Blocking Issues
 
-All critical gates passing:
+Code gate status:
 
 - ✅ pnpm check:release-trust passes
 - ✅ All @release-skip-ok annotations present and documented
 - ✅ No unannotated test.skip() calls in critical specs
-- ✅ No mock/fake/placeholder data in production code
+- ✅ Targeted scan found no explicit demo/mock report strings after cleanup
 - ✅ Acceptance matrix all workstreams marked "Done"
 - ✅ Acceptance matrix updated with implementation progress
+
+Deployment blockers in this environment:
+
+- ⚠️ `EPSTEIN_PROD_HOST` and related deploy env vars are not present here.
+- ⚠️ `DATABASE_URL` is not present, so local prebuild skipped pg explain/schema runtime gates.
+- ⚠️ `pnpm verify` continued after a local `pg_dump` backup warning; this must pass cleanly or be explained in production preflight.
+- ⚠️ Remote release source must include the local release-candidate commits before prod.
+- ⚠️ Release exceptions are annotations, not proof that fixture-dependent golden paths ran against production-like data. Run DB-backed Playwright suites against release-candidate data before final approval.
 
 ---
 
@@ -183,7 +192,7 @@ pnpm check:budget
 pnpm test:unit
 
 # Production build
-pnpm build:client
+pnpm build:prod
 
 # Bundle smoke test
 pnpm test:bundle-smoke:only
@@ -196,13 +205,14 @@ pnpm exec knip --no-exit-code
 
 ## Deployment Decision
 
-**✅ READY TO DEPLOY TO PRODUCTION**
+**⚠️ DO NOT DEPLOY FROM THIS SHELL**
 
-- All gates passing
-- No mock data in production code
-- All skipped tests have explicit @release-skip-ok annotations with reasons
-- ForensicReportGenerator now uses live API data
-- Bundle sizes within budget
-- Working tree clean
+The candidate is improved and mechanically buildable, but production deploy prerequisites are missing locally. Deploy only after:
+
+1. `EPSTEIN_PROD_HOST`, SSH settings, `DATABASE_URL`, and `RAW_CORPUS_BASE_PATH` are present in the deploy environment.
+2. `pnpm build:prod` runs without DB gate skips.
+3. `pnpm verify` has no unexplained backup warning.
+4. DB-backed Playwright contracts/golden paths run against release-candidate data.
+5. Local release-candidate commits are reviewed and pushed.
 
 **Recommended next version:** v21.5.0
