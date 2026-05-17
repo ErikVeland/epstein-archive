@@ -17,3 +17,4 @@ assets/
 *.sqlite
 *.db
 scratch/
+/test_*.ts
