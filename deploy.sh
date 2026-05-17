@@ -168,6 +168,8 @@ export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
 export CI=true
+export SKIP_SCHEMA_HASH_CHECK="${SKIP_SCHEMA_HASH_CHECK:-}"
+
 
 if [ -f .env ]; then
   set -a
