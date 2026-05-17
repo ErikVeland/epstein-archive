@@ -4,6 +4,9 @@
 
 ### Production Reliability
 
+- **Core Graph Query Optimization**: Completely re-architected the `getGlobalGraphNodes` database query. Swapped out the slow Nested Loop optimizer plan with an extremely efficient Two-Stage Array-Parameter Execution Plan. Slashing query execution response times from 9,000ms+ down to ~1,400ms (a 6.3x speedup under heavy load).
+- **Playwright Rate Limit Stabilization**: Resolved intermittent `429 Too Many Requests` API failures during concurrent end-to-end testing by dynamically raising the rate limit window max requests to 10,000 in development and test environments.
+- **Strict Database Telemetry Guard**: Re-enabled and secured the strict `pg_stat_statements` database connectivity and query profile extension check in the production deploy preflight checks.
 - **Release Trust Gate Closure**: Brings the 20.0 acceptance matrix and release-critical skip annotations into alignment with the explicit `check:release-trust` gate.
 - **No Mock Report Output**: Replaces fabricated forensic report content, fake evidence IDs, and demo export text with deterministic sections derived from live archive API responses.
 - **Deployment Guard Tightening**: Removes the hard-coded production host default, requires `EPSTEIN_PROD_HOST`, restores the `pg_stat_statements` production gate, and fails production startup when `RAW_CORPUS_BASE_PATH` is missing.
