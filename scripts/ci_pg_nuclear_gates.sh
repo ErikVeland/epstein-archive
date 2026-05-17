@@ -207,10 +207,6 @@ else
 fi
 
 log "Schema hash baseline gate"
-if is_ci; then
-  log "Initializing schema hash baseline for ephemeral CI database"
-  pnpm schema:hash:update
-fi
 pnpm schema:hash:check
 
 log "✅ All PG nuclear gates passed"
