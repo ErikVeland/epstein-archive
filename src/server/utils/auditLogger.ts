@@ -3,6 +3,8 @@ import { getApiPool } from '../db/connection.js';
 type AuditLogMode = 'modern' | 'legacy_user' | 'legacy_operation' | 'none';
 let auditLogModeCache: AuditLogMode | null = null;
 
+const auditFailuresAreFatal = (): boolean => process.env.NODE_ENV === 'production';
+
 const detectAuditLogMode = async (): Promise<AuditLogMode> => {
   if (auditLogModeCache) return auditLogModeCache;
   const pool = getApiPool();
@@ -46,7 +48,10 @@ const detectAuditLogMode = async (): Promise<AuditLogMode> => {
 
     auditLogModeCache = 'none';
     return auditLogModeCache;
-  } catch {
+  } catch (error) {
+    if (auditFailuresAreFatal()) {
+      throw new Error(`Unable to inspect audit_log schema: ${(error as Error).message}`);
+    }
     auditLogModeCache = 'none';
     return auditLogModeCache;
   }
@@ -74,7 +79,12 @@ export const logAudit = async (
       : null;
 
   const mode = await detectAuditLogMode();
-  if (mode === 'none') return;
+  if (mode === 'none') {
+    if (auditFailuresAreFatal()) {
+      throw new Error('audit_log table is missing or incompatible in production');
+    }
+    return;
+  }
 
   try {
     if (mode === 'modern') {
@@ -112,8 +122,10 @@ export const logAudit = async (
       `,
       [action, objectType, objectId, payloadWithRequestId],
     );
-  } catch {
-    // Audit logging must never break the request path.
+  } catch (error) {
+    if (auditFailuresAreFatal()) {
+      throw new Error(`Audit log write failed: ${(error as Error).message}`);
+    }
     return;
   }
 };

@@ -55,46 +55,72 @@ ORDER BY rank DESC
 LIMIT :limit!;
 
 /* @name searchDocuments */
+WITH matched_docs AS (
+  SELECT
+    d.id,
+    d.file_name           AS "fileName",
+    d.file_path           AS "filePath",
+    d.evidence_type       AS "evidenceType",
+    d.red_flag_rating     AS "redFlagRating",
+    d.title,
+    d.content_refined,
+    ts_rank_cd(d.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank
+  FROM documents d
+  WHERE d.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
+    AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
+    AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
+    AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
+  ORDER BY rank DESC
+  LIMIT :limit!
+)
 SELECT
-  d.id,
-  d.file_name           AS "fileName",
-  d.file_path           AS "filePath",
-  d.evidence_type       AS "evidenceType",
-  d.red_flag_rating     AS "redFlagRating",
+  id,
+  "fileName",
+  "filePath",
+  "evidenceType",
+  "redFlagRating",
   ts_headline('english',
-    coalesce(d.title, '') || ' ' || left(coalesce(d.content_refined, ''), 500),
+    coalesce(title, '') || ' ' || left(coalesce(content_refined, ''), 500),
     websearch_to_tsquery('english', :searchTerm!),
     'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2'
   ) AS snippet,
-  ts_rank_cd(d.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank
-FROM documents d
-WHERE d.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
-  AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
-  AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
-  AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
-ORDER BY rank DESC
-LIMIT :limit!;
+  rank
+FROM matched_docs
+ORDER BY rank DESC;
 
 /* @name searchDocumentsPrefix */
+WITH matched_docs AS (
+  SELECT
+    d.id,
+    d.file_name           AS "fileName",
+    d.file_path           AS "filePath",
+    d.evidence_type       AS "evidenceType",
+    d.red_flag_rating     AS "redFlagRating",
+    d.title,
+    d.content_refined,
+    ts_rank_cd(d.fts_vector, to_tsquery('english', :searchTerm!), 32) AS rank
+  FROM documents d
+  WHERE d.fts_vector @@ to_tsquery('english', :searchTerm!)
+    AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
+    AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
+    AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
+  ORDER BY rank DESC
+  LIMIT :limit!
+)
 SELECT
-  d.id,
-  d.file_name           AS "fileName",
-  d.file_path           AS "filePath",
-  d.evidence_type       AS "evidenceType",
-  d.red_flag_rating     AS "redFlagRating",
+  id,
+  "fileName",
+  "filePath",
+  "evidenceType",
+  "redFlagRating",
   ts_headline('english',
-    coalesce(d.title, '') || ' ' || left(coalesce(d.content_refined, ''), 500),
+    coalesce(title, '') || ' ' || left(coalesce(content_refined, ''), 500),
     to_tsquery('english', :searchTerm!),
     'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2'
   ) AS snippet,
-  ts_rank_cd(d.fts_vector, to_tsquery('english', :searchTerm!), 32) AS rank
-FROM documents d
-WHERE d.fts_vector @@ to_tsquery('english', :searchTerm!)
-  AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
-  AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
-  AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
-ORDER BY rank DESC
-LIMIT :limit!;
+  rank
+FROM matched_docs
+ORDER BY rank DESC;
 
 /* @name searchSentences */
 SELECT

@@ -315,6 +315,7 @@ const pipelineAudit = new PipelineAudit();
 // ============================================================================
 
 const PIPELINE_VERSION = '1.3.0';
+const ALLOW_AI_CONTENT_REWRITE = process.env.ALLOW_AI_CONTENT_REWRITE === 'true';
 const STEP_VERSIONS = {
   collector: '1.0.0',
   reader_pdf: '1.1.0', // Tesseract fallback for scanned PDFs
@@ -2692,10 +2693,8 @@ async function main() {
 }
 
 /**
- * AI enrichment backfill: generates summaries and cleans OCR text for all
- * completed documents that are missing ai_summary. Runs outside the job-lease
- * system — it queries directly and updates in place without touching
- * processing_status, so it's safe to run alongside a live queue processor.
+ * AI enrichment backfill: generates summaries for completed documents that are missing
+ * durable summary artifacts. Model output is not written into canonical document metadata.
  */
 async function enrichCompleted() {
   const db = getIngestPool();
@@ -2710,10 +2709,16 @@ async function enrichCompleted() {
     WHERE processing_status = 'completed'
       AND content IS NOT NULL
       AND length(content) >= 100
-      AND (metadata_json->>'ai_summary') IS NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM document_ai_artifacts daa
+        WHERE daa.document_id = documents.id
+          AND daa.artifact_type = 'summary'
+          AND daa.artifact_version = 'summary-v2'
+          AND daa.prompt_version = 'forensic-summary-v1'
+      )
   `);
   const total = parseInt(countRows[0].n, 10);
-  console.log(`   📊 ${total.toLocaleString()} docs need enrichment (no ai_summary yet)`);
+  console.log(`   📊 ${total.toLocaleString()} docs need enrichment (no summary artifact yet)`);
   if (total === 0) {
     console.log('   ✅ Already fully enriched.');
     return;
@@ -2731,13 +2736,29 @@ async function enrichCompleted() {
         fileName: row.file_path ? path.basename(row.file_path) : undefined,
       });
       if (summary && summary.length > 0) {
-        await db.query(
-          `UPDATE documents
-           SET metadata_json      = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('ai_summary', $1::text),
-               last_processed_at  = NOW()
-           WHERE id = $2`,
-          [summary, row.id],
-        );
+        const inputHash = crypto.createHash('sha256').update(text).digest('hex');
+        const outputHash = crypto
+          .createHash('sha256')
+          .update(text + summary)
+          .digest('hex');
+        await PipelineService.upsertAiArtifact({
+          runId: currentRun?.id,
+          documentId: Number(row.id),
+          artifactType: 'summary',
+          artifactVersion: 'summary-v2',
+          modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+          promptVersion: 'forensic-summary-v1',
+          sourceExcerpt: text.slice(0, 2000),
+          outputText: summary,
+          confidence: 0.75,
+          provenance: {
+            provider: process.env.AI_PROVIDER,
+            pipelineVersion: PIPELINE_VERSION,
+            inputHash,
+            outputHash,
+            canonicalTextUpdated: false,
+          },
+        });
       }
     } catch (_e) {
       pipelineAudit.recordError('ocr_enrichment_retry', (_e as Error).message);
@@ -2752,7 +2773,13 @@ async function enrichCompleted() {
       WHERE processing_status = 'completed'
         AND content IS NOT NULL
         AND length(content) >= 100
-        AND (metadata_json->>'ai_summary') IS NULL
+        AND NOT EXISTS (
+          SELECT 1 FROM document_ai_artifacts daa
+          WHERE daa.document_id = documents.id
+            AND daa.artifact_type = 'summary'
+            AND daa.artifact_version = 'summary-v2'
+            AND daa.prompt_version = 'forensic-summary-v1'
+        )
         AND id > $1
       ORDER BY id
       LIMIT $2
@@ -2782,8 +2809,8 @@ async function enrichCompleted() {
 }
 
 /**
- * OCR cleaning backfill: cleans text for completed docs missing content_refined.
- * Run after enrichCompleted() so summaries are already in place.
+ * OCR cleaning backfill: stores cleaned OCR text as an AI artifact. Canonical content_refined
+ * is updated only when ALLOW_AI_CONTENT_REWRITE=true.
  */
 async function ocrCleanCompleted() {
   const db = getIngestPool();
@@ -2794,7 +2821,13 @@ async function ocrCleanCompleted() {
     WHERE processing_status = 'completed'
       AND content IS NOT NULL
       AND length(content) >= 100
-      AND content_refined IS NULL
+      AND NOT EXISTS (
+        SELECT 1 FROM document_ai_artifacts daa
+        WHERE daa.document_id = documents.id
+          AND daa.artifact_type = 'ocr_clean_text'
+          AND daa.artifact_version = 'ocr-clean-v1'
+          AND daa.prompt_version = 'forensic-ocr-clean-v1'
+      )
   `);
   const total = parseInt(countRows[0].n, 10);
   console.log(`   📊 ${total.toLocaleString()} docs need OCR cleaning`);
@@ -2814,7 +2847,13 @@ async function ocrCleanCompleted() {
        WHERE processing_status = 'completed'
          AND content IS NOT NULL
          AND length(content) >= 100
-         AND content_refined IS NULL
+         AND NOT EXISTS (
+           SELECT 1 FROM document_ai_artifacts daa
+           WHERE daa.document_id = documents.id
+             AND daa.artifact_type = 'ocr_clean_text'
+             AND daa.artifact_version = 'ocr-clean-v1'
+             AND daa.prompt_version = 'forensic-ocr-clean-v1'
+         )
          AND id > $1
        ORDER BY id LIMIT $2`,
       [lastId, BATCH],
@@ -2828,13 +2867,36 @@ async function ocrCleanCompleted() {
           try {
             const cleaned = await AIEnrichmentService.cleanOCRText(row.content as string);
             if (cleaned && cleaned !== row.content) {
-              await db.query(
-                `UPDATE documents
-                 SET content_refined   = $1,
-                     last_processed_at = NOW()
-                 WHERE id = $2`,
-                [cleaned, row.id],
-              );
+              const sourceText = row.content as string;
+              const inputHash = crypto.createHash('sha256').update(sourceText).digest('hex');
+              const outputHash = crypto.createHash('sha256').update(cleaned).digest('hex');
+              await PipelineService.upsertAiArtifact({
+                runId: currentRun?.id,
+                documentId: Number(row.id),
+                artifactType: 'ocr_clean_text',
+                artifactVersion: 'ocr-clean-v1',
+                modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+                promptVersion: 'forensic-ocr-clean-v1',
+                sourceExcerpt: sourceText.slice(0, 2000),
+                outputText: cleaned,
+                confidence: 0.6,
+                provenance: {
+                  provider: process.env.AI_PROVIDER,
+                  pipelineVersion: PIPELINE_VERSION,
+                  inputHash,
+                  outputHash,
+                  canonicalTextUpdated: ALLOW_AI_CONTENT_REWRITE,
+                },
+              });
+              if (ALLOW_AI_CONTENT_REWRITE) {
+                await db.query(
+                  `UPDATE documents
+                   SET content_refined   = $1,
+                       last_processed_at = NOW()
+                   WHERE id = $2`,
+                  [cleaned, row.id],
+                );
+              }
             }
           } catch {
             /* non-fatal */
@@ -3000,18 +3062,63 @@ async function processQueue() {
           const contentChanged = refined !== fullDoc.content;
           const hasSummary = summary && summary.length > 0;
 
-          if (contentChanged || hasSummary) {
+          if (contentChanged && cleaned) {
+            const sourceText = fullDoc.content as string;
+            await PipelineService.upsertAiArtifact({
+              runId: currentRun?.id,
+              documentId: docId,
+              artifactType: 'ocr_clean_text',
+              artifactVersion: 'ocr-clean-v1',
+              modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+              promptVersion: 'forensic-ocr-clean-v1',
+              sourceExcerpt: sourceText.slice(0, 2000),
+              outputText: cleaned,
+              confidence: 0.6,
+              provenance: {
+                provider: process.env.AI_PROVIDER,
+                pipelineVersion: PIPELINE_VERSION,
+                inputHash: crypto.createHash('sha256').update(sourceText).digest('hex'),
+                outputHash: crypto.createHash('sha256').update(cleaned).digest('hex'),
+                canonicalTextUpdated: ALLOW_AI_CONTENT_REWRITE,
+              },
+            });
+          }
+
+          if (hasSummary) {
+            const sourceText = repaired as string;
+            await PipelineService.upsertAiArtifact({
+              runId: currentRun?.id,
+              documentId: docId,
+              artifactType: 'summary',
+              artifactVersion: 'summary-v2',
+              modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+              promptVersion: 'forensic-summary-v1',
+              sourceExcerpt: sourceText.slice(0, 2000),
+              outputText: summary,
+              confidence: 0.75,
+              provenance: {
+                provider: process.env.AI_PROVIDER,
+                pipelineVersion: PIPELINE_VERSION,
+                inputHash: crypto.createHash('sha256').update(sourceText).digest('hex'),
+                outputHash: crypto
+                  .createHash('sha256')
+                  .update(sourceText + summary)
+                  .digest('hex'),
+                canonicalTextUpdated: false,
+              },
+            });
+          }
+
+          if (ALLOW_AI_CONTENT_REWRITE && contentChanged) {
             await db.query(
               `UPDATE documents
-               SET content           = CASE WHEN $1 THEN $2 ELSE content END,
-                   content_refined   = CASE WHEN $1 THEN $3 ELSE content_refined END,
-                   metadata_json     = CASE WHEN $4 THEN
-                                         COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('ai_summary', $5::text)
-                                       ELSE metadata_json END,
+               SET content_refined   = $1,
                    last_processed_at = NOW()
-               WHERE id = $6`,
-              [contentChanged, refined, refined, hasSummary, summary, docId],
+               WHERE id = $2`,
+              [refined, docId],
             );
+          } else if (contentChanged || hasSummary) {
+            await db.query('UPDATE documents SET last_processed_at = NOW() WHERE id = $1', [docId]);
           }
         }
 

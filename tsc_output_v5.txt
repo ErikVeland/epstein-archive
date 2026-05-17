@@ -1,2 +1,0 @@
-src/client/components/common/ProvenanceBadge.tsx(11,22): error TS2304: Cannot find name 'ProvenanceStatus'.
-src/server/db/entityEvidenceRepository.ts(7,8): error TS6133: 'EvidenceRowInput' is declared but its value is never read.

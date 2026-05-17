@@ -817,15 +817,18 @@ async function runEnrichPhase(
 
   let whereClause =
     "content IS NOT NULL AND length(content) > 50 AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
+  const summaryArtifactPredicate =
+    "NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'summary' AND daa.artifact_version = 'summary-v2' AND daa.prompt_version = 'forensic-summary-v1')";
+  const ocrArtifactPredicate =
+    "NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'ocr_clean_text' AND daa.artifact_version = 'ocr-clean-v1' AND daa.prompt_version = 'forensic-ocr-clean-v1')";
   if (mode === 'backfill') {
-    // Backfill documents lacking a summary. Garbled/low-confidence rows are retried only until
-    // content_refined exists; the original raw content remains unchanged, so checking it forever
-    // would keep selecting already-enriched documents.
-    whereClause +=
-      " AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_summary' OR (content_refined IS NULL AND content LIKE '%=%' AND NOT metadata_json ? 'ocr_corrected') OR (content_refined IS NULL AND coalesce((metadata_json->>'ocr_confidence')::float, 1.0) < 0.6 AND NOT metadata_json ? 'ocr_corrected'))";
+    // Backfill documents lacking durable AI artifacts. LLM outputs are intentionally not used as
+    // metadata markers or canonical text updates unless explicitly enabled by environment.
+    whereClause += ` AND (${summaryArtifactPredicate} OR ((content LIKE '%=%' OR coalesce((metadata_json->>'ocr_confidence')::float, 1.0) < 0.6) AND ${ocrArtifactPredicate}))`;
   } else if (mode === 'new') {
     whereClause += " AND created_at > now() - interval '1 day'";
   }
+  const allowAiContentRewrite = process.env.ALLOW_AI_CONTENT_REWRITE === 'true';
 
   // Get enrichable total once at start for progress tracking
   const enrichTotalRow = (
@@ -921,6 +924,8 @@ async function runEnrichPhase(
           (meta.subject as string) || (meta.title as string) || doc.file_name || 'Unknown Document';
 
         let refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
+        let analysisText = refinedText;
+        let cleanedTextForArtifact: string | null = null;
         const inputHash = crypto
           .createHash('sha256')
           .update(refinedText)
@@ -944,16 +949,19 @@ async function runEnrichPhase(
         if (isLowLegibility && process.env.ENABLE_AI_ENRICHMENT === 'true') {
           const cleanedText = await AIEnrichmentService.cleanOCRText(refinedText, subject);
           if (cleanedText && cleanedText.length > 50) {
-            refinedText = cleanedText;
+            cleanedTextForArtifact = cleanedText;
+            analysisText = cleanedText;
+            if (allowAiContentRewrite) {
+              refinedText = cleanedText;
+            }
           }
-          meta.ocr_corrected = true;
         }
 
         // Release raw content from row object — refinedText is the only copy we need
         doc.content = null;
 
         let summary = await withTimeout(
-          AIEnrichmentService.summarizeDocument(refinedText, {
+          AIEnrichmentService.summarizeDocument(analysisText, {
             fileName: doc.file_name || undefined,
             subject,
           }),
@@ -968,7 +976,7 @@ async function runEnrichPhase(
         );
 
         if (!summary || summary.length < 10) {
-          const preview = refinedText
+          const preview = analysisText
             .replace(/[\r\n]+/g, ' ')
             .replace(/\s+/g, ' ')
             .trim()
@@ -976,19 +984,42 @@ async function runEnrichPhase(
           summary = `Document "${doc.file_name}" summary preview: ${preview}...`;
         }
 
-        meta.ai_summary = summary;
-        meta.ai_enriched_at = new Date().toISOString();
-        meta.ai_provider = process.env.AI_PROVIDER;
-
-        await pool.query(
-          'UPDATE documents SET metadata_json = $1, content_refined = $2 WHERE id = $3',
-          [JSON.stringify(meta), refinedText, doc.id],
-        );
+        if (allowAiContentRewrite && cleanedTextForArtifact) {
+          await pool.query('UPDATE documents SET content_refined = $1 WHERE id = $2', [
+            cleanedTextForArtifact,
+            doc.id,
+          ]);
+        }
 
         const outputHash = crypto
           .createHash('sha256')
-          .update(refinedText + summary)
+          .update(analysisText + summary)
           .digest('hex');
+        if (cleanedTextForArtifact) {
+          const cleanedOutputHash = crypto
+            .createHash('sha256')
+            .update(cleanedTextForArtifact)
+            .digest('hex');
+          await PipelineService.upsertAiArtifact({
+            runId: currentPipelineRun?.id,
+            stageRunId: documentStageRun?.id,
+            documentId: Number(doc.id),
+            artifactType: 'ocr_clean_text',
+            artifactVersion: 'ocr-clean-v1',
+            modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+            promptVersion: 'forensic-ocr-clean-v1',
+            sourceExcerpt: refinedText.slice(0, 2000),
+            outputText: cleanedTextForArtifact,
+            confidence: 0.6,
+            provenance: {
+              provider: process.env.AI_PROVIDER,
+              mode,
+              inputHash,
+              outputHash: cleanedOutputHash,
+              canonicalTextUpdated: allowAiContentRewrite,
+            },
+          });
+        }
         await PipelineService.upsertAiArtifact({
           runId: currentPipelineRun?.id,
           stageRunId: documentStageRun?.id,
@@ -997,7 +1028,7 @@ async function runEnrichPhase(
           artifactVersion: 'summary-v2',
           modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
           promptVersion: 'forensic-summary-v1',
-          sourceExcerpt: refinedText.slice(0, 2000),
+          sourceExcerpt: analysisText.slice(0, 2000),
           outputText: summary,
           confidence: summary.startsWith('Document "') ? 0.35 : 0.75,
           provenance: {
@@ -1005,13 +1036,14 @@ async function runEnrichPhase(
             mode,
             inputHash,
             outputHash,
-            contentRefined: true,
+            sourceText: cleanedTextForArtifact ? 'ocr_clean_text_artifact' : 'decoded_content',
+            canonicalTextUpdated: allowAiContentRewrite && Boolean(cleanedTextForArtifact),
           },
         });
         await PipelineService.finishStageRun(documentStageRun?.id, {
           status: 'succeeded',
           outputHash,
-          metrics: { summaryChars: summary.length, refinedChars: refinedText.length },
+          metrics: { summaryChars: summary.length, analysisChars: analysisText.length },
         });
         summariesGenerated++;
         documentsEnriched++;
@@ -1029,22 +1061,6 @@ async function runEnrichPhase(
           status: 'failed',
           errorMessage: String((error as Error)?.message || error),
         });
-
-        try {
-          const meta =
-            typeof doc.metadata_json === 'object' && doc.metadata_json !== null
-              ? (doc.metadata_json as Record<string, unknown>)
-              : {};
-          meta.ai_enrichment_failed = true;
-          meta.ai_enrichment_error = String((error as Error)?.message || error);
-          meta.ai_enriched_at = new Date().toISOString();
-          await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [
-            JSON.stringify(meta),
-            doc.id,
-          ]);
-        } catch {
-          // non-fatal
-        }
 
         if (
           error instanceof PipelineBlockedError ||

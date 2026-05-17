@@ -18,6 +18,7 @@ import rateLimit from 'express-rate-limit';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
 import type { ReadableStream as WebReadableStream } from 'stream/web';
+import { authenticateRequest, type AuthRequest } from '../auth/middleware.js';
 
 const router = express.Router();
 
@@ -291,6 +292,7 @@ router.get('/:id/annotations', validate(documentIdSchema), async (req, res, next
 // POST /api/documents/:id/annotations
 router.post(
   '/:id/annotations',
+  authenticateRequest,
   annotationWriteLimiter,
   validate(createDocumentAnnotationSchema),
   async (req, res, next) => {
@@ -325,8 +327,9 @@ router.post(
 
       const ip = String(req.ip || '');
       const userAgent = String(req.get('user-agent') || '');
+      const authUser = (req as AuthRequest).user;
       const author = toSafePublicHandle(
-        typeof req.body?.author === 'string' ? req.body.author : req.get('x-public-author'),
+        authUser?.username || (authUser?.id ? `user-${authUser.id.slice(0, 8)}` : null),
       );
       const fingerprint = createFingerprint(ip, userAgent);
 

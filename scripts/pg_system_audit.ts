@@ -157,13 +157,13 @@ async function main() {
           const srcAttrs = await pool.query<{ attnum: number; attname: string }>(
             `SELECT attnum, attname FROM pg_attribute WHERE attrelid = (
                SELECT conrelid FROM pg_constraint WHERE oid = $1
-             ) AND attnum = ANY((SELECT conkey FROM pg_constraint WHERE oid = $1))`,
+             ) AND attnum IN (SELECT unnest(conkey) FROM pg_constraint WHERE oid = $1)`,
             [fk.oid],
           );
           const refAttrs = await pool.query<{ attnum: number; attname: string }>(
             `SELECT attnum, attname FROM pg_attribute WHERE attrelid = (
                SELECT confrelid FROM pg_constraint WHERE oid = $1
-             ) AND attnum = ANY((SELECT confkey FROM pg_constraint WHERE oid = $1))`,
+             ) AND attnum IN (SELECT unnest(confkey) FROM pg_constraint WHERE oid = $1)`,
             [fk.oid],
           );
 

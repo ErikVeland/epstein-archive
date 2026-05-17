@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon, { IconName } from '@client/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +12,7 @@ import { Flex } from '@client/design-system/components/layout/Flex';
 import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { Box } from '@client/design-system/components/layout/Box';
 
-import { Button, Input, TextArea } from '@client/design-system/lib';
+import { Button, TextArea } from '@client/design-system/lib';
 
 interface DocumentAnnotationSystemProps {
   documentId: string;
@@ -122,7 +122,6 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
   });
   const [draftType, setDraftType] = useState<AnnotationType>('highlight');
   const [draftNote, setDraftNote] = useState('');
-  const [draftAuthor, setDraftAuthor] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   const {
@@ -147,11 +146,6 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     if (!activeAnnotationId) return null;
     return annotations.find((annotation) => annotation.id === activeAnnotationId) || null;
   }, [annotations, activeAnnotationId]);
-
-  useEffect(() => {
-    const savedAuthor = localStorage.getItem('public_annotation_author') || '';
-    setDraftAuthor(savedAuthor);
-  }, []);
 
   const clearSelectionDraft = () => {
     setPendingSelection(null);
@@ -211,7 +205,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     setLoadError(null);
 
     try {
-      const saved = await apiClient.createPublicDocumentAnnotation(documentId, {
+      const saved = await apiClient.createDocumentAnnotation(documentId, {
         type: draftType,
         selectedText: pendingSelection.selectedText,
         note: draftNote.trim(),
@@ -219,12 +213,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
         end: pendingSelection.end,
         contextBefore: pendingSelection.contextBefore,
         contextAfter: pendingSelection.contextAfter,
-        author: draftAuthor.trim() || undefined,
       });
-
-      if (draftAuthor.trim()) {
-        localStorage.setItem('public_annotation_author', draftAuthor.trim());
-      }
 
       setLocalAnnotations((prev) => [...prev, saved]);
       onAnnotationCreated?.(saved);
@@ -409,13 +398,6 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                       );
                     })}
                   </Box>
-                  <Input
-                    value={draftAuthor}
-                    onChange={(event) => setDraftAuthor(event.target.value)}
-                    placeholder="Display name (optional)"
-                    className={styles.inputField}
-                    maxLength={32}
-                  />
                   <TextArea
                     value={draftNote}
                     onChange={(event) => setDraftNote(event.target.value)}

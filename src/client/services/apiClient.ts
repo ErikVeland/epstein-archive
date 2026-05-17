@@ -1035,7 +1035,7 @@ class ApiClient {
     }>;
   }
 
-  async createPublicDocumentAnnotation(
+  async createDocumentAnnotation(
     documentId: string,
     payload: {
       type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
@@ -1045,7 +1045,6 @@ class ApiClient {
       end: number;
       contextBefore?: string;
       contextAfter?: string;
-      author?: string;
     },
   ): Promise<{
     id: string;
@@ -1073,7 +1072,6 @@ class ApiClient {
           contextBefore: payload.contextBefore,
           contextAfter: payload.contextAfter,
         }),
-        headers: payload.author ? { 'x-public-author': payload.author } : undefined,
         useCache: false,
       },
     );

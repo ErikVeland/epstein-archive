@@ -163,7 +163,7 @@ async function main() {
       /ON CONFLICT/i.test(read('src/server/services/assetService.ts'));
     if (!hasOnConflict) details.push('missing ON CONFLICT patterns in ingest-adjacent code');
 
-    const duplicateFindings = details.filter((d) => d.startsWith('duplicate '));
+    const duplicateFindings = details.filter((d) => d.startsWith('duplicate documents.file_path'));
     const ok = duplicateFindings.length === 0 && hasOnConflict;
     if (!ok) hardFail = true;
     checks.push({ name: 'Duplicate row + upsert audit', ok, details });

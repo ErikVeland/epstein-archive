@@ -286,8 +286,15 @@ export const PipelineService = {
           JSON.stringify(params.provenance || {}),
         ],
       );
-    } catch {
-      // Artifact writes are additive telemetry; never break document processing.
+    } catch (error) {
+      if (process.env.NODE_ENV === 'production') {
+        throw error;
+      }
+      console.warn(
+        `[PipelineService] Failed to persist AI artifact for document ${params.documentId}: ${
+          (error as Error).message
+        }`,
+      );
     }
   },
 };

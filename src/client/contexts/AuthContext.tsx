@@ -18,6 +18,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAuth = async () => {
+    const refreshAuth = async () => {
+      try {
+        const refreshRes = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+        });
+        if (!refreshRes.ok) {
+          setUser(null);
+          return;
+        }
+
+        const refreshData = await refreshRes.json();
+        if (!refreshData.accessToken) {
+          setUser(null);
+          return;
+        }
+
+        apiClient.setAccessToken(refreshData.accessToken);
+        const meRes = await fetch('/api/auth/me', {
+          credentials: 'include',
+          headers: { Authorization: `Bearer ${refreshData.accessToken}` },
+        });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          setUser(meData.user ?? null);
+        } else {
+          setUser(null);
+        }
+      } catch {
+        setUser(null);
+      }
+    };
+
     try {
       const res = await fetch('/api/auth/me', { credentials: 'include' });
       if (res.ok) {
@@ -25,37 +58,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (data.user) {
           setUser(data.user);
         } else {
-          setUser(null);
+          await refreshAuth();
         }
       } else if (res.status === 401 || res.status === 403) {
-        try {
-          const refreshRes = await fetch('/api/auth/refresh', {
-            method: 'POST',
-            credentials: 'include',
-          });
-          if (refreshRes.ok) {
-            const refreshData = await refreshRes.json();
-            if (refreshData.accessToken) {
-              apiClient.setAccessToken(refreshData.accessToken);
-              const meRes = await fetch('/api/auth/me', {
-                credentials: 'include',
-                headers: { Authorization: `Bearer ${refreshData.accessToken}` },
-              });
-              if (meRes.ok) {
-                const meData = await meRes.json();
-                setUser(meData.user ?? null);
-              } else {
-                setUser(null);
-              }
-            } else {
-              setUser(null);
-            }
-          } else {
-            setUser(null);
-          }
-        } catch {
-          setUser(null);
-        }
+        await refreshAuth();
       } else {
         setUser(null);
       }

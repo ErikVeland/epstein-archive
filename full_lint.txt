@@ -1,4 +1,0 @@
-
-> epstein-archive@20.0.0 lint /Volumes/Media/Epstein Files/epstein-archive
-> eslint . --ext .ts,.tsx
-

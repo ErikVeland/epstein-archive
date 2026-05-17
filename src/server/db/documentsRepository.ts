@@ -467,7 +467,7 @@ export const documentsRepository = {
           COUNT(*) as "mentions"
         FROM entity_mentions em
         JOIN entities e ON e.id = em.entity_id
-        WHERE em.document_id = ANY($1::int[])
+        WHERE em.document_id = ANY($1::bigint[])
         GROUP BY em.document_id, e.id, e.full_name
         ORDER BY "mentions" DESC
       `;

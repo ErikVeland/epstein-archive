@@ -52,33 +52,27 @@ const checks: AuditCheck[] = [
   {
     name: 'verified_media entities have resolvable linked media',
     sql: `
-      WITH media_linked_entities AS (
-        SELECT DISTINCT COALESCE(e.canonical_id, e.id) AS canonical_id
-        FROM entities e
-        WHERE COALESCE(e.verified_media, 0) > 0
+      WITH entity_media_links AS (
+        SELECT entity_id::bigint AS entity_id, id::text AS media_item_id FROM media_items WHERE entity_id IS NOT NULL
+        UNION
+        SELECT entity_id::bigint AS entity_id, media_item_id::text AS media_item_id FROM media_item_people
+        UNION
+        SELECT fc.entity_id::bigint AS entity_id, f.media_item_id::text AS media_item_id
+        FROM faces f
+        JOIN face_clusters fc ON fc.id = f.cluster_id
+        WHERE fc.entity_id IS NOT NULL
+      ),
+      media_linked_entities AS (
+        SELECT DISTINCT entity_id AS canonical_id
+        FROM entity_media_links
       ),
       entity_media_counts AS (
         SELECT
           mle.canonical_id,
-          COUNT(DISTINCT mi.id)::int AS media_count
+          COUNT(DISTINCT eml.media_item_id)::int AS media_count
         FROM media_linked_entities mle
         LEFT JOIN entities e ON COALESCE(e.canonical_id, e.id) = mle.canonical_id
-        LEFT JOIN media_items mi ON (
-          mi.entity_id = e.id
-          OR EXISTS (
-            SELECT 1
-            FROM media_item_people mip
-            WHERE mip.media_item_id::text = mi.id::text
-              AND mip.entity_id = e.id
-          )
-          OR EXISTS (
-            SELECT 1
-            FROM faces f
-            JOIN face_clusters fc ON fc.id = f.cluster_id
-            WHERE f.media_item_id::text = mi.id::text
-              AND fc.entity_id = e.id
-          )
-        )
+        LEFT JOIN entity_media_links eml ON eml.entity_id = e.id
         GROUP BY mle.canonical_id
       )
       SELECT COUNT(*)::int AS violations
