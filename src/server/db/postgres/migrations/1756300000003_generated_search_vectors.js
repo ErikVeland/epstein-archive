@@ -6,7 +6,7 @@ export async function up(pgm) {
   pgm.sql(`
     ALTER TABLE IF EXISTS public.document_sentences
       ADD COLUMN IF NOT EXISTS fts_vector tsvector
-        GENERATED ALWAYS AS (to_tsvector('english', COALESCE(sentence_text, ''))) STORED;
+        GENERATED ALWAYS AS (to_tsvector('english', LEFT(COALESCE(sentence_text, ''), 500000))) STORED;
   `);
   pgm.sql(`
     CREATE INDEX IF NOT EXISTS idx_document_sentences_fts
@@ -26,7 +26,7 @@ export async function up(pgm) {
   pgm.sql(`
     ALTER TABLE IF EXISTS public.articles
       ADD COLUMN IF NOT EXISTS fts_vector tsvector
-        GENERATED ALWAYS AS (to_tsvector('english', COALESCE(title, '') || ' ' || COALESCE(description, '') || ' ' || COALESCE(content, ''))) STORED;
+        GENERATED ALWAYS AS (to_tsvector('english', LEFT(COALESCE(title, '') || ' ' || COALESCE(description, '') || ' ' || COALESCE(content, ''), 500000))) STORED;
   `);
   pgm.sql(`
     CREATE INDEX IF NOT EXISTS idx_articles_fts
