@@ -34,9 +34,12 @@ export async function validateStartup() {
   // 2. Paths
   const corpusPath = process.env.RAW_CORPUS_BASE_PATH;
   if (!corpusPath) {
-    warnings.push(
-      'RAW_CORPUS_BASE_PATH is not set. Using default hardcoded path (Risk of failure).',
-    );
+    const message = 'RAW_CORPUS_BASE_PATH is not set. Production must declare the raw corpus path.';
+    if (process.env.NODE_ENV === 'production') {
+      errors.push(message);
+    } else {
+      warnings.push(message);
+    }
   } else if (corpusPath && !fs.existsSync(corpusPath)) {
     warnings.push(`RAW_CORPUS_BASE_PATH is set to ${corpusPath} but directory does not exist.`);
   }

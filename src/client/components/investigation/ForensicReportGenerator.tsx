@@ -50,6 +50,21 @@ interface GeneratedReport {
   confidence: number;
 }
 
+interface ReportEntity {
+  id?: string | number;
+  name?: string;
+  fullName?: string;
+  redFlagRating?: number;
+  mentionCount?: number;
+}
+
+interface ReportData {
+  stats: Record<string, unknown> | null;
+  entities: ReportEntity[];
+  transactions: unknown[];
+  timeline: unknown[];
+}
+
 interface ForensicReportGeneratorProps {
   investigationId?: number;
   mobileMode?: boolean;
@@ -114,8 +129,8 @@ export default function ForensicReportGenerator({
   const [includeCharts, setIncludeCharts] = useState(true);
   const [classification, setClassification] = useState<string>('confidential');
 
-  const { data: _realData = { stats: null, entities: [], transactions: [], timeline: [] } } =
-    useQuery({
+  const { data: reportData = { stats: null, entities: [], transactions: [], timeline: [] } } =
+    useQuery<ReportData>({
       queryKey: ['forensic-report-data', investigationId || 'global'],
       queryFn: async () => {
         const endpoints = investigationId
@@ -136,7 +151,7 @@ export default function ForensicReportGenerator({
         const stats = await statsRes.json();
         const transactions = await txRes.json();
         const timeline = tlRes.ok ? await tlRes.json() : [];
-        let entities = [];
+        let entities: ReportEntity[] = [];
 
         if (investigationId) {
           const data = await entRes.json();
@@ -159,6 +174,42 @@ export default function ForensicReportGenerator({
       },
     });
 
+  const buildSectionContent = (section: string, data: ReportData): string => {
+    const entityNames = data.entities
+      .slice(0, 8)
+      .map((entity) => entity.fullName || entity.name)
+      .filter(Boolean)
+      .join(', ');
+    const metrics = [
+      `entities reviewed: ${data.entities.length}`,
+      `transactions reviewed: ${data.transactions.length}`,
+      `timeline events reviewed: ${data.timeline.length}`,
+    ];
+
+    switch (section) {
+      case 'executive_summary':
+        return `This briefing summarizes the currently loaded archive data for ${investigationId ? `investigation ${investigationId}` : 'the global corpus'}. Scope includes ${metrics.join(', ')}. ${entityNames ? `Primary entities in the current extraction window: ${entityNames}.` : 'No entities were returned by the current data window.'}`;
+      case 'methodology':
+        return `The report was assembled from live API responses at generation time. Counts and entity references are derived from the active archive endpoints; no synthetic evidence identifiers or placeholder findings are inserted.`;
+      case 'findings':
+        return entityNames
+          ? `Current high-priority entity window: ${entityNames}. Review source-linked evidence before treating any relationship, claim, or risk score as a final finding.`
+          : 'No entity findings are available from the current API response. Treat this as an empty-data state rather than an evidentiary conclusion.';
+      case 'evidence':
+        return includeEvidence
+          ? `Evidence attachment is enabled. Chain-of-custody references must be resolved from source-linked investigation evidence and exported manifests before external use.`
+          : 'Evidence attachment is disabled for this report.';
+      case 'analysis':
+        return `Analysis coverage is based on ${metrics.join(', ')}. Generated prose is limited to summarizing returned records and does not introduce new factual claims.`;
+      case 'conclusions':
+        return `Conclusion state: review required. This report is a navigation and briefing artifact over current archive data, not a substitute for source-document verification.`;
+      case 'recommendations':
+        return 'Recommended next steps: verify cited source documents, resolve missing provenance states, review high-risk entities in the ambiguity queue, and export an evidence packet only after manifest checks pass.';
+      default:
+        return `Section ${section} is included by the selected template. No additional source-backed records were available for this section.`;
+    }
+  };
+
   const generateReport = async () => {
     if (!selectedTemplate) return;
     setIsGenerating(true);
@@ -178,26 +229,39 @@ export default function ForensicReportGenerator({
       clearInterval(intv);
       setGenerationProgress(100);
       const template = templates.find((t) => t.id === selectedTemplate)!;
+      const evidenceRefs = includeEvidence
+        ? reportData.entities
+            .slice(0, 5)
+            .map((entity) => entity.id)
+            .filter((id): id is string | number => id !== undefined && id !== null)
+            .map((id) => `entity:${id}`)
+        : [];
+      const generatedSections = template.sections.map((s) => ({
+        id: s,
+        title: s.replace('_', ' ').toUpperCase(),
+        type: s,
+        content: buildSectionContent(s, reportData),
+        evidence: evidenceRefs,
+        confidence: evidenceRefs.length > 0 || reportData.entities.length > 0 ? 80 : 0,
+        sources: ['Live archive API'],
+      }));
+      const wordCount = generatedSections.reduce(
+        (count, section) => count + section.content.split(/\s+/).filter(Boolean).length,
+        0,
+      );
       const report: GeneratedReport = {
         id: `FR-${Date.now()}`,
         title: reportTitle || template.name,
         template: selectedTemplate,
-        sections: template.sections.map((s) => ({
-          id: s,
-          title: s.replace('_', ' ').toUpperCase(),
-          type: s,
-          content: `Automated forensic output for ${s}... [Content placeholder for v18.3.4 extraction demo]`,
-          evidence: includeEvidence ? ['REF-001', 'REF-002'] : [],
-          confidence: 90,
-          sources: ['Intelligence Core'],
-        })),
+        sections: generatedSections,
         generatedAt: new Date().toISOString(),
-        generatedBy: 'Forensic Extraction Unit',
+        generatedBy: 'Live Archive Briefing Generator',
         classification,
-        totalPages: 12,
-        wordCount: 3450,
-        evidenceCount: 18,
-        confidence: 92,
+        totalPages: Math.max(1, Math.ceil(wordCount / 450)),
+        wordCount,
+        evidenceCount: evidenceRefs.length,
+        confidence:
+          generatedSections.length > 0 ? Math.round(reportData.entities.length ? 80 : 0) : 0,
       };
       setGeneratedReport(report);
       setIsGenerating(false);
@@ -206,7 +270,19 @@ export default function ForensicReportGenerator({
 
   const exportReport = (format: string) => {
     if (!generatedReport) return;
-    const content = `[${generatedReport.classification.toUpperCase()}] ${generatedReport.title}\n\nGenerated: ${generatedReport.generatedAt}\n\nSummary Content...`;
+    const content = [
+      `[${generatedReport.classification.toUpperCase()}] ${generatedReport.title}`,
+      `Generated: ${generatedReport.generatedAt}`,
+      `Generated by: ${generatedReport.generatedBy}`,
+      `Evidence references: ${generatedReport.evidenceCount}`,
+      '',
+      ...generatedReport.sections.flatMap((section) => [
+        section.title,
+        section.content,
+        section.evidence.length ? `Evidence: ${section.evidence.join(', ')}` : 'Evidence: none',
+        '',
+      ]),
+    ].join('\n');
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
