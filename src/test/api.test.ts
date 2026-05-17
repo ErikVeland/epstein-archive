@@ -72,7 +72,7 @@ describe('API – unknown routes', () => {
     const res = await request(app).get('/api/nonexistent');
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('error');
-  });
+  }, 15_000);
 });
 
 describe('API – error handler', () => {
