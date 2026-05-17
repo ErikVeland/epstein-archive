@@ -203,6 +203,7 @@ router.post(
         },
         undefined,
         (req as RequestWithId).requestId,
+        { failClosed: true },
       );
 
       res.status(201).json({
@@ -298,6 +299,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
         { reason: 'quarantined' },
         undefined,
         (req as RequestWithId).requestId,
+        { failClosed: false },
       );
       return res
         .status(403)
@@ -313,6 +315,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
       {},
       undefined,
       (req as RequestWithId).requestId,
+      { failClosed: false },
     );
 
     const metadata = readRecord(evidence.metadata);

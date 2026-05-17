@@ -92,6 +92,7 @@ router.post(
         { username, role },
         undefined,
         req.requestId,
+        { failClosed: true },
       );
       res.status(201).json({ id, username, email, role });
     } catch (e) {
@@ -151,6 +152,7 @@ router.put(
         { username, role },
         undefined,
         req.requestId,
+        { failClosed: currentUser.role === 'admin' },
       );
       res.json({ success: true });
     } catch (e) {
@@ -173,7 +175,18 @@ router.delete(
       }
 
       await deleteUser(id);
-      await logAudit('delete_user', req.user?.id || null, 'user', id, {}, undefined, req.requestId);
+      await logAudit(
+        'delete_user',
+        req.user?.id || null,
+        'user',
+        id,
+        {},
+        undefined,
+        req.requestId,
+        {
+          failClosed: true,
+        },
+      );
       res.json({ success: true });
     } catch (e) {
       next(e);

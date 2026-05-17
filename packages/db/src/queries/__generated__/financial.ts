@@ -39,16 +39,31 @@ export interface IGetTransactionsQuery {
 const getTransactionsIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 76, b: 82 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 281, b: 287 }] },
   ],
   statement:
-    'SELECT * FROM financial_transactions \nORDER BY transaction_date DESC \nLIMIT :limit!',
+    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions \nORDER BY transaction_date DESC \nLIMIT :limit!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM financial_transactions
+ * SELECT
+ *   id,
+ *   from_entity,
+ *   to_entity,
+ *   amount,
+ *   currency,
+ *   transaction_date,
+ *   transaction_type,
+ *   method,
+ *   risk_level,
+ *   description,
+ *   investigation_id,
+ *   source_document_id,
+ *   metadata_json,
+ *   created_at
+ * FROM financial_transactions
  * ORDER BY transaction_date DESC
  * LIMIT :limit!
  * ```
@@ -93,17 +108,32 @@ const getTransactionsByInvestigationIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 63, b: 79 }],
+      locs: [{ a: 268, b: 284 }],
     },
   ],
   statement:
-    'SELECT * FROM financial_transactions \nWHERE investigation_id = :investigationId!::bigint\nORDER BY transaction_date DESC',
+    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions \nWHERE investigation_id = :investigationId!::bigint\nORDER BY transaction_date DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM financial_transactions
+ * SELECT
+ *   id,
+ *   from_entity,
+ *   to_entity,
+ *   amount,
+ *   currency,
+ *   transaction_date,
+ *   transaction_type,
+ *   method,
+ *   risk_level,
+ *   description,
+ *   investigation_id,
+ *   source_document_id,
+ *   metadata_json,
+ *   created_at
+ * FROM financial_transactions
  * WHERE investigation_id = :investigationId!::bigint
  * ORDER BY transaction_date DESC
  * ```
@@ -150,19 +180,34 @@ const getTransactionsByEntityIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 58, b: 69 },
-        { a: 86, b: 97 },
+        { a: 263, b: 274 },
+        { a: 291, b: 302 },
       ],
     },
   ],
   statement:
-    'SELECT * FROM financial_transactions \nWHERE from_entity = :entityName! OR to_entity = :entityName!\nORDER BY transaction_date DESC',
+    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions \nWHERE from_entity = :entityName! OR to_entity = :entityName!\nORDER BY transaction_date DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM financial_transactions
+ * SELECT
+ *   id,
+ *   from_entity,
+ *   to_entity,
+ *   amount,
+ *   currency,
+ *   transaction_date,
+ *   transaction_type,
+ *   method,
+ *   risk_level,
+ *   description,
+ *   investigation_id,
+ *   source_document_id,
+ *   metadata_json,
+ *   created_at
+ * FROM financial_transactions
  * WHERE from_entity = :entityName! OR to_entity = :entityName!
  * ORDER BY transaction_date DESC
  * ```

@@ -4,7 +4,7 @@ import {
   getEntitiesInEmail,
   getKnownEntitySenders,
 } from '../services/emailClassificationService.js';
-import { performanceCache } from '../performanceCache.js';
+import { cacheService } from '../cache/cacheService.js';
 import {
   mapEmailMailboxesResponseDto,
   mapEmailMessageBodyDto,
@@ -29,11 +29,15 @@ import {
 } from '../db/healthQueries.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import { authenticateRequest } from '../auth/middleware.js';
 
 import { searchDocumentsSemantic } from '../semantic/search.js';
 import { communicationsRepository } from '../db/communicationsRepository.js';
 
 const router = express.Router();
+
+// All email routes require authentication — sensitive investigative communications
+router.use(authenticateRequest);
 
 // GET /api/emails/analytics/matrix
 router.get('/analytics/matrix', async (_req, res, next) => {
@@ -259,7 +263,7 @@ router.get('/mailboxes', validate(mailboxesSchema), async (req, res, next) => {
   try {
     const showSuppressedJunk = (req.query as Record<string, unknown>).showSuppressedJunk === true;
     const cacheKey = `emails:mailboxes:${showSuppressedJunk ? 'all' : 'filtered'}`;
-    const cached = performanceCache.get<unknown>(cacheKey);
+    const cached = cacheService.get<unknown>('email', cacheKey);
     if (cached) {
       return res.json(cached);
     }
@@ -302,7 +306,7 @@ router.get('/mailboxes', validate(mailboxesSchema), async (req, res, next) => {
     };
 
     const dto = mapEmailMailboxesResponseDto(payload);
-    performanceCache.set(cacheKey, dto, LIST_TTL_SECONDS);
+    cacheService.set('email', cacheKey, dto, LIST_TTL_SECONDS);
     res.json(dto);
   } catch (error) {
     next(error);
@@ -513,7 +517,7 @@ router.get('/messages/:messageId/body', validate(messageBodySchema), async (req,
     const { messageId } = req.params;
     const showQuoted = (req.query as Record<string, unknown>).showQuoted === true;
     const cacheKey = `emails:message:${messageId}:body:${showQuoted ? 'quoted' : 'collapsed'}`;
-    const cached = performanceCache.get<unknown>(cacheKey);
+    const cached = cacheService.get<unknown>('email', cacheKey);
     if (cached) {
       return res.json(cached);
     }
@@ -580,7 +584,7 @@ router.get('/messages/:messageId/body', validate(messageBodySchema), async (req,
     };
 
     const dto = mapEmailMessageBodyDto(payload);
-    performanceCache.set(cacheKey, dto, BODY_TTL_SECONDS);
+    cacheService.set('email', cacheKey, dto, BODY_TTL_SECONDS);
     res.json(dto);
   } catch (error) {
     next(error);

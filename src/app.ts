@@ -81,6 +81,7 @@ import { purgeCacheByPattern } from './server/middleware/cache.js';
 import { validate } from './server/middleware/validate.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
+import { apiErrorEnvelopeMiddleware } from './server/middleware/apiErrorEnvelope.js';
 import { queryCounter } from './server/queryCounter.js';
 import { shouldBootInDegradedMode } from './server/utils/startupMode.js';
 import { initMatViewScheduler } from './server/services/matViewRefresh.js';
@@ -250,6 +251,7 @@ export class App {
 
     // 1. Core Security & Performance
     this.app.use(requestIdMiddleware);
+    this.app.use(apiErrorEnvelopeMiddleware);
     this.app.use((req, res, next) => {
       const requestId = req.requestId;
       if (!requestId) {

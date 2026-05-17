@@ -1,6 +1,6 @@
 import { Router, Response, Request, NextFunction } from 'express';
 import { mediaRepository } from '../db/mediaRepository.js';
-import { cacheResponse } from '../utils/perfCache.js';
+import { cacheResponse } from '../middleware/cache.js';
 import crypto from 'crypto';
 import path from 'path';
 import { z } from 'zod';

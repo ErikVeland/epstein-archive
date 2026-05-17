@@ -28,7 +28,21 @@ export const financialRepository = {
   getTransactionById: async (id: string | number): Promise<FinancialTransaction | null> => {
     const res = await getApiPool().query(
       `
-      SELECT *
+      SELECT
+        id,
+        from_entity,
+        to_entity,
+        amount,
+        currency,
+        transaction_date,
+        transaction_type,
+        method,
+        risk_level,
+        description,
+        investigation_id,
+        source_document_id,
+        metadata_json,
+        created_at
       FROM financial_transactions
       WHERE id = $1
       LIMIT 1

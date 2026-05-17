@@ -1,4 +1,5 @@
 import { getApiPool } from './connection.js';
+import { createHash } from 'crypto';
 
 /**
  * Data Quality Repository
@@ -201,26 +202,65 @@ export const dataQualityRepository = {
   logAudit: async (entry: AuditLogEntry): Promise<number> => {
     const pool = getApiPool();
     const payload = entry.payload || {};
-    const { rows } = await pool.query(
-      `
-      INSERT INTO audit_log (actor_id, action, target_type, target_id, payload_json, doc_id, ent_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id
-    `,
-      [
-        entry.actorId || 'system',
-        entry.action,
-        entry.targetType,
-        entry.targetId || null,
-        JSON.stringify(payload),
-        entry.targetType === 'document'
-          ? entry.targetId
-          : payload.docId || payload.document_id || null,
-        entry.targetType === 'entity' ? entry.targetId : payload.entId || payload.entity_id || null,
-      ],
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const { rows: prevRows } = await client.query<{ event_hash: string | null }>(
+        `
+          SELECT event_hash
+          FROM audit_events_v2
+          ORDER BY id DESC
+          LIMIT 1
+          FOR UPDATE
+        `,
+      );
+      const prevEventHash = prevRows[0]?.event_hash ?? null;
+      const canonical = JSON.stringify({
+        actorId: entry.actorId || 'system',
+        actorType: entry.actorId ? 'user' : 'system',
+        action: entry.action,
+        targetType: entry.targetType,
+        targetId: entry.targetId || null,
+        payload,
+      });
+      const eventHash = createHash('sha256')
+        .update(String(prevEventHash || '') + '|' + canonical)
+        .digest('hex');
 
-    return parseInt(rows[0].id, 10);
+      const { rows } = await client.query<{ id: string }>(
+        `
+          INSERT INTO audit_events_v2 (
+            actor_id,
+            actor_type,
+            action,
+            target_type,
+            target_id,
+            payload_json,
+            prev_event_hash,
+            event_hash
+          )
+          VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+          RETURNING id
+        `,
+        [
+          entry.actorId || 'system',
+          entry.actorId ? 'user' : 'system',
+          entry.action,
+          entry.targetType,
+          entry.targetId || null,
+          JSON.stringify(payload),
+          prevEventHash,
+          eventHash,
+        ],
+      );
+      await client.query('COMMIT');
+      return parseInt(rows[0].id, 10);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 
   /**
@@ -254,13 +294,19 @@ export const dataQualityRepository = {
 
     const { rows } = await pool.query(
       `
-      SELECT id, timestamp, actor_id as "actorId", action, target_type as "targetType", 
-             target_id as "targetId", payload_json as "payloadJson"
-      FROM audit_log
-      ${whereClause}
-      ORDER BY timestamp DESC
-      LIMIT $${paramCounter}
-    `,
+        SELECT
+          id,
+          created_at as timestamp,
+          actor_id as "actorId",
+          action,
+          target_type as "targetType",
+          target_id as "targetId",
+          payload_json as "payloadJson"
+        FROM audit_events_v2
+        ${whereClause}
+        ORDER BY created_at DESC
+        LIMIT $${paramCounter}
+      `,
       params,
     );
 

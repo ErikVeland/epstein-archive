@@ -62,6 +62,8 @@ const getSubjectCardsIR: any = {
         { a: 893, b: 903 },
         { a: 929, b: 939 },
         { a: 960, b: 970 },
+        { a: 2606, b: 2616 },
+        { a: 2691, b: 2701 },
       ],
     },
     {
@@ -69,8 +71,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 999, b: 1009 },
-        { a: 1015, b: 1025 },
+        { a: 2367, b: 2377 },
+        { a: 2383, b: 2393 },
       ],
     },
     {
@@ -78,8 +80,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1064, b: 1074 },
-        { a: 1079, b: 1089 },
+        { a: 2432, b: 2442 },
+        { a: 2447, b: 2457 },
       ],
     },
     {
@@ -87,8 +89,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1128, b: 1138 },
-        { a: 1143, b: 1153 },
+        { a: 2496, b: 2506 },
+        { a: 2511, b: 2521 },
       ],
     },
     {
@@ -96,8 +98,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1188, b: 1192 },
-        { a: 1197, b: 1201 },
+        { a: 2556, b: 2560 },
+        { a: 2565, b: 2569 },
       ],
     },
     {
@@ -105,15 +107,15 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1264, b: 1270 },
-        { a: 1319, b: 1325 },
+        { a: 2828, b: 2834 },
+        { a: 2883, b: 2889 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1408, b: 1414 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1423, b: 1430 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 2972, b: 2978 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 2987, b: 2994 }] },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.full_name as "fullName",\n  e.primary_role as "primaryRole",\n  e.bio,\n  e.mentions,\n  e.risk_level as "riskLevel",\n  e.red_flag_rating as "redFlagRating",\n  e.connections_summary as "connections",\n  e.was_agentic as "wasAgentic",\n  (SELECT COUNT(*)::integer FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = \'media\') as "mediaCount",\n  (SELECT COUNT(*)::integer FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",\n  (\n    SELECT mi.id\n    FROM media_items mi\n    LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id::text\n    WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)\n      AND mi.file_type ILIKE \'image/%\'\n    ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC\n    LIMIT 1\n  ) as "topPhotoId"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = \'name\' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = \'recent\' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!',
+    "SELECT \n  e.id,\n  e.full_name as \"fullName\",\n  e.primary_role as \"primaryRole\",\n  e.bio,\n  e.mentions,\n  e.risk_level as \"riskLevel\",\n  e.red_flag_rating as \"redFlagRating\",\n  e.connections_summary as \"connections\",\n  e.was_agentic as \"wasAgentic\",\n  (SELECT COUNT(*)::integer FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = 'media') as \"mediaCount\",\n  (SELECT COUNT(*)::integer FROM black_book_entries WHERE person_id = e.id) as \"blackBookCount\",\n  (\n    SELECT mi.id\n    FROM media_items mi\n    LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id::text\n    WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)\n      AND mi.file_type ILIKE 'image/%'\n    ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC\n    LIMIT 1\n  ) as \"topPhotoId\"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND COALESCE(e.junk_tier, 'clean') = 'clean'\n  AND COALESCE(e.quarantine_status, 0) = 0\n  AND e.full_name IS NOT NULL\n  AND BTRIM(e.full_name) != ''\n  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\\M[:\\s-]*'\n  AND LOWER(e.full_name) !~* '^(on|at|in|with)\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\\M'\n  AND LOWER(e.full_name) !~* '\\m(mon|tue|wed|thu|fri|sat|sun)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m([[:alpha:]]{3,})\\s+\\1\\M'\n  AND LOWER(e.full_name) !~* '\\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\\M'\n  AND LOWER(e.full_name) !~* '\\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\\M'\n  AND LOWER(e.full_name) !~* '^(east|west|north|south)\\s+(if|aft|aftstreet|street|road|avenue)\\M'\n  AND LOWER(e.full_name) !~* '\\m(direction|provided)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m[[:alpha:]]+''?s\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\n  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  CASE\n    WHEN :searchTerm::text IS NULL AND LOWER(e.full_name) = 'jeffrey epstein' THEN 0\n    WHEN :searchTerm::text IS NULL AND LOWER(e.full_name) = 'donald trump' THEN 1\n    ELSE 2\n  END ASC,\n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = 'name' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = 'recent' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!",
 };
 
 /**
@@ -142,11 +144,31 @@ const getSubjectCardsIR: any = {
  *   ) as "topPhotoId"
  * FROM entities e
  * WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
+ *   AND COALESCE(e.junk_tier, 'clean') = 'clean'
+ *   AND COALESCE(e.quarantine_status, 0) = 0
+ *   AND e.full_name IS NOT NULL
+ *   AND BTRIM(e.full_name) != ''
+ *   AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*'
+ *   AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M'
+ *   AND LOWER(e.full_name) !~* '\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m([[:alpha:]]{3,})\s+\1\M'
+ *   AND LOWER(e.full_name) !~* '\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M'
+ *   AND LOWER(e.full_name) !~* '\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M'
+ *   AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M'
+ *   AND LOWER(e.full_name) !~* '\m(direction|provided)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
+ *   AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
  *   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)
  *   AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)
  *   AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)
  *   AND (e.primary_role = :role OR :role IS NULL)
  * ORDER BY
+ *   CASE
+ *     WHEN :searchTerm::text IS NULL AND LOWER(e.full_name) = 'jeffrey epstein' THEN 0
+ *     WHEN :searchTerm::text IS NULL AND LOWER(e.full_name) = 'donald trump' THEN 1
+ *     ELSE 2
+ *   END ASC,
  *   COALESCE(e.is_vip, 0) DESC,
  *   CASE WHEN :sortBy = 'name' THEN e.full_name END ASC,
  *   CASE WHEN :sortBy = 'recent' THEN e.id END DESC,
@@ -195,13 +217,13 @@ const countSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 211, b: 221 },
-        { a: 227, b: 237 },
+        { a: 1579, b: 1589 },
+        { a: 1595, b: 1605 },
       ],
     },
   ],
   statement:
-    'SELECT COUNT(*)::integer as total \nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)',
+    "SELECT COUNT(*)::integer as total \nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND COALESCE(e.junk_tier, 'clean') = 'clean'\n  AND COALESCE(e.quarantine_status, 0) = 0\n  AND e.full_name IS NOT NULL\n  AND BTRIM(e.full_name) != ''\n  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\\M[:\\s-]*'\n  AND LOWER(e.full_name) !~* '^(on|at|in|with)\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\\M'\n  AND LOWER(e.full_name) !~* '\\m(mon|tue|wed|thu|fri|sat|sun)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m([[:alpha:]]{3,})\\s+\\1\\M'\n  AND LOWER(e.full_name) !~* '\\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\\M'\n  AND LOWER(e.full_name) !~* '\\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\\M'\n  AND LOWER(e.full_name) !~* '^(east|west|north|south)\\s+(if|aft|aftstreet|street|road|avenue)\\M'\n  AND LOWER(e.full_name) !~* '\\m(direction|provided)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m[[:alpha:]]+''?s\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\n  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)",
 };
 
 /**
@@ -210,6 +232,21 @@ const countSubjectCardsIR: any = {
  * SELECT COUNT(*)::integer as total
  * FROM entities e
  * WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
+ *   AND COALESCE(e.junk_tier, 'clean') = 'clean'
+ *   AND COALESCE(e.quarantine_status, 0) = 0
+ *   AND e.full_name IS NOT NULL
+ *   AND BTRIM(e.full_name) != ''
+ *   AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*'
+ *   AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M'
+ *   AND LOWER(e.full_name) !~* '\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m([[:alpha:]]{3,})\s+\1\M'
+ *   AND LOWER(e.full_name) !~* '\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M'
+ *   AND LOWER(e.full_name) !~* '\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M'
+ *   AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M'
+ *   AND LOWER(e.full_name) !~* '\m(direction|provided)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
+ *   AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
  *   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)
  * ```
  */

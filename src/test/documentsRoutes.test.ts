@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getDocumentLineage = vi.fn();
 
+process.env.JWT_SECRET = 'test-secret-for-documents-routes';
+
 vi.mock('../server/db/documentsRepository.js', () => ({
   documentsRepository: {
     getDocuments: vi.fn(),

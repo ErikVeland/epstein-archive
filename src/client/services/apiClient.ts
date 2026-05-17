@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import { Person } from '@client/types';
 import type { MediaImage, MediaTag } from '@client/types/media.types';
-import type { SearchFilters, PaginatedResponse, RealPerson } from './optimizedDataLoader';
 import { mapEntityListItemToPerson } from '@client/mappers/entityMapper';
 import type {
   EmailMailboxesResponseDto,
@@ -91,6 +90,45 @@ export interface MediaBatchResult<T = Record<string, unknown>> {
 export interface MediaBatchResponse<T = Record<string, unknown>> {
   ok?: boolean;
   results: MediaBatchResult<T>[];
+}
+
+export interface RealPerson extends Person {
+  fullName: string;
+  primaryRole: string;
+  secondaryRoles: string[];
+  keyEvidence: string;
+  fileReferences: Array<{
+    filename: string;
+    filePath: string;
+    content?: string;
+    contextText?: string;
+    redFlagRating?: number;
+  }>;
+  connectionsToEpstein: string;
+  title?: string;
+  role?: string;
+  title_variants?: string[];
+}
+
+export interface PaginatedResponse {
+  data: RealPerson[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface SearchFilters {
+  searchTerm?: string;
+  likelihoodScore?: ('HIGH' | 'MEDIUM' | 'LOW')[];
+  minMentions?: number;
+  maxMentions?: number;
+  evidenceTypes?: string[];
+  sortBy?: 'name' | 'mentions' | 'red_flag' | 'risk';
+  sortOrder?: 'asc' | 'desc';
+  minRedFlagIndex?: number;
+  maxRedFlagIndex?: number;
+  entityType?: string;
 }
 
 type EntitySearchFilters = Omit<SearchFilters, 'likelihoodScore'> & {

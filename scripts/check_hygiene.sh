@@ -45,4 +45,49 @@ if (( ${#violations[@]} > 0 )); then
   exit 1
 fi
 
+retired_paths=(
+  'src/server/performanceCache.ts'
+  'src/server/utils/perfCache.ts'
+  'src/client/services/OptimizedDataService.ts'
+  'src/client/services/optimizedDataLoader.ts'
+)
+
+retired_import_patterns=(
+  'performanceCache'
+  'utils/perfCache'
+  'OptimizedDataService'
+  'optimizedDataLoader'
+)
+
+architecture_violations=()
+for file in "${retired_paths[@]}"; do
+  if [[ -e "${file}" ]]; then
+    architecture_violations+=("${file} exists after retirement")
+  fi
+done
+
+for pat in "${retired_import_patterns[@]}"; do
+  if rg -n "${pat}" src scripts packages \
+    --glob '*.ts' --glob '*.tsx' --glob '*.js' --glob '*.mjs' \
+    --glob '!scripts/check_hygiene.sh' >/tmp/epstein_hygiene_rg.$$ 2>/dev/null; then
+    while IFS= read -r line; do
+      architecture_violations+=("${line}")
+    done </tmp/epstein_hygiene_rg.$$
+  fi
+  rm -f /tmp/epstein_hygiene_rg.$$
+done
+
+if (( ${#architecture_violations[@]} > 0 )); then
+  echo "❌ Repo hygiene check failed: retired duplicate architecture surfaces were found:"
+  printf '%s\n' "${architecture_violations[@]}" | sort -u | while IFS= read -r v; do
+    echo "  - ${v}"
+  done
+  echo ""
+  echo "Use the canonical replacements:"
+  echo "  - server cache: src/server/cache/cacheService.ts"
+  echo "  - HTTP cache middleware: src/server/middleware/cache.ts"
+  echo "  - client data access: src/client/services/apiClient.ts with React Query"
+  exit 1
+fi
+
 exit 0

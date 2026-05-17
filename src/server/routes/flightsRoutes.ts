@@ -2,6 +2,7 @@ import express from 'express';
 import { z } from 'zod';
 import { flightsRepository } from '../db/flightsRepository.js';
 import { validate, flightsQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
+import { apiRateLimiter } from '../middleware/rateLimit.js';
 
 const router = express.Router();
 
@@ -12,7 +13,9 @@ const coOccurrenceQuerySchema = z.object({
   }),
 });
 
-router.get('/', validate(flightsQuerySchema), async (req, res, next) => {
+// GET /api/flights
+// Rate limited to prevent abuse
+router.get('/', apiRateLimiter, validate(flightsQuerySchema), async (req, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
     const page = Math.max(1, Number(q.page || 1));

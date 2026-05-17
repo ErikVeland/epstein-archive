@@ -2,8 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
-import { optimizedDataService } from '@client/services/OptimizedDataService';
-import type { SearchFilters } from '@client/services/optimizedDataLoader';
+import { apiClient, type SearchFilters } from '@client/services/apiClient';
 import { Person } from '@client/types';
 import { useNavigation } from '@client/services/NavigationContext';
 import { useUndo } from './useUndo';
@@ -102,9 +101,6 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
       showRedFlagOnly,
     ],
     queryFn: async () => {
-      const dataService = optimizedDataService;
-      await dataService.initialize();
-
       const filters: SearchFilters = {
         searchTerm: debouncedSearchTerm || undefined,
         minRedFlagIndex: showRedFlagOnly ? Math.max(1, minRedFlagRating) : minRedFlagRating,
@@ -131,7 +127,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
         filters.sortOrder = 'asc';
       }
 
-      const result = await dataService.getPaginatedData(filters, 1);
+      const result = await apiClient.getEntities(filters, 1, 24);
       return result.data;
     },
     placeholderData: (previousData) => previousData,
@@ -158,14 +154,19 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
     queryFn: async () => {
       const q = (debouncedSearchTerm || '').trim();
       if (!q) return [];
-      const r = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=8&snippets=true`);
-      const json = await r.json();
-      return (json.documents || []).map((d: Record<string, unknown>) => ({
-        id: Number(d.id),
-        title: String(d.title),
-        redFlagRating: Number(d.redFlagRating),
-        snippet: String(d.snippet || d.contentPreview || ''),
-      }));
+      const json = await apiClient.get<Record<string, unknown>>(
+        `/search?q=${encodeURIComponent(q)}&limit=8&snippets=true`,
+      );
+      const documents = Array.isArray(json.documents) ? json.documents : [];
+      return documents.map((d) => {
+        const doc = d as Record<string, unknown>;
+        return {
+          id: Number(doc.id),
+          title: String(doc.title),
+          redFlagRating: Number(doc.redFlagRating),
+          snippet: String(doc.snippet || doc.contentPreview || ''),
+        };
+      });
     },
     enabled: Boolean(debouncedSearchTerm.trim()),
     placeholderData: (previousData) => previousData,

@@ -4,6 +4,7 @@ import { validate, searchSchema } from '../middleware/validate.js';
 import { mapUnifiedSearchResponseDto } from '../mappers/searchDtoMapper.js';
 import { logger } from '../services/Logger.js';
 import { getSemanticCapability } from '../semantic/capability.js';
+import { apiRateLimiter } from '../middleware/rateLimit.js';
 
 const router = express.Router();
 
@@ -27,7 +28,9 @@ router.get('/capability', async (_req, res, next) => {
   }
 });
 
-router.get('/', validate(searchSchema), async (req, res, next) => {
+// GET /api/search
+// Rate limited to prevent abuse and protect search infrastructure
+router.get('/', apiRateLimiter, validate(searchSchema), async (req, res, next) => {
   try {
     const q = String(req.query.q || req.query.query || '').trim();
     const limit = Math.min(100, Math.max(1, Number(req.query.limit || 20)));

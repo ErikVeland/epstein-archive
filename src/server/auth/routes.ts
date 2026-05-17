@@ -9,22 +9,19 @@ import { logger } from '../services/Logger.js';
 import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
-const JWT_ACCESS_SECRET = process.env.JWT_SECRET || 'dev-access-secret';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret';
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+const JWT_ACCESS_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_ACCESS_SECRET || !JWT_REFRESH_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
     logger.fatal('CRITICAL: JWT_SECRET and JWT_REFRESH_SECRET must be set in production.');
     process.exit(1);
   }
-} else if (
-  JWT_ACCESS_SECRET === 'dev-access-secret' ||
-  JWT_REFRESH_SECRET === 'dev-refresh-secret'
-) {
-  const mode = process.env.NODE_ENV || 'development';
-  logger.warn(`Using fallback JWT secret(s) in ${mode} mode`);
+  throw new Error('JWT_SECRET and JWT_REFRESH_SECRET must be set. No insecure fallback allowed.');
 }
+
+const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Rate limiter for login/refresh: 5 attempts per 15 mins
 const authLimiter = rateLimit({
@@ -42,12 +39,14 @@ type AuthenticatedRequest = express.Request & {
 const generateAccessToken = (user: TokenUser) => {
   return jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_ACCESS_SECRET, {
     expiresIn: '15m',
+    algorithm: 'HS256',
   });
 };
 
 const generateRefreshToken = (user: TokenUser) => {
   return jwt.sign({ id: user.id }, JWT_REFRESH_SECRET, {
     expiresIn: '7d',
+    algorithm: 'HS256',
   });
 };
 
@@ -151,7 +150,9 @@ router.post('/refresh', authLimiter, async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { id: number };
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET, { algorithms: ['HS256'] }) as {
+      id: number;
+    };
     const pool = getApiPool();
     const refreshTokenHash = hashToken(refreshToken);
 

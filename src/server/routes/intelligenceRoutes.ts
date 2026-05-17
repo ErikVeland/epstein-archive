@@ -1,6 +1,6 @@
 import express from 'express';
 import { intelligenceRepository } from '../db/intelligenceRepository.js';
-import { cacheResponse } from '../utils/perfCache.js';
+import { cacheResponse } from '../middleware/cache.js';
 import { logger } from '../services/Logger.js';
 
 const router = express.Router();

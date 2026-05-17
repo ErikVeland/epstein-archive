@@ -37,10 +37,10 @@ const searchEntitiesIR: any = {
         { a: 306, b: 317 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 435, b: 441 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1713, b: 1719 }] },
   ],
   statement:
-    "SELECT\n  e.id,\n  e.full_name          AS \"fullName\",\n  e.primary_role       AS \"primaryRole\",\n  e.aliases,\n  e.red_flag_rating    AS \"redFlagRating\",\n  ts_rank_cd(e.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM entities e\nWHERE e.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)\n  AND COALESCE(e.junk_tier, 'clean') = 'clean'\n  AND COALESCE(e.quarantine_status, 0) = 0\nORDER BY rank DESC\nLIMIT :limit!",
+    "SELECT\n  e.id,\n  e.full_name          AS \"fullName\",\n  e.primary_role       AS \"primaryRole\",\n  e.aliases,\n  e.red_flag_rating    AS \"redFlagRating\",\n  ts_rank_cd(e.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM entities e\nWHERE e.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)\n  AND COALESCE(e.junk_tier, 'clean') = 'clean'\n  AND COALESCE(e.quarantine_status, 0) = 0\n  AND e.full_name IS NOT NULL\n  AND BTRIM(e.full_name) != ''\n  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\\M[:\\s-]*'\n  AND LOWER(e.full_name) !~* '^(on|at|in|with)\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\\M'\n  AND LOWER(e.full_name) !~* '\\m(mon|tue|wed|thu|fri|sat|sun)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m([[:alpha:]]{3,})\\s+\\1\\M'\n  AND LOWER(e.full_name) !~* '\\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\\M'\n  AND LOWER(e.full_name) !~* '\\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\\M'\n  AND LOWER(e.full_name) !~* '^(east|west|north|south)\\s+(if|aft|aftstreet|street|road|avenue)\\M'\n  AND LOWER(e.full_name) !~* '\\m(direction|provided)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m[[:alpha:]]+''?s\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\n  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\nORDER BY rank DESC\nLIMIT :limit!",
 };
 
 /**
@@ -57,6 +57,19 @@ const searchEntitiesIR: any = {
  * WHERE e.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
  *   AND COALESCE(e.junk_tier, 'clean') = 'clean'
  *   AND COALESCE(e.quarantine_status, 0) = 0
+ *   AND e.full_name IS NOT NULL
+ *   AND BTRIM(e.full_name) != ''
+ *   AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*'
+ *   AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M'
+ *   AND LOWER(e.full_name) !~* '\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m([[:alpha:]]{3,})\s+\1\M'
+ *   AND LOWER(e.full_name) !~* '\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M'
+ *   AND LOWER(e.full_name) !~* '\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M'
+ *   AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M'
+ *   AND LOWER(e.full_name) !~* '\m(direction|provided)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
+ *   AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
  * ORDER BY rank DESC
  * LIMIT :limit!
  * ```
@@ -99,10 +112,10 @@ const searchEntitiesPrefixIR: any = {
         { a: 286, b: 297 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 415, b: 421 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1693, b: 1699 }] },
   ],
   statement:
-    "SELECT\n  e.id,\n  e.full_name          AS \"fullName\",\n  e.primary_role       AS \"primaryRole\",\n  e.aliases,\n  e.red_flag_rating    AS \"redFlagRating\",\n  ts_rank_cd(e.fts_vector, to_tsquery('english', :searchTerm!), 32) AS rank\nFROM entities e\nWHERE e.fts_vector @@ to_tsquery('english', :searchTerm!)\n  AND COALESCE(e.junk_tier, 'clean') = 'clean'\n  AND COALESCE(e.quarantine_status, 0) = 0\nORDER BY rank DESC\nLIMIT :limit!",
+    "SELECT\n  e.id,\n  e.full_name          AS \"fullName\",\n  e.primary_role       AS \"primaryRole\",\n  e.aliases,\n  e.red_flag_rating    AS \"redFlagRating\",\n  ts_rank_cd(e.fts_vector, to_tsquery('english', :searchTerm!), 32) AS rank\nFROM entities e\nWHERE e.fts_vector @@ to_tsquery('english', :searchTerm!)\n  AND COALESCE(e.junk_tier, 'clean') = 'clean'\n  AND COALESCE(e.quarantine_status, 0) = 0\n  AND e.full_name IS NOT NULL\n  AND BTRIM(e.full_name) != ''\n  AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\\M[:\\s-]*'\n  AND LOWER(e.full_name) !~* '^(on|at|in|with)\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\\M'\n  AND LOWER(e.full_name) !~* '\\m(mon|tue|wed|thu|fri|sat|sun)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m([[:alpha:]]{3,})\\s+\\1\\M'\n  AND LOWER(e.full_name) !~* '\\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\\M'\n  AND LOWER(e.full_name) !~* '\\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\\M'\n  AND LOWER(e.full_name) !~* '^(east|west|north|south)\\s+(if|aft|aftstreet|street|road|avenue)\\M'\n  AND LOWER(e.full_name) !~* '\\m(direction|provided)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M\\s*$'\n  AND LOWER(e.full_name) !~* '\\m[[:alpha:]]+''?s\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\n  AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\nORDER BY rank DESC\nLIMIT :limit!",
 };
 
 /**
@@ -119,6 +132,19 @@ const searchEntitiesPrefixIR: any = {
  * WHERE e.fts_vector @@ to_tsquery('english', :searchTerm!)
  *   AND COALESCE(e.junk_tier, 'clean') = 'clean'
  *   AND COALESCE(e.quarantine_status, 0) = 0
+ *   AND e.full_name IS NOT NULL
+ *   AND BTRIM(e.full_name) != ''
+ *   AND LOWER(e.full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*'
+ *   AND LOWER(e.full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M'
+ *   AND LOWER(e.full_name) !~* '\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m([[:alpha:]]{3,})\s+\1\M'
+ *   AND LOWER(e.full_name) !~* '\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M'
+ *   AND LOWER(e.full_name) !~* '\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M'
+ *   AND LOWER(e.full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M'
+ *   AND LOWER(e.full_name) !~* '\m(direction|provided)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$'
+ *   AND LOWER(e.full_name) !~* '\m[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
+ *   AND LOWER(e.full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
  * ORDER BY rank DESC
  * LIMIT :limit!
  * ```
@@ -168,9 +194,9 @@ const searchDocumentsIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 321, b: 332 },
-        { a: 486, b: 497 },
-        { a: 584, b: 595 },
+        { a: 312, b: 323 },
+        { a: 414, b: 425 },
+        { a: 913, b: 924 },
       ],
     },
     {
@@ -178,8 +204,8 @@ const searchDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 605, b: 617 },
-        { a: 654, b: 666 },
+        { a: 437, b: 449 },
+        { a: 486, b: 498 },
       ],
     },
     {
@@ -187,8 +213,8 @@ const searchDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 682, b: 692 },
-        { a: 731, b: 741 },
+        { a: 516, b: 526 },
+        { a: 565, b: 575 },
       ],
     },
     {
@@ -196,38 +222,51 @@ const searchDocumentsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 756, b: 766 },
-        { a: 805, b: 815 },
+        { a: 592, b: 602 },
+        { a: 641, b: 651 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 848, b: 854 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 688, b: 694 }] },
   ],
   statement:
-    "SELECT\n  d.id,\n  d.file_name           AS \"fileName\",\n  d.file_path           AS \"filePath\",\n  d.evidence_type       AS \"evidenceType\",\n  d.red_flag_rating     AS \"redFlagRating\",\n  ts_headline('english',\n    coalesce(d.title, '') || ' ' || left(coalesce(d.content_refined, ''), 500),\n    websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2'\n  ) AS snippet,\n  ts_rank_cd(d.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM documents d\nWHERE d.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)\n  AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)\n  AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)\n  AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)\nORDER BY rank DESC\nLIMIT :limit!",
+    'WITH matched_docs AS (\n  SELECT\n    d.id,\n    d.file_name           AS "fileName",\n    d.file_path           AS "filePath",\n    d.evidence_type       AS "evidenceType",\n    d.red_flag_rating     AS "redFlagRating",\n    d.title,\n    d.content_refined,\n    ts_rank_cd(d.fts_vector, websearch_to_tsquery(\'english\', :searchTerm!), 32) AS rank\n  FROM documents d\n  WHERE d.fts_vector @@ websearch_to_tsquery(\'english\', :searchTerm!)\n    AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)\n    AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)\n    AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)\n  ORDER BY rank DESC\n  LIMIT :limit!\n)\nSELECT\n  id,\n  "fileName",\n  "filePath",\n  "evidenceType",\n  "redFlagRating",\n  ts_headline(\'english\',\n    coalesce(title, \'\') || \' \' || left(coalesce(content_refined, \'\'), 500),\n    websearch_to_tsquery(\'english\', :searchTerm!),\n    \'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2\'\n  ) AS snippet,\n  rank\nFROM matched_docs\nORDER BY rank DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH matched_docs AS (
+ *   SELECT
+ *     d.id,
+ *     d.file_name           AS "fileName",
+ *     d.file_path           AS "filePath",
+ *     d.evidence_type       AS "evidenceType",
+ *     d.red_flag_rating     AS "redFlagRating",
+ *     d.title,
+ *     d.content_refined,
+ *     ts_rank_cd(d.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank
+ *   FROM documents d
+ *   WHERE d.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
+ *     AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
+ *     AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
+ *     AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
+ *   ORDER BY rank DESC
+ *   LIMIT :limit!
+ * )
  * SELECT
- *   d.id,
- *   d.file_name           AS "fileName",
- *   d.file_path           AS "filePath",
- *   d.evidence_type       AS "evidenceType",
- *   d.red_flag_rating     AS "redFlagRating",
+ *   id,
+ *   "fileName",
+ *   "filePath",
+ *   "evidenceType",
+ *   "redFlagRating",
  *   ts_headline('english',
- *     coalesce(d.title, '') || ' ' || left(coalesce(d.content_refined, ''), 500),
+ *     coalesce(title, '') || ' ' || left(coalesce(content_refined, ''), 500),
  *     websearch_to_tsquery('english', :searchTerm!),
  *     'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2'
  *   ) AS snippet,
- *   ts_rank_cd(d.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank
- * FROM documents d
- * WHERE d.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
- *   AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
- *   AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
- *   AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
+ *   rank
+ * FROM matched_docs
  * ORDER BY rank DESC
- * LIMIT :limit!
  * ```
  */
 export const searchDocuments = new PreparedQuery<ISearchDocumentsParams, ISearchDocumentsResult>(
@@ -274,9 +313,9 @@ const searchDocumentsPrefixIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 311, b: 322 },
-        { a: 466, b: 477 },
-        { a: 554, b: 565 },
+        { a: 302, b: 313 },
+        { a: 394, b: 405 },
+        { a: 883, b: 894 },
       ],
     },
     {
@@ -284,8 +323,8 @@ const searchDocumentsPrefixIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 575, b: 587 },
-        { a: 624, b: 636 },
+        { a: 417, b: 429 },
+        { a: 466, b: 478 },
       ],
     },
     {
@@ -293,8 +332,8 @@ const searchDocumentsPrefixIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 652, b: 662 },
-        { a: 701, b: 711 },
+        { a: 496, b: 506 },
+        { a: 545, b: 555 },
       ],
     },
     {
@@ -302,38 +341,51 @@ const searchDocumentsPrefixIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 726, b: 736 },
-        { a: 775, b: 785 },
+        { a: 572, b: 582 },
+        { a: 621, b: 631 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 818, b: 824 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 668, b: 674 }] },
   ],
   statement:
-    "SELECT\n  d.id,\n  d.file_name           AS \"fileName\",\n  d.file_path           AS \"filePath\",\n  d.evidence_type       AS \"evidenceType\",\n  d.red_flag_rating     AS \"redFlagRating\",\n  ts_headline('english',\n    coalesce(d.title, '') || ' ' || left(coalesce(d.content_refined, ''), 500),\n    to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2'\n  ) AS snippet,\n  ts_rank_cd(d.fts_vector, to_tsquery('english', :searchTerm!), 32) AS rank\nFROM documents d\nWHERE d.fts_vector @@ to_tsquery('english', :searchTerm!)\n  AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)\n  AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)\n  AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)\nORDER BY rank DESC\nLIMIT :limit!",
+    'WITH matched_docs AS (\n  SELECT\n    d.id,\n    d.file_name           AS "fileName",\n    d.file_path           AS "filePath",\n    d.evidence_type       AS "evidenceType",\n    d.red_flag_rating     AS "redFlagRating",\n    d.title,\n    d.content_refined,\n    ts_rank_cd(d.fts_vector, to_tsquery(\'english\', :searchTerm!), 32) AS rank\n  FROM documents d\n  WHERE d.fts_vector @@ to_tsquery(\'english\', :searchTerm!)\n    AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)\n    AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)\n    AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)\n  ORDER BY rank DESC\n  LIMIT :limit!\n)\nSELECT\n  id,\n  "fileName",\n  "filePath",\n  "evidenceType",\n  "redFlagRating",\n  ts_headline(\'english\',\n    coalesce(title, \'\') || \' \' || left(coalesce(content_refined, \'\'), 500),\n    to_tsquery(\'english\', :searchTerm!),\n    \'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2\'\n  ) AS snippet,\n  rank\nFROM matched_docs\nORDER BY rank DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
+ * WITH matched_docs AS (
+ *   SELECT
+ *     d.id,
+ *     d.file_name           AS "fileName",
+ *     d.file_path           AS "filePath",
+ *     d.evidence_type       AS "evidenceType",
+ *     d.red_flag_rating     AS "redFlagRating",
+ *     d.title,
+ *     d.content_refined,
+ *     ts_rank_cd(d.fts_vector, to_tsquery('english', :searchTerm!), 32) AS rank
+ *   FROM documents d
+ *   WHERE d.fts_vector @@ to_tsquery('english', :searchTerm!)
+ *     AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
+ *     AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
+ *     AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
+ *   ORDER BY rank DESC
+ *   LIMIT :limit!
+ * )
  * SELECT
- *   d.id,
- *   d.file_name           AS "fileName",
- *   d.file_path           AS "filePath",
- *   d.evidence_type       AS "evidenceType",
- *   d.red_flag_rating     AS "redFlagRating",
+ *   id,
+ *   "fileName",
+ *   "filePath",
+ *   "evidenceType",
+ *   "redFlagRating",
  *   ts_headline('english',
- *     coalesce(d.title, '') || ' ' || left(coalesce(d.content_refined, ''), 500),
+ *     coalesce(title, '') || ' ' || left(coalesce(content_refined, ''), 500),
  *     to_tsquery('english', :searchTerm!),
  *     'MaxWords=25,MinWords=8,ShortWord=3,HighlightAll=FALSE,MaxFragments=2'
  *   ) AS snippet,
- *   ts_rank_cd(d.fts_vector, to_tsquery('english', :searchTerm!), 32) AS rank
- * FROM documents d
- * WHERE d.fts_vector @@ to_tsquery('english', :searchTerm!)
- *   AND (:evidenceType::text IS NULL OR d.evidence_type = :evidenceType::text)
- *   AND (:minRedFlag::int IS NULL OR d.red_flag_rating >= :minRedFlag::int)
- *   AND (:maxRedFlag::int IS NULL OR d.red_flag_rating <= :maxRedFlag::int)
+ *   rank
+ * FROM matched_docs
  * ORDER BY rank DESC
- * LIMIT :limit!
  * ```
  */
 export const searchDocumentsPrefix = new PreparedQuery<
@@ -341,29 +393,13 @@ export const searchDocumentsPrefix = new PreparedQuery<
   ISearchDocumentsPrefixResult
 >(searchDocumentsPrefixIR);
 
-/** 'SearchSentences' parameters type */
-export interface ISearchSentencesParams {
-  limit: NumberOrString;
-  searchTerm: string;
-}
+/** Query 'SearchSentences' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ISearchSentencesResult = never;
 
-/** 'SearchSentences' return type */
-export interface ISearchSentencesResult {
-  document_id: string | null;
-  file_name: string | null;
-  id: string;
-  page_id: string | null;
-  page_number: number | null;
-  sentence_text: string | null;
-  signal_score: number | null;
-  snippet: string | null;
-}
-
-/** 'SearchSentences' query type */
-export interface ISearchSentencesQuery {
-  params: ISearchSentencesParams;
-  result: ISearchSentencesResult;
-}
+/** Query 'SearchSentences' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ISearchSentencesParams = never;
 
 const searchSentencesIR: any = {
   usedParamSet: { searchTerm: true, limit: true },
@@ -374,14 +410,14 @@ const searchSentencesIR: any = {
       transform: { type: 'scalar' },
       locs: [
         { a: 216, b: 227 },
-        { a: 467, b: 478 },
-        { a: 574, b: 585 },
+        { a: 440, b: 451 },
+        { a: 520, b: 531 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 604, b: 610 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 550, b: 556 }] },
   ],
   statement:
-    "SELECT\n  s.id,\n  s.document_id,\n  s.page_id,\n  s.sentence_text,\n  s.signal_score,\n  d.file_name,\n  COALESCE(p.page_number, 1) AS page_number,\n  ts_headline('english', s.sentence_text, websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=15,MinWords=5') AS snippet\nFROM document_sentences s\nJOIN documents d ON d.id = s.document_id\nLEFT JOIN document_pages p ON p.id = s.page_id\nWHERE to_tsvector('english', s.sentence_text) @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY ts_rank_cd(to_tsvector('english', s.sentence_text), websearch_to_tsquery('english', :searchTerm!), 32) DESC\nLIMIT :limit!",
+    "SELECT\n  s.id,\n  s.document_id,\n  s.page_id,\n  s.sentence_text,\n  s.signal_score,\n  d.file_name,\n  COALESCE(p.page_number, 1) AS page_number,\n  ts_headline('english', s.sentence_text, websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=15,MinWords=5') AS snippet\nFROM document_sentences s\nJOIN documents d ON d.id = s.document_id\nLEFT JOIN document_pages p ON p.id = s.page_id\nWHERE s.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY ts_rank_cd(s.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) DESC\nLIMIT :limit!",
 };
 
 /**
@@ -400,8 +436,8 @@ const searchSentencesIR: any = {
  * FROM document_sentences s
  * JOIN documents d ON d.id = s.document_id
  * LEFT JOIN document_pages p ON p.id = s.page_id
- * WHERE to_tsvector('english', s.sentence_text) @@ websearch_to_tsquery('english', :searchTerm!)
- * ORDER BY ts_rank_cd(to_tsvector('english', s.sentence_text), websearch_to_tsquery('english', :searchTerm!), 32) DESC
+ * WHERE s.fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
+ * ORDER BY ts_rank_cd(s.fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) DESC
  * LIMIT :limit!
  * ```
  */
@@ -409,28 +445,13 @@ export const searchSentences = new PreparedQuery<ISearchSentencesParams, ISearch
   searchSentencesIR,
 );
 
-/** 'SearchInvestigations' parameters type */
-export interface ISearchInvestigationsParams {
-  limit: NumberOrString;
-  searchTerm: string;
-}
+/** Query 'SearchInvestigations' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ISearchInvestigationsResult = never;
 
-/** 'SearchInvestigations' return type */
-export interface ISearchInvestigationsResult {
-  description: string | null;
-  id: string;
-  rank: number | null;
-  snippet: string | null;
-  status: string | null;
-  title: string;
-  uuid: string | null;
-}
-
-/** 'SearchInvestigations' query type */
-export interface ISearchInvestigationsQuery {
-  params: ISearchInvestigationsParams;
-  result: ISearchInvestigationsResult;
-}
+/** Query 'SearchInvestigations' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ISearchInvestigationsParams = never;
 
 const searchInvestigationsIR: any = {
   usedParamSet: { searchTerm: true, limit: true },
@@ -441,14 +462,14 @@ const searchInvestigationsIR: any = {
       transform: { type: 'scalar' },
       locs: [
         { a: 155, b: 166 },
-        { a: 324, b: 335 },
-        { a: 478, b: 489 },
+        { a: 269, b: 280 },
+        { a: 368, b: 379 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 517, b: 523 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 407, b: 413 }] },
   ],
   statement:
-    "SELECT\n  id,\n  uuid,\n  title,\n  description,\n  status,\n  ts_headline('english', title || ' ' || coalesce(description, ''), websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8') AS snippet,\n  ts_rank_cd(to_tsvector('english', title || ' ' || coalesce(description, '')), websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM investigations\nWHERE to_tsvector('english', title || ' ' || coalesce(description, '')) @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY rank DESC\nLIMIT :limit!",
+    "SELECT\n  id,\n  uuid,\n  title,\n  description,\n  status,\n  ts_headline('english', title || ' ' || coalesce(description, ''), websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8') AS snippet,\n  ts_rank_cd(fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM investigations\nWHERE fts_vector @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY rank DESC\nLIMIT :limit!",
 };
 
 /**
@@ -462,9 +483,9 @@ const searchInvestigationsIR: any = {
  *   status,
  *   ts_headline('english', title || ' ' || coalesce(description, ''), websearch_to_tsquery('english', :searchTerm!),
  *     'MaxWords=25,MinWords=8') AS snippet,
- *   ts_rank_cd(to_tsvector('english', title || ' ' || coalesce(description, '')), websearch_to_tsquery('english', :searchTerm!), 32) AS rank
+ *   ts_rank_cd(fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank
  * FROM investigations
- * WHERE to_tsvector('english', title || ' ' || coalesce(description, '')) @@ websearch_to_tsquery('english', :searchTerm!)
+ * WHERE fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
  * ORDER BY rank DESC
  * LIMIT :limit!
  * ```
@@ -474,28 +495,13 @@ export const searchInvestigations = new PreparedQuery<
   ISearchInvestigationsResult
 >(searchInvestigationsIR);
 
-/** 'SearchArticles' parameters type */
-export interface ISearchArticlesParams {
-  limit: NumberOrString;
-  searchTerm: string;
-}
+/** Query 'SearchArticles' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ISearchArticlesResult = never;
 
-/** 'SearchArticles' return type */
-export interface ISearchArticlesResult {
-  author: string | null;
-  id: string;
-  pubDate: Date | null;
-  rank: number | null;
-  snippet: string | null;
-  source: string | null;
-  title: string;
-}
-
-/** 'SearchArticles' query type */
-export interface ISearchArticlesQuery {
-  params: ISearchArticlesParams;
-  result: ISearchArticlesResult;
-}
+/** Query 'SearchArticles' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ISearchArticlesParams = never;
 
 const searchArticlesIR: any = {
   usedParamSet: { searchTerm: true, limit: true },
@@ -506,14 +512,14 @@ const searchArticlesIR: any = {
       transform: { type: 'scalar' },
       locs: [
         { a: 199, b: 210 },
-        { a: 400, b: 411 },
-        { a: 580, b: 591 },
+        { a: 313, b: 324 },
+        { a: 406, b: 417 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 619, b: 625 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 445, b: 451 }] },
   ],
   statement:
-    "SELECT\n  id,\n  title,\n  source,\n  author,\n  pub_date AS \"pubDate\",\n  ts_headline('english', title || ' ' || coalesce(description, '') || ' ' || coalesce(content, ''), websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8') AS snippet,\n  ts_rank_cd(to_tsvector('english', title || ' ' || coalesce(description, '') || ' ' || coalesce(content, '')), websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM articles\nWHERE to_tsvector('english', title || ' ' || coalesce(description, '') || ' ' || coalesce(content, '')) @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY rank DESC\nLIMIT :limit!",
+    "SELECT\n  id,\n  title,\n  source,\n  author,\n  pub_date AS \"pubDate\",\n  ts_headline('english', title || ' ' || coalesce(description, '') || ' ' || coalesce(content, ''), websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8') AS snippet,\n  ts_rank_cd(fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM articles\nWHERE fts_vector @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY rank DESC\nLIMIT :limit!",
 };
 
 /**
@@ -527,9 +533,9 @@ const searchArticlesIR: any = {
  *   pub_date AS "pubDate",
  *   ts_headline('english', title || ' ' || coalesce(description, '') || ' ' || coalesce(content, ''), websearch_to_tsquery('english', :searchTerm!),
  *     'MaxWords=25,MinWords=8') AS snippet,
- *   ts_rank_cd(to_tsvector('english', title || ' ' || coalesce(description, '') || ' ' || coalesce(content, '')), websearch_to_tsquery('english', :searchTerm!), 32) AS rank
+ *   ts_rank_cd(fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank
  * FROM articles
- * WHERE to_tsvector('english', title || ' ' || coalesce(description, '') || ' ' || coalesce(content, '')) @@ websearch_to_tsquery('english', :searchTerm!)
+ * WHERE fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
  * ORDER BY rank DESC
  * LIMIT :limit!
  * ```
@@ -538,29 +544,13 @@ export const searchArticles = new PreparedQuery<ISearchArticlesParams, ISearchAr
   searchArticlesIR,
 );
 
-/** 'SearchMedia' parameters type */
-export interface ISearchMediaParams {
-  limit: NumberOrString;
-  searchTerm: string;
-}
+/** Query 'SearchMedia' is invalid, so its result is assigned type 'never'.
+ *  */
+export type ISearchMediaResult = never;
 
-/** 'SearchMedia' return type */
-export interface ISearchMediaResult {
-  description: string | null;
-  filename: string;
-  filePath: string;
-  fileType: string | null;
-  id: string;
-  rank: number | null;
-  snippet: string | null;
-  title: string | null;
-}
-
-/** 'SearchMedia' query type */
-export interface ISearchMediaQuery {
-  params: ISearchMediaParams;
-  result: ISearchMediaResult;
-}
+/** Query 'SearchMedia' is invalid, so its parameters are assigned type 'never'.
+ *  */
+export type ISearchMediaParams = never;
 
 const searchMediaIR: any = {
   usedParamSet: { searchTerm: true, limit: true },
@@ -571,14 +561,14 @@ const searchMediaIR: any = {
       transform: { type: 'scalar' },
       locs: [
         { a: 252, b: 263 },
-        { a: 455, b: 466 },
-        { a: 640, b: 651 },
+        { a: 366, b: 377 },
+        { a: 462, b: 473 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 679, b: 685 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 501, b: 507 }] },
   ],
   statement:
-    "SELECT\n  id,\n  file_path AS \"filename\",\n  title,\n  description,\n  file_path AS \"filePath\",\n  file_type AS \"fileType\",\n  ts_headline('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, ''), websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8') AS snippet,\n  ts_rank_cd(to_tsvector('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, '')), websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM media_items\nWHERE to_tsvector('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, '')) @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY rank DESC\nLIMIT :limit!",
+    "SELECT\n  id,\n  file_path AS \"filename\",\n  title,\n  description,\n  file_path AS \"filePath\",\n  file_type AS \"fileType\",\n  ts_headline('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, ''), websearch_to_tsquery('english', :searchTerm!),\n    'MaxWords=25,MinWords=8') AS snippet,\n  ts_rank_cd(fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank\nFROM media_items\nWHERE fts_vector @@ websearch_to_tsquery('english', :searchTerm!)\nORDER BY rank DESC\nLIMIT :limit!",
 };
 
 /**
@@ -593,9 +583,9 @@ const searchMediaIR: any = {
  *   file_type AS "fileType",
  *   ts_headline('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, ''), websearch_to_tsquery('english', :searchTerm!),
  *     'MaxWords=25,MinWords=8') AS snippet,
- *   ts_rank_cd(to_tsvector('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, '')), websearch_to_tsquery('english', :searchTerm!), 32) AS rank
+ *   ts_rank_cd(fts_vector, websearch_to_tsquery('english', :searchTerm!), 32) AS rank
  * FROM media_items
- * WHERE to_tsvector('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, '')) @@ websearch_to_tsquery('english', :searchTerm!)
+ * WHERE fts_vector @@ websearch_to_tsquery('english', :searchTerm!)
  * ORDER BY rank DESC
  * LIMIT :limit!
  * ```
@@ -672,10 +662,10 @@ const searchEntitiesSemanticIR: any = {
       transform: { type: 'scalar' },
       locs: [{ a: 121, b: 130 }],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 237, b: 243 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1530, b: 1536 }] },
   ],
   statement:
-    'SELECT\n  id,\n  full_name          AS "fullName",\n  primary_role       AS "primaryRole",\n  1 - (description_embedding <=> :embedding) AS similarity\nFROM entities\nWHERE COALESCE(junk_tier, \'clean\') = \'clean\'\nORDER BY similarity DESC\nLIMIT :limit!',
+    "SELECT\n  id,\n  full_name          AS \"fullName\",\n  primary_role       AS \"primaryRole\",\n  1 - (description_embedding <=> :embedding) AS similarity\nFROM entities\nWHERE COALESCE(junk_tier, 'clean') = 'clean'\n  AND COALESCE(quarantine_status, 0) = 0\n  AND full_name IS NOT NULL\n  AND BTRIM(full_name) != ''\n  AND LOWER(full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\\M[:\\s-]*'\n  AND LOWER(full_name) !~* '^(on|at|in|with)\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\\M'\n  AND LOWER(full_name) !~* '\\m(mon|tue|wed|thu|fri|sat|sun)\\M\\s*$'\n  AND LOWER(full_name) !~* '\\m([[:alpha:]]{3,})\\s+\\1\\M'\n  AND LOWER(full_name) !~* '\\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\\M'\n  AND LOWER(full_name) !~* '\\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\\M'\n  AND LOWER(full_name) !~* '^(east|west|north|south)\\s+(if|aft|aftstreet|street|road|avenue)\\M'\n  AND LOWER(full_name) !~* '\\m(direction|provided)\\M\\s*$'\n  AND LOWER(full_name) !~* '\\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M\\s*$'\n  AND LOWER(full_name) !~* '\\m[[:alpha:]]+''?s\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\n  AND LOWER(full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\M'\nORDER BY similarity DESC\nLIMIT :limit!",
 };
 
 /**
@@ -688,6 +678,20 @@ const searchEntitiesSemanticIR: any = {
  *   1 - (description_embedding <=> :embedding) AS similarity
  * FROM entities
  * WHERE COALESCE(junk_tier, 'clean') = 'clean'
+ *   AND COALESCE(quarantine_status, 0) = 0
+ *   AND full_name IS NOT NULL
+ *   AND BTRIM(full_name) != ''
+ *   AND LOWER(full_name) !~* '^(to|from|cc|bcc|subject|re|fwd|fw|sent|received)\M[:\s-]*'
+ *   AND LOWER(full_name) !~* '^(on|at|in|with)\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\M'
+ *   AND LOWER(full_name) !~* '\m(mon|tue|wed|thu|fri|sat|sun)\M\s*$'
+ *   AND LOWER(full_name) !~* '\m([[:alpha:]]{3,})\s+\1\M'
+ *   AND LOWER(full_name) !~* '\m(department|office|policy|inc|llc|corp|corporation|ltd|associates|foundation|trust|university|school|academy|committee|ministry|agency|bureau|division|building|street|road|avenue|contact|privacy|terms)\M'
+ *   AND LOWER(full_name) !~* '\m(bluray|blu-ray|disc|rewritable|dumpster|hauls|columns|demolition|ditchin|postage|acoustics|personnel|persoanel)\M'
+ *   AND LOWER(full_name) !~* '^(east|west|north|south)\s+(if|aft|aftstreet|street|road|avenue)\M'
+ *   AND LOWER(full_name) !~* '\m(direction|provided)\M\s*$'
+ *   AND LOWER(full_name) !~* '\m(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M\s*$'
+ *   AND LOWER(full_name) !~* '\m[[:alpha:]]+''?s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
+ *   AND LOWER(full_name) !~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\M'
  * ORDER BY similarity DESC
  * LIMIT :limit!
  * ```

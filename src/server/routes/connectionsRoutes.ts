@@ -5,12 +5,14 @@ import { claimTriplesRepository } from '../db/claimTriplesRepository.js';
 import { communicationsRepository } from '../db/communicationsRepository.js';
 import { relationshipsRepository } from '../db/relationshipsRepository.js';
 import { logger } from '../services/Logger.js';
+import { apiRateLimiter } from '../middleware/rateLimit.js';
 import type { ConnectionDossierDto } from '@shared/dto/connections';
 
 const router = express.Router();
 
 // GET /api/connections?a=:entityId&b=:entityId
-router.get('/', async (req, res, next) => {
+// Rate limited to prevent abuse
+router.get('/', apiRateLimiter, async (req, res, next) => {
   try {
     const { a, b } = req.query as { a?: string; b?: string };
     if (!a || !b) {

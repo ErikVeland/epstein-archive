@@ -1,6 +1,6 @@
 import express from 'express';
 import { mapRateLimiter } from '../middleware/rateLimit.js';
-import { cacheResponse } from '../utils/perfCache.js';
+import { cacheResponse } from '../middleware/cache.js';
 import { getMapEntities } from '../db/healthQueries.js';
 import { logger } from '../services/Logger.js';
 import { validate, mapEntitiesQuerySchema } from '../middleware/validate.js';

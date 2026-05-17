@@ -1,15 +1,60 @@
 /* @name getTransactions */
-SELECT * FROM financial_transactions 
+SELECT
+  id,
+  from_entity,
+  to_entity,
+  amount,
+  currency,
+  transaction_date,
+  transaction_type,
+  method,
+  risk_level,
+  description,
+  investigation_id,
+  source_document_id,
+  metadata_json,
+  created_at
+FROM financial_transactions
 ORDER BY transaction_date DESC 
 LIMIT :limit!;
 
 /* @name getTransactionsByInvestigation */
-SELECT * FROM financial_transactions 
+SELECT
+  id,
+  from_entity,
+  to_entity,
+  amount,
+  currency,
+  transaction_date,
+  transaction_type,
+  method,
+  risk_level,
+  description,
+  investigation_id,
+  source_document_id,
+  metadata_json,
+  created_at
+FROM financial_transactions
 WHERE investigation_id = :investigationId!::bigint
 ORDER BY transaction_date DESC;
 
 /* @name getTransactionsByEntity */
-SELECT * FROM financial_transactions 
+SELECT
+  id,
+  from_entity,
+  to_entity,
+  amount,
+  currency,
+  transaction_date,
+  transaction_type,
+  method,
+  risk_level,
+  description,
+  investigation_id,
+  source_document_id,
+  metadata_json,
+  created_at
+FROM financial_transactions
 WHERE from_entity = :entityName! OR to_entity = :entityName!
 ORDER BY transaction_date DESC;
 

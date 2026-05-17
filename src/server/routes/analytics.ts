@@ -5,7 +5,7 @@ import { entitiesRepository } from '../db/entitiesRepository.js';
 import { getApiPool } from '../db/runtime.js';
 import { resetJunkFlags } from '../db/healthQueries.js';
 import { analyticsRateLimiter } from '../middleware/rateLimit.js';
-import { cacheResponse } from '../utils/perfCache.js';
+import { cacheResponse } from '../middleware/cache.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
 

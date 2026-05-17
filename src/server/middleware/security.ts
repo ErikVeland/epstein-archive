@@ -38,19 +38,39 @@ export const enforceQuarantine = (resourceType: 'document' | 'media') => {
         const user = (req as AuthenticatedRequest).user;
         const isAdmin = user?.role === 'admin';
 
+        const requestId = (req as Request & { requestId?: string }).requestId;
+
         if (!isAdmin) {
-          await logAudit('quarantine', user?.id || null, resourceType, id, {
-            reason: 'access_denied_quarantine',
-          });
+          await logAudit(
+            'quarantine',
+            user?.id || null,
+            resourceType,
+            id,
+            {
+              reason: 'access_denied_quarantine',
+            },
+            req.ip,
+            requestId,
+            { failClosed: false },
+          );
           return res.status(403).json({
             error: 'Resource unavailable',
           });
         }
 
         // Admin access to quarantined item - Log it!
-        await logAudit('view', user?.id || null, resourceType, id, {
-          reason: 'quarantine_override',
-        });
+        await logAudit(
+          'view',
+          user?.id || null,
+          resourceType,
+          id,
+          {
+            reason: 'quarantine_override',
+          },
+          req.ip,
+          requestId,
+          { failClosed: true },
+        );
       }
 
       next();

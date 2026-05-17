@@ -2069,39 +2069,41 @@ function App() {
                           <Route
                             path="/investigations/*"
                             element={
-                              <InvestigationWorkspace
-                                investigationId={(() => {
-                                  const parts = location.pathname.split('/');
-                                  return parts[1] === 'investigations' && parts[2]
-                                    ? parts[2]
-                                    : undefined;
-                                })()}
-                                currentUser={
-                                  currentUser
-                                    ? {
-                                        id: currentUser.id,
-                                        name: currentUser.username,
-                                        email: currentUser.email || 'investigator@example.com',
-                                        role: isAdmin ? 'lead' : 'analyst',
-                                        permissions: [
-                                          'read',
-                                          'write',
-                                          ...(isAdmin ? ['admin'] : []),
-                                        ],
-                                        joinedAt: new Date(),
-                                        expertise: ['investigative journalism', 'data analysis'],
-                                      }
-                                    : {
-                                        id: 'guest',
-                                        name: 'Guest',
-                                        email: 'guest@example.com',
-                                        role: 'analyst',
-                                        permissions: ['read'],
-                                        joinedAt: new Date(),
-                                        expertise: [],
-                                      }
-                                }
-                              />
+                              <ScopedErrorBoundary>
+                                <InvestigationWorkspace
+                                  investigationId={(() => {
+                                    const parts = location.pathname.split('/');
+                                    return parts[1] === 'investigations' && parts[2]
+                                      ? parts[2]
+                                      : undefined;
+                                  })()}
+                                  currentUser={
+                                    currentUser
+                                      ? {
+                                          id: currentUser.id,
+                                          name: currentUser.username,
+                                          email: currentUser.email || 'investigator@example.com',
+                                          role: isAdmin ? 'lead' : 'analyst',
+                                          permissions: [
+                                            'read',
+                                            'write',
+                                            ...(isAdmin ? ['admin'] : []),
+                                          ],
+                                          joinedAt: new Date(),
+                                          expertise: ['investigative journalism', 'data analysis'],
+                                        }
+                                      : {
+                                          id: 'guest',
+                                          name: 'Guest',
+                                          email: 'guest@example.com',
+                                          role: 'analyst',
+                                          permissions: ['read'],
+                                          joinedAt: new Date(),
+                                          expertise: [],
+                                        }
+                                  }
+                                />
+                              </ScopedErrorBoundary>
                             }
                           />
                           <Route

@@ -12,13 +12,19 @@ import {
 import { searchRepository } from '../db/searchRepository.js';
 import { icebergRepository } from '../db/icebergRepository.js';
 import { RedactionResolver } from '../services/RedactionResolver.js';
+import { AnnotationPolicyService } from '../services/AnnotationPolicyService.js';
 import fs from 'fs';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
-import type { ReadableStream as WebReadableStream } from 'stream/web';
-import { authenticateRequest, type AuthRequest } from '../auth/middleware.js';
+import type { ReadableStream as WebReadableStream } from 'node:stream/web';
+import {
+  authenticateRequest,
+  optionalAuthenticate,
+  requireRole,
+  type AuthRequest,
+} from '../auth/middleware.js';
 
 const router = express.Router();
 
@@ -109,11 +115,6 @@ const annotationWriteLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-
-const toSafePublicHandle = (rawAuthor: string | null | undefined): string => {
-  const cleaned = (rawAuthor || '').trim().slice(0, 32);
-  return cleaned ? cleaned : 'anonymous';
-};
 
 const createFingerprint = (ip: string, userAgent: string): string => {
   return createHash('sha256').update(`${ip}|${userAgent}`).digest('hex');
@@ -253,52 +254,64 @@ router.get('/:id/lineage', validate(documentIdSchema), async (req, res, next) =>
 });
 
 // GET /api/documents/:id/annotations
-router.get('/:id/annotations', validate(documentIdSchema), async (req, res, next) => {
-  try {
-    const documentId = Number(req.params.id);
-    if (!Number.isFinite(documentId) || documentId <= 0) {
-      return res.status(400).json({ error: 'Invalid document id' });
-    }
+router.get(
+  '/:id/annotations',
+  validate(documentIdSchema),
+  optionalAuthenticate,
+  async (req, res, next) => {
+    try {
+      const documentId = String(req.params.id);
+      if (!/^\d+$/.test(documentId)) {
+        return res.status(400).json({ error: 'Invalid document id' });
+      }
 
-    const annotations = await documentAnnotationsRepository.getByDocumentId(documentId);
-    return res.json({
-      annotations: annotations.map((annotation) => ({
-        id: annotation.id,
-        documentId: String(annotation.document_id),
-        type: annotation.annotation_type,
-        selectedText: annotation.selected_text,
-        note: annotation.note,
-        position: {
-          start: annotation.start_offset,
-          end: annotation.end_offset,
-        },
-        contextBefore: annotation.context_before,
-        contextAfter: annotation.context_after,
-        author: annotation.author_label,
-        pdfPage: annotation.pdf_page,
-        pdfX: annotation.pdf_x,
-        pdfY: annotation.pdf_y,
-        pdfWidth: annotation.pdf_width,
-        pdfHeight: annotation.pdf_height,
-        createdAt: annotation.created_at,
-        updatedAt: annotation.updated_at,
-      })),
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+      const authReq = req as AuthRequest;
+
+      const annotations = await documentAnnotationsRepository.getByDocumentId(documentId, {
+        includeForensic: AnnotationPolicyService.canReadForensic(authReq),
+        includeDrafts: AnnotationPolicyService.canReadDrafts(authReq),
+      });
+      return res.json({
+        annotations: annotations.map((annotation) => ({
+          id: annotation.id,
+          documentId: String(annotation.document_id),
+          type: annotation.annotation_type,
+          selectedText: annotation.selected_text,
+          note: annotation.note,
+          scope: annotation.scope || 'public',
+          reviewState: annotation.review_state || 'approved',
+          position: {
+            start: annotation.start_offset,
+            end: annotation.end_offset,
+          },
+          contextBefore: annotation.context_before,
+          contextAfter: annotation.context_after,
+          author: annotation.author_label,
+          pdfPage: annotation.pdf_page,
+          pdfX: annotation.pdf_x,
+          pdfY: annotation.pdf_y,
+          pdfWidth: annotation.pdf_width,
+          pdfHeight: annotation.pdf_height,
+          createdAt: annotation.created_at,
+          updatedAt: annotation.updated_at,
+        })),
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // POST /api/documents/:id/annotations
 router.post(
   '/:id/annotations',
-  authenticateRequest,
+  optionalAuthenticate,
   annotationWriteLimiter,
   validate(createDocumentAnnotationSchema),
   async (req, res, next) => {
     try {
-      const documentId = Number(req.params.id);
-      if (!Number.isFinite(documentId) || documentId <= 0) {
+      const documentId = String(req.params.id);
+      if (!/^\d+$/.test(documentId)) {
         return res.status(400).json({ error: 'Invalid document id' });
       }
 
@@ -320,17 +333,14 @@ router.post(
         return res.status(400).json({ error: 'Invalid annotation span' });
       }
 
-      const doc = await documentsRepository.getDocumentById(String(documentId));
+      const doc = await documentsRepository.getDocumentById(documentId);
       if (!doc) {
         return res.status(404).json({ error: 'Document not found' });
       }
 
       const ip = String(req.ip || '');
       const userAgent = String(req.get('user-agent') || '');
-      const authUser = (req as AuthRequest).user;
-      const author = toSafePublicHandle(
-        authUser?.username || (authUser?.id ? `user-${authUser.id.slice(0, 8)}` : null),
-      );
+      const policy = AnnotationPolicyService.decideWrite(req as AuthRequest);
       const fingerprint = createFingerprint(ip, userAgent);
 
       const annotation = await documentAnnotationsRepository.create({
@@ -342,13 +352,18 @@ router.post(
         endOffset: end,
         contextBefore,
         contextAfter,
-        authorLabel: author,
+        authorLabel: policy.authorLabel,
         authorFingerprintHash: fingerprint,
         pdfPage,
         pdfX,
         pdfY,
         pdfWidth,
         pdfHeight,
+        scope: policy.scope,
+        reviewState: policy.reviewState,
+        createdByUserId: policy.actorUserId,
+        createdByRole: policy.actorRole,
+        requestId: req.requestId || null,
       });
 
       return res.status(201).json({
@@ -358,6 +373,8 @@ router.post(
           type: annotation.annotation_type,
           selectedText: annotation.selected_text,
           note: annotation.note,
+          scope: annotation.scope || policy.scope,
+          reviewState: annotation.review_state || policy.reviewState,
           position: {
             start: annotation.start_offset,
             end: annotation.end_offset,
@@ -374,6 +391,69 @@ router.post(
           updatedAt: annotation.updated_at,
         },
       });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+const annotationModerationSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+    annotationId: z.string().min(1),
+  }),
+});
+
+router.post(
+  '/:id/annotations/:annotationId/approve',
+  authenticateRequest,
+  requireRole('admin'),
+  validate(annotationModerationSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { id, annotationId } = req.params;
+      const ip = String(req.ip || '');
+      const userAgent = String(req.get('user-agent') || '');
+      const fingerprint = createFingerprint(ip, userAgent);
+      const updated = await documentAnnotationsRepository.setReviewState(
+        String(id),
+        String(annotationId),
+        'approved',
+        { userId: req.user?.id || null, role: req.user?.role || null, fingerprint },
+        req.requestId || null,
+      );
+      if (!updated) {
+        return res.status(404).json({ error: 'Annotation not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/:id/annotations/:annotationId/reject',
+  authenticateRequest,
+  requireRole('admin'),
+  validate(annotationModerationSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { id, annotationId } = req.params;
+      const ip = String(req.ip || '');
+      const userAgent = String(req.get('user-agent') || '');
+      const fingerprint = createFingerprint(ip, userAgent);
+      const updated = await documentAnnotationsRepository.setReviewState(
+        String(id),
+        String(annotationId),
+        'rejected',
+        { userId: req.user?.id || null, role: req.user?.role || null, fingerprint },
+        req.requestId || null,
+      );
+      if (!updated) {
+        return res.status(404).json({ error: 'Annotation not found' });
+      }
+      res.json({ success: true });
     } catch (error) {
       next(error);
     }
@@ -461,15 +541,27 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
         const url = new URL(rawUrl);
         if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
         const host = url.hostname.toLowerCase();
+
+        // Block private IP ranges (RFC 1918, RFC 3927, RFC 4193, RFC 4291)
+        // IPv4 private ranges
+        if (/^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/.test(host)) return false;
+        // IPv6 private/local
+        if (/^(::1|localhost|127\.)/i.test(host)) return false;
+        if (/^(fe80:|fc00:|fd00:)/i.test(host)) return false;
+        // Block link-local (169.254.x.x) — used for metadata API
+        if (/^169\.254\./.test(host)) return false;
+        // Block reserved/broadcast
+        if (/^(0\.|224\.|240\.)/.test(host)) return false;
+        // Block .local, .internal, .intranet, etc.
         if (
-          host === 'localhost' ||
-          host === '127.0.0.1' ||
-          host === '::1' ||
           host.endsWith('.local') ||
-          host.endsWith('.internal')
-        ) {
+          host.endsWith('.internal') ||
+          host.endsWith('.intranet') ||
+          host.endsWith('.private')
+        )
           return false;
-        }
+
+        // Only allow explicitly approved external hosts
         const allowed =
           host === 'epstein.academy' ||
           host.endsWith('.epstein.academy') ||
@@ -621,6 +713,8 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
     }
 
     if (!finalFileResult) {
+      const remoteFallbackEnabled =
+        process.env.PUBLIC_REMOTE_FILE_FALLBACK === 'true' && process.env.NODE_ENV !== 'production';
       const isEmailRecord = String(docAny.evidenceType || docAny.evidence_type || '')
         .toLowerCase()
         .includes('email');
@@ -649,6 +743,16 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
           `inline; filename="${String(doc.fileName || `email-${id}.eml`).replace(/"/g, '')}"`,
         );
         return res.status(200).send(eml);
+      }
+
+      if (!remoteFallbackEnabled) {
+        return res.status(404).json({
+          error: 'No valid local file path found for document',
+          id,
+          requestedVariant: variant,
+          checkedVariants: variantOrder,
+          attemptedPaths: allAttempted,
+        });
       }
 
       for (const v of variantOrder) {

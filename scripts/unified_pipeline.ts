@@ -828,7 +828,8 @@ async function runEnrichPhase(
   } else if (mode === 'new') {
     whereClause += " AND created_at > now() - interval '1 day'";
   }
-  const allowAiContentRewrite = process.env.ALLOW_AI_CONTENT_REWRITE === 'true';
+  const allowAiContentRewrite =
+    process.env.NODE_ENV !== 'production' && process.env.ALLOW_AI_CONTENT_REWRITE === 'true';
 
   // Get enrichable total once at start for progress tracking
   const enrichTotalRow = (

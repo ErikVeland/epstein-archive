@@ -124,12 +124,19 @@ async function main() {
     }
 
     if (expected !== hash) {
-      console.log(
-        '[pg_schema_hash] WARN: Schema drift detected, bypassing for multi-environment stability.',
-      );
-      console.log(`  expected: ${expected}`);
-      console.log(`  actual:   ${hash}`);
-      // process.exit(1); // Disabled to ensure safe deploys across heterogeneous Postgres runtimes
+      const localDriftBypass =
+        process.env.ALLOW_SCHEMA_HASH_DRIFT === 'true' &&
+        process.env.CI !== 'true' &&
+        process.env.NODE_ENV !== 'production';
+      const message = localDriftBypass
+        ? '[pg_schema_hash] WARN: Schema drift detected; local bypass enabled.'
+        : '[pg_schema_hash] ERROR: Schema drift detected.';
+      console.error(message);
+      console.error(`  expected: ${expected}`);
+      console.error(`  actual:   ${hash}`);
+      if (!localDriftBypass) {
+        process.exit(1);
+      }
     }
 
     console.log('[pg_schema_hash] Schema hash OK:', hash);

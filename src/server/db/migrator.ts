@@ -4,26 +4,6 @@ import { fileURLToPath } from 'url';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 
-type HistoricalPlaceholderRule = {
-  name: string;
-  satisfiedByAny: string[];
-};
-
-const HISTORICAL_PLACEHOLDER_RULES: HistoricalPlaceholderRule[] = [
-  {
-    name: '1740214400000_align_schema',
-    satisfiedByAny: ['1740214500000_align_schema_v2', '1741540000000_align_schema_v2'],
-  },
-  {
-    name: '1740214500000_align_schema_v2',
-    satisfiedByAny: ['1741540000000_align_schema_v2'],
-  },
-  {
-    name: '1754000000000_reconcile_restore_seed_conflicts',
-    satisfiedByAny: ['1754000000100_document_provenance'],
-  },
-];
-
 function resolveMigrationDir(): string {
   const cwdSourceDir = path.resolve(process.cwd(), 'src', 'server', 'db', 'postgres', 'migrations');
   if (fs.existsSync(cwdSourceDir)) return cwdSourceDir;
@@ -50,51 +30,13 @@ function canonicalMigrationName(name: string): string {
 }
 
 export async function reconcileHistoricalMigrationLedger(): Promise<number> {
-  const pool = getApiPool();
-
-  try {
-    const tableCheck = await pool.query<{ exists: string | null }>(
-      "SELECT to_regclass('public.pgmigrations')::text AS exists",
-    );
-    if (!tableCheck.rows[0]?.exists) {
-      return 0;
-    }
-
-    const { rows } = await pool.query<{ name: string; run_on: Date }>(
-      'SELECT name, run_on FROM pgmigrations ORDER BY run_on ASC, id ASC',
-    );
-    const names = new Set(rows.map((row) => row.name));
-    let inserted = 0;
-
-    for (const rule of HISTORICAL_PLACEHOLDER_RULES) {
-      if (names.has(rule.name)) continue;
-      const anchor = rows.find((row) => rule.satisfiedByAny.includes(row.name));
-      if (!anchor) continue;
-
-      const runOn = new Date(new Date(anchor.run_on).getTime() - 1000);
-      await pool.query('INSERT INTO pgmigrations (name, run_on) VALUES ($1, $2)', [
-        rule.name,
-        runOn,
-      ]);
-      names.add(rule.name);
-      rows.push({ name: rule.name, run_on: runOn });
-      inserted += 1;
-      logger.warn(`[Migrator] Reconciled historical placeholder ledger entry: ${rule.name}`);
-    }
-
-    return inserted;
-  } catch (error: unknown) {
-    const message = String((error as Error)?.message || error || '');
-    if (/relation .*pgmigrations.* does not exist/i.test(message)) {
-      return 0;
-    }
-    throw error;
-  }
+  throw new Error(
+    '[Migrator] Automatic pgmigrations ledger repair has been removed. Use an approved one-off ledger repair runbook instead.',
+  );
 }
 
 async function getAppliedMigrationNames(): Promise<Set<string>> {
   try {
-    await reconcileHistoricalMigrationLedger();
     const { rows } = await getApiPool().query<{ name: string }>(
       'SELECT name FROM pgmigrations ORDER BY run_on ASC',
     );

@@ -2,7 +2,6 @@ import { execSync } from 'child_process';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { reconcileHistoricalMigrationLedger } from '../src/server/db/migrator.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'src', 'server', 'db', 'postgres', 'migrations');
@@ -19,26 +18,7 @@ async function runMigrations() {
   console.log('🚀 Running Postgres migrations...');
 
   try {
-    await reconcileHistoricalMigrationLedger();
-
-    // Self-healing: If investigation_leads exists but migration isn't recorded, record it.
-    // This handles cases where a previous failed run created the table but didn't commit the ledger entry.
-    const pool = (await import('../src/server/db/connection.js')).getApiPool();
-    const leadsTable = await pool.query(
-      "SELECT to_regclass('public.investigation_leads') as exists",
-    );
-    if (leadsTable.rows[0]?.exists) {
-      await pool.query(
-        `INSERT INTO pgmigrations (name, run_on)
-         SELECT '1754200000000_investigation_leads', NOW()
-         WHERE NOT EXISTS (
-           SELECT 1 FROM pgmigrations WHERE name = '1754200000000_investigation_leads'
-         )`,
-      );
-      console.log('🩹 Reconciled investigation_leads migration entry.');
-    }
-
-    const command = `npx node-pg-migrate --migrations-dir "${MIGRATIONS_DIR}" --database-url "${connectionString}" --no-check-order up`;
+    const command = `npx node-pg-migrate --migrations-dir "${MIGRATIONS_DIR}" --no-check-order up`;
     execSync(command, { stdio: 'inherit' });
     console.log('✅ Postgres migrations completed successfully.');
   } catch (err) {

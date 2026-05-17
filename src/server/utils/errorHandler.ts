@@ -52,6 +52,7 @@ type ApiErrorBody = {
     code: string;
     message: string;
     requestId: string;
+    details?: Record<string, unknown>;
   };
 };
 
@@ -72,6 +73,7 @@ function buildErrorBody(req: Request, statusCode: number, err: Error): ApiErrorB
         code: err.code || (statusCode >= 500 ? pgErrorCode(err.message) : 'BAD_REQUEST'),
         message: err.message,
         requestId,
+        ...(err.details ? { details: err.details } : {}),
       },
     };
   }

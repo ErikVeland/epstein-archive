@@ -57,6 +57,12 @@ export async function validateStartup() {
     if (!existingTables.includes('entities')) errors.push('Missing critical table: entities');
     if (!existingTables.includes('documents')) errors.push('Missing critical table: documents');
 
+    if (process.env.NODE_ENV === 'production') {
+      if (!existingTables.includes('audit_events_v2')) {
+        errors.push('Missing required Postgres table for production audit: audit_events_v2');
+      }
+    }
+
     const strictSchema =
       process.env.STRICT_SCHEMA === '1' ||
       process.env.STRICT_SCHEMA === 'true' ||
@@ -83,6 +89,8 @@ export async function validateStartup() {
         ['entity_mentions', 'doc_red_flag_rating'],
         ['entity_mentions', 'doc_date_created'],
         ['investigations', 'collaborator_ids'],
+        ['document_annotations', 'scope'],
+        ['document_annotations', 'review_state'],
       ] as const;
       for (const [table, column] of requiredColumns) {
         const { rows: colRows } = await pool.query(

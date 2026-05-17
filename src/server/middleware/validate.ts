@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 import { AnyZodObject, z } from 'zod';
+import { ValidationError } from '../utils/errorHandler.js';
 
 interface ParsedQuery {
   [key: string]: string | string[] | ParsedQuery | ParsedQuery[] | undefined;
 }
 
 export const validate = (schema: AnyZodObject, target?: 'body' | 'query' | 'params') => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       if (target) {
         req[target] = await schema.parseAsync(req[target]);
@@ -27,13 +28,14 @@ export const validate = (schema: AnyZodObject, target?: 'body' | 'query' | 'para
       return next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({
-          error: 'Validation failed',
-          details: error.issues.map((issue) => ({
-            path: issue.path.join('.'),
-            message: issue.message,
-          })),
-        });
+        return next(
+          new ValidationError('Validation failed', {
+            issues: error.issues.map((issue) => ({
+              path: issue.path.join('.'),
+              message: issue.message,
+            })),
+          }),
+        );
       }
       return next(error);
     }
