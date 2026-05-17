@@ -595,11 +595,17 @@ export class MediaService {
   }
 
   async getTagById(id: number): Promise<MediaTag | undefined> {
-    return await this.pgRow<MediaTag>('SELECT * FROM media_tags WHERE id = $1', [id]);
+    return await this.pgRow<MediaTag>(
+      'SELECT id, name, category, created_at as "dateCreated" FROM media_tags WHERE id = $1',
+      [id],
+    );
   }
 
   async getOrCreateTag(name: string, category?: string): Promise<MediaTag> {
-    let tag = await this.pgRow<MediaTag>('SELECT * FROM media_tags WHERE name = $1', [name]);
+    let tag = await this.pgRow<MediaTag>(
+      'SELECT id, name, category, created_at as "dateCreated" FROM media_tags WHERE name = $1',
+      [name],
+    );
 
     if (!tag) {
       tag = await this.createTag(name, category);

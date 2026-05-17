@@ -76,7 +76,45 @@ WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_r
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL);
 
 /* @name getEntityById */
-SELECT * FROM entities WHERE id = :id!;
+SELECT
+  id,
+  full_name,
+  primary_role,
+  bio,
+  aliases,
+  mentions,
+  risk_level,
+  red_flag_rating,
+  red_flag_score,
+  red_flag_description,
+  connections_summary,
+  was_agentic,
+  is_vip,
+  title,
+  entity_type,
+  entity_category,
+  canonical_id,
+  birth_date,
+  death_date,
+  location_lat,
+  location_lng,
+  calculated_rank_score,
+  community_id,
+  evidence_count,
+  entity_metadata_json,
+  notes,
+  junk_flag,
+  junk_probability,
+  junk_reason,
+  junk_tier,
+  quarantine_status,
+  manually_reviewed,
+  needs_review,
+  fts_vector,
+  created_at,
+  updated_at
+FROM entities
+WHERE id = :id!;
 /* @name getVipEntities */
 SELECT full_name, aliases, COALESCE(mentions, 0) as mentions
 FROM entities

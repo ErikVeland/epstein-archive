@@ -308,14 +308,55 @@ export interface IGetEntityByIdQuery {
 
 const getEntityByIdIR: any = {
   usedParamSet: { id: true },
-  params: [{ name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 34, b: 37 }] }],
-  statement: 'SELECT * FROM entities WHERE id = :id!',
+  params: [
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 591, b: 594 }] },
+  ],
+  statement:
+    'SELECT\n  id,\n  full_name,\n  primary_role,\n  bio,\n  aliases,\n  mentions,\n  risk_level,\n  red_flag_rating,\n  red_flag_score,\n  red_flag_description,\n  connections_summary,\n  was_agentic,\n  is_vip,\n  title,\n  entity_type,\n  entity_category,\n  canonical_id,\n  birth_date,\n  death_date,\n  location_lat,\n  location_lng,\n  calculated_rank_score,\n  community_id,\n  evidence_count,\n  entity_metadata_json,\n  notes,\n  junk_flag,\n  junk_probability,\n  junk_reason,\n  junk_tier,\n  quarantine_status,\n  manually_reviewed,\n  needs_review,\n  fts_vector,\n  created_at,\n  updated_at\nFROM entities\nWHERE id = :id!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM entities WHERE id = :id!
+ * SELECT
+ *   id,
+ *   full_name,
+ *   primary_role,
+ *   bio,
+ *   aliases,
+ *   mentions,
+ *   risk_level,
+ *   red_flag_rating,
+ *   red_flag_score,
+ *   red_flag_description,
+ *   connections_summary,
+ *   was_agentic,
+ *   is_vip,
+ *   title,
+ *   entity_type,
+ *   entity_category,
+ *   canonical_id,
+ *   birth_date,
+ *   death_date,
+ *   location_lat,
+ *   location_lng,
+ *   calculated_rank_score,
+ *   community_id,
+ *   evidence_count,
+ *   entity_metadata_json,
+ *   notes,
+ *   junk_flag,
+ *   junk_probability,
+ *   junk_reason,
+ *   junk_tier,
+ *   quarantine_status,
+ *   manually_reviewed,
+ *   needs_review,
+ *   fts_vector,
+ *   created_at,
+ *   updated_at
+ * FROM entities
+ * WHERE id = :id!
  * ```
  */
 export const getEntityById = new PreparedQuery<IGetEntityByIdParams, IGetEntityByIdResult>(

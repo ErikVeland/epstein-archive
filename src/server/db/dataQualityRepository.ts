@@ -480,9 +480,10 @@ export const dataQualityRepository = {
   ): Promise<Record<string, unknown> | null> => {
     const pool = getApiPool();
 
-    const { rows: entityRows } = await pool.query('SELECT * FROM entities WHERE id = $1', [
-      entityId,
-    ]);
+    const { rows: entityRows } = await pool.query(
+      'SELECT id, full_name FROM entities WHERE id = $1',
+      [entityId],
+    );
     const entity = entityRows[0];
     if (!entity) return null;
 

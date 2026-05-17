@@ -1007,7 +1007,18 @@ export const investigationsRepository = {
         JOIN entity_mentions em ON d.id = em.document_id
         WHERE em.entity_id = $1::bigint
       )
-      SELECT * FROM investigations
+      SELECT
+        id,
+        uuid,
+        title,
+        description,
+        owner_id,
+        collaborator_ids,
+        status,
+        scope,
+        created_at,
+        updated_at
+      FROM investigations
       WHERE id IN (SELECT id FROM linked_via_leads UNION SELECT id FROM linked_via_mentions)
       ORDER BY updated_at DESC
       `,
