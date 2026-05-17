@@ -13,7 +13,7 @@ test.describe('Investigation deep-link and notebook resilience', () => {
   test('cold-load evidence deep link reconstructs case folder UI', async ({ page, request }) => {
     const investigationId = await resolveFirstInvestigation(request);
     if (!investigationId) {
-      test.skip(true, 'No investigations available');
+      expect(true, 'No investigations available').toBeFalsy();
       return;
     }
 
@@ -21,13 +21,13 @@ test.describe('Investigation deep-link and notebook resilience', () => {
       `/api/investigations/${investigationId}/evidence-by-type`,
     );
     if (!evidenceRes.ok()) {
-      test.skip(true, 'Investigation evidence endpoint unavailable');
+      expect(true, 'Investigation evidence endpoint unavailable').toBeFalsy();
       return;
     }
     const evidencePayload = await evidenceRes.json();
     const firstEvidence = Array.isArray(evidencePayload?.all) ? evidencePayload.all[0] : null;
     if (!firstEvidence) {
-      test.skip(true, 'No evidence linked to investigation');
+      expect(true, 'No evidence linked to investigation').toBeFalsy();
       return;
     }
     const evidenceId = String(firstEvidence.investigation_evidence_id || firstEvidence.id);
@@ -49,7 +49,7 @@ test.describe('Investigation deep-link and notebook resilience', () => {
   test('notebook edits survive save/reload cycle', async ({ page, request }) => {
     const investigationId = await resolveFirstInvestigation(request);
     if (!investigationId) {
-      test.skip(true, 'No investigations available');
+      expect(true, 'No investigations available').toBeFalsy();
       return;
     }
 

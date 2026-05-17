@@ -6,28 +6,27 @@ test.describe('Email Deep Link Routing', () => {
     request,
   }) => {
     const threadResp = await request.get('/api/emails/threads?mailboxId=all&limit=2');
-    test.skip(!threadResp.ok(), 'Email API unavailable for deep-link test');
-
+    expect(!threadResp.ok(), 'Email API unavailable for deep-link test').toBeFalsy();
     const threadJson = (await threadResp.json()) as {
       data: Array<{ threadId: string; subject: string }>;
     };
 
-    test.skip(!threadJson.data?.length, 'No email threads available for deep-link test');
-
+    expect(!threadJson.data?.length, 'No email threads available for deep-link test').toBeFalsy();
     const firstThread = threadJson.data[0];
     const secondThread = threadJson.data[1];
 
     const detailResp = await request.get(
       `/api/emails/threads/${encodeURIComponent(firstThread.threadId)}`,
     );
-    test.skip(!detailResp.ok(), 'Thread details unavailable for deep-link test');
-
+    expect(!detailResp.ok(), 'Thread details unavailable for deep-link test').toBeFalsy();
     const detailJson = (await detailResp.json()) as {
       messages: Array<{ messageId: string }>;
     };
 
-    test.skip(!detailJson.messages?.length, 'No messages in selected thread for deep-link test');
-
+    expect(
+      !detailJson.messages?.length,
+      'No messages in selected thread for deep-link test',
+    ).toBeFalsy();
     const firstMessageId = detailJson.messages[0].messageId;
 
     await page.goto(

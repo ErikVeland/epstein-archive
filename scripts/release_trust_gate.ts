@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { globSync } from 'glob';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
@@ -11,13 +12,7 @@ type Finding = {
   message: string;
 };
 
-const criticalSpecs = [
-  'tests/api-dto-contract.spec.ts',
-  'tests/data-integrity-audit.spec.ts',
-  'tests/golden-path.spec.ts',
-  'tests/investigation-export.spec.ts',
-  'tests/route-ui-sync.spec.ts',
-];
+const testFilePatterns = ['tests/**/*.spec.ts', 'src/test/**/*.test.ts'];
 
 const acceptanceMatrix = 'docs/20.0/ACCEPTANCE_MATRIX.md';
 const requiredClaimProvenanceFields = [
@@ -56,20 +51,17 @@ function checkAcceptanceMatrix(findings: Finding[]) {
   });
 }
 
-function checkCriticalSpecSkips(findings: Finding[]) {
-  for (const spec of criticalSpecs) {
+function checkTestSkips(findings: Finding[]) {
+  const specs = globSync(testFilePatterns, {
+    cwd: rootDir,
+    ignore: ['**/node_modules/**', '**/dist/**'],
+  }).sort();
+
+  for (const spec of specs) {
     const specLines = lines(spec);
     specLines.forEach((line, index) => {
-      if (!/\btest\.skip\s*\(/.test(line)) return;
-      const previous = specLines[index - 1] || '';
-      const current = line;
-      if (previous.includes('@release-skip-ok') || current.includes('@release-skip-ok')) return;
-      addFinding(
-        findings,
-        spec,
-        index,
-        'release-critical test has an unannotated skip; use a deterministic fixture or document an explicit release exception',
-      );
+      if (!/\b(?:test|it|describe)\.(?:skip|skipIf)\s*\(/.test(line)) return;
+      addFinding(findings, spec, index, 'test skip API is forbidden for strict release');
     });
   }
 }
@@ -88,7 +80,7 @@ function main() {
   const findings: Finding[] = [];
 
   checkAcceptanceMatrix(findings);
-  checkCriticalSpecSkips(findings);
+  checkTestSkips(findings);
   checkClaimProvenanceContract(findings);
 
   if (findings.length > 0) {

@@ -98,8 +98,10 @@ test.describe('Investigation ZIP export', () => {
   }) => {
     const investigationId = await findOrCreateInvestigationId(request, token);
     if (investigationId === null) {
-      // @release-skip-ok
-      test.skip(true, 'No investigation available and could not create one — skipping ZIP test');
+      expect(
+        true,
+        'No investigation available and could not create one for ZIP export test',
+      ).toBeFalsy();
       return;
     }
 
@@ -134,8 +136,7 @@ test.describe('Investigation ZIP export', () => {
   test('manifest.json has correct shape and a non-empty checksum', async ({ request }) => {
     const investigationId = await findOrCreateInvestigationId(request, token);
     if (investigationId === null) {
-      // @release-skip-ok
-      test.skip(true, 'No investigation available — skipping manifest test');
+      expect(true, 'No investigation available for manifest test').toBeFalsy();
       return;
     }
 
@@ -172,8 +173,7 @@ test.describe('Investigation ZIP export', () => {
   test('two exports of the same investigation produce identical checksums', async ({ request }) => {
     const investigationId = await findOrCreateInvestigationId(request, token);
     if (investigationId === null) {
-      // @release-skip-ok
-      test.skip(true, 'No investigation available — skipping determinism test');
+      expect(true, 'No investigation available for determinism test').toBeFalsy();
       return;
     }
 

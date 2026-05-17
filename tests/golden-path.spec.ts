@@ -131,8 +131,7 @@ test.describe('Golden Path A: People → Entity → Documents → DocumentModal'
   test('opens entity, shows evidence, opens source document route', async ({ page, request }) => {
     const resolved = await resolveEntityWithEvidence(request);
     if (!resolved) {
-      // @release-skip-ok
-      test.skip(true, 'No entity with linked evidence found');
+      expect(true, 'No entity with linked evidence found').toBeFalsy();
       return;
     }
     const { entityId, documentId } = resolved;
@@ -192,8 +191,7 @@ test.describe('Golden Path A3: Fast entity switching', () => {
   test('does not leak header state across entities', async ({ page, request }) => {
     const resolved = await resolveTwoEntities(request);
     if (!resolved) {
-      // @release-skip-ok
-      test.skip(true, 'Not enough entities to run fast-switch test');
+      expect(true, 'Not enough entities to run fast-switch test').toBeFalsy();
       return;
     }
     const { a, b } = resolved;
@@ -228,8 +226,7 @@ test.describe('Golden Path A3: Fast entity switching', () => {
   test('race condition: rapid switching does not mix entity data', async ({ page, request }) => {
     const resolved = await resolveTwoEntities(request);
     if (!resolved) {
-      // @release-skip-ok
-      test.skip(true, 'Not enough entities to run race test');
+      expect(true, 'Not enough entities to run race test').toBeFalsy();
       return;
     }
     const { a, b } = resolved;
@@ -262,9 +259,7 @@ test.describe('Golden Path B: DocumentModal tab and scroll behavior', () => {
     request,
   }) => {
     const documentId = await resolveFirstDocumentId(request);
-    // @release-skip-ok
-    test.skip(!documentId, 'No documents available');
-
+    expect(!documentId, 'No documents available').toBeFalsy();
     await page.goto(`/documents/${documentId}?modalTab=analysis`);
 
     const modal = page.locator('#DocumentModal');
@@ -314,8 +309,7 @@ test.describe('Golden Path D: DocumentModal PDF rendering', () => {
   }) => {
     const pdfDocumentId = await resolveFirstPdfDocumentId(request);
     if (!pdfDocumentId) {
-      // @release-skip-ok
-      test.skip(true, 'No PDF documents available');
+      expect(true, 'No PDF documents available').toBeFalsy();
       return;
     }
 
@@ -323,8 +317,7 @@ test.describe('Golden Path D: DocumentModal PDF rendering', () => {
       `${API_BASE}/documents/${encodeURIComponent(pdfDocumentId)}/file?variant=dirty`,
     );
     if (!fileResponse.ok()) {
-      // @release-skip-ok
-      test.skip(true, 'PDF file endpoint not available for this fixture');
+      expect(true, 'PDF file endpoint not available for this fixture').toBeFalsy();
       return;
     }
     const contentType = String(fileResponse.headers()['content-type'] || '').toLowerCase();
@@ -346,15 +339,13 @@ test.describe('Golden Path C: EmailClient threads, search, and add to investigat
   }) => {
     const threadResp = await request.get('/api/emails/threads?mailboxId=all&limit=1');
     if (!threadResp.ok()) {
-      // @release-skip-ok
-      test.skip(true, 'Email threads API not available');
+      expect(true, 'Email threads API not available').toBeFalsy();
       return;
     }
     const threadPayload = await threadResp.json();
     const threads = Array.isArray(threadPayload?.data) ? threadPayload.data : [];
     if (threads.length === 0) {
-      // @release-skip-ok
-      test.skip(true, 'No email threads available');
+      expect(true, 'No email threads available').toBeFalsy();
       return;
     }
 
@@ -394,8 +385,7 @@ test.describe('Golden Path E: Investigation workspace export panel', () => {
     // Resolve an existing investigation or create one
     const listRes = await request.get(`${API_BASE}/investigations?limit=5`);
     if (!listRes.ok()) {
-      // @release-skip-ok
-      test.skip(true, 'Investigations API not available');
+      expect(true, 'Investigations API not available').toBeFalsy();
       return;
     }
     const listBody = await listRes.json();
@@ -412,8 +402,7 @@ test.describe('Golden Path E: Investigation workspace export panel', () => {
     }
 
     if (!investigationId) {
-      // @release-skip-ok
-      test.skip(true, 'No investigations available for export test');
+      expect(true, 'No investigations available for export test').toBeFalsy();
       return;
     }
 
@@ -448,8 +437,7 @@ test.describe('Golden Path E: Investigation workspace export panel', () => {
         await exportTab.click();
         await expect(page.getByText(/evidence packet synthesis/i)).toBeVisible({ timeout: 10000 });
       } else {
-        // @release-skip-ok
-        test.skip(true, 'Export tab not accessible in this fixture state');
+        expect(true, 'Export tab not accessible in this fixture state').toBeFalsy();
         return;
       }
     }

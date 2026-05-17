@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 // SECURITY: Removed unused import of hardcoded peopleData (file deleted)
 
-test.skip(true, 'Legacy UI suite is outdated and superseded by targeted route/golden-path tests');
-
+expect(
+  true,
+  'Legacy UI suite is outdated and superseded by targeted route/golden-path tests',
+).toBeFalsy();
 async function navigateTo(page: import('@playwright/test').Page, label: string) {
   const desktopBtn = page.locator(`button:has-text("${label}")`).first();
   if (await desktopBtn.isVisible()) {

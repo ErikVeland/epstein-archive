@@ -7,7 +7,7 @@
  *   2. UI layer   — navigates to the page and verifies core rendering without JS errors
  *
  * Convention: resolve a live fixture ID from a list endpoint, then exercise the detail endpoint.
- * Use `test.skip()` when the database has no matching data so the suite stays green on sparse DBs.
+ * Missing production coverage data is a hard failure; release runs must not hide sparse datasets.
  */
 
 import { test, expect, type Page } from '@playwright/test';
@@ -55,7 +55,7 @@ test.describe('Individual record API endpoints', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((d) => d?.id != null);
     if (!first) {
-      test.skip(true, 'No documents in database');
+      expect(true, 'No documents in database').toBeFalsy();
       return;
     }
 
@@ -81,7 +81,7 @@ test.describe('Individual record API endpoints', () => {
         : [];
     const first = items.find((e) => e?.id != null);
     if (!first) {
-      test.skip(true, 'No entities in database');
+      expect(true, 'No entities in database').toBeFalsy();
       return;
     }
 
@@ -105,7 +105,7 @@ test.describe('Individual record API endpoints', () => {
         : [];
     const first = items.find((e) => e?.id != null);
     if (!first) {
-      test.skip(true, 'No entities in database');
+      expect(true, 'No entities in database').toBeFalsy();
       return;
     }
 
@@ -126,7 +126,7 @@ test.describe('Individual record API endpoints', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.flights) ? payload.flights : [];
     const first = items.find((f) => f?.id != null);
     if (!first) {
-      test.skip(true, 'No flights in database');
+      expect(true, 'No flights in database').toBeFalsy();
       return;
     }
 
@@ -139,7 +139,7 @@ test.describe('Individual record API endpoints', () => {
   test('GET /api/media/images/:id returns 200', async ({ request }) => {
     const listResp = await request.get(`${API_BASE}/media/images?limit=5`);
     if (!listResp.ok()) {
-      test.skip(true, 'Media images endpoint not available');
+      expect(true, 'Media images endpoint not available').toBeFalsy();
       return;
     }
     const payload = await listResp.json();
@@ -150,7 +150,7 @@ test.describe('Individual record API endpoints', () => {
         : [];
     const first = items.find((i) => i?.id != null);
     if (!first) {
-      test.skip(true, 'No media images in database');
+      expect(true, 'No media images in database').toBeFalsy();
       return;
     }
 
@@ -163,14 +163,14 @@ test.describe('Individual record API endpoints', () => {
   test('GET /api/emails/threads/:threadId returns 200', async ({ request }) => {
     const listResp = await request.get(`${API_BASE}/emails/threads?mailboxId=all&limit=5`);
     if (!listResp.ok()) {
-      test.skip(true, 'Email threads not available');
+      expect(true, 'Email threads not available').toBeFalsy();
       return;
     }
     const payload = await listResp.json();
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((t) => t?.threadId != null || t?.id != null);
     if (!first) {
-      test.skip(true, 'No email threads in database');
+      expect(true, 'No email threads in database').toBeFalsy();
       return;
     }
 
@@ -186,7 +186,7 @@ test.describe('Individual record API endpoints', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((d) => d?.id != null);
     if (!first) {
-      test.skip(true, 'No documents/evidence available');
+      expect(true, 'No documents/evidence available').toBeFalsy();
       return;
     }
 
@@ -200,7 +200,7 @@ test.describe('Individual record API endpoints', () => {
   test('GET /api/properties/:id returns 200', async ({ request }) => {
     const listResp = await request.get(`${API_BASE}/properties?page=1&limit=5`);
     if (!listResp.ok()) {
-      test.skip(true, 'Properties endpoint not available');
+      expect(true, 'Properties endpoint not available').toBeFalsy();
       return;
     }
     const payload = await listResp.json();
@@ -209,7 +209,7 @@ test.describe('Individual record API endpoints', () => {
       : [];
     const first = items.find((p) => p?.id != null);
     if (!first) {
-      test.skip(true, 'No properties in database');
+      expect(true, 'No properties in database').toBeFalsy();
       return;
     }
 
@@ -222,7 +222,7 @@ test.describe('Individual record API endpoints', () => {
   test('GET /api/articles/:id returns 200', async ({ request }) => {
     const listResp = await request.get(`${API_BASE}/articles?page=1&limit=5`);
     if (!listResp.ok()) {
-      test.skip(true, 'Articles endpoint not available');
+      expect(true, 'Articles endpoint not available').toBeFalsy();
       return;
     }
     const payload = await listResp.json();
@@ -233,7 +233,7 @@ test.describe('Individual record API endpoints', () => {
         : [];
     const first = items.find((a) => a?.id != null);
     if (!first) {
-      test.skip(true, 'No articles in database');
+      expect(true, 'No articles in database').toBeFalsy();
       return;
     }
 
@@ -250,7 +250,7 @@ test.describe('Individual record API endpoints', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((d) => d?.id != null);
     if (!first) {
-      test.skip(true, 'No documents in database');
+      expect(true, 'No documents in database').toBeFalsy();
       return;
     }
 
@@ -299,7 +299,7 @@ test.describe('People & Entity modal', () => {
         : [];
     const first = items.find((e) => e?.id != null);
     if (!first) {
-      test.skip(true, 'No entities available');
+      expect(true, 'No entities available').toBeFalsy();
       return;
     }
 
@@ -346,7 +346,7 @@ test.describe('Documents page & DocumentModal', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((d) => d?.id != null);
     if (!first) {
-      test.skip(true, 'No documents in database');
+      expect(true, 'No documents in database').toBeFalsy();
       return;
     }
 
@@ -368,7 +368,7 @@ test.describe('Documents page & DocumentModal', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((d) => d?.id != null);
     if (!first) {
-      test.skip(true, 'No documents in database');
+      expect(true, 'No documents in database').toBeFalsy();
       return;
     }
 
@@ -395,7 +395,7 @@ test.describe('Documents page & DocumentModal', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((d) => d?.id != null);
     if (!first) {
-      test.skip(true, 'No documents in database');
+      expect(true, 'No documents in database').toBeFalsy();
       return;
     }
 
@@ -439,7 +439,7 @@ test.describe('Media page sub-tabs', () => {
   test('article detail page loads for a real article', async ({ page, request }) => {
     const listResp = await request.get(`${API_BASE}/articles?page=1&limit=5`);
     if (!listResp.ok()) {
-      test.skip(true, 'Articles endpoint not available');
+      expect(true, 'Articles endpoint not available').toBeFalsy();
       return;
     }
     const payload = await listResp.json();
@@ -450,7 +450,7 @@ test.describe('Media page sub-tabs', () => {
         : [];
     const first = items.find((a) => a?.id != null);
     if (!first) {
-      test.skip(true, 'No articles in database');
+      expect(true, 'No articles in database').toBeFalsy();
       return;
     }
 
@@ -534,7 +534,7 @@ test.describe('Flights page', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.flights) ? payload.flights : [];
     const first = items.find((f) => f?.id != null);
     if (!first) {
-      test.skip(true, 'No flights in database');
+      expect(true, 'No flights in database').toBeFalsy();
       return;
     }
 
@@ -649,7 +649,7 @@ test.describe('Investigations workspace', () => {
   test('investigation detail page loads for a real investigation', async ({ page, request }) => {
     const listResp = await request.get(`${API_BASE}/investigations?limit=3`);
     if (!listResp.ok()) {
-      test.skip(true, 'Investigations endpoint not available');
+      expect(true, 'Investigations endpoint not available').toBeFalsy();
       return;
     }
     const payload = await listResp.json();
@@ -660,7 +660,7 @@ test.describe('Investigations workspace', () => {
         : [];
     const first = items.find((i) => i?.id != null);
     if (!first) {
-      test.skip(true, 'No investigations in database');
+      expect(true, 'No investigations in database').toBeFalsy();
       return;
     }
 
@@ -704,7 +704,7 @@ test.describe('Evidence detail page', () => {
     const items: Record<string, unknown>[] = Array.isArray(payload?.data) ? payload.data : [];
     const first = items.find((d) => d?.id != null);
     if (!first) {
-      test.skip(true, 'No documents/evidence available');
+      expect(true, 'No documents/evidence available').toBeFalsy();
       return;
     }
 

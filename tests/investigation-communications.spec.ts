@@ -11,7 +11,7 @@ const resolveFirstInvestigation = async (request: APIRequestContext) => {
 test('communications analysis provides a real action path', async ({ page, request }) => {
   const investigationId = await resolveFirstInvestigation(request);
   if (!investigationId) {
-    test.skip(true, 'No investigations available');
+    expect(true, 'No investigations available').toBeFalsy();
     return;
   }
 

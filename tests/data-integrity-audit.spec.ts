@@ -43,8 +43,7 @@ test.describe('Data Integrity Audits', () => {
       .slice(0, 10);
 
     if (withMedia.length === 0) {
-      // @release-skip-ok
-      test.skip(true, 'No entities with verified media found in test sample');
+      expect(true, 'No entities with verified media found in test sample').toBeFalsy();
       return;
     }
 
@@ -62,8 +61,7 @@ test.describe('Data Integrity Audits', () => {
   test('Invariant 2: every entity from list is individually retrievable', async ({ request }) => {
     const entities = await getEntitySample(request, 15);
     if (entities.length === 0) {
-      // @release-skip-ok
-      test.skip(true, 'No entities available');
+      expect(true, 'No entities available').toBeFalsy();
       return;
     }
 

@@ -80,10 +80,13 @@ function validateTestShape(sourceFile: ts.SourceFile): string[] {
       if (name === 'it' || name === 'test') hasCase = true;
       if (
         name === 'describe.skip' ||
+        name === 'describe.skipIf' ||
         name === 'describe.only' ||
         name === 'it.skip' ||
+        name === 'it.skipIf' ||
         name === 'it.only' ||
         name === 'test.skip' ||
+        name === 'test.skipIf' ||
         name === 'test.only'
       ) {
         violations.push(`focused/skipped test API is forbidden (${name})`);

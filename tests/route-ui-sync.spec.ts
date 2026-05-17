@@ -164,8 +164,7 @@ test.describe('Route to UI state synchronization', () => {
   }) => {
     const entityId = await resolveFirstEntityId(request);
     if (!entityId) {
-      // @release-skip-ok
-      test.skip(true, 'No entities available');
+      expect(true, 'No entities available').toBeFalsy();
       return;
     }
 
@@ -179,8 +178,7 @@ test.describe('Route to UI state synchronization', () => {
         .locator('button:has-text("VIEW"), a:has-text("VIEW"), button:has-text("View")')
         .first();
       if (!(await openEntity.isVisible().catch(() => false))) {
-        // @release-skip-ok
-        test.skip(true, 'No entity card action available to open Evidence modal');
+        expect(true, 'No entity card action available to open Evidence modal').toBeFalsy();
         return;
       }
       await openEntity.click();
@@ -220,8 +218,7 @@ test.describe('Route to UI state synchronization', () => {
   }) => {
     const documentId = await resolveFirstDocumentId(request);
     if (!documentId) {
-      // @release-skip-ok
-      test.skip(true, 'No documents available');
+      expect(true, 'No documents available').toBeFalsy();
       return;
     }
 
@@ -234,8 +231,7 @@ test.describe('Route to UI state synchronization', () => {
       await page.goto('/documents');
       const firstCard = page.locator('.document-card').first();
       if (!(await firstCard.isVisible().catch(() => false))) {
-        // @release-skip-ok
-        test.skip(true, 'No document cards available to open Document modal');
+        expect(true, 'No document cards available to open Document modal').toBeFalsy();
         return;
       }
       await firstCard.click();
@@ -281,8 +277,7 @@ test.describe('Route to UI state synchronization', () => {
   }) => {
     const resolved = await resolveEntityWithFlights(request);
     if (!resolved) {
-      // @release-skip-ok
-      test.skip(true, 'No entity with linked flights available');
+      expect(true, 'No entity with linked flights available').toBeFalsy();
       return;
     }
 
@@ -314,8 +309,7 @@ test.describe('Route to UI state synchronization', () => {
     const firstCard = page.getByTestId('subject-card').first();
     const hasCard = await firstCard.isVisible({ timeout: 20000 }).catch(() => false);
     if (!hasCard) {
-      // @release-skip-ok
-      test.skip(true, 'No subject cards available');
+      expect(true, 'No subject cards available').toBeFalsy();
       return;
     }
 
@@ -333,8 +327,7 @@ test.describe('Route to UI state synchronization', () => {
   }) => {
     const resolved = await resolveThreadAndMessage(request);
     if (!resolved) {
-      // @release-skip-ok
-      test.skip(true, 'No email thread/message fixture available');
+      expect(true, 'No email thread/message fixture available').toBeFalsy();
       return;
     }
 
@@ -351,8 +344,7 @@ test.describe('Route to UI state synchronization', () => {
     const evidenceButton = messageCard.getByRole('button', { name: 'Evidence' }).first();
     const evidenceVisible = await evidenceButton.isVisible({ timeout: 5000 }).catch(() => false);
     if (!evidenceVisible) {
-      // @release-skip-ok
-      test.skip(true, 'Evidence button not available for selected email message');
+      expect(true, 'Evidence button not available for selected email message').toBeFalsy();
       return;
     }
 
@@ -452,8 +444,7 @@ test.describe('Route to UI state synchronization', () => {
   }) => {
     const resolved = await resolveInvestigationAndEvidence(request);
     if (!resolved) {
-      // @release-skip-ok
-      test.skip(true, 'No investigation evidence available');
+      expect(true, 'No investigation evidence available').toBeFalsy();
       return;
     }
 
@@ -474,8 +465,10 @@ test.describe('Route to UI state synchronization', () => {
         .first();
       const hasCaseFolder = await caseFolderButton.isVisible({ timeout: 60000 }).catch(() => false);
       if (!hasCaseFolder) {
-        // @release-skip-ok
-        test.skip(true, 'Investigation workspace deep-link controls not available in this fixture');
+        expect(
+          true,
+          'Investigation workspace deep-link controls not available in this fixture',
+        ).toBeFalsy();
         return;
       }
       await expect(caseFolderButton).toBeVisible({ timeout: 60000 });

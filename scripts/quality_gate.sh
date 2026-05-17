@@ -33,7 +33,8 @@ if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
     echo "▶ Verifying schema hash (prevents silent schema drift)"
     pnpm schema:hash:check
   else
-    echo "⚠️  DATABASE_URL not set; skipping data-quality gates"
+    echo "❌ DATABASE_URL not set; strict release gates must not skip data-quality checks"
+    exit 1
   fi
 fi
 

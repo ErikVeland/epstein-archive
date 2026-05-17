@@ -23,8 +23,7 @@ const BUNDLE_BUDGET = {
 };
 
 test.describe('CI Performance Budgets', () => {
-  test.skip(!process.env.CI, 'CI-only performance budget checks');
-
+  expect(!process.env.CI, 'CI-only performance budget checks').toBeFalsy();
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

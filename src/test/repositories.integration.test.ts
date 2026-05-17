@@ -1,8 +1,8 @@
 /**
  * Repository integration tests — require a live PostgreSQL database.
  *
- * These tests are skipped unless RUN_INTEGRATION=1 is set in the environment
- * (see .env.example). They verify that:
+ * These tests require a live PostgreSQL database and fail closed when
+ * DATABASE_URL is absent. They verify that:
  *
  *   1. Repository functions return the expected data shapes (schema conformance)
  *   2. Functions fixed in Phase 1 (silent-failure removal) now propagate errors
@@ -12,8 +12,6 @@
 
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-
-const RUN = process.env.RUN_INTEGRATION === '1' || process.env.RUN_INTEGRATION === 'true';
 
 // ── Schema fixtures ──────────────────────────────────────────────────────────
 // Minimal shapes — enough to catch regressions without over-specifying.
@@ -55,7 +53,7 @@ function assertSchema<T>(schema: z.ZodSchema<T>, value: unknown, label: string):
 
 // ── Suite ────────────────────────────────────────────────────────────────────
 
-describe.skipIf(!RUN)('repository integration tests (RUN_INTEGRATION=1 required)', () => {
+describe('repository integration tests', () => {
   // Lazy-import repositories only when we actually have a DB connection.
   // This prevents pool initialization errors during regular unit test runs.
   let flightsRepository: typeof import('../server/db/flightsRepository.js').flightsRepository;
@@ -107,14 +105,23 @@ describe.skipIf(!RUN)('repository integration tests (RUN_INTEGRATION=1 required)
 
     it('getAirportCoords returns an array', async () => {
       const result = await flightsRepository.getAirportCoords();
-      expect(Array.isArray(result)).toBe(true);
+      expect(result).toBeTypeOf('object');
+      expect(Object.keys(result).length).toBeGreaterThan(0);
+      const firstAirport = Object.values(result)[0] as Record<string, unknown>;
+      expect(typeof firstAirport.lat).toBe('number');
+      expect(typeof firstAirport.lng).toBe('number');
+      expect(typeof firstAirport.city).toBe('string');
     });
 
-    it('getUniquePassengers returns an array of strings', async () => {
+    it('getUniquePassengers returns passenger summary rows', async () => {
       const result = await flightsRepository.getUniquePassengers();
       expect(Array.isArray(result)).toBe(true);
       if (result.length > 0) {
-        expect(typeof result[0]).toBe('string');
+        expect(typeof result[0].name).toBe('string');
+        expect(typeof result[0].flight_count).toBe('number');
+        expect(
+          result[0].entity_id === null || typeof result[0].entity_id === 'number',
+        ).toBeTruthy();
       }
     });
   });

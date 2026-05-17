@@ -24,7 +24,7 @@ test.describe('SSR OG meta tags', () => {
     const list = await listRes.json();
 
     if (!list.data || list.data.length === 0) {
-      test.skip(true, 'No evidence records in DB');
+      expect(true, 'No evidence records in DB').toBeFalsy();
       return;
     }
 
@@ -45,7 +45,7 @@ test.describe('SSR OG meta tags', () => {
     const list = await listRes.json();
 
     if (!list.data || list.data.length === 0) {
-      test.skip(true, 'No entity records in DB');
+      expect(true, 'No entity records in DB').toBeFalsy();
       return;
     }
 

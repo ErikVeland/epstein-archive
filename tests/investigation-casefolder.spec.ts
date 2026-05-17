@@ -7,7 +7,7 @@ test.describe('Investigation Case Folder', () => {
     const firstCase = page.locator('h3.text-xl.font-medium.text-white').first();
 
     if (!(await firstCase.isVisible())) {
-      test.skip(true, 'No investigation cards available in this dataset');
+      expect(true, 'No investigation cards available in this dataset').toBeFalsy();
       return;
     }
 
@@ -16,7 +16,7 @@ test.describe('Investigation Case Folder', () => {
 
     const openEvidenceButton = page.getByRole('button', { name: 'Open evidence' }).first();
     if (!(await openEvidenceButton.isVisible())) {
-      test.skip(true, 'No evidence rows available in case folder');
+      expect(true, 'No evidence rows available in case folder').toBeFalsy();
       return;
     }
 
