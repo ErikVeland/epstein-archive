@@ -51,6 +51,7 @@ scripts/migrations/*.sql
 *.backup-*
 *.corrupted
 *.part*
+/check_*.ts
 /test_*.ts
 tmp/
 temp/
