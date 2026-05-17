@@ -5,6 +5,13 @@
 
 set -euo pipefail
 
+if [ -f ".env.deploy.local" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source ".env.deploy.local"
+  set +a
+fi
+
 # Configuration
 PRODUCTION_USER="${EPSTEIN_PROD_SSH_USER:-svc_epstein}"
 PRODUCTION_HOST="${EPSTEIN_PROD_HOST:-}"
