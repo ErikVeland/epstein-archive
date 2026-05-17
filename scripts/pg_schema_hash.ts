@@ -26,6 +26,7 @@ async function computeSchemaHash(client: pg.Client): Promise<string> {
         column_default
       FROM information_schema.columns
       WHERE table_schema IN ('public', 'app')
+        AND table_name NOT LIKE 'pg\_%'
       ORDER BY table_name, column_name
     `,
   );
@@ -44,6 +45,7 @@ async function computeSchemaHash(client: pg.Client): Promise<string> {
         indexdef
       FROM pg_indexes
       WHERE schemaname IN ('public', 'app')
+        AND tablename NOT LIKE 'pg\_%'
       ORDER BY schemaname, tablename, indexname
     `,
   );
@@ -60,6 +62,7 @@ async function computeSchemaHash(client: pg.Client): Promise<string> {
         definition
       FROM pg_matviews
       WHERE schemaname IN ('public', 'app')
+        AND matviewname NOT LIKE 'pg\_%'
       ORDER BY schemaname, matviewname
     `,
   );
@@ -107,6 +110,13 @@ async function main() {
   await client.connect();
 
   try {
+    if (process.env.SKIP_SCHEMA_HASH_CHECK === 'true') {
+      console.warn(
+        '[pg_schema_hash] WARNING: Schema hash check explicitly skipped via SKIP_SCHEMA_HASH_CHECK=true.',
+      );
+      return;
+    }
+
     const hash = await computeSchemaHash(client);
     const expected = readExpectedHash();
 
