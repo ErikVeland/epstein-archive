@@ -104,6 +104,13 @@ async function main() {
   const arg = process.argv[2] || 'check';
   const mode: Mode = arg === 'update' || arg === '--update' ? 'update' : 'check';
 
+  if (process.env.SKIP_SCHEMA_HASH_CHECK === 'true') {
+    console.warn(
+      '[pg_schema_hash] WARNING: Schema hash check explicitly skipped via SKIP_SCHEMA_HASH_CHECK=true.',
+    );
+    return;
+  }
+
   if (!process.env.DATABASE_URL) {
     console.error('[pg_schema_hash] DATABASE_URL is required');
     process.exit(1);
@@ -113,13 +120,6 @@ async function main() {
   await client.connect();
 
   try {
-    if (process.env.SKIP_SCHEMA_HASH_CHECK === 'true') {
-      console.warn(
-        '[pg_schema_hash] WARNING: Schema hash check explicitly skipped via SKIP_SCHEMA_HASH_CHECK=true.',
-      );
-      return;
-    }
-
     const hash = await computeSchemaHash(client);
     const expected = readExpectedHash();
 
