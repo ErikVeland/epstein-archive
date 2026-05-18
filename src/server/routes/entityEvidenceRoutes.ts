@@ -222,48 +222,10 @@ router.get('/:entityId/media', async (req: Request, res: Response) => {
 });
 
 router.get('/:entityId/photo', async (req: Request, res: Response) => {
-  try {
-    const { entityId } = req.params as { entityId: string };
-    const { mediaRepository } = await import('../db/mediaRepository.js');
-    const preferredPhoto = await mediaRepository.getEntityProfilePhoto(entityId);
-
-    if (!preferredPhoto) {
-      return res.status(404).json({ error: 'No photo found for entity' });
-    }
-
-    // If it's a dedicated crop path, serve it; otherwise redirect to the media thumbnail route
-    if (preferredPhoto.includes('crop')) {
-      const path = await import('path');
-      const fs = await import('fs');
-      const resolved = preferredPhoto.startsWith('/')
-        ? preferredPhoto
-        : path.resolve(process.cwd(), preferredPhoto);
-
-      if (fs.existsSync(resolved)) {
-        res.type(path.extname(resolved) || 'image/jpeg');
-        return res.sendFile(resolved);
-      }
-    }
-
-    // Fallback to searching for the media item if we just have a thumbnail path fragment
-    // For simplicity, we can redirect to the media images thumbnail endpoint if we can identify the ID
-    // But since getEntityProfilePhoto returns the path, let's just serve it if it exists.
-    const path = await import('path');
-    const fs = await import('fs');
-    const resolvedFallback = preferredPhoto.startsWith('/')
-      ? preferredPhoto
-      : path.resolve(process.cwd(), preferredPhoto);
-
-    if (fs.existsSync(resolvedFallback)) {
-      res.type(path.extname(resolvedFallback) || 'image/jpeg');
-      return res.sendFile(resolvedFallback);
-    }
-
-    res.status(404).json({ error: 'Photo file not found on disk' });
-  } catch (err) {
-    logger.error({ err, entityId: req.params.entityId }, 'Error fetching entity photo');
-    res.status(500).json({ error: 'Failed to fetch entity photo' });
-  }
+  const { entityId } = req.params as { entityId: string };
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('Link', `</api/entities/${entityId}/portrait>; rel="canonical"`);
+  return res.redirect(302, `/api/entities/${entityId}/portrait`);
 });
 
 // GET /api/entities/:entityId/claims
