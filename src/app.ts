@@ -23,7 +23,7 @@ import { validateStartup } from './server/utils/startupValidation.js';
 import { runMigrations } from './server/db/migrator.js';
 import { initRevisionManager } from './server/revisionManager.js';
 import { getEntityAndDocumentCounts } from './server/db/healthQueries.js';
-import type { SortOption } from './types';
+import { subjectsRouter } from './server/routes/subjectsRoutes.js';
 
 // Route imports
 import authRoutes from './server/auth/routes.js';
@@ -69,8 +69,6 @@ import dataQualityRoutes from './server/routes/dataQualityRoutes.js';
 import vitalsRoutes from './server/routes/vitalsRoutes.js';
 import sitemapRouter from './server/routes/sitemap.js';
 import entitiesRoutes from './server/routes/entitiesRoutes.js';
-import { mapSubjectsListResponseDto } from './server/mappers/entitiesDtoMapper.js';
-import { subjectsQuerySchema } from './server/middleware/validate.js';
 import searchRoutes from './server/routes/searchRoutes.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
@@ -78,13 +76,13 @@ import { evidenceRepository } from './server/db/evidenceRepository.js';
 import { claimTriplesRepository } from './server/db/claimTriplesRepository.js';
 import { financialRepository } from './server/db/financialRepository.js';
 import { purgeCacheByPattern } from './server/middleware/cache.js';
-import { validate } from './server/middleware/validate.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
 import { apiErrorEnvelopeMiddleware } from './server/middleware/apiErrorEnvelope.js';
 import { queryCounter } from './server/queryCounter.js';
 import { shouldBootInDegradedMode } from './server/utils/startupMode.js';
 import { initMatViewScheduler } from './server/services/matViewRefresh.js';
+import { getDbMetaPayload } from './server/services/dbMetaService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -446,64 +444,7 @@ export class App {
   private initializeRoutes() {
     const router = express.Router();
 
-    interface SubjectsQuery {
-      page?: string;
-      limit?: string;
-      search?: string;
-      role?: string;
-      entityType?: string;
-      likelihoodScore?: string | string[];
-      sortOrder?: string;
-      sortBy?: string;
-    }
-
-    router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
-      try {
-        const query = req.query as unknown as SubjectsQuery;
-        const page = Number(query.page || 1);
-        const limit = Number(query.limit || 24);
-        const likelihoodRaw = query.likelihoodScore;
-        const likelihoodScore = Array.isArray(likelihoodRaw)
-          ? (likelihoodRaw as string[])
-          : typeof likelihoodRaw === 'string' && likelihoodRaw.length > 0
-            ? [likelihoodRaw]
-            : undefined;
-        const allowedLikelihoodScores = ['HIGH', 'MEDIUM', 'LOW'] as const;
-        const normalizedLikelihoodScores = likelihoodScore
-          ?.filter((v): v is (typeof allowedLikelihoodScores)[number] =>
-            allowedLikelihoodScores.includes(v as (typeof allowedLikelihoodScores)[number]),
-          )
-          .filter((v, i, arr) => arr.indexOf(v) === i);
-
-        const filters = {
-          searchTerm: typeof query.search === 'string' ? query.search : undefined,
-          role: typeof query.role === 'string' ? query.role : undefined,
-          entityType: typeof query.entityType === 'string' ? query.entityType : undefined,
-          likelihoodScore: normalizedLikelihoodScores,
-          sortOrder: (String(query.sortOrder || 'desc').toLowerCase() === 'asc'
-            ? 'asc'
-            : 'desc') as 'asc' | 'desc',
-        };
-        const rawSortBy = typeof query.sortBy === 'string' ? query.sortBy : 'risk';
-        const sortBy: SortOption =
-          rawSortBy === 'name' ||
-          rawSortBy === 'mentions' ||
-          rawSortBy === 'red_flag' ||
-          rawSortBy === 'recent' ||
-          rawSortBy === 'risk' ||
-          rawSortBy === 'date-desc' ||
-          rawSortBy === 'date-asc' ||
-          rawSortBy === 'relevance' ||
-          rawSortBy === 'document-count'
-            ? rawSortBy
-            : 'risk';
-        const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
-
-        res.json(mapSubjectsListResponseDto(result));
-      } catch (error) {
-        next(error);
-      }
-    });
+    router.use('/subjects', subjectsRouter);
 
     // Health check
     router.get('/health', (_req, res) => {
@@ -606,25 +547,7 @@ export class App {
     // Canonical DB metadata endpoint used by monitors and deploy verification.
     router.get('/_meta/db', async (_req, res, next) => {
       try {
-        const pool = getApiPool();
-        const { rows } = await pool.query<{
-          server_version: string;
-          statement_timeout: string;
-          lock_timeout: string;
-        }>(`
-          SELECT
-            version() AS server_version,
-            current_setting('statement_timeout') AS statement_timeout,
-            current_setting('lock_timeout') AS lock_timeout
-        `);
-        const metrics = await getMigrationMetrics();
-        res.json({
-          dialect: 'postgres',
-          server_version: rows[0]?.server_version,
-          statement_timeout: rows[0]?.statement_timeout,
-          lock_timeout: rows[0]?.lock_timeout,
-          pools: metrics.pools,
-        });
+        res.json(await getDbMetaPayload());
       } catch (error) {
         next(error);
       }

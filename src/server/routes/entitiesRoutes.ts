@@ -5,16 +5,15 @@ import { mediaRepository } from '../db/mediaRepository.js';
 import {
   mapEntityDetailDto,
   mapEntityListResponseDto,
-  mapSubjectsListResponseDto,
   mapEntityListItemDto,
 } from '../mappers/entitiesDtoMapper.js';
 import {
   validate,
-  subjectsQuerySchema,
   entitiesQuerySchema,
   entityIdParamSchema,
   searchSchema,
 } from '../middleware/validate.js';
+import { subjectsRouter } from './subjectsRoutes.js';
 import { resolveMediaPath } from '../utils/pathResolver.js';
 import fs from 'fs';
 import path from 'path';
@@ -23,34 +22,7 @@ import type { EntityRow } from '../db/rowTypes.js';
 
 const router = express.Router();
 
-router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
-  try {
-    const query = req.query as unknown as z.infer<typeof subjectsQuerySchema>['query'];
-    const page = Number(query.page || 1);
-    const limit = Number(query.limit || 24);
-    const likelihoodRaw = query.likelihoodScore;
-    const likelihoodScore = Array.isArray(likelihoodRaw)
-      ? (likelihoodRaw as ('HIGH' | 'MEDIUM' | 'LOW')[])
-      : typeof likelihoodRaw === 'string' && likelihoodRaw.length > 0
-        ? [likelihoodRaw as 'HIGH' | 'MEDIUM' | 'LOW']
-        : undefined;
-
-    const filters: SearchFilters = {
-      searchTerm: typeof query.search === 'string' ? query.search : undefined,
-      role: typeof query.role === 'string' ? query.role : undefined,
-      entityType: typeof query.entityType === 'string' ? query.entityType : undefined,
-      likelihoodScore,
-      sortOrder: String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc',
-    };
-    const sortBy: SortOption =
-      typeof query.sortBy === 'string' ? (query.sortBy as SortOption) : 'risk';
-    const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
-
-    res.json(mapSubjectsListResponseDto(result));
-  } catch (error) {
-    next(error);
-  }
-});
+router.use('/subjects', subjectsRouter);
 
 router.get('/', validate(entitiesQuerySchema), async (req, res, next) => {
   try {
