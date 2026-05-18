@@ -93,8 +93,13 @@ The project includes a robust deployment script `deploy.sh` that handles:
 
 ```bash
 # Deploy to production
-./deploy.sh
+cp .env.deploy.example .env.deploy.local
+./deploy.sh --with-db
 ```
+
+Production runtime secrets still live only on the server in the remote `.env`
+file. Local deploy connection settings belong in `.env.deploy.local`, which is
+ignored by git; `.env.deploy.example` is the tracked non-secret contract.
 
 ## 📂 Project Structure
 

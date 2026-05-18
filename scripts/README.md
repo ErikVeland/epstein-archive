@@ -30,9 +30,14 @@ for compatibility, but backfill safety now comes from stage version + input hash
 Handles pre-flight QA, database migration, code build, and zero-downtime restart.
 
 ```bash
-./deploy.sh              # Full deploy
+cp .env.deploy.example .env.deploy.local
+./deploy.sh --with-db    # Full deploy with DB migrations
 ./deploy.sh --dry-run    # Preview flight
 ```
+
+`.env.deploy.local` is intentionally ignored. Keep host/user/path/canary
+settings there for local deploys; production runtime secrets remain in the
+remote `.env` file on the server.
 
 ---
 

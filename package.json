@@ -68,6 +68,7 @@
     "audit:design-system": "node --import tsx/esm scripts/audit_design_system_usage.ts",
     "check:design-system-audit": "STRICT_DESIGN_SYSTEM_AUDIT=1 node --import tsx/esm scripts/audit_design_system_usage.ts",
     "audit:data-integrity": "node --import tsx/esm scripts/data_integrity_audit.ts",
+    "check:deploy-certify": "tsx scripts/deploy_certify.ts",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

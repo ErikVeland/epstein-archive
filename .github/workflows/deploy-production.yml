@@ -76,4 +76,4 @@ jobs:
           EPSTEIN_PROD_HOST: ${{ secrets.PROD_HOST || '194.195.248.217' }}
           EPSTEIN_PROD_SSH_USER: ${{ secrets.PROD_USER || 'svc_epstein' }}
           GH_TOKEN: ${{ github.token }}
-        run: ./deploy.sh
+        run: ./deploy.sh --with-db

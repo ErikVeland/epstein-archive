@@ -57,6 +57,7 @@ run_full_prechecks() {
   run "client/server boundary" pnpm run check:boundaries
   run "migration seed-conflict policy" pnpm run check:seed-conflict-policy
   run "test hygiene" pnpm run check:test-hygiene
+  run "deploy certification" pnpm run check:deploy-certify
   run "strict design-token policy" pnpm run check:design-tokens:strict
   run "design-system audit baseline" pnpm run check:design-system-audit
   run "shared component drift" pnpm run check:shared-component-drift
@@ -84,6 +85,12 @@ run_staged_prechecks() {
     run "test hygiene" pnpm run check:test-hygiene
   else
     log "test hygiene skipped (no staged unit test files)"
+  fi
+
+  if has_staged_match '^deploy\.sh$|^ecosystem\.config\.cjs$|^scripts/deploy_certify\.ts$|^\.github/workflows/deploy-production\.yml$|^\.env\.deploy\.example$'; then
+    run "deploy certification" pnpm run check:deploy-certify
+  else
+    log "deploy certification skipped (no staged deploy files)"
   fi
 
   local design_pattern='^src/client/App\.tsx$|^src/client/components/common/(FormField|SourceBadge|Card|BaseCard|CloseButton|ProgressBar|Skeleton|Tabs|BatchToolbar|FormLayout)\.tsx$|^src/client/components/ui/Glass|^src/client/design-system/'

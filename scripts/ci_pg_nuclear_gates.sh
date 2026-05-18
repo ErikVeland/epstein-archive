@@ -96,15 +96,36 @@ if [[ -z "${DATABASE_URL:-}" ]]; then
   exit 0
 fi
 
-if ! command -v pg_dump >/dev/null 2>&1; then
+PSQL_CMD="${PSQL_CMD:-psql}"
+PG_DUMP_CMD="${PG_DUMP_CMD:-pg_dump}"
+
+if ! command -v "$PSQL_CMD" >/dev/null 2>&1; then
+  fail "❌ psql is required for DB-backed gates"
+fi
+
+SERVER_MAJOR="$("$PSQL_CMD" "$DATABASE_URL" -Atc "SHOW server_version_num" 2>/dev/null | cut -c1-2)"
+if [[ -n "$SERVER_MAJOR" ]]; then
+  for candidate in \
+    "/opt/homebrew/opt/postgresql@${SERVER_MAJOR}/bin/pg_dump" \
+    "/usr/local/opt/postgresql@${SERVER_MAJOR}/bin/pg_dump" \
+    "/opt/postgresql@${SERVER_MAJOR}/bin/pg_dump"; do
+    if [[ -x "$candidate" ]]; then
+      PG_DUMP_CMD="$candidate"
+      break
+    fi
+  done
+fi
+
+if ! command -v "$PG_DUMP_CMD" >/dev/null 2>&1; then
   fail "❌ pg_dump is required for DB-backed gates"
 fi
 
-# Check pg_dump version matches server version to avoid "server version mismatch" errors
-PGDUMP_MAJOR="$(pg_dump --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
-SERVER_MAJOR="$(psql "$DATABASE_URL" -Atc "SHOW server_version_num" 2>/dev/null | cut -c1-2)"
+# Check pg_dump version matches server version to avoid "server version mismatch" errors.
+# Local machines often have multiple Postgres clients installed; prefer a versioned
+# Homebrew client matching the server before failing closed.
+PGDUMP_MAJOR="$("$PG_DUMP_CMD" --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
 if [[ -n "$PGDUMP_MAJOR" && -n "$SERVER_MAJOR" && "$PGDUMP_MAJOR" != "$SERVER_MAJOR" ]]; then
-  fail "❌ pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR)"
+  fail "❌ pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR); set PG_DUMP_CMD to a matching client"
 fi
 if command -v sha256sum >/dev/null 2>&1; then
   HASH_CMD="sha256sum"
@@ -116,7 +137,7 @@ fi
 
 log "Schema snapshot hash via pg_dump --schema-only"
 TMP_SCHEMA="$(mktemp)"
-pg_dump --schema-only --no-owner --no-privileges "$DATABASE_URL" >"$TMP_SCHEMA"
+"$PG_DUMP_CMD" --schema-only --no-owner --no-privileges "$DATABASE_URL" >"$TMP_SCHEMA"
 [[ -s "$TMP_SCHEMA" ]] || { rm -f "$TMP_SCHEMA"; fail "❌ Empty schema dump from pg_dump"; }
 SCHEMA_SHA="$($HASH_CMD "$TMP_SCHEMA" | awk '{print $1}')"
 rm -f "$TMP_SCHEMA"
@@ -124,9 +145,9 @@ log "pg_dump schema sha256=${SCHEMA_SHA}"
 
 log "Plan regression gate"
 SKIP_PLAN_GATE=0
-if command -v psql >/dev/null 2>&1; then
+if command -v "$PSQL_CMD" >/dev/null 2>&1; then
   IFS='|' read -r DOC_COUNT ENTITY_COUNT REL_COUNT < <(
-    psql "$DATABASE_URL" -Atc "
+    "$PSQL_CMD" "$DATABASE_URL" -Atc "
       SELECT
         (SELECT COUNT(*) FROM documents),
         (SELECT COUNT(*) FROM entities),
@@ -163,7 +184,7 @@ fi
 if command -v psql >/dev/null 2>&1; then
   log "Media file_type completeness gate"
   MISSING_MEDIA_FILETYPE="$(
-    psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM media_items WHERE (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''" 2>/dev/null || echo '__PSQL_ERROR__'
+    "$PSQL_CMD" "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM media_items WHERE (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''" 2>/dev/null || echo '__PSQL_ERROR__'
   )"
   if [[ "$MISSING_MEDIA_FILETYPE" == "__PSQL_ERROR__" ]]; then
     if is_strict_ci; then
@@ -176,7 +197,7 @@ if command -v psql >/dev/null 2>&1; then
 
   log "Documents metadata completeness gate"
   IFS='|' read -r MISSING_DOC_FILETYPE MISSING_DOC_EVIDENCETYPE < <(
-    psql "$DATABASE_URL" -Atc "
+    "$PSQL_CMD" "$DATABASE_URL" -Atc "
       SELECT
         COUNT(*) FILTER (WHERE id >= 1000000 AND (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''),
         COUNT(*) FILTER (WHERE id >= 1000000 AND (evidence_type IS NULL OR btrim(evidence_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> '')

@@ -18,6 +18,7 @@ function main() {
   const cwd = process.cwd();
   const deployPath = path.resolve(cwd, 'deploy.sh');
   const goProdPath = path.resolve(cwd, 'scripts/go_prod.ts');
+  const productionWorkflowPath = path.resolve(cwd, '.github/workflows/deploy-production.yml');
 
   if (!fs.existsSync(deployPath)) {
     console.error('[deploy_certify] deploy.sh not found');
@@ -26,6 +27,9 @@ function main() {
 
   const deploy = fs.readFileSync(deployPath, 'utf8');
   const goProd = fs.existsSync(goProdPath) ? fs.readFileSync(goProdPath, 'utf8') : '';
+  const productionWorkflow = fs.existsSync(productionWorkflowPath)
+    ? fs.readFileSync(productionWorkflowPath, 'utf8')
+    : '';
 
   const reqs: Requirement[] = [];
   const add = (key: string, label: string, ok: boolean, detail: string) =>
@@ -130,6 +134,20 @@ function main() {
     'Failure aborts deploy immediately',
     /set -euo pipefail/.test(deploy) && /trap 'on_error \$LINENO' ERR/.test(deploy),
     'deploy.sh should fail fast and trap errors',
+  );
+
+  add(
+    'workflow_db_deploy',
+    'Production workflow uses DB-aware deploy',
+    /run:\s*\.\/deploy\.sh --with-db/.test(productionWorkflow),
+    'production deploy workflow must invoke deploy.sh --with-db explicitly',
+  );
+
+  add(
+    'deploy_env_contract',
+    'Tracked production deploy env contract',
+    fs.existsSync(path.resolve(cwd, '.env.deploy.example')),
+    '.env.deploy.example documents non-secret deploy variables while .env.deploy.local stays ignored',
   );
 
   // Bonus visibility: go_prod.ts includes connectivity + migrations too (not a required target if deploy.sh is certified)
