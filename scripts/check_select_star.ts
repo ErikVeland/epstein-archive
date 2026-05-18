@@ -1,18 +1,32 @@
 /**
- * Detects SELECT * usage in repository files that should use explicit column lists.
+ * Detects SELECT * usage in production query surfaces that should use explicit column lists.
  *
- * This is a soft warning - SELECT * is not ideal because:
+ * SELECT * is blocked because it:
  * 1. Fetches columns that aren't needed (performance)
- * 2. Schema changes can silently break assumptions
- * 3. Makes DTO contracts less explicit
+ * 2. Lets schema changes silently alter API/contracts
+ * 3. Makes DTO and generated query contracts implicit
  *
- * Run: pnpm exec tsx scripts/check_select_star.ts
+ * Run: pnpm check:select-star
  */
 
-import { readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-const REPO_DIR = join(process.cwd(), 'src', 'server', 'db');
+const CHECK_TARGETS = [
+  {
+    label: 'server repositories',
+    dir: join(process.cwd(), 'src', 'server', 'db'),
+    extensions: ['.ts'],
+    include: (filePath: string) =>
+      !filePath.includes('migrations') && filePath.endsWith('Repository.ts'),
+  },
+  {
+    label: 'package SQL queries',
+    dir: join(process.cwd(), 'packages', 'db', 'src', 'queries'),
+    extensions: ['.sql'],
+    include: () => true,
+  },
+];
 
 interface SelectStarIssue {
   file: string;
@@ -30,6 +44,15 @@ function checkFileForSelectStar(filePath: string): SelectStarIssue[] {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const trimmed = line.trim();
+
+      if (
+        !trimmed ||
+        trimmed.startsWith('--') ||
+        trimmed.startsWith('//') ||
+        trimmed.startsWith('*')
+      ) {
+        continue;
+      }
 
       // Skip CTAS (CREATE TABLE AS SELECT) in migrations - these are schema ops
       if (filePath.includes('migrations')) {
@@ -98,14 +121,15 @@ function scanDirectory(dir: string, extensions: string[]): string[] {
 }
 
 function main(): void {
-  console.log('🔍 Checking for SELECT * usage in repositories...\n');
+  console.log('Checking for SELECT * usage in production query surfaces...\n');
 
-  // Only check production repository files (not migrations)
-  const files = [
-    ...scanDirectory(REPO_DIR, ['.ts']).filter(
-      (f) => !f.includes('migrations') && f.endsWith('Repository.ts'),
-    ),
-  ];
+  const files = CHECK_TARGETS.flatMap((target) => {
+    if (!existsSync(target.dir)) {
+      return [];
+    }
+
+    return scanDirectory(target.dir, target.extensions).filter(target.include);
+  });
 
   const allIssues: SelectStarIssue[] = [];
 
@@ -115,7 +139,7 @@ function main(): void {
   }
 
   if (allIssues.length > 0) {
-    console.log('⚠️  Found SELECT * usage in repositories:\n');
+    console.log('Found SELECT * or RETURNING * usage in production query surfaces:\n');
 
     for (const issue of allIssues) {
       console.log(`   ${issue.file}:${issue.line}`);
@@ -128,10 +152,9 @@ function main(): void {
     console.log('   - Example: SELECT id, name, email FROM users');
     console.log('');
 
-    // Exit with warning but not failure (this is technical debt, not a critical bug)
-    process.exit(0);
+    process.exit(1);
   } else {
-    console.log('✅ No SELECT * usage found in repositories\n');
+    console.log('No SELECT * usage found in production query surfaces\n');
     process.exit(0);
   }
 }
