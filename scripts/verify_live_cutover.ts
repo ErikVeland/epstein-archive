@@ -10,6 +10,14 @@ type CheckResult = {
 
 const baseUrl = (process.env.DEPLOY_VERIFY_URL || process.argv[2] || '').replace(/\/+$/, '');
 const timeoutMs = Math.max(1000, Number(process.env.DEPLOY_VERIFY_TIMEOUT_MS || 30_000) || 30_000);
+const readinessRetryMs = Math.max(
+  1000,
+  Number(process.env.DEPLOY_VERIFY_READINESS_RETRY_MS || 45_000) || 45_000,
+);
+const readinessRetryIntervalMs = Math.max(
+  250,
+  Number(process.env.DEPLOY_VERIFY_READINESS_RETRY_INTERVAL_MS || 1500) || 1500,
+);
 
 if (!baseUrl) {
   console.error('DEPLOY_VERIFY_URL is required, for example https://epstein.academy');
@@ -105,6 +113,26 @@ async function check(name: string, fn: () => Promise<string>): Promise<CheckResu
   }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function eventually<T>(deadlineMs: number, fn: () => Promise<T>): Promise<T> {
+  const startedAt = Date.now();
+  let lastError: unknown;
+
+  while (Date.now() - startedAt <= deadlineMs) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      await sleep(readinessRetryIntervalMs);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
 async function main() {
   const checks = await Promise.all([
     check('basic health', async () => {
@@ -116,18 +144,20 @@ async function main() {
     }),
 
     check('readiness live data', async () => {
-      const { status, body } = await getJson('/api/health/ready');
-      assertObject(body.checks, 'readiness.checks');
-      assertObject(body.checks.data, 'readiness.checks.data');
-      const entities = asNumber(body.checks.data.entities);
-      const documents = asNumber(body.checks.data.documents);
-      if (status !== 200 || body.status !== 'ok') {
-        throw new Error(`status=${status} readiness=${String(body.status)}`);
-      }
-      if (entities <= 0 || documents <= 0) {
-        throw new Error(`core data unavailable: entities=${entities} documents=${documents}`);
-      }
-      return `entities=${entities} documents=${documents}`;
+      return eventually(readinessRetryMs, async () => {
+        const { status, body } = await getJson('/api/health/ready');
+        assertObject(body.checks, 'readiness.checks');
+        assertObject(body.checks.data, 'readiness.checks.data');
+        const entities = asNumber(body.checks.data.entities);
+        const documents = asNumber(body.checks.data.documents);
+        if (status !== 200 || body.status !== 'ok') {
+          throw new Error(`status=${status} readiness=${String(body.status)}`);
+        }
+        if (entities <= 0 || documents <= 0) {
+          throw new Error(`core data unavailable: entities=${entities} documents=${documents}`);
+        }
+        return `entities=${entities} documents=${documents}`;
+      });
     }),
 
     check('postgres metadata', async () => {
