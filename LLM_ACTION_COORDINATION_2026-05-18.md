@@ -104,3 +104,12 @@ Remaining `mock`, `placeholder`, and `sample` references found by repository sca
 The deployed `21.5.0` production release is healthy. The stricter no-skip gate changes should only be deployed after CI and the production deploy workflow pass for the new commit.
 
 Do not open a new production deploy unless a new commit lands on `main` and passes CI plus the full production deploy workflow again.
+
+## De-vibing Lane Updates
+
+### Lane F (`lane/f-de-vibe`)
+
+- Consolidated subjects endpoint implementation: `/api/subjects` and `/api/entities/subjects` now share one router (`subjectsRoutes`).
+- Consolidated DB meta payload generation: `/api/_meta/db` and `/api/stats/meta/db` now share one implementation (`dbMetaService`).
+- Stabilized stats integration test timeout to reduce flaky failures on large local datasets.
+- Verified in lane worktree: `pnpm lint`, `pnpm type-check:server`, `pnpm test:unit`.

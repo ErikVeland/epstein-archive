@@ -1,10 +1,8 @@
 import express from 'express';
 import { statsRepository } from '../db/statsRepository.js';
-import { getMigrationMetrics } from '../db/runtime.js';
 import {
   getCriticalTableCounts,
   getCurrentDatabaseSizeBytes,
-  getDatabaseMetadata,
   getEntityAndDocumentCounts,
   getSampleEntityWithMentions,
   pingDatabase,
@@ -16,6 +14,7 @@ import { logger } from '../services/Logger.js';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
+import { getDbMetaPayload } from '../services/dbMetaService.js';
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
@@ -39,15 +38,7 @@ const withStatsTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T>
 // ── /meta/db ─── Canary endpoint: database dialect, version, timeouts, pool stats
 router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
   try {
-    const rows = await getDatabaseMetadata();
-    const metrics = await getMigrationMetrics();
-    res.json({
-      dialect: 'postgres',
-      server_version: rows[0]?.server_version,
-      statement_timeout: rows[0]?.statement_timeout,
-      lock_timeout: rows[0]?.lock_timeout,
-      pools: metrics.pools,
-    });
+    res.json(await getDbMetaPayload());
   } catch (error) {
     next(error);
   }

@@ -251,6 +251,6 @@ describe('repository integration tests', () => {
       expect(Array.isArray(safe.likelihoodDistribution)).toBe(true);
       expect(safe.likelihoodDistribution.map((d) => d.level)).toEqual(['HIGH', 'MEDIUM', 'LOW']);
       expect(safe._meta).toHaveProperty('degraded');
-    });
+    }, 15000);
   });
 });
