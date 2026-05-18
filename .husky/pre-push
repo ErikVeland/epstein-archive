@@ -1,6 +1,13 @@
 #!/bin/sh
 export PATH="$PATH:/usr/local/bin:/opt/homebrew/bin"
 
+if [ -f .env.production ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . ./.env.production
+  set +a
+fi
+
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║              PRE-PUSH QUALITY GATE                          ║"

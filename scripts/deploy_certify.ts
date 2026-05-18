@@ -139,8 +139,8 @@ function main() {
   add(
     'workflow_db_deploy',
     'Production workflow uses DB-aware deploy',
-    /run:\s*\.\/deploy\.sh --with-db/.test(productionWorkflow),
-    'production deploy workflow must invoke deploy.sh --with-db explicitly',
+    /run:\s*\.\/deploy\.sh --with-db --skip-integrity/.test(productionWorkflow),
+    'production deploy workflow must invoke deploy.sh --with-db --skip-integrity explicitly after its quality gate',
   );
 
   add(

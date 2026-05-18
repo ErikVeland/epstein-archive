@@ -87,7 +87,7 @@ run_staged_prechecks() {
     log "test hygiene skipped (no staged unit test files)"
   fi
 
-  if has_staged_match '^deploy\.sh$|^ecosystem\.config\.cjs$|^scripts/deploy_certify\.ts$|^\.github/workflows/deploy-production\.yml$|^\.env\.deploy\.example$'; then
+  if has_staged_match '^deploy\.sh$|^ecosystem\.config\.cjs$|^scripts/deploy_certify\.ts$|^scripts/ci_pg_nuclear_gates\.sh$|^\.github/workflows/deploy-production\.yml$|^\.husky/pre-push$|^\.env\.deploy\.example$'; then
     run "deploy certification" pnpm run check:deploy-certify
   else
     log "deploy certification skipped (no staged deploy files)"
