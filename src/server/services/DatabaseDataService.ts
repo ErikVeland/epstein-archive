@@ -2,6 +2,7 @@ import { Person, SearchFilters, SortOption } from '../../types.js';
 import { entitiesRepository } from '../db/entitiesRepository.js';
 import { statsRepository } from '../db/statsRepository.js';
 import { searchRepository } from '../db/searchRepository.js';
+import { cacheService } from '../cache/cacheService.js';
 import { logger } from './Logger.js';
 
 type ExportablePerson = Person & {
@@ -12,8 +13,7 @@ type ExportablePerson = Person & {
 
 export class DatabaseDataService {
   private static instance: DatabaseDataService;
-  private searchCache: Map<string, { results: Person[]; timestamp: number }> = new Map();
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+  private readonly CACHE_TTL_SECONDS = 5 * 60;
 
   private constructor() {}
 
@@ -35,23 +35,19 @@ export class DatabaseDataService {
     sortBy?: SortOption,
   ): Promise<{ entities: Person[]; total: number }> {
     try {
-      // Create cache key based on parameters
       const cacheKey = JSON.stringify({ page, limit, filters, sortBy });
-      const cached = this.searchCache.get(cacheKey);
-
-      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
-        return { entities: cached.results, total: cached.results.length };
-      }
-
-      const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
-      const subjectsAsPersons = result.subjects as unknown as Person[];
-
-      this.searchCache.set(cacheKey, {
-        results: subjectsAsPersons,
-        timestamp: Date.now(),
-      });
-
-      return { entities: subjectsAsPersons, total: result.total };
+      return await cacheService.getOrCompute(
+        'search',
+        `entities:${cacheKey}`,
+        async () => {
+          const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
+          return {
+            entities: result.subjects as unknown as Person[],
+            total: result.total,
+          };
+        },
+        this.CACHE_TTL_SECONDS,
+      );
     } catch (error) {
       logger.error({ err: error }, 'Error fetching entities from database');
       throw new Error(
@@ -216,7 +212,7 @@ export class DatabaseDataService {
    * Clear search cache
    */
   clearCache(): void {
-    this.searchCache.clear();
+    cacheService.purgeByPattern('search', /^entities:/);
     logger.info('Search cache cleared');
   }
 
@@ -225,17 +221,12 @@ export class DatabaseDataService {
    */
   getCacheStats(): {
     size: number;
-    entries: Array<{ key: string; timestamp: number; age: number }>;
+    entries: Array<{ key: string }>;
   } {
-    const now = Date.now();
-    const entries = Array.from(this.searchCache.entries()).map(([key, value]) => ({
-      key,
-      timestamp: value.timestamp,
-      age: now - value.timestamp,
-    }));
-
+    const stats = cacheService.stats('search');
+    const entries = stats.keys.filter((key) => key.startsWith('entities:')).map((key) => ({ key }));
     return {
-      size: this.searchCache.size,
+      size: entries.length,
       entries,
     };
   }
