@@ -39,7 +39,15 @@ export const faceClustersRepository = {
   getClusterById: async (id: string) => {
     const { rows } = await getApiPool().query(
       `
-        SELECT fc.*, e.full_name AS entity_name
+        SELECT
+          fc.id,
+          fc.name,
+          fc.is_hidden,
+          fc.representative_face_id,
+          fc.created_at,
+          fc.updated_at,
+          fc.entity_id,
+          e.full_name AS entity_name
         FROM face_clusters fc
         LEFT JOIN entities e ON e.id = fc.entity_id
         WHERE fc.id = $1

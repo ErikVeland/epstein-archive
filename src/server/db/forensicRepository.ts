@@ -48,7 +48,15 @@ export const forensicRepository = {
     const { status = null, type = null, limit = 50, offset = 0 } = filters;
 
     const sql = `
-      SELECT s.*, 
+      SELECT
+             s.id,
+             s.signal_type,
+             s.confidence,
+             s.risk_score,
+             s.status,
+             s.metadata_json,
+             s.created_at,
+             s.updated_at,
              (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))
               FROM forensic_signal_entities se
               JOIN entities e ON se.entity_id = e.id

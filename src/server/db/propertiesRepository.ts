@@ -1,5 +1,29 @@
 import { getApiPool } from './connection.js';
 
+const PROPERTY_COLUMNS = `
+  id,
+  pcn,
+  owner_name_1,
+  owner_name_2,
+  street_name,
+  site_address,
+  total_tax_value,
+  acres,
+  property_use,
+  year_built,
+  bedrooms,
+  full_bathrooms,
+  half_bathrooms,
+  stories,
+  building_value,
+  building_area,
+  living_area,
+  is_epstein_property,
+  is_known_associate,
+  linked_entity_id,
+  address_source
+`;
+
 export interface Property {
   id: number;
   pcn: string;
@@ -122,7 +146,7 @@ export const propertiesRepository = {
 
     // Get properties
     const query = `
-      SELECT * FROM palm_beach_properties
+      SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties
       ${whereClause}
       ${orderClause}
       LIMIT $${i++} OFFSET $${i++}
@@ -151,7 +175,10 @@ export const propertiesRepository = {
    */
   getPropertyById: async (id: number): Promise<Property | null> => {
     const pool = getApiPool();
-    const res = await pool.query('SELECT * FROM palm_beach_properties WHERE id = $1', [id]);
+    const res = await pool.query(
+      `SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties WHERE id = $1`,
+      [id],
+    );
     return (res.rows[0] as Property) || null;
   },
 
@@ -161,7 +188,7 @@ export const propertiesRepository = {
   getKnownAssociateProperties: async (): Promise<Property[]> => {
     const pool = getApiPool();
     const res = await pool.query(`
-      SELECT * FROM palm_beach_properties
+      SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties
       WHERE is_known_associate = 1 OR linked_entity_id IS NOT NULL
       ORDER BY total_tax_value DESC
     `);
@@ -174,7 +201,7 @@ export const propertiesRepository = {
   getEpsteinProperties: async (): Promise<Property[]> => {
     const pool = getApiPool();
     const res = await pool.query(`
-      SELECT * FROM palm_beach_properties
+      SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties
       WHERE is_epstein_property = 1
       ORDER BY total_tax_value DESC
     `);

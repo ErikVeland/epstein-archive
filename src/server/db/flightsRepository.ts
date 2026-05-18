@@ -280,7 +280,20 @@ export const flightsRepository = {
   getPassengerFlights: async (passengerName: string) => {
     const rows = await getApiPool().query(
       `
-      SELECT f.*
+      SELECT
+        f.id,
+        f.date,
+        f.departure_airport,
+        f.departure_city,
+        f.departure_country,
+        f.arrival_airport,
+        f.arrival_city,
+        f.arrival_country,
+        f.aircraft_tail,
+        f.aircraft_type,
+        f.pilot,
+        f.notes,
+        f.created_at
       FROM flights f
       INNER JOIN flight_passengers fp ON f.id = fp.flight_id
       WHERE fp.passenger_name ILIKE $1

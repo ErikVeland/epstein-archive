@@ -23,6 +23,16 @@ interface IngestConfig {
   notes?: string;
 }
 
+const PIPELINE_RUN_COLUMNS = `
+  id,
+  started_at,
+  finished_at,
+  status,
+  git_commit,
+  pipeline_version,
+  config_json
+`;
+
 export class IngestRunsRepository {
   /**
    * Get all ingest runs
@@ -86,7 +96,7 @@ export class IngestRunsRepository {
 
     const res = await pool.query(
       `
-      SELECT * FROM pipeline_runs 
+      SELECT ${PIPELINE_RUN_COLUMNS} FROM pipeline_runs
       WHERE status = 'succeeded' 
       ORDER BY finished_at DESC 
       LIMIT 1

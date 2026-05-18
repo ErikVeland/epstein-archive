@@ -1171,7 +1171,22 @@ export const entitiesRepository = {
         WHERE ${whereParts.join(' AND ')}
         ORDER BY d.id
       )
-      SELECT * FROM UniqueDocs
+      SELECT
+        id,
+        title,
+        file_name,
+        file_path,
+        file_type,
+        evidence_type,
+        date_created,
+        red_flag_rating,
+        word_count,
+        content_preview,
+        content,
+        content_refined,
+        metadata_json,
+        significance_score
+      FROM UniqueDocs
       ORDER BY ${sortConfig.order}
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `;

@@ -13,6 +13,56 @@ import {
 } from '../../types/memory.js';
 import pg from 'pg';
 
+const MEMORY_ENTRY_COLUMNS = `
+  id,
+  uuid,
+  memory_type,
+  content,
+  metadata_json,
+  context_tags,
+  importance_score,
+  created_at,
+  updated_at,
+  source_id,
+  source_type,
+  version,
+  status,
+  quality_score,
+  provenance_json
+`;
+
+const MEMORY_RELATIONSHIP_COLUMNS = `
+  id,
+  from_memory_id,
+  to_memory_id,
+  relationship_type,
+  strength,
+  created_at,
+  updated_at
+`;
+
+const MEMORY_AUDIT_COLUMNS = `
+  id,
+  memory_entry_id,
+  action,
+  actor,
+  timestamp,
+  old_values_json,
+  new_values_json,
+  metadata_json
+`;
+
+const MEMORY_QUALITY_COLUMNS = `
+  id,
+  memory_entry_id,
+  source_reliability,
+  evidence_strength,
+  temporal_relevance,
+  entity_confidence,
+  overall_score,
+  calculated_at
+`;
+
 export const memoryRepository = {
   /**
    * Creates a new memory entry
@@ -52,7 +102,10 @@ export const memoryRepository = {
    * Gets a memory entry by ID
    */
   getMemoryEntryById: async (pool: pg.Pool, id: number): Promise<MemoryEntry | null> => {
-    const res = await pool.query('SELECT * FROM memory_entries WHERE id = $1', [id]);
+    const res = await pool.query(
+      `SELECT ${MEMORY_ENTRY_COLUMNS} FROM memory_entries WHERE id = $1`,
+      [id],
+    );
     const row = res.rows[0];
 
     if (!row) {
@@ -223,7 +276,7 @@ export const memoryRepository = {
     // Fetch data
     const queryParams = [...params, limit, offset];
     const dataSql = `
-      SELECT * FROM memory_entries
+      SELECT ${MEMORY_ENTRY_COLUMNS} FROM memory_entries
       ${whereClause}
       ORDER BY importance_score DESC, created_at DESC
       LIMIT $${i++} OFFSET $${i++}
@@ -305,7 +358,10 @@ export const memoryRepository = {
     pool: pg.Pool,
     id: number,
   ): Promise<MemoryRelationship | null> => {
-    const res = await pool.query('SELECT * FROM memory_relationships WHERE id = $1', [id]);
+    const res = await pool.query(
+      `SELECT ${MEMORY_RELATIONSHIP_COLUMNS} FROM memory_relationships WHERE id = $1`,
+      [id],
+    );
     const row = res.rows[0];
 
     if (!row) return null;
@@ -330,7 +386,7 @@ export const memoryRepository = {
   ): Promise<MemoryRelationship[]> => {
     const res = await pool.query(
       `
-      SELECT * FROM memory_relationships 
+      SELECT ${MEMORY_RELATIONSHIP_COLUMNS} FROM memory_relationships
       WHERE from_memory_id = $1 OR to_memory_id = $1
       ORDER BY strength DESC
     `,
@@ -376,7 +432,7 @@ export const memoryRepository = {
   getMemoryAuditLog: async (pool: pg.Pool, memoryEntryId: number): Promise<MemoryAuditLog[]> => {
     const res = await pool.query(
       `
-      SELECT * FROM memory_audit_log 
+      SELECT ${MEMORY_AUDIT_COLUMNS} FROM memory_audit_log
       WHERE memory_entry_id = $1
       ORDER BY timestamp DESC
     `,
@@ -445,7 +501,10 @@ export const memoryRepository = {
     pool: pg.Pool,
     id: number,
   ): Promise<MemoryQualityMetrics | null> => {
-    const res = await pool.query('SELECT * FROM memory_quality_metrics WHERE id = $1', [id]);
+    const res = await pool.query(
+      `SELECT ${MEMORY_QUALITY_COLUMNS} FROM memory_quality_metrics WHERE id = $1`,
+      [id],
+    );
     const row = res.rows[0];
 
     if (!row) return null;
@@ -470,7 +529,7 @@ export const memoryRepository = {
     memoryEntryId: number,
   ): Promise<MemoryQualityMetrics | null> => {
     const sql = `
-      SELECT * FROM memory_quality_metrics 
+      SELECT ${MEMORY_QUALITY_COLUMNS} FROM memory_quality_metrics
       WHERE memory_entry_id = $1
       ORDER BY calculated_at DESC
       LIMIT 1
