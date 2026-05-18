@@ -32,6 +32,12 @@ if [[ "${CI:-}" == "true" || "${CI:-}" == "1" ]]; then
 
     echo "▶ Verifying schema hash (prevents silent schema drift)"
     pnpm schema:hash:check
+
+    echo "▶ Checking duplicate physical indexes"
+    pnpm check:duplicate-indexes
+
+    echo "▶ Checking dead schema surfaces"
+    pnpm check:dead-schema-surfaces
   else
     echo "❌ DATABASE_URL not set; strict release gates must not skip data-quality checks"
     exit 1

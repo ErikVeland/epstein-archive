@@ -202,4 +202,10 @@ fi
 log "Schema hash baseline gate"
 pnpm schema:hash:check
 
+log "Duplicate physical index gate"
+pnpm check:duplicate-indexes
+
+log "Dead schema surface gate"
+pnpm check:dead-schema-surfaces
+
 log "✅ All PG nuclear gates passed"
