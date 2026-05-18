@@ -493,16 +493,30 @@ export interface IGetRedactionSpansQuery {
 const getRedactionSpansIR: any = {
   usedParamSet: { documentId: true },
   params: [
-    { name: 'documentId', required: true, transform: { type: 'scalar' }, locs: [{ a: 50, b: 61 }] },
+    {
+      name: 'documentId',
+      required: true,
+      transform: { type: 'scalar' },
+      locs: [{ a: 128, b: 139 }],
+    },
   ],
   statement:
-    'SELECT * FROM redaction_spans WHERE document_id = :documentId! ORDER BY span_start ASC',
+    'SELECT\n  id,\n  document_id,\n  span_start,\n  span_end,\n  replacement_text,\n  created_at\nFROM redaction_spans\nWHERE document_id = :documentId!\nORDER BY span_start ASC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM redaction_spans WHERE document_id = :documentId! ORDER BY span_start ASC
+ * SELECT
+ *   id,
+ *   document_id,
+ *   span_start,
+ *   span_end,
+ *   replacement_text,
+ *   created_at
+ * FROM redaction_spans
+ * WHERE document_id = :documentId!
+ * ORDER BY span_start ASC
  * ```
  */
 export const getRedactionSpans = new PreparedQuery<
@@ -549,17 +563,34 @@ const getClaimTriplesIR: any = {
       name: 'documentId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 217, b: 228 }],
+      locs: [{ a: 484, b: 495 }],
     },
   ],
   statement:
-    'SELECT ct.*, s.full_name as subject_name, o.full_name as object_name\nFROM claim_triples ct\nLEFT JOIN entities s ON ct.subject_entity_id = s.id\nLEFT JOIN entities o ON ct.object_entity_id = o.id\nWHERE ct.document_id = :documentId!\nORDER BY ct.confidence DESC',
+    'SELECT\n  ct.id,\n  ct.subject_entity_id,\n  ct.predicate,\n  ct.object_entity_id,\n  ct.object_text,\n  ct.document_id,\n  ct.sentence_id,\n  ct.confidence,\n  ct.modality,\n  ct.evidence_json,\n  ct.created_at,\n  ct.verified,\n  ct.verified_by,\n  ct.verified_at,\n  ct.rejection_reason,\n  s.full_name as subject_name,\n  o.full_name as object_name\nFROM claim_triples ct\nLEFT JOIN entities s ON ct.subject_entity_id = s.id\nLEFT JOIN entities o ON ct.object_entity_id = o.id\nWHERE ct.document_id = :documentId!\nORDER BY ct.confidence DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT ct.*, s.full_name as subject_name, o.full_name as object_name
+ * SELECT
+ *   ct.id,
+ *   ct.subject_entity_id,
+ *   ct.predicate,
+ *   ct.object_entity_id,
+ *   ct.object_text,
+ *   ct.document_id,
+ *   ct.sentence_id,
+ *   ct.confidence,
+ *   ct.modality,
+ *   ct.evidence_json,
+ *   ct.created_at,
+ *   ct.verified,
+ *   ct.verified_by,
+ *   ct.verified_at,
+ *   ct.rejection_reason,
+ *   s.full_name as subject_name,
+ *   o.full_name as object_name
  * FROM claim_triples ct
  * LEFT JOIN entities s ON ct.subject_entity_id = s.id
  * LEFT JOIN entities o ON ct.object_entity_id = o.id

@@ -206,7 +206,14 @@ export interface DegradedResult<T> {
 export const analyticsRepository = {
   getTimelineAnalytics: async (): Promise<TimelineAnalyticsRow[]> => {
     const result = await getApiPool().query<TimelineAnalyticsRow>(`
-      SELECT * FROM (
+      SELECT
+        period,
+        total,
+        emails,
+        photos,
+        documents,
+        financial
+      FROM (
         SELECT
           CASE
             WHEN COALESCE(extracted_date, date_created) IS NULL THEN 'Unknown'

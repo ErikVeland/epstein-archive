@@ -309,19 +309,27 @@ const getPhotosForEntitiesIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 489, b: 499 },
-        { a: 521, b: 531 },
+        { a: 571, b: 581 },
+        { a: 603, b: 613 },
       ],
     },
   ],
   statement:
-    'SELECT * FROM (\n  SELECT DISTINCT\n    m.id,\n    COALESCE(mip.entity_id, m.entity_id) as "entityId",\n    m.file_path as "filePath",\n    m.title,\n    m.is_sensitive as "isSensitive",\n    m.red_flag_rating as "redFlagRating",\n    ROW_NUMBER() OVER (\n      PARTITION BY COALESCE(mip.entity_id, m.entity_id) \n      ORDER BY m.red_flag_rating DESC, m.created_at DESC\n    ) as rn\n  FROM media_items m\n  LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text\n  WHERE (mip.entity_id IN (:entityIds!) OR m.entity_id IN (:entityIds!))\n    AND m.file_type LIKE \'image/%\'\n) t WHERE rn <= 5',
+    'SELECT\n  id,\n  "entityId",\n  "filePath",\n  title,\n  "isSensitive",\n  "redFlagRating",\n  rn\nFROM (\n  SELECT DISTINCT\n    m.id,\n    COALESCE(mip.entity_id, m.entity_id) as "entityId",\n    m.file_path as "filePath",\n    m.title,\n    m.is_sensitive as "isSensitive",\n    m.red_flag_rating as "redFlagRating",\n    ROW_NUMBER() OVER (\n      PARTITION BY COALESCE(mip.entity_id, m.entity_id) \n      ORDER BY m.red_flag_rating DESC, m.created_at DESC\n    ) as rn\n  FROM media_items m\n  LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text\n  WHERE (mip.entity_id IN (:entityIds!) OR m.entity_id IN (:entityIds!))\n    AND m.file_type LIKE \'image/%\'\n) t WHERE rn <= 5',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM (
+ * SELECT
+ *   id,
+ *   "entityId",
+ *   "filePath",
+ *   title,
+ *   "isSensitive",
+ *   "redFlagRating",
+ *   rn
+ * FROM (
  *   SELECT DISTINCT
  *     m.id,
  *     COALESCE(mip.entity_id, m.entity_id) as "entityId",

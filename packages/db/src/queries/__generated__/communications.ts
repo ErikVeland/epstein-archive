@@ -158,64 +158,11 @@ export interface IGetMessageByIdParams {
 
 /** 'GetMessageById' return type */
 export interface IGetMessageByIdResult {
-  analyzed_at: Date | null;
   content: string | null;
-  content_hash: string | null;
-  content_preview: string | null;
-  content_refined: string | null;
-  content_sha256: string | null;
-  created_at: Date | null;
   date_created: Date | null;
-  end_offset: number | null;
-  evidence_type: string | null;
-  extracted_date: Date | null;
-  failed_redaction_count: number | null;
-  failed_redaction_data: string | null;
   file_name: string | null;
-  file_path: string | null;
-  file_size: string | null;
-  file_type: string | null;
-  fts_vector: string | null;
-  has_failed_redactions: number | null;
-  hash_algo: string | null;
   id: string;
-  ingestion_run_id: string | null;
-  is_hidden: number | null;
-  is_sensitive: boolean | null;
-  last_processed_at: Date | null;
-  lease_expires_at: Date | null;
   metadata_json: Json | null;
-  normalized_text_sha256: string | null;
-  original_file_id: string | null;
-  page_count: number | null;
-  parent_document_id: string | null;
-  pipeline_version: string | null;
-  processing_attempts: number | null;
-  processing_error: string | null;
-  processing_status: string | null;
-  provenance_score: number | null;
-  provenance_status: string | null;
-  red_flag_rating: number | null;
-  redaction_coverage_after: number | null;
-  redaction_coverage_before: number | null;
-  signal_score: number | null;
-  significance_score: number;
-  source_acquired_at: Date | null;
-  source_acquisition_method: string | null;
-  source_collection: string | null;
-  source_path: string | null;
-  source_release: string | null;
-  source_system: string | null;
-  source_url: string | null;
-  start_offset: number | null;
-  title: string | null;
-  unredacted_span_json: string | null;
-  unredacted_text_gain: number | null;
-  unredaction_attempted: number | null;
-  unredaction_baseline_vocab: string | null;
-  unredaction_succeeded: number | null;
-  word_count: number | null;
-  worker_id: string | null;
 }
 
 /** 'GetMessageById' query type */
@@ -227,15 +174,21 @@ export interface IGetMessageByIdQuery {
 const getMessageByIdIR: any = {
   usedParamSet: { messageId: true },
   params: [
-    { name: 'messageId', required: true, transform: { type: 'scalar' }, locs: [{ a: 37, b: 47 }] },
+    { name: 'messageId', required: true, transform: { type: 'scalar' }, locs: [{ a: 96, b: 106 }] },
   ],
-  statement: "SELECT * \nFROM documents \nWHERE id = :messageId! AND evidence_type = 'email'",
+  statement:
+    "SELECT\n  id,\n  metadata_json,\n  file_name,\n  date_created,\n  content\nFROM documents \nWHERE id = :messageId! AND evidence_type = 'email'",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT *
+ * SELECT
+ *   id,
+ *   metadata_json,
+ *   file_name,
+ *   date_created,
+ *   content
  * FROM documents
  * WHERE id = :messageId! AND evidence_type = 'email'
  * ```
@@ -308,64 +261,11 @@ export interface IGetCommunicationsForEntityParams {
 
 /** 'GetCommunicationsForEntity' return type */
 export interface IGetCommunicationsForEntityResult {
-  analyzed_at: Date | null;
   content: string | null;
-  content_hash: string | null;
-  content_preview: string | null;
-  content_refined: string | null;
-  content_sha256: string | null;
-  created_at: Date | null;
   date_created: Date | null;
-  end_offset: number | null;
-  evidence_type: string | null;
-  extracted_date: Date | null;
-  failed_redaction_count: number | null;
-  failed_redaction_data: string | null;
   file_name: string | null;
-  file_path: string | null;
-  file_size: string | null;
-  file_type: string | null;
-  fts_vector: string | null;
-  has_failed_redactions: number | null;
-  hash_algo: string | null;
   id: string;
-  ingestion_run_id: string | null;
-  is_hidden: number | null;
-  is_sensitive: boolean | null;
-  last_processed_at: Date | null;
-  lease_expires_at: Date | null;
   metadata_json: Json | null;
-  normalized_text_sha256: string | null;
-  original_file_id: string | null;
-  page_count: number | null;
-  parent_document_id: string | null;
-  pipeline_version: string | null;
-  processing_attempts: number | null;
-  processing_error: string | null;
-  processing_status: string | null;
-  provenance_score: number | null;
-  provenance_status: string | null;
-  red_flag_rating: number | null;
-  redaction_coverage_after: number | null;
-  redaction_coverage_before: number | null;
-  signal_score: number | null;
-  significance_score: number;
-  source_acquired_at: Date | null;
-  source_acquisition_method: string | null;
-  source_collection: string | null;
-  source_path: string | null;
-  source_release: string | null;
-  source_system: string | null;
-  source_url: string | null;
-  start_offset: number | null;
-  title: string | null;
-  unredacted_span_json: string | null;
-  unredacted_text_gain: number | null;
-  unredaction_attempted: number | null;
-  unredaction_baseline_vocab: string | null;
-  unredaction_succeeded: number | null;
-  word_count: number | null;
-  worker_id: string | null;
 }
 
 /** 'GetCommunicationsForEntity' query type */
@@ -377,16 +277,21 @@ export interface IGetCommunicationsForEntityQuery {
 const getCommunicationsForEntityIR: any = {
   usedParamSet: { entityId: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 99, b: 108 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 166, b: 175 }] },
   ],
   statement:
-    "SELECT d.* \nFROM entity_mentions em\nJOIN documents d ON em.document_id = d.id\nWHERE em.entity_id = :entityId! AND d.evidence_type = 'email'\nORDER BY d.date_created DESC\nLIMIT 500",
+    "SELECT\n  d.id,\n  d.metadata_json,\n  d.file_name,\n  d.date_created,\n  d.content\nFROM entity_mentions em\nJOIN documents d ON em.document_id = d.id\nWHERE em.entity_id = :entityId! AND d.evidence_type = 'email'\nORDER BY d.date_created DESC\nLIMIT 500",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT d.*
+ * SELECT
+ *   d.id,
+ *   d.metadata_json,
+ *   d.file_name,
+ *   d.date_created,
+ *   d.content
  * FROM entity_mentions em
  * JOIN documents d ON em.document_id = d.id
  * WHERE em.entity_id = :entityId! AND d.evidence_type = 'email'

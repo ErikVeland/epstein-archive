@@ -46,8 +46,8 @@ const getForensicSignalsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 519, b: 525 },
-        { a: 555, b: 561 },
+        { a: 740, b: 746 },
+        { a: 776, b: 782 },
       ],
     },
     {
@@ -55,21 +55,32 @@ const getForensicSignalsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 571, b: 575 },
-        { a: 610, b: 614 },
+        { a: 792, b: 796 },
+        { a: 831, b: 835 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 650, b: 656 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 665, b: 672 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 871, b: 877 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 886, b: 893 }] },
   ],
   statement:
-    "SELECT s.*, \n       (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))\n        FROM forensic_signal_entities se\n        JOIN entities e ON se.entity_id = e.id\n        WHERE se.signal_id = s.id) as entities,\n       (SELECT json_agg(json_build_object('id', d.id, 'file_name', d.file_name, 'snippet', sev.snippet))\n        FROM forensic_signal_evidence sev\n        JOIN documents d ON sev.document_id = d.id\n        WHERE sev.signal_id = s.id) as evidence\nFROM forensic_signals s\nWHERE (:status::text IS NULL OR s.status = :status)\n  AND (:type::text IS NULL OR s.signal_type = :type)\nORDER BY s.created_at DESC\nLIMIT :limit! OFFSET :offset!",
+    "SELECT\n       s.id,\n       s.signal_type,\n       s.confidence,\n       s.risk_score,\n       s.source_type,\n       s.source_ref_id,\n       s.entity_ids,\n       s.metadata_json,\n       s.status,\n       s.created_at,\n       s.updated_at,\n       (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))\n        FROM forensic_signal_entities se\n        JOIN entities e ON se.entity_id = e.id\n        WHERE se.signal_id = s.id) as entities,\n       (SELECT json_agg(json_build_object('id', d.id, 'file_name', d.file_name, 'snippet', sev.snippet))\n        FROM forensic_signal_evidence sev\n        JOIN documents d ON sev.document_id = d.id\n        WHERE sev.signal_id = s.id) as evidence\nFROM forensic_signals s\nWHERE (:status::text IS NULL OR s.status = :status)\n  AND (:type::text IS NULL OR s.signal_type = :type)\nORDER BY s.created_at DESC\nLIMIT :limit! OFFSET :offset!",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT s.*,
+ * SELECT
+ *        s.id,
+ *        s.signal_type,
+ *        s.confidence,
+ *        s.risk_score,
+ *        s.source_type,
+ *        s.source_ref_id,
+ *        s.entity_ids,
+ *        s.metadata_json,
+ *        s.status,
+ *        s.created_at,
+ *        s.updated_at,
  *        (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))
  *         FROM forensic_signal_entities se
  *         JOIN entities e ON se.entity_id = e.id
@@ -121,16 +132,27 @@ export interface IGetForensicSignalByIdQuery {
 const getForensicSignalByIdIR: any = {
   usedParamSet: { id: true },
   params: [
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 525, b: 528 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 746, b: 749 }] },
   ],
   statement:
-    "SELECT s.*, \n       (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))\n        FROM forensic_signal_entities se\n        JOIN entities e ON se.entity_id = e.id\n        WHERE se.signal_id = s.id) as entities,\n       (SELECT json_agg(json_build_object('id', d.id, 'file_name', d.file_name, 'snippet', sev.snippet))\n        FROM forensic_signal_evidence sev\n        JOIN documents d ON sev.document_id = d.id\n        WHERE sev.signal_id = s.id) as evidence\nFROM forensic_signals s\nWHERE s.id = :id!",
+    "SELECT\n       s.id,\n       s.signal_type,\n       s.confidence,\n       s.risk_score,\n       s.source_type,\n       s.source_ref_id,\n       s.entity_ids,\n       s.metadata_json,\n       s.status,\n       s.created_at,\n       s.updated_at,\n       (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))\n        FROM forensic_signal_entities se\n        JOIN entities e ON se.entity_id = e.id\n        WHERE se.signal_id = s.id) as entities,\n       (SELECT json_agg(json_build_object('id', d.id, 'file_name', d.file_name, 'snippet', sev.snippet))\n        FROM forensic_signal_evidence sev\n        JOIN documents d ON sev.document_id = d.id\n        WHERE sev.signal_id = s.id) as evidence\nFROM forensic_signals s\nWHERE s.id = :id!",
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT s.*,
+ * SELECT
+ *        s.id,
+ *        s.signal_type,
+ *        s.confidence,
+ *        s.risk_score,
+ *        s.source_type,
+ *        s.source_ref_id,
+ *        s.entity_ids,
+ *        s.metadata_json,
+ *        s.status,
+ *        s.created_at,
+ *        s.updated_at,
  *        (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))
  *         FROM forensic_signal_entities se
  *         JOIN entities e ON se.entity_id = e.id
@@ -376,16 +398,27 @@ export interface IGetSignalsByEntityIdQuery {
 const getSignalsByEntityIdIR: any = {
   usedParamSet: { entityId: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 113, b: 122 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 279, b: 288 }] },
   ],
   statement:
-    'SELECT s.* \nFROM forensic_signals s\nJOIN forensic_signal_entities se ON s.id = se.signal_id\nWHERE se.entity_id = :entityId!\nORDER BY s.created_at DESC',
+    'SELECT\n  s.id,\n  s.signal_type,\n  s.confidence,\n  s.risk_score,\n  s.source_type,\n  s.source_ref_id,\n  s.entity_ids,\n  s.metadata_json,\n  s.status,\n  s.created_at,\n  s.updated_at\nFROM forensic_signals s\nJOIN forensic_signal_entities se ON s.id = se.signal_id\nWHERE se.entity_id = :entityId!\nORDER BY s.created_at DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT s.*
+ * SELECT
+ *   s.id,
+ *   s.signal_type,
+ *   s.confidence,
+ *   s.risk_score,
+ *   s.source_type,
+ *   s.source_ref_id,
+ *   s.entity_ids,
+ *   s.metadata_json,
+ *   s.status,
+ *   s.created_at,
+ *   s.updated_at
  * FROM forensic_signals s
  * JOIN forensic_signal_entities se ON s.id = se.signal_id
  * WHERE se.entity_id = :entityId!

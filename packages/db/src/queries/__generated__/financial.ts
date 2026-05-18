@@ -39,10 +39,10 @@ export interface IGetTransactionsQuery {
 const getTransactionsIR: any = {
   usedParamSet: { limit: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 281, b: 287 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 280, b: 286 }] },
   ],
   statement:
-    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions \nORDER BY transaction_date DESC \nLIMIT :limit!',
+    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions\nORDER BY transaction_date DESC \nLIMIT :limit!',
 };
 
 /**
@@ -108,11 +108,11 @@ const getTransactionsByInvestigationIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 268, b: 284 }],
+      locs: [{ a: 267, b: 283 }],
     },
   ],
   statement:
-    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions \nWHERE investigation_id = :investigationId!::bigint\nORDER BY transaction_date DESC',
+    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions\nWHERE investigation_id = :investigationId!::bigint\nORDER BY transaction_date DESC',
 };
 
 /**
@@ -180,13 +180,13 @@ const getTransactionsByEntityIR: any = {
       required: true,
       transform: { type: 'scalar' },
       locs: [
-        { a: 263, b: 274 },
-        { a: 291, b: 302 },
+        { a: 262, b: 273 },
+        { a: 290, b: 301 },
       ],
     },
   ],
   statement:
-    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions \nWHERE from_entity = :entityName! OR to_entity = :entityName!\nORDER BY transaction_date DESC',
+    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions\nWHERE from_entity = :entityName! OR to_entity = :entityName!\nORDER BY transaction_date DESC',
 };
 
 /**

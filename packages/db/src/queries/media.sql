@@ -83,7 +83,15 @@ FROM media_items
 WHERE id = :id!;
 
 /* @name getPhotosForEntities */
-SELECT * FROM (
+SELECT
+  id,
+  "entityId",
+  "filePath",
+  title,
+  "isSensitive",
+  "redFlagRating",
+  rn
+FROM (
   SELECT DISTINCT
     m.id,
     COALESCE(mip.entity_id, m.entity_id) as "entityId",

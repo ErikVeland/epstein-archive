@@ -753,7 +753,15 @@ export const mediaRepository = {
     const pool = getApiPool();
     const result = await pool.query(
       `
-        SELECT * FROM (
+        SELECT
+          id,
+          "entityId",
+          "filePath",
+          title,
+          "isSensitive",
+          "redFlagRating",
+          rn
+        FROM (
           SELECT
             m.id,
             COALESCE(mip.entity_id, m.entity_id) as "entityId",

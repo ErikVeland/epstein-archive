@@ -393,13 +393,29 @@ export const searchDocumentsPrefix = new PreparedQuery<
   ISearchDocumentsPrefixResult
 >(searchDocumentsPrefixIR);
 
-/** Query 'SearchSentences' is invalid, so its result is assigned type 'never'.
- *  */
-export type ISearchSentencesResult = never;
+/** 'SearchSentences' parameters type */
+export interface ISearchSentencesParams {
+  limit: NumberOrString;
+  searchTerm: string;
+}
 
-/** Query 'SearchSentences' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ISearchSentencesParams = never;
+/** 'SearchSentences' return type */
+export interface ISearchSentencesResult {
+  document_id: string | null;
+  file_name: string | null;
+  id: string;
+  page_id: string | null;
+  page_number: number | null;
+  sentence_text: string | null;
+  signal_score: number | null;
+  snippet: string | null;
+}
+
+/** 'SearchSentences' query type */
+export interface ISearchSentencesQuery {
+  params: ISearchSentencesParams;
+  result: ISearchSentencesResult;
+}
 
 const searchSentencesIR: any = {
   usedParamSet: { searchTerm: true, limit: true },
@@ -445,13 +461,28 @@ export const searchSentences = new PreparedQuery<ISearchSentencesParams, ISearch
   searchSentencesIR,
 );
 
-/** Query 'SearchInvestigations' is invalid, so its result is assigned type 'never'.
- *  */
-export type ISearchInvestigationsResult = never;
+/** 'SearchInvestigations' parameters type */
+export interface ISearchInvestigationsParams {
+  limit: NumberOrString;
+  searchTerm: string;
+}
 
-/** Query 'SearchInvestigations' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ISearchInvestigationsParams = never;
+/** 'SearchInvestigations' return type */
+export interface ISearchInvestigationsResult {
+  description: string | null;
+  id: string;
+  rank: number | null;
+  snippet: string | null;
+  status: string | null;
+  title: string;
+  uuid: string | null;
+}
+
+/** 'SearchInvestigations' query type */
+export interface ISearchInvestigationsQuery {
+  params: ISearchInvestigationsParams;
+  result: ISearchInvestigationsResult;
+}
 
 const searchInvestigationsIR: any = {
   usedParamSet: { searchTerm: true, limit: true },
@@ -495,13 +526,28 @@ export const searchInvestigations = new PreparedQuery<
   ISearchInvestigationsResult
 >(searchInvestigationsIR);
 
-/** Query 'SearchArticles' is invalid, so its result is assigned type 'never'.
- *  */
-export type ISearchArticlesResult = never;
+/** 'SearchArticles' parameters type */
+export interface ISearchArticlesParams {
+  limit: NumberOrString;
+  searchTerm: string;
+}
 
-/** Query 'SearchArticles' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ISearchArticlesParams = never;
+/** 'SearchArticles' return type */
+export interface ISearchArticlesResult {
+  author: string | null;
+  id: string;
+  pubDate: Date | null;
+  rank: number | null;
+  snippet: string | null;
+  source: string | null;
+  title: string;
+}
+
+/** 'SearchArticles' query type */
+export interface ISearchArticlesQuery {
+  params: ISearchArticlesParams;
+  result: ISearchArticlesResult;
+}
 
 const searchArticlesIR: any = {
   usedParamSet: { searchTerm: true, limit: true },
@@ -544,13 +590,29 @@ export const searchArticles = new PreparedQuery<ISearchArticlesParams, ISearchAr
   searchArticlesIR,
 );
 
-/** Query 'SearchMedia' is invalid, so its result is assigned type 'never'.
- *  */
-export type ISearchMediaResult = never;
+/** 'SearchMedia' parameters type */
+export interface ISearchMediaParams {
+  limit: NumberOrString;
+  searchTerm: string;
+}
 
-/** Query 'SearchMedia' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ISearchMediaParams = never;
+/** 'SearchMedia' return type */
+export interface ISearchMediaResult {
+  description: string | null;
+  filename: string;
+  filePath: string;
+  fileType: string | null;
+  id: string;
+  rank: number | null;
+  snippet: string | null;
+  title: string | null;
+}
+
+/** 'SearchMedia' query type */
+export interface ISearchMediaQuery {
+  params: ISearchMediaParams;
+  result: ISearchMediaResult;
+}
 
 const searchMediaIR: any = {
   usedParamSet: { searchTerm: true, limit: true },

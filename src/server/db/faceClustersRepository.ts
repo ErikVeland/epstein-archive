@@ -102,7 +102,14 @@ export const faceClustersRepository = {
       `UPDATE face_clusters
        SET ${updates.join(', ')}, updated_at = NOW()
        WHERE id = $${paramIdx}
-       RETURNING *`,
+       RETURNING
+         id,
+         name,
+         is_hidden,
+         representative_face_id,
+         created_at,
+         updated_at,
+         entity_id`,
       values,
     );
     const updated = rows[0] ?? null;
@@ -123,7 +130,15 @@ export const faceClustersRepository = {
 
     // Include entity_name in response
     const { rows: withEntity } = await pool.query(
-      `SELECT fc.*, e.full_name AS entity_name
+      `SELECT
+         fc.id,
+         fc.name,
+         fc.is_hidden,
+         fc.representative_face_id,
+         fc.created_at,
+         fc.updated_at,
+         fc.entity_id,
+         e.full_name AS entity_name
        FROM face_clusters fc
        LEFT JOIN entities e ON e.id = fc.entity_id
        WHERE fc.id = $1`,

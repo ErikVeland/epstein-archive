@@ -29,7 +29,12 @@ FROM documents
 WHERE id = :documentId!;
 
 /* @name getMessageById */
-SELECT * 
+SELECT
+  id,
+  metadata_json,
+  file_name,
+  date_created,
+  content
 FROM documents 
 WHERE id = :messageId! AND evidence_type = 'email';
 
@@ -49,7 +54,12 @@ ORDER BY "lastDate" DESC
 LIMIT 50;
 
 /* @name getCommunicationsForEntity */
-SELECT d.* 
+SELECT
+  d.id,
+  d.metadata_json,
+  d.file_name,
+  d.date_created,
+  d.content
 FROM entity_mentions em
 JOIN documents d ON em.document_id = d.id
 WHERE em.entity_id = :entityId! AND d.evidence_type = 'email'

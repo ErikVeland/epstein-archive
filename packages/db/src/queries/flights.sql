@@ -30,7 +30,22 @@ FROM flight_passengers fp
 WHERE fp.flight_id IN (:flightIds!);
 
 /* @name getFlightById */
-SELECT * FROM flights WHERE id = :id!;
+SELECT
+  id,
+  date,
+  departure_airport,
+  departure_city,
+  departure_country,
+  arrival_airport,
+  arrival_city,
+  arrival_country,
+  aircraft_tail,
+  aircraft_type,
+  pilot,
+  notes,
+  created_at
+FROM flights
+WHERE id = :id!;
 
 /* @name getFlightStats */
 SELECT

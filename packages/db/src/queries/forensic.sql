@@ -1,5 +1,16 @@
 /* @name getForensicSignals */
-SELECT s.*, 
+SELECT
+       s.id,
+       s.signal_type,
+       s.confidence,
+       s.risk_score,
+       s.source_type,
+       s.source_ref_id,
+       s.entity_ids,
+       s.metadata_json,
+       s.status,
+       s.created_at,
+       s.updated_at,
        (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))
         FROM forensic_signal_entities se
         JOIN entities e ON se.entity_id = e.id
@@ -15,7 +26,18 @@ ORDER BY s.created_at DESC
 LIMIT :limit! OFFSET :offset!;
 
 /* @name getForensicSignalById */
-SELECT s.*, 
+SELECT
+       s.id,
+       s.signal_type,
+       s.confidence,
+       s.risk_score,
+       s.source_type,
+       s.source_ref_id,
+       s.entity_ids,
+       s.metadata_json,
+       s.status,
+       s.created_at,
+       s.updated_at,
        (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))
         FROM forensic_signal_entities se
         JOIN entities e ON se.entity_id = e.id
@@ -52,7 +74,18 @@ SET
 WHERE id = :id!;
 
 /* @name getSignalsByEntityId */
-SELECT s.* 
+SELECT
+  s.id,
+  s.signal_type,
+  s.confidence,
+  s.risk_score,
+  s.source_type,
+  s.source_ref_id,
+  s.entity_ids,
+  s.metadata_json,
+  s.status,
+  s.created_at,
+  s.updated_at
 FROM forensic_signals s
 JOIN forensic_signal_entities se ON s.id = se.signal_id
 WHERE se.entity_id = :entityId!

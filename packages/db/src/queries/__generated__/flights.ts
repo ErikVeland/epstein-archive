@@ -180,14 +180,32 @@ export interface IGetFlightByIdQuery {
 
 const getFlightByIdIR: any = {
   usedParamSet: { id: true },
-  params: [{ name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 33, b: 36 }] }],
-  statement: 'SELECT * FROM flights WHERE id = :id!',
+  params: [
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 224, b: 227 }] },
+  ],
+  statement:
+    'SELECT\n  id,\n  date,\n  departure_airport,\n  departure_city,\n  departure_country,\n  arrival_airport,\n  arrival_city,\n  arrival_country,\n  aircraft_tail,\n  aircraft_type,\n  pilot,\n  notes,\n  created_at\nFROM flights\nWHERE id = :id!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM flights WHERE id = :id!
+ * SELECT
+ *   id,
+ *   date,
+ *   departure_airport,
+ *   departure_city,
+ *   departure_country,
+ *   arrival_airport,
+ *   arrival_city,
+ *   arrival_country,
+ *   aircraft_tail,
+ *   aircraft_type,
+ *   pilot,
+ *   notes,
+ *   created_at
+ * FROM flights
+ * WHERE id = :id!
  * ```
  */
 export const getFlightById = new PreparedQuery<IGetFlightByIdParams, IGetFlightByIdResult>(

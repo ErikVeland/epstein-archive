@@ -349,15 +349,11 @@ export interface IUpdateInvestigationParams {
 
 /** 'UpdateInvestigation' return type */
 export interface IUpdateInvestigationResult {
-  assigned_to: string | null;
   collaborator_ids: string | null;
   created_at: Date | null;
-  created_by: string | null;
   description: string | null;
   id: string;
-  metadata_json: Json | null;
   owner_id: string | null;
-  priority: string | null;
   scope: string | null;
   status: string | null;
   title: string;
@@ -386,7 +382,7 @@ const updateInvestigationIR: any = {
     { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 232, b: 235 }] },
   ],
   statement:
-    'UPDATE investigations\nSET \n  title = COALESCE(:title, title),\n  description = COALESCE(:description, description),\n  status = COALESCE(:status, status),\n  scope = COALESCE(:scope, scope),\n  updated_at = CURRENT_TIMESTAMP\nWHERE id = :id!\nRETURNING *',
+    'UPDATE investigations\nSET \n  title = COALESCE(:title, title),\n  description = COALESCE(:description, description),\n  status = COALESCE(:status, status),\n  scope = COALESCE(:scope, scope),\n  updated_at = CURRENT_TIMESTAMP\nWHERE id = :id!\nRETURNING\n  id,\n  uuid,\n  title,\n  description,\n  owner_id,\n  collaborator_ids,\n  status,\n  scope,\n  created_at,\n  updated_at',
 };
 
 /**
@@ -400,7 +396,17 @@ const updateInvestigationIR: any = {
  *   scope = COALESCE(:scope, scope),
  *   updated_at = CURRENT_TIMESTAMP
  * WHERE id = :id!
- * RETURNING *
+ * RETURNING
+ *   id,
+ *   uuid,
+ *   title,
+ *   description,
+ *   owner_id,
+ *   collaborator_ids,
+ *   status,
+ *   scope,
+ *   created_at,
+ *   updated_at
  * ```
  */
 export const updateInvestigation = new PreparedQuery<
@@ -871,17 +877,29 @@ const getTimelineEventsIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 70, b: 86 }],
+      locs: [{ a: 214, b: 230 }],
     },
   ],
   statement:
-    'SELECT * FROM investigation_timeline_events \nWHERE investigation_id = :investigationId! \nORDER BY start_date ASC',
+    'SELECT\n  id,\n  investigation_id,\n  title,\n  description,\n  type,\n  start_date,\n  end_date,\n  confidence,\n  entities_json,\n  documents_json,\n  created_at\nFROM investigation_timeline_events \nWHERE investigation_id = :investigationId! \nORDER BY start_date ASC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM investigation_timeline_events
+ * SELECT
+ *   id,
+ *   investigation_id,
+ *   title,
+ *   description,
+ *   type,
+ *   start_date,
+ *   end_date,
+ *   confidence,
+ *   entities_json,
+ *   documents_json,
+ *   created_at
+ * FROM investigation_timeline_events
  * WHERE investigation_id = :investigationId!
  * ORDER BY start_date ASC
  * ```
@@ -1228,16 +1246,23 @@ const getNotebookIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 62, b: 78 }],
+      locs: [{ a: 127, b: 143 }],
     },
   ],
-  statement: 'SELECT * FROM investigation_notebook WHERE investigation_id = :investigationId!',
+  statement:
+    'SELECT\n  investigation_id,\n  order_json,\n  annotations_json,\n  updated_at\nFROM investigation_notebook\nWHERE investigation_id = :investigationId!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM investigation_notebook WHERE investigation_id = :investigationId!
+ * SELECT
+ *   investigation_id,
+ *   order_json,
+ *   annotations_json,
+ *   updated_at
+ * FROM investigation_notebook
+ * WHERE investigation_id = :investigationId!
  * ```
  */
 export const getNotebook = new PreparedQuery<IGetNotebookParams, IGetNotebookResult>(getNotebookIR);
@@ -1329,17 +1354,28 @@ const getHypothesesIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 50, b: 66 }],
+      locs: [{ a: 149, b: 165 }],
     },
   ],
   statement:
-    'SELECT * FROM hypotheses WHERE investigation_id = :investigationId! ORDER BY created_at DESC',
+    'SELECT\n  id,\n  investigation_id,\n  title,\n  description,\n  status,\n  confidence,\n  created_at,\n  updated_at\nFROM hypotheses\nWHERE investigation_id = :investigationId!\nORDER BY created_at DESC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM hypotheses WHERE investigation_id = :investigationId! ORDER BY created_at DESC
+ * SELECT
+ *   id,
+ *   investigation_id,
+ *   title,
+ *   description,
+ *   status,
+ *   confidence,
+ *   created_at,
+ *   updated_at
+ * FROM hypotheses
+ * WHERE investigation_id = :investigationId!
+ * ORDER BY created_at DESC
  * ```
  */
 export const getHypotheses = new PreparedQuery<IGetHypothesesParams, IGetHypothesesResult>(
@@ -1375,17 +1411,24 @@ const getHypothesisEvidenceIR: any = {
       name: 'hypothesisId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 157, b: 170 }],
+      locs: [{ a: 235, b: 248 }],
     },
   ],
   statement:
-    'SELECT he.*, d.title as evidence_title, d.evidence_type \nFROM hypothesis_evidence he\nLEFT JOIN documents d ON he.document_id = d.id\nWHERE he.hypothesis_id = :hypothesisId!',
+    'SELECT\n  he.id,\n  he.hypothesis_id,\n  he.relevance,\n  he.created_at,\n  he.document_id,\n  d.title as evidence_title,\n  d.evidence_type \nFROM hypothesis_evidence he\nLEFT JOIN documents d ON he.document_id = d.id\nWHERE he.hypothesis_id = :hypothesisId!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT he.*, d.title as evidence_title, d.evidence_type
+ * SELECT
+ *   he.id,
+ *   he.hypothesis_id,
+ *   he.relevance,
+ *   he.created_at,
+ *   he.document_id,
+ *   d.title as evidence_title,
+ *   d.evidence_type
  * FROM hypothesis_evidence he
  * LEFT JOIN documents d ON he.document_id = d.id
  * WHERE he.hypothesis_id = :hypothesisId!
@@ -1780,18 +1823,32 @@ const getActivityIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 62, b: 78 }],
+      locs: [{ a: 230, b: 246 }],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 111, b: 117 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 279, b: 285 }] },
   ],
   statement:
-    'SELECT * FROM investigation_activity\nWHERE investigation_id = :investigationId!\nORDER BY created_at DESC\nLIMIT :limit!',
+    'SELECT\n  id,\n  investigation_id,\n  user_id,\n  user_name,\n  action_type,\n  target_type,\n  target_id,\n  target_title,\n  metadata_json,\n  created_at,\n  doc_id,\n  ent_id,\n  lead_id\nFROM investigation_activity\nWHERE investigation_id = :investigationId!\nORDER BY created_at DESC\nLIMIT :limit!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM investigation_activity
+ * SELECT
+ *   id,
+ *   investigation_id,
+ *   user_id,
+ *   user_name,
+ *   action_type,
+ *   target_type,
+ *   target_id,
+ *   target_title,
+ *   metadata_json,
+ *   created_at,
+ *   doc_id,
+ *   ent_id,
+ *   lead_id
+ * FROM investigation_activity
  * WHERE investigation_id = :investigationId!
  * ORDER BY created_at DESC
  * LIMIT :limit!
@@ -1884,6 +1941,7 @@ export interface IGetInvestigationsByEvidenceIdResult {
   created_at: Date | null;
   created_by: string | null;
   description: string | null;
+  fts_vector: string | null;
   id: string;
   metadata_json: Json | null;
   owner_id: string | null;

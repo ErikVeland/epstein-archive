@@ -4,7 +4,20 @@ VALUES (:runId!, :stepName!, :targetType!, :targetId!)
 RETURNING id;
 
 /* @name listJobs */
-SELECT * 
+SELECT
+  id,
+  run_id,
+  step_name,
+  target_type,
+  target_id,
+  status,
+  attempts,
+  max_attempts,
+  locked_by,
+  locked_at,
+  last_error,
+  created_at,
+  updated_at
 FROM processing_jobs 
 WHERE (:status::text IS NULL OR status = :status)
   AND (:targetType::text IS NULL OR target_type = :targetType)
@@ -34,4 +47,17 @@ SET status = 'running',
     attempts = attempts + 1,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = :id!
-RETURNING *;
+RETURNING
+  id,
+  run_id,
+  step_name,
+  target_type,
+  target_id,
+  status,
+  attempts,
+  max_attempts,
+  locked_by,
+  locked_at,
+  last_error,
+  created_at,
+  updated_at;

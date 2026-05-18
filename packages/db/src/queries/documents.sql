@@ -96,10 +96,36 @@ WHERE document_id = :documentId! AND entity_id = :entityId! AND mention_context 
 LIMIT 3;
 
 /* @name getRedactionSpans */
-SELECT * FROM redaction_spans WHERE document_id = :documentId! ORDER BY span_start ASC;
+SELECT
+  id,
+  document_id,
+  span_start,
+  span_end,
+  replacement_text,
+  created_at
+FROM redaction_spans
+WHERE document_id = :documentId!
+ORDER BY span_start ASC;
 
 /* @name getClaimTriples */
-SELECT ct.*, s.full_name as subject_name, o.full_name as object_name
+SELECT
+  ct.id,
+  ct.subject_entity_id,
+  ct.predicate,
+  ct.object_entity_id,
+  ct.object_text,
+  ct.document_id,
+  ct.sentence_id,
+  ct.confidence,
+  ct.modality,
+  ct.evidence_json,
+  ct.created_at,
+  ct.verified,
+  ct.verified_by,
+  ct.verified_at,
+  ct.rejection_reason,
+  s.full_name as subject_name,
+  o.full_name as object_name
 FROM claim_triples ct
 LEFT JOIN entities s ON ct.subject_entity_id = s.id
 LEFT JOIN entities o ON ct.object_entity_id = o.id

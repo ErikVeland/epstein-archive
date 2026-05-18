@@ -695,7 +695,14 @@ export const investigationsRepository = {
     // Fetch ALL evidence links for all these hypotheses in one go to avoid N+1
     const hypothesisIds = hypotheses.map((h: IGetHypothesesResult) => Number(h.id));
     const allEvidenceLinks = await getApiPool().query(
-      `SELECT he.*, d.title as evidence_title, d.evidence_type
+      `SELECT
+         he.id,
+         he.hypothesis_id,
+         he.relevance,
+         he.created_at,
+         he.document_id,
+         d.title as evidence_title,
+         d.evidence_type
        FROM hypothesis_evidence he
        LEFT JOIN documents d ON he.document_id = d.id
        WHERE he.hypothesis_id = ANY($1::int[])`,
@@ -1091,7 +1098,22 @@ export const investigationsRepository = {
         (investigation_id, title, description, status, priority,
          source_document_id, source_efta_ref, assigned_to, created_by, resolution_notes)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-        RETURNING *`,
+        RETURNING
+          id,
+          investigation_id,
+          title,
+          description,
+          status,
+          priority,
+          source_document_id,
+          source_efta_ref,
+          assigned_to,
+          created_by,
+          resolved_at,
+          resolution_notes,
+          created_at,
+          updated_at,
+          forensic_signal_id`,
       [
         investigationId,
         data.title,
@@ -1154,7 +1176,22 @@ export const investigationsRepository = {
       UPDATE investigation_leads
       SET ${setClauses.join(', ')}
       WHERE id = $${idx++} AND investigation_id = $${idx}
-      RETURNING *
+      RETURNING
+        id,
+        investigation_id,
+        title,
+        description,
+        status,
+        priority,
+        source_document_id,
+        source_efta_ref,
+        assigned_to,
+        created_by,
+        resolved_at,
+        resolution_notes,
+        created_at,
+        updated_at,
+        forensic_signal_id
     `;
 
     const result = await pool.query(query, values);

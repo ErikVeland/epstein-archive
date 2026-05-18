@@ -65,8 +65,8 @@ const listJobsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 39, b: 45 },
-        { a: 73, b: 79 },
+        { a: 198, b: 204 },
+        { a: 232, b: 238 },
       ],
     },
     {
@@ -74,19 +74,32 @@ const listJobsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 89, b: 99 },
-        { a: 132, b: 142 },
+        { a: 248, b: 258 },
+        { a: 291, b: 301 },
       ],
     },
   ],
   statement:
-    'SELECT * \nFROM processing_jobs \nWHERE (:status::text IS NULL OR status = :status)\n  AND (:targetType::text IS NULL OR target_type = :targetType)\nORDER BY priority DESC, created_at ASC',
+    'SELECT\n  id,\n  run_id,\n  step_name,\n  target_type,\n  target_id,\n  status,\n  attempts,\n  max_attempts,\n  locked_by,\n  locked_at,\n  last_error,\n  created_at,\n  updated_at\nFROM processing_jobs \nWHERE (:status::text IS NULL OR status = :status)\n  AND (:targetType::text IS NULL OR target_type = :targetType)\nORDER BY priority DESC, created_at ASC',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT *
+ * SELECT
+ *   id,
+ *   run_id,
+ *   step_name,
+ *   target_type,
+ *   target_id,
+ *   status,
+ *   attempts,
+ *   max_attempts,
+ *   locked_by,
+ *   locked_at,
+ *   last_error,
+ *   created_at,
+ *   updated_at
  * FROM processing_jobs
  * WHERE (:status::text IS NULL OR status = :status)
  *   AND (:targetType::text IS NULL OR target_type = :targetType)
@@ -234,7 +247,7 @@ const lockJobIR: any = {
     { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 188, b: 191 }] },
   ],
   statement:
-    "UPDATE processing_jobs \nSET status = 'running', \n    locked_by = :workerId!, \n    locked_at = CURRENT_TIMESTAMP,\n    attempts = attempts + 1,\n    updated_at = CURRENT_TIMESTAMP\nWHERE id = :id!\nRETURNING *",
+    "UPDATE processing_jobs \nSET status = 'running', \n    locked_by = :workerId!, \n    locked_at = CURRENT_TIMESTAMP,\n    attempts = attempts + 1,\n    updated_at = CURRENT_TIMESTAMP\nWHERE id = :id!\nRETURNING\n  id,\n  run_id,\n  step_name,\n  target_type,\n  target_id,\n  status,\n  attempts,\n  max_attempts,\n  locked_by,\n  locked_at,\n  last_error,\n  created_at,\n  updated_at",
 };
 
 /**
@@ -247,7 +260,20 @@ const lockJobIR: any = {
  *     attempts = attempts + 1,
  *     updated_at = CURRENT_TIMESTAMP
  * WHERE id = :id!
- * RETURNING *
+ * RETURNING
+ *   id,
+ *   run_id,
+ *   step_name,
+ *   target_type,
+ *   target_id,
+ *   status,
+ *   attempts,
+ *   max_attempts,
+ *   locked_by,
+ *   locked_at,
+ *   last_error,
+ *   created_at,
+ *   updated_at
  * ```
  */
 export const lockJob = new PreparedQuery<ILockJobParams, ILockJobResult>(lockJobIR);

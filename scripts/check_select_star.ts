@@ -38,8 +38,10 @@ function checkFileForSelectStar(filePath: string): SelectStarIssue[] {
         }
       }
 
-      // Check for SELECT * (but not SELECT COUNT(*) or other aggregates)
-      if (trimmed.startsWith('SELECT') && /\bSELECT\s+(?:[A-Za-z_][\w]*\.)?\*/i.test(trimmed)) {
+      // Check for SELECT */alias.* and RETURNING * (but not COUNT(*) or arithmetic).
+      const hasSelectStar = /\bSELECT\s+(?:[A-Za-z_][\w]*\.)?\*/i.test(trimmed);
+      const hasReturningStar = /\bRETURNING\s+\*/i.test(trimmed);
+      if (hasSelectStar || hasReturningStar) {
         // Exclude aggregate functions like COUNT(*), SUM(*), etc.
         if (
           trimmed.includes('COUNT(*)') ||

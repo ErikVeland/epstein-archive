@@ -69,7 +69,17 @@ SET
   scope = COALESCE(:scope, scope),
   updated_at = CURRENT_TIMESTAMP
 WHERE id = :id!
-RETURNING *;
+RETURNING
+  id,
+  uuid,
+  title,
+  description,
+  owner_id,
+  collaborator_ids,
+  status,
+  scope,
+  created_at,
+  updated_at;
 
 /* @name addCollaborator */
 INSERT INTO investigation_collaborators (investigation_id, user_id, permission_level)
@@ -128,7 +138,19 @@ ON CONFLICT (investigation_id, document_id) DO NOTHING
 RETURNING id;
 
 /* @name getTimelineEvents */
-SELECT * FROM investigation_timeline_events 
+SELECT
+  id,
+  investigation_id,
+  title,
+  description,
+  type,
+  start_date,
+  end_date,
+  confidence,
+  entities_json,
+  documents_json,
+  created_at
+FROM investigation_timeline_events 
 WHERE investigation_id = :investigationId! 
 ORDER BY start_date ASC;
 
@@ -165,7 +187,13 @@ VALUES (:evidenceId!, :date!, :actor, :action, :notes, :signature)
 RETURNING id;
 
 /* @name getNotebook */
-SELECT * FROM investigation_notebook WHERE investigation_id = :investigationId!;
+SELECT
+  investigation_id,
+  order_json,
+  annotations_json,
+  updated_at
+FROM investigation_notebook
+WHERE investigation_id = :investigationId!;
 
 /* @name saveNotebook */
 INSERT INTO investigation_notebook (investigation_id, order_json, annotations_json, updated_at)
@@ -176,10 +204,28 @@ ON CONFLICT (investigation_id) DO UPDATE SET
   updated_at = EXCLUDED.updated_at;
 
 /* @name getHypotheses */
-SELECT * FROM hypotheses WHERE investigation_id = :investigationId! ORDER BY created_at DESC;
+SELECT
+  id,
+  investigation_id,
+  title,
+  description,
+  status,
+  confidence,
+  created_at,
+  updated_at
+FROM hypotheses
+WHERE investigation_id = :investigationId!
+ORDER BY created_at DESC;
 
 /* @name getHypothesisEvidence */
-SELECT he.*, d.title as evidence_title, d.evidence_type 
+SELECT
+  he.id,
+  he.hypothesis_id,
+  he.relevance,
+  he.created_at,
+  he.document_id,
+  d.title as evidence_title,
+  d.evidence_type 
 FROM hypothesis_evidence he
 LEFT JOIN documents d ON he.document_id = d.id
 WHERE he.hypothesis_id = :hypothesisId!;
@@ -225,7 +271,21 @@ INSERT INTO investigation_activity (
 RETURNING id;
 
 /* @name getActivity */
-SELECT * FROM investigation_activity
+SELECT
+  id,
+  investigation_id,
+  user_id,
+  user_name,
+  action_type,
+  target_type,
+  target_id,
+  target_title,
+  metadata_json,
+  created_at,
+  doc_id,
+  ent_id,
+  lead_id
+FROM investigation_activity
 WHERE investigation_id = :investigationId!
 ORDER BY created_at DESC
 LIMIT :limit!;
