@@ -3,7 +3,6 @@ import { statsRepository } from '../db/statsRepository.js';
 import {
   getCriticalTableCounts,
   getCurrentDatabaseSizeBytes,
-  getEntityAndDocumentCounts,
   getSampleEntityWithMentions,
   pingDatabase,
 } from '../db/healthQueries.js';
@@ -19,10 +18,6 @@ import { getDbMetaPayload } from '../services/dbMetaService.js';
 const router = express.Router();
 const execFileAsync = promisify(execFile);
 const STATS_TIMEOUT_MS = 5_000;
-const READINESS_TIMEOUT_MS = Math.max(
-  100,
-  Number.parseInt(process.env.READINESS_TIMEOUT_MS ?? '250', 10) || 250,
-);
 
 const withStatsTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
   Promise.race([
@@ -70,87 +65,18 @@ router.get('/pipeline', async (_req, res, next) => {
 
 // Health check endpoint - Basic
 router.get('/health', async (_req, res) => {
-  let dbStatus = 'not_initialized';
-  let stats = { entities: 0, documents: 0 };
-
-  try {
-    await pingDatabase();
-    dbStatus = 'connected';
-    stats = await getEntityAndDocumentCounts();
-  } catch (e) {
-    dbStatus = 'error';
-    logger.error({ err: e }, 'Health check DB error');
-  }
-
-  const healthCheck = {
-    status: dbStatus === 'connected' && stats.entities > 0 ? 'healthy' : 'degraded',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: dbStatus,
-    data: stats,
-    memory: process.memoryUsage(),
-    environment: process.env.NODE_ENV || 'development',
-  };
-
-  res.status(healthCheck.status === 'healthy' ? 200 : 503).json(healthCheck);
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('Link', '</api/health>; rel="canonical"');
+  res.redirect(307, '/api/health');
 });
 
 // Readiness Check — fast O(1) ping; add ?soft=1 for richer checks+data payload
 router.get('/health/ready', async (req, res) => {
-  const soft = req.query.soft === '1';
-  const start = Date.now();
-  try {
-    const pingStart = Date.now();
-    const pingPromise = pingDatabase();
-    const timeoutMs = soft ? 5000 : READINESS_TIMEOUT_MS;
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), timeoutMs),
-    );
-
-    await Promise.race([pingPromise, timeoutPromise]);
-    const latencyMs = Date.now() - pingStart;
-
-    if (!soft) {
-      return res.status(200).json({ status: 'ready' });
-    }
-
-    // Soft mode: also fetch entity/document counts for footer health widget
-    let dataCounts = { entities: 0, documents: 0 };
-    let dataOk = false;
-    try {
-      dataCounts = await getEntityAndDocumentCounts();
-      dataOk = dataCounts.entities > 0 && dataCounts.documents > 0;
-    } catch {
-      // non-fatal — DB is reachable, data counts unavailable
-    }
-
-    return res.status(200).json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      durationMs: Date.now() - start,
-      checks: {
-        db: { ok: true, latencyMs },
-        data: { ok: dataOk, ...dataCounts },
-      },
-    });
-  } catch (e: unknown) {
-    const isTimeout = e instanceof Error && e.message === 'timeout';
-    const errMessage = e instanceof Error ? e.message : 'Unknown error';
-    if (!soft) {
-      return res.status(503).json({
-        status: 'degraded',
-        error: isTimeout ? 'DB ping timeout' : 'DB error',
-      });
-    }
-    return res.status(503).json({
-      status: 'degraded',
-      timestamp: new Date().toISOString(),
-      durationMs: Date.now() - start,
-      checks: {
-        db: { ok: false, error: isTimeout ? 'DB ping timeout' : errMessage },
-      },
-    });
-  }
+  const qs = req.originalUrl.includes('?') ? req.originalUrl.split('?')[1] : '';
+  const target = qs ? `/api/health/ready?${qs}` : '/api/health/ready';
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('Link', '</api/health/ready>; rel="canonical"');
+  res.redirect(307, target);
 });
 
 // Deep health check
