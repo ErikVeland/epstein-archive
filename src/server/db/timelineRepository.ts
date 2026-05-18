@@ -113,17 +113,24 @@ function parseTimelineEntities(rawEntities: unknown): ParsedTimelineEntities {
     };
   }
 
-  let parsed: unknown;
-  try {
-    parsed = typeof rawEntities === 'string' ? JSON.parse(rawEntities) : rawEntities;
-  } catch {
-    return { entityIdsToFetch: [], entityNamesToFetch: [] };
+  let parsed: unknown = rawEntities;
+  if (typeof rawEntities === 'string') {
+    const trimmed = rawEntities.trim();
+    if (!trimmed) {
+      return { entityIdsToFetch: [], entityNamesToFetch: [] };
+    }
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      parsed = trimmed
+        .split(/[\n,;]+/)
+        .map((v) => v.trim())
+        .filter(Boolean);
+    }
   }
+
   if (!Array.isArray(parsed) || parsed.length === 0) {
-    return {
-      entityIdsToFetch: [],
-      entityNamesToFetch: [],
-    };
+    return { entityIdsToFetch: [], entityNamesToFetch: [] };
   }
 
   const entityIdsToFetch = parsed
@@ -316,7 +323,7 @@ export const timelineRepository = {
           try {
             const parsedEntities = parseTimelineEntities(event.entities);
             parsedEntitiesByEvent.set(eventId, {
-              raw: typeof event.entities === 'string' ? JSON.parse(event.entities) : event.entities,
+              raw: event.entities,
               entityIdsToFetch: parsedEntities.entityIdsToFetch,
               entityNamesToFetch: parsedEntities.entityNamesToFetch,
             });
@@ -473,26 +480,16 @@ export const timelineRepository = {
         entityByName.set(String(row.full_name).toLowerCase(), Number(row.id));
       }
 
-      const rawEntities =
-        typeof event.entities === 'string' ? JSON.parse(event.entities) : event.entities;
-      const resolvedEntityIds = Array.isArray(rawEntities)
-        ? Array.from(
-            new Set(
-              rawEntities
-                .map((value) => {
-                  if (typeof value === 'number') return entityById.get(value) ?? null;
-                  if (typeof value === 'string' && /^\d+$/.test(value)) {
-                    return entityById.get(Number(value)) ?? null;
-                  }
-                  if (typeof value === 'string' && value.trim()) {
-                    return entityByName.get(value.trim().toLowerCase()) ?? null;
-                  }
-                  return null;
-                })
-                .filter((value): value is number => typeof value === 'number' && value > 0),
+      const resolvedEntityIds = Array.from(
+        new Set(
+          [
+            ...parsed.entityIdsToFetch.map((id) => entityById.get(id) ?? null),
+            ...parsed.entityNamesToFetch.map(
+              (name) => entityByName.get(name.toLowerCase()) ?? null,
             ),
-          )
-        : [];
+          ].filter((value): value is number => typeof value === 'number' && value > 0),
+        ),
+      );
 
       let relatedDocument: TimelineRelatedDocument = null;
       const relatedDocumentId = Number(event.related_document_id);
