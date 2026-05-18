@@ -110,7 +110,8 @@ export const apiErrorEnvelopeMiddleware = (req: Request, res: Response, next: Ne
   const originalJson = res.json.bind(res);
 
   res.json = function jsonWithCanonicalError(body: unknown) {
-    if (res.statusCode >= 400 && req.path.startsWith('/api')) {
+    const url = req.originalUrl || req.url || req.path;
+    if (res.statusCode >= 400 && url.startsWith('/api')) {
       return originalJson(toApiErrorEnvelope(req, res.statusCode, body));
     }
     return originalJson(body);

@@ -111,5 +111,9 @@ Do not open a new production deploy unless a new commit lands on `main` and pass
 
 - Consolidated subjects endpoint implementation: `/api/subjects` and `/api/entities/subjects` now share one router (`subjectsRoutes`).
 - Consolidated DB meta payload generation: `/api/_meta/db` and `/api/stats/meta/db` now share one implementation (`dbMetaService`).
+- Canonicalized entity portrait surface: `/api/entities/:entityId/photo` now 302-redirects to `/api/entities/:id/portrait` with deprecation headers.
+- Canonicalized health endpoints: `/api/stats/health` and `/api/stats/health/ready` now 307-redirect to `/api/health` and `/api/health/ready`.
+- Hardened timeline entity parsing: non-JSON `entities` values no longer spam warnings and still resolve by name/ID.
+- Canonicalized API error envelope detection: the middleware now checks `originalUrl` so mounted routers still get the standard `{ error: { code, message, requestId } }` shape.
 - Stabilized stats integration test timeout to reduce flaky failures on large local datasets.
 - Verified in lane worktree: `pnpm lint`, `pnpm type-check:server`, `pnpm test:unit`.

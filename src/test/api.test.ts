@@ -9,6 +9,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import express from 'express';
+import { requestIdMiddleware } from '../server/middleware/requestId.js';
+import { apiErrorEnvelopeMiddleware } from '../server/middleware/apiErrorEnvelope.js';
 
 // ---------------------------------------------------------------------------
 // Minimal app fixture — only the routes we want to test, no DB required.
@@ -16,6 +18,8 @@ import express from 'express';
 function buildTestApp() {
   const app = express();
   app.use(express.json());
+  app.use(requestIdMiddleware);
+  app.use(apiErrorEnvelopeMiddleware);
 
   // Health
   app.get('/api/health', (_req, res) => {
@@ -72,6 +76,11 @@ describe('API – unknown routes', () => {
     const res = await request(app).get('/api/nonexistent');
     expect(res.status).toBe(404);
     expect(res.body).toHaveProperty('error');
+    expect(res.body.error).toMatchObject({
+      code: 'NOT_FOUND',
+      message: 'Not found',
+    });
+    expect(typeof res.body.error.requestId).toBe('string');
   }, 15_000);
 });
 
@@ -79,6 +88,8 @@ describe('API – error handler', () => {
   it('returns 500 JSON when a route throws', async () => {
     const app = express();
     app.use(express.json());
+    app.use(requestIdMiddleware);
+    app.use(apiErrorEnvelopeMiddleware);
     app.get('/api/boom', () => {
       throw new Error('test explosion');
     });
@@ -90,6 +101,10 @@ describe('API – error handler', () => {
 
     const res = await request(app).get('/api/boom');
     expect(res.status).toBe(500);
-    expect(res.body.error).toBe('test explosion');
+    expect(res.body.error).toMatchObject({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'test explosion',
+    });
+    expect(typeof res.body.error.requestId).toBe('string');
   });
 });
