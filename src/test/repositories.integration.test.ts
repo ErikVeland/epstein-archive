@@ -13,6 +13,8 @@
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
+const describeIntegration = process.env.RUN_INTEGRATION === '1' ? describe : describe.skip;
+
 // ── Schema fixtures ──────────────────────────────────────────────────────────
 // Minimal shapes — enough to catch regressions without over-specifying.
 
@@ -53,7 +55,7 @@ function assertSchema<T>(schema: z.ZodSchema<T>, value: unknown, label: string):
 
 // ── Suite ────────────────────────────────────────────────────────────────────
 
-describe('repository integration tests', () => {
+describeIntegration('repository integration tests', () => {
   // Lazy-import repositories only when we actually have a DB connection.
   // This prevents pool initialization errors during regular unit test runs.
   let flightsRepository: typeof import('../server/db/flightsRepository.js').flightsRepository;
