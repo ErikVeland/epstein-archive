@@ -2,19 +2,41 @@
 
 ## 21.6.0 - 2026-05-20 - Provenance & Annotation Hardening
 
-### Forensic Provenance
+### Document Research
 
-- **AI Summary Provenance Isolation**: Stops writing AI summaries into canonical `documents.metadata_json`; stores summaries in `document_ai_artifacts` and serves the latest artifact in API responses.
-- **Artifact-Backed Previews**: Document list previews can source `ai_summary` from the latest summary artifact without requiring metadata contamination.
+- **AI-generated summaries are now clearly separated from source text.** Previous versions stored AI-generated document summaries directly inside the document's metadata, making it impossible to tell which text came from the original file vs. an AI model. Summaries are now stored in a dedicated artifact store with a full provenance record (which model, when, what source text it read) and surfaced separately in document previews.
+- **Document evidence types are now consistently classified.** A batch backfill corrected evidence type labels across the corpus so filters and search results reflect the actual nature of each document.
+- **All database queries now fetch only the fields they need.** Removed "select everything" queries across the codebase — document lists, entity lookups, and search results now pull exactly the columns required. This reduces memory pressure and speeds up the most common read paths.
+- **Duplicate database index removed.** The investigation leads table had a redundant index causing unnecessary write overhead on every update; it has been dropped.
 
-### Security & Collaboration
+### Annotation & Collaboration
 
-- **Authenticated Annotation Writes**: `POST /api/documents/:id/annotations` now requires authentication.
-- **Frictionless Guest Identity**: Mutations can be cryptographically signed client-side and verified server-side to support "guest" authenticated writes with stable provenance fingerprinting.
+- **Annotations now require a verified identity.** Document annotations previously accepted writes from anyone. They now require either a logged-in account or a cryptographic guest identity (see below). This closes a spam/spoofing surface and ensures every annotation has a stable, traceable author.
+- **Guest annotation without an account.** Researchers who don't have a login can now annotate documents. On first visit, the browser generates a unique cryptographic keypair stored locally. Every annotation you submit is signed with this key, giving you a stable identity ("Guest XXXXXXXX") that persists across sessions on the same device — no registration required, no password, provenance intact.
 
-### Client Maintainability
+### Performance
 
-- **App Module Split (First Slice)**: Extracts the route registry and modal overlay orchestration into dedicated modules, shrinking the responsibilities of `src/client/App.tsx`.
+- **Faster responses on high-traffic routes.** Consolidated four overlapping server-side cache implementations into a single unified cache service with proper namespace isolation. This eliminates stale-data surprises from cache invalidation races and reduces redundant computation.
+- **Pagination is now safe under large datasets.** Cursor and offset pagination logic was hardened to handle edge cases at the boundaries of large result sets that previously could cause silent data gaps or repeated rows.
+- **Background pipeline jobs are more efficient.** The ingestion pipeline's async concurrency primitives were consolidated — eliminating redundant semaphore layers and making job queuing predictable under load.
+
+### Reliability
+
+- **Error responses are consistent across the entire API.** Previously each route had its own ad-hoc error format. All server errors now flow through a single error handler, producing a uniform response envelope. This makes client-side error handling and debugging dramatically simpler.
+- **Rate limits are now uniform and explicitly named.** Every API endpoint that had a rate limit now uses a named, centrally-defined limit rather than scattered magic numbers. Auth limits, annotation limits, search limits, and entity caps are all visible in one place.
+- **Production deploy preflight is tighter.** The canary readiness check now retries against live data, the schema drift gate runs on every deploy without bypass options, and DB extension checks are fail-closed.
+- **Email threads now reliably load under slow connections.** The email thread list query timeout was raised to handle heavier mailboxes that were intermittently timing out on production.
+- **Search vector migration is safe on live data.** The production full-text search vector migration was hardened to run safely on populated tables without locking or data loss.
+
+### Platform Stability
+
+- **Schema hash tracking is robust in all environments.** The schema integrity check now correctly handles environments without a database connection, skipping gracefully with a warning rather than blocking unrelated work.
+- **Subjects and metadata routes are consolidated.** Several overlapping API routes for entity subjects and document metadata were merged into canonical endpoints, eliminating duplicated logic that could produce inconsistent results.
+- **Release gates have no skip paths.** All test and lint skip annotations have been removed. The only way a release passes now is if all checks actually pass.
+
+---
+
+_Technical notes: 29 substantive commits since 21.5.0. Internal: AI summary provenance isolation, guest ECDSA identity, cache consolidation, SELECT _ removal, annotation auth hardening, unified error handler, App.tsx route/modal split.\*
 
 ## 21.5.0 - 2026-05-18 - Production Hardening Release Candidate
 
