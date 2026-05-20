@@ -41,7 +41,7 @@ export const healthResponseSchema = z.object({
     entities: z.number(),
     documents: z.number(),
   }),
-  memory: z.record(z.unknown()),
+  memory: z.record(z.string(), z.unknown()),
   environment: z.string(),
 });
 

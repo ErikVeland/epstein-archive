@@ -237,8 +237,8 @@ importers:
         specifier: ^4.22.1
         version: 4.22.1
       zod:
-        specifier: ^3.23.8
-        version: 3.25.76
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@esbuild/linux-arm64':
         specifier: 0.25.12

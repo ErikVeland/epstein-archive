@@ -26,7 +26,7 @@ const createMemorySchema = z.object({
     importanceScore: z.number().min(0).max(1).optional(),
     sourceId: z.number().optional(),
     sourceType: z.string().optional(),
-    provenance: z.record(z.unknown()).optional(),
+    provenance: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 
@@ -39,7 +39,7 @@ const updateMemorySchema = z.object({
     contextTags: z.array(z.string()).optional(),
     importanceScore: z.number().min(0).max(1).optional(),
     status: z.enum(['active', 'archived', 'deprecated']).optional(),
-    provenance: z.record(z.unknown()).optional(),
+    provenance: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 

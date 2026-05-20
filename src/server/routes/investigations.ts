@@ -250,7 +250,7 @@ const addEvidenceSchema = z.object({
     source_path: z.string().optional(),
     entity_id: z.union([z.string(), z.number()]).optional(),
     document_id: z.union([z.string(), z.number()]).optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 
@@ -272,7 +272,7 @@ const evidenceAnnotationCreateSchema = z.object({
     color: z.string().max(32).optional(),
     startOffset: z.number().int().min(0).optional(),
     endOffset: z.number().int().min(1).optional(),
-    metadata: z.record(z.unknown()).optional(),
+    metadata: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 
@@ -288,7 +288,7 @@ const evidenceAnnotationUpdateSchema = z.object({
       color: z.string().max(32).nullable().optional(),
       startOffset: z.number().int().min(0).nullable().optional(),
       endOffset: z.number().int().min(1).nullable().optional(),
-      metadata: z.record(z.unknown()).optional(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
     })
     .refine(
       (body) =>

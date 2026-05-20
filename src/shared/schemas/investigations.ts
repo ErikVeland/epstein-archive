@@ -75,8 +75,8 @@ export const investigationCaseEvidenceItemSchema = z.object({
 
 export const investigationEvidenceByTypeResponseSchema = z.object({
   all: z.array(investigationCaseEvidenceItemSchema),
-  byType: z.record(z.array(investigationCaseEvidenceItemSchema)),
-  counts: z.record(z.number()),
+  byType: z.record(z.string(), z.array(investigationCaseEvidenceItemSchema)),
+  counts: z.record(z.string(), z.number()),
   total: z.number(),
 });
 export const investigativeLeadSchema = z.object({

@@ -26,7 +26,7 @@ export const timelineEventSchema = z.object({
   is_curated: z.boolean().optional(),
   source: z.string().nullable().optional(),
   related_document: z.union([timelineRelatedDocumentSchema, z.null()]).optional(),
-  support: z.record(z.unknown()).optional(),
+  support: z.record(z.string(), z.unknown()).optional(),
 });
 
 // Schema for GET /api/timeline

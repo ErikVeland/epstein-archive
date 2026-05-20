@@ -148,7 +148,7 @@ class ContractError extends Error {
 
 function parseWithSchema<T>(data: unknown, schema: z.ZodTypeAny, context: string): T {
   try {
-    return schema.parse(data);
+    return schema.parse(data) as T;
   } catch (err) {
     console.error('[API CONTRACT VIOLATION]', context, err);
     throw new ContractError(`API contract violation for ${context}`);

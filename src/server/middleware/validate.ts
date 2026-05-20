@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { AnyZodObject, z } from 'zod';
+import { z } from 'zod';
 import { ValidationError } from '../utils/errorHandler.js';
+
+type AnyZodObject = z.ZodObject<z.ZodRawShape>;
 
 interface ParsedQuery {
   [key: string]: string | string[] | ParsedQuery | ParsedQuery[] | undefined;
