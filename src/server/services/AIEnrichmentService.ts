@@ -45,6 +45,10 @@ export class AIEnrichmentService {
     parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '120000', 10) || 120000,
   );
 
+  private static get aiEnabled(): boolean {
+    return process.env.ENABLE_AI_ENRICHMENT === 'true';
+  }
+
   /**
    * Automatically discovers the active model on the Exo cluster
    */
@@ -562,7 +566,7 @@ export class AIEnrichmentService {
    * Uses a Vision model to translate visual page layouts, text, and photos into structured MD.
    */
   static async parseDocumentPageVisual(imageBuffer: Buffer): Promise<string> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled) return '';
 
     try {
@@ -594,7 +598,7 @@ export class AIEnrichmentService {
    * paragraph-sized chunks so context is preserved across sentences.
    */
   static async cleanOCRText(text: string, evidenceType?: string): Promise<string> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || !text || text.length < 100) return text;
 
     // Chunk at paragraph boundaries, cap at 5 chunks to keep latency reasonable
@@ -648,7 +652,7 @@ Cleaned text (output ONLY the cleaned text, no explanation):`;
    * HTML/unicode decode runs first as a free deterministic pre-pass.
    */
   static async repairMimeWildcards(text: string, context: string): Promise<string> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     // Always run the deterministic decode regardless of AI flag
     const decoded = this.decodeHtmlAndUnicode(text);
     if (!isAiEnabled || !decoded.includes('=')) return decoded;
@@ -763,7 +767,7 @@ Output ONLY the repaired text. No quotes.`;
     preContext: string,
     postContext: string,
   ): Promise<EnrichmentOutput['inferences']> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled) return [];
 
     try {
@@ -817,7 +821,7 @@ Infer the type of the [REDACTED] entity based on the surrounding context.
     documentContext: string,
     knownEntities: { id: number; name: string }[] = [],
   ): Promise<{ entityId: number | null; confidence: number; canonicalName: string | null }> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || knownEntities.length === 0) {
       return { entityId: null, confidence: 0, canonicalName: null };
     }
@@ -875,7 +879,7 @@ ${entityList}
     paragraph: string,
     entityNames: string[],
   ): Promise<{ source: string; target: string; relationship: string; confidence: number }[]> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || entityNames.length < 2) return [];
 
     try {
@@ -939,7 +943,7 @@ ${entityNames.join(', ')}
     content: string,
     metadata: { fileName?: string; subject?: string },
   ): Promise<string | null> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || !content || content.length < 100) return null;
 
     try {
@@ -987,7 +991,7 @@ Content: "${content.slice(0, 2000)}"
       entities: string;
     }[]
   > {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || !content || content.length < 100) return [];
 
     try {
@@ -1046,7 +1050,7 @@ Return [] if no clearly dated events found.
       description: string;
     }[]
   > {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || !content || content.length < 100) return [];
 
     try {
@@ -1226,7 +1230,7 @@ Return [] if no financial transactions found.
       modality: string;
     }[]
   > {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || !content || content.length < 100) return [];
 
     try {
@@ -1271,7 +1275,7 @@ Return JSON only with subject,predicate,object,confidence,modality. Use ALLEGED 
     addresses: string[];
     notes: string;
   } | null> {
-    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || !entryText || entryText.length < 5) return null;
 
     try {

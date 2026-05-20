@@ -106,3 +106,8 @@ export function findFirstExistingPath(
   }
   return null;
 }
+
+/** Constructs an absolute path under the project's data/ directory. */
+export function dataPath(...segments: string[]): string {
+  return path.join(process.cwd(), 'data', ...segments);
+}

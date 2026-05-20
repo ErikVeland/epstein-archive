@@ -10,6 +10,7 @@ import {
   entityBaseQualityWhereSql,
   isJunkEntityName,
 } from './entityQuality.js';
+import { isPgTimeout, isPgConnectionFailure } from '../utils/dbErrorClassifier.js';
 
 export interface EntityRepositoryResult {
   entities: Record<string, unknown>[];
@@ -824,21 +825,8 @@ export const entitiesRepository = {
         total,
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      const code =
-        typeof error === 'object' && error !== null && 'code' in error
-          ? String((error as { code?: unknown }).code || '')
-          : '';
-      const isStatementTimeout =
-        code === '57014' || /statement timeout|query read timeout|timeout/i.test(message);
-      const isConnectionFailure =
-        code === 'ECONNREFUSED' ||
-        code === 'ENOTFOUND' ||
-        code === 'EAI_AGAIN' ||
-        code === '57P01' ||
-        /database connection failed|connect ECONNREFUSED|Connection terminated unexpectedly|Client has encountered a connection error/i.test(
-          message,
-        );
+      const isStatementTimeout = isPgTimeout(error);
+      const isConnectionFailure = isPgConnectionFailure(error);
       if (!isStatementTimeout && !(isDegradedMode && isConnectionFailure)) throw error;
       if (isDegradedMode && isConnectionFailure) {
         logger.warn(

@@ -1,6 +1,7 @@
 import { adminQueries, analyticsQueries, graphQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
+import { isPgTimeout } from '../utils/dbErrorClassifier.js';
 
 function runQuery<TParams, TResult>(query: unknown, params: TParams): Promise<TResult[]> {
   return (
@@ -898,15 +899,8 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
       lastActivityAt: (totalsRows[0]?.lastActivityAt as string | null) || null,
     };
   } catch (error) {
-    const code =
-      typeof error === 'object' && error !== null && 'code' in error
-        ? String((error as { code?: unknown }).code || '')
-        : '';
-    if (code === '57014') {
-      logger.warn('[emails] mailbox totals timed out; returning zeroed aggregate totals');
-    } else {
-      throw error;
-    }
+    if (!isPgTimeout(error)) throw error;
+    logger.warn('[emails] mailbox totals timed out; returning zeroed aggregate totals');
   }
 
   let rows: Array<Record<string, unknown>> = [];
@@ -973,18 +967,11 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
     );
     rows = result.rows;
   } catch (error) {
-    const code =
-      typeof error === 'object' && error !== null && 'code' in error
-        ? String((error as { code?: unknown }).code || '')
-        : '';
-    if (code === '57014') {
-      logger.warn(
-        `[emails] mailbox entity aggregation timed out at scan limit ${mailboxScanLimit}; returning totals only`,
-      );
-      rows = [];
-    } else {
-      throw error;
-    }
+    if (!isPgTimeout(error)) throw error;
+    logger.warn(
+      `[emails] mailbox entity aggregation timed out at scan limit ${mailboxScanLimit}; returning totals only`,
+    );
+    rows = [];
   }
 
   return { totals, rows };
@@ -1160,20 +1147,9 @@ export async function getEmailThreads(params: {
 
     return { rows, countRow: { total } };
   } catch (error) {
-    const code =
-      typeof error === 'object' && error !== null && 'code' in error
-        ? String((error as { code?: unknown }).code || '')
-        : '';
-    if (code !== '57014') {
-      throw error;
-    }
-
+    if (!isPgTimeout(error)) throw error;
     logger.warn(
-      {
-        mailboxId,
-        tab,
-        limit,
-      },
+      { mailboxId, tab, limit },
       '[emails] thread query timed out; returning empty thread list',
     );
     return { rows: [], countRow: { total: 0 } };

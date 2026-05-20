@@ -5,6 +5,7 @@ import {
   stripEntityHonorificPrefix,
   unwrapEntityNameCandidates,
 } from '../../shared/entityNameNormalization.js';
+import { isPgTimeout } from '../utils/dbErrorClassifier.js';
 
 const VIP_DISPLAY_FALLBACKS = new Map<string, string>([
   ['joseph biden', 'Joe Biden'],
@@ -59,14 +60,7 @@ export async function buildVipDisplayLookup(): Promise<Map<string, string>> {
   try {
     raw = await entitiesQueries.getVipEntities.run(undefined, getApiPool());
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    const code =
-      typeof error === 'object' && error !== null && 'code' in error
-        ? String((error as { code?: unknown }).code || '')
-        : '';
-    const isTimeout =
-      code === '57014' || /statement timeout|query read timeout|timeout/i.test(message);
-    if (!isTimeout) throw error;
+    if (!isPgTimeout(error)) throw error;
 
     const degradedLookup = vipLookupCache?.value ?? new Map<string, string>();
     vipLookupCache = { value: degradedLookup, expiresAt: now + 60_000 };

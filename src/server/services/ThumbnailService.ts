@@ -3,13 +3,14 @@ import path from 'path';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { logger } from './Logger.js';
+import { dataPath } from '../utils/pathResolver.js';
 
 const execFileAsync = promisify(execFile);
 
 export class ThumbnailService {
   static async generateVideoThumbnail(videoPath: string, videoId: number): Promise<string | null> {
     try {
-      const cacheDir = path.join(process.cwd(), 'data', 'thumbnails', 'video');
+      const cacheDir = dataPath('thumbnails', 'video');
       if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
       }

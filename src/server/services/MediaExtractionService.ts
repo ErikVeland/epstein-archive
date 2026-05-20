@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import { execSync } from 'child_process';
 import { MediaService } from './MediaService.js';
 import { logger } from './Logger.js';
+import { dataPath } from '../utils/pathResolver.js';
 
 export class MediaExtractionService {
   private mediaService: MediaService;
@@ -14,8 +15,8 @@ export class MediaExtractionService {
 
   constructor(mediaService: MediaService) {
     this.mediaService = mediaService;
-    this.extractedDir = path.join(process.cwd(), 'data/media/extracted');
-    this.tempDir = path.join(process.cwd(), 'data/temp/extraction');
+    this.extractedDir = dataPath('media', 'extracted');
+    this.tempDir = dataPath('temp', 'extraction');
     this.pdfImagesPath = '/usr/local/bin/pdfimages';
 
     if (!fs.existsSync(this.extractedDir)) {

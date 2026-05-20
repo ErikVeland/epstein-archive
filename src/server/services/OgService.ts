@@ -1,9 +1,9 @@
 import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
 import { logger } from './Logger.js';
+import { dataPath } from '../utils/pathResolver.js';
 
-const OG_SCREENSHOT_CACHE_DIR = path.join(process.cwd(), 'data', 'og-route-cache');
+const OG_SCREENSHOT_CACHE_DIR = dataPath('og-route-cache');
 
 interface BrowserPage {
   goto(url: string, options: { waitUntil: 'networkidle'; timeout: number }): Promise<void>;
