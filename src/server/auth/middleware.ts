@@ -10,6 +10,7 @@ export interface AuthRequest extends Request {
   };
 }
 
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { logger } from '../services/Logger.js';
 
@@ -30,6 +31,54 @@ if (!JWT_SECRET) {
 
 const getJwtSecret = (): string => {
   return JWT_SECRET;
+};
+
+// P-256 SPKI DER public key is 91 bytes (124 base64 chars). Reject anything larger to prevent DoS.
+const MAX_GUEST_KEY_BASE64_LEN = 200;
+
+const verifyGuestSignature = (req: Request): AuthRequest['user'] | null => {
+  const signature = req.headers['x-signature'] as string;
+  const publicKeyBase64 = req.headers['x-public-key'] as string;
+
+  if (!signature || !publicKeyBase64) return null;
+  if (publicKeyBase64.length > MAX_GUEST_KEY_BASE64_LEN) return null;
+
+  try {
+    const method = req.method.toUpperCase();
+    const path = req.originalUrl || req.path;
+    const bodyStr = req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : '';
+    const message = `${method}:${path}:${bodyStr}`;
+
+    const keyBuffer = Buffer.from(publicKeyBase64, 'base64');
+    const pubKey = crypto.createPublicKey({
+      key: keyBuffer,
+      format: 'der',
+      type: 'spki',
+    });
+
+    const isVerified = crypto.verify(
+      'sha256',
+      Buffer.from(message),
+      {
+        key: pubKey,
+        dsaEncoding: 'ieee-p1363',
+      },
+      Buffer.from(signature, 'base64'),
+    );
+
+    if (!isVerified) return null;
+
+    const fingerprint = crypto.createHash('sha256').update(keyBuffer).digest('hex');
+    return {
+      id: `guest:${fingerprint}`,
+      username: `Guest ${fingerprint.slice(0, 8)}`,
+      role: 'guest',
+      email: null,
+    };
+  } catch (error) {
+    logger.warn({ err: error }, '[Auth] Guest signature verification failed');
+    return null;
+  }
 };
 
 // Shared verification helper — uses JWT payload claims directly (no DB round-trip).
@@ -76,7 +125,10 @@ const verifyToken = (req: Request): AuthRequest['user'] | null => {
 export const authenticateRequest = (req: Request, res: Response, next: NextFunction) => {
   const authReq = req as AuthRequest;
 
-  const user = verifyToken(req);
+  let user = verifyToken(req);
+  if (!user) {
+    user = verifyGuestSignature(req);
+  }
   if (!user) {
     return res
       .status(401)
@@ -89,7 +141,10 @@ export const authenticateRequest = (req: Request, res: Response, next: NextFunct
 
 export const optionalAuthenticate = (req: Request, _res: Response, next: NextFunction) => {
   const authReq = req as AuthRequest;
-  const user = verifyToken(req);
+  let user = verifyToken(req);
+  if (!user) {
+    user = verifyGuestSignature(req);
+  }
   if (user) {
     authReq.user = user;
   }

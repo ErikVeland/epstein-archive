@@ -112,6 +112,10 @@ async function main() {
   }
 
   if (!process.env.DATABASE_URL) {
+    if (mode === 'update') {
+      console.warn('[pg_schema_hash] WARNING: DATABASE_URL not set — skipping hash update.');
+      return;
+    }
     console.error('[pg_schema_hash] DATABASE_URL is required');
     process.exit(1);
   }

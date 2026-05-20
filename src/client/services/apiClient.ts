@@ -334,6 +334,24 @@ class ApiClient {
       }
       if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
+      const isMutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase());
+      if (typeof window !== 'undefined' && isMutating && !url.includes('/auth/') && !token) {
+        try {
+          let path = url;
+          if (url.startsWith('http://') || url.startsWith('https://')) {
+            const parsed = new URL(url);
+            path = parsed.pathname + parsed.search;
+          }
+          const bodyStr = typeof fetchOptions?.body === 'string' ? fetchOptions.body : '';
+          const { signRequestPayload } = await import('../utils/cryptoIdentity');
+          const { signature, publicKey } = await signRequestPayload(method, path, bodyStr);
+          headers.set('X-Signature', signature);
+          headers.set('X-Public-Key', publicKey);
+        } catch {
+          void 0;
+        }
+      }
+
       const releaseGlobal = await globalSemaphore.acquire();
       const releaseHeavy = isHeavyRoute(url) ? await heavySemaphore.acquire() : () => {};
 
