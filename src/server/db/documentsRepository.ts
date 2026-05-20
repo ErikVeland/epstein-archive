@@ -95,6 +95,7 @@ type DocumentRow = Record<string, unknown> & {
   cleanedText?: string | null;
   metadata?: unknown;
   metadataJson?: unknown;
+  aiSummary?: string | null;
   redFlagRating?: string | number | null;
   wordCount?: string | number | null;
   significanceScore?: string | number | null;
@@ -272,67 +273,82 @@ export const documentsRepository = {
 
     // Support indexed content search directly in the document browser.
     const docsSql = `
-      SELECT
-        id,
-        file_name as "fileName",
-        file_type as "fileType",
-        file_size as "fileSize",
-        date_created as "dateCreated",
-        extracted_date as "extractedDate",
-        content_refined as "contentRefined",
-        content_preview as "contentPreview",
-        LEFT(content, 600) as "contentRaw",
-        evidence_type as "evidenceType",
-        metadata_json as "metadata",
-        word_count as "wordCount",
-        red_flag_rating as "redFlagRating",
-        COALESCE(NULLIF(title, ''), file_name) as "title",
-        source_collection as "sourceCollection",
-        significance_score as "significanceScore",
-        unredaction_attempted as "unredactionAttempted",
-        unredaction_succeeded as "unredactionSucceeded",
-        redaction_coverage_before as "redactionCoverageBefore",
-        redaction_coverage_after as "redactionCoverageAfter",
-        unredacted_text_gain as "unredactedTextGain"
-      FROM documents
-      WHERE (
-          $1::text IS NULL
-          OR file_name ILIKE $1
-          OR source_collection ILIKE $1
-          OR file_path ILIKE $1
-          OR fts_vector @@ websearch_to_tsquery('english', $11::text)
-        )
-        AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
-        AND (evidence_type = $3::text OR $3::text IS NULL)
-        AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
-        AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
-        AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
-        AND (red_flag_rating >= $7::int OR $7::int IS NULL)
-        AND (red_flag_rating <= $8::int OR $8::int IS NULL)
-        AND (
-          $12::boolean = true
-          OR (
-            COALESCE(evidence_type, '') != 'media'
-            AND file_type NOT LIKE 'image/%'
-            AND file_type NOT LIKE 'video/%'
-            AND file_type NOT LIKE 'audio/%'
+      WITH base AS (
+        SELECT
+          id,
+          file_name as "fileName",
+          file_type as "fileType",
+          file_size as "fileSize",
+          date_created as "dateCreated",
+          extracted_date as "extractedDate",
+          content_refined as "contentRefined",
+          content_preview as "contentPreview",
+          LEFT(content, 600) as "contentRaw",
+          evidence_type as "evidenceType",
+          metadata_json as "metadata",
+          word_count as "wordCount",
+          red_flag_rating as "redFlagRating",
+          COALESCE(NULLIF(title, ''), file_name) as "title",
+          source_collection as "sourceCollection",
+          significance_score as "significanceScore",
+          unredaction_attempted as "unredactionAttempted",
+          unredaction_succeeded as "unredactionSucceeded",
+          redaction_coverage_before as "redactionCoverageBefore",
+          redaction_coverage_after as "redactionCoverageAfter",
+          unredacted_text_gain as "unredactedTextGain"
+        FROM documents
+        WHERE (
+            $1::text IS NULL
+            OR file_name ILIKE $1
+            OR source_collection ILIKE $1
+            OR file_path ILIKE $1
+            OR fts_vector @@ websearch_to_tsquery('english', $11::text)
           )
-        )
-        AND (file_type != ALL($13::text[]) OR $13::text[] IS NULL)
-        AND (
-          $14::boolean IS NULL
-          OR $14::boolean = false
-          OR (
-            COALESCE(has_failed_redactions::int, 0) > 0
-            OR failed_redaction_count > 0
-            OR redaction_coverage_after IS NOT NULL
-            OR EXISTS (
-              SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id
+          AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
+          AND (evidence_type = $3::text OR $3::text IS NULL)
+          AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
+          AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
+          AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
+          AND (red_flag_rating >= $7::int OR $7::int IS NULL)
+          AND (red_flag_rating <= $8::int OR $8::int IS NULL)
+          AND (
+            $12::boolean = true
+            OR (
+              COALESCE(evidence_type, '') != 'media'
+              AND file_type NOT LIKE 'image/%'
+              AND file_type NOT LIKE 'video/%'
+              AND file_type NOT LIKE 'audio/%'
             )
           )
-        )
-      ORDER BY ${orderByClause}
-      LIMIT $9::int OFFSET $10::int
+          AND (file_type != ALL($13::text[]) OR $13::text[] IS NULL)
+          AND (
+            $14::boolean IS NULL
+            OR $14::boolean = false
+            OR (
+              COALESCE(has_failed_redactions::int, 0) > 0
+              OR failed_redaction_count > 0
+              OR redaction_coverage_after IS NOT NULL
+              OR EXISTS (
+                SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id
+              )
+            )
+          )
+        ORDER BY ${orderByClause}
+        LIMIT $9::int OFFSET $10::int
+      )
+      SELECT
+        base.*,
+        ai.output_text as "aiSummary"
+      FROM base
+      LEFT JOIN LATERAL (
+        SELECT output_text
+        FROM document_ai_artifacts daa
+        WHERE daa.document_id = base.id
+          AND daa.artifact_type = 'summary'
+          AND daa.output_text IS NOT NULL
+        ORDER BY daa.created_at DESC
+        LIMIT 1
+      ) ai ON TRUE
     `;
     const countSql = `
       SELECT COUNT(*) as total
@@ -491,6 +507,13 @@ export const documentsRepository = {
       const evidenceType = typeof doc.evidenceType === 'string' ? doc.evidenceType : undefined;
       const fileType = typeof doc.fileType === 'string' ? doc.fileType : undefined;
       const metadata = parseMetadata(doc.metadata);
+      const aiSummary = typeof doc.aiSummary === 'string' ? doc.aiSummary.trim() : '';
+      const hasMetaSummary =
+        (typeof metadata.ai_summary === 'string' && metadata.ai_summary.trim()) ||
+        (typeof metadata.summary === 'string' && metadata.summary.trim());
+      if (aiSummary && !hasMetaSummary) {
+        metadata.ai_summary = aiSummary;
+      }
       const preview = buildPreview({
         title,
         fileName,
@@ -522,6 +545,7 @@ export const documentsRepository = {
         extractedDate: doc.extractedDate,
         evidenceType: evidenceType || 'document',
         metadata,
+        aiSummary: aiSummary || null,
         redFlagRating: Number(doc.redFlagRating || 0),
         wordCount: Number(doc.wordCount || 0),
         significanceScore: doc.significanceScore != null ? Number(doc.significanceScore) : null,
@@ -592,17 +616,44 @@ export const documentsRepository = {
 
     const metadata = parseMetadata(document.metadataJson);
 
+    let aiSummary: string | null = null;
+    try {
+      const aiRes = await getApiPool().query<{ output_text: string | null }>(
+        `
+          SELECT output_text
+          FROM document_ai_artifacts
+          WHERE document_id = $1::bigint
+            AND artifact_type = 'summary'
+            AND output_text IS NOT NULL
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [docId],
+      );
+      const raw = aiRes.rows[0]?.output_text;
+      aiSummary = typeof raw === 'string' && raw.trim() ? raw.trim() : null;
+    } catch {
+      aiSummary = null;
+    }
+
+    const hasMetaSummary =
+      (typeof metadata.ai_summary === 'string' && metadata.ai_summary.trim()) ||
+      (typeof metadata.summary === 'string' && metadata.summary.trim());
+    if (aiSummary && !hasMetaSummary) {
+      metadata.ai_summary = aiSummary;
+    }
+
     let entityRowsRes;
     try {
       entityRowsRes = await getApiPool().query(
         `
-        SELECT 
-          e.id as "entityId", 
-          e.full_name as "name", 
-          e.entity_type as "entityType", 
+        SELECT
+          e.id as "entityId",
+          e.full_name as "name",
+          e.entity_type as "entityType",
           COUNT(em.id) as "mentions",
           (
-            SELECT f.crop_path 
+            SELECT f.crop_path
             FROM face_clusters fc
             JOIN faces f ON f.id = fc.representative_face_id
             WHERE fc.name = e.full_name AND fc.is_hidden = false
@@ -766,7 +817,7 @@ export const documentsRepository = {
         try {
           const mediaRes = await getApiPool().query<{ text: string | null }>(
             `
-            SELECT 
+            SELECT
               COALESCE(
                 metadata_json->>'extracted_text',
                 metadata_json->>'ocr_text',
@@ -816,6 +867,7 @@ export const documentsRepository = {
       content: derivedContent,
       contentRefined: refinedContent || derivedContent,
       metadata,
+      aiSummary,
       redFlagRating: Number(document.redFlagRating || 0),
       wordCount: Number(
         document.wordCount || (derivedContent ? derivedContent.split(/\s+/).length : 0),
@@ -832,7 +884,7 @@ export const documentsRepository = {
         fs.risk_score as "riskScore",
         fs.metadata_json as "metadata",
         ARRAY(
-          SELECT e.full_name 
+          SELECT e.full_name
           FROM forensic_signal_entities fse
           JOIN entities e ON e.id = fse.entity_id
           WHERE fse.signal_id = fs.id

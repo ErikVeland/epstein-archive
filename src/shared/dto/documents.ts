@@ -9,6 +9,7 @@ export interface DocumentListItemDto extends ProvenanceFieldsDto {
   dateCreated: string | null;
   evidenceType: string;
   metadata: Record<string, unknown>;
+  aiSummary?: string | null;
   redFlagRating: number;
   wordCount: number;
   entitiesCount: number;
@@ -51,6 +52,7 @@ export interface DocumentDetailDto extends ProvenanceFieldsDto {
   contentRefined: string | null;
   contentPreview: string | null;
   metadata: Record<string, unknown>;
+  aiSummary?: string | null;
   evidenceType: string;
   redFlagRating: number;
   sourceCollection: string | null;

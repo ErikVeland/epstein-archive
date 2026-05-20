@@ -322,7 +322,7 @@ router.get(
 // POST /api/documents/:id/annotations
 router.post(
   '/:id/annotations',
-  optionalAuthenticate,
+  authenticateRequest,
   annotationWriteLimiter,
   validate(createDocumentAnnotationSchema),
   async (req, res, next) => {
@@ -358,7 +358,13 @@ router.post(
       const ip = String(req.ip || '');
       const userAgent = String(req.get('user-agent') || '');
       const policy = AnnotationPolicyService.decideWrite(req as AuthRequest);
-      const fingerprint = createFingerprint(ip, userAgent);
+
+      let fingerprint: string;
+      if ((req as AuthRequest).user?.role === 'guest') {
+        fingerprint = (req as AuthRequest).user!.id.replace('guest:', '');
+      } else {
+        fingerprint = createFingerprint(ip, userAgent);
+      }
 
       const annotation = await documentAnnotationsRepository.create({
         documentId,

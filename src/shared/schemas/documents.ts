@@ -11,6 +11,7 @@ const documentListItemCanonicalSchema = z
     dateCreated: z.string().nullable(),
     evidenceType: z.string(),
     metadata: z.record(z.unknown()),
+    aiSummary: z.string().nullable().optional(),
     redFlagRating: z.number(),
     wordCount: z.number(),
     entitiesCount: z.number(),
@@ -43,6 +44,7 @@ export const documentListItemSchema = z.preprocess((input) => {
     redactionCoverageBefore: row.redactionCoverageBefore ?? row.redaction_coverage_before ?? null,
     redactionCoverageAfter: row.redactionCoverageAfter ?? row.redaction_coverage_after ?? null,
     unredactedTextGain: row.unredactedTextGain ?? row.unredacted_text_gain ?? null,
+    aiSummary: row.aiSummary ?? (row as Record<string, unknown>).ai_summary ?? null,
   };
 }, documentListItemCanonicalSchema);
 
@@ -77,6 +79,7 @@ export const documentDetailSchema = z
     contentRefined: z.string().nullable(),
     contentPreview: z.string().nullable(),
     metadata: z.record(z.unknown()),
+    aiSummary: z.string().nullable().optional(),
     evidenceType: z.string(),
     redFlagRating: z.number(),
     sourceCollection: z.string().nullable(),

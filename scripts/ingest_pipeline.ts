@@ -2046,8 +2046,34 @@ async function processDocument(
       pipelineAudit.recordError('ai_enrichment', (_e as Error).message);
       aiSummary = null;
     }
-    if (aiSummary) {
-      metadataObj.aiSummary = aiSummary;
+    if (aiSummary && documentId) {
+      try {
+        const inputHash = crypto.createHash('sha256').update(content).digest('hex');
+        const outputHash = crypto
+          .createHash('sha256')
+          .update(content + aiSummary)
+          .digest('hex');
+        await PipelineService.upsertAiArtifact({
+          runId: currentRun?.id,
+          documentId: Number(documentId),
+          artifactType: 'summary',
+          artifactVersion: 'summary-v2',
+          modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+          promptVersion: 'forensic-summary-v1',
+          sourceExcerpt: content.slice(0, 2000),
+          outputText: aiSummary,
+          confidence: 0.75,
+          provenance: {
+            provider: process.env.AI_PROVIDER,
+            pipelineVersion: PIPELINE_VERSION,
+            inputHash,
+            outputHash,
+            canonicalTextUpdated: false,
+          },
+        });
+      } catch (_e) {
+        pipelineAudit.recordError('ai_artifact_persist', (_e as Error).message);
+      }
     }
     const wordCount = content ? (content.match(/\b[\w']+\b/g) || []).length : 0;
     const normalizedTextSha256 = content ? computeSha256Hex(content) : null;

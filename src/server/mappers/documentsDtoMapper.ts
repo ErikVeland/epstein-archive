@@ -23,6 +23,12 @@ export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentLi
       : doc.matchReason
         ? { matchReason: String(doc.matchReason) }
         : {},
+  aiSummary:
+    typeof doc.aiSummary === 'string'
+      ? doc.aiSummary
+      : typeof doc.ai_summary === 'string'
+        ? doc.ai_summary
+        : null,
   redFlagRating: Number(doc.redFlagRating || 0),
   wordCount: Number(doc.wordCount || 0),
   entitiesCount: Number(doc.entitiesCount || 0),
@@ -90,6 +96,12 @@ export const mapDocumentDetailDto = (doc: Record<string, unknown>): DocumentDeta
     typeof doc.metadata === 'object' && doc.metadata !== null
       ? (doc.metadata as Record<string, unknown>)
       : {},
+  aiSummary:
+    typeof doc.aiSummary === 'string'
+      ? doc.aiSummary
+      : typeof doc.ai_summary === 'string'
+        ? doc.ai_summary
+        : null,
   evidenceType: String(doc.evidenceType || doc.evidence_type || 'document'),
   redFlagRating: Number(doc.redFlagRating || doc.red_flag_rating || 0),
   sourceCollection: typeof doc.sourceCollection === 'string' ? doc.sourceCollection : null,
