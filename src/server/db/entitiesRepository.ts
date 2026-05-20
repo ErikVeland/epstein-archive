@@ -2,7 +2,7 @@ import { entitiesQueries } from '@epstein/db';
 import { Person, SearchFilters, SortOption } from '../../types.js';
 import type { RiskLevel, SubjectCardListItemDto } from '@shared/dto/entities';
 import { getApiPool } from './connection.js';
-import { queryCache } from './cache.js';
+import { queryCache } from '../cache/cacheService.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 import { logger } from '../services/Logger.js';
 import {

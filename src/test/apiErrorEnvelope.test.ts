@@ -17,6 +17,14 @@ const buildApp = () => {
   app.get('/api/details-error', (_req, res) => {
     res.status(413).json({ error: 'Payload too large', maxBytes: 1024 });
   });
+  app.get('/api/deep-offset', (_req, res) => {
+    res.status(400).json({
+      error:
+        'Document list offset is too deep. Refine the filters or use search instead of walking deep pages.',
+      code: 'DOCUMENT_LIST_OFFSET_TOO_DEEP',
+      maxOffset: 10000,
+    });
+  });
   return app;
 };
 
@@ -50,6 +58,18 @@ describe('apiErrorEnvelopeMiddleware', () => {
       code: 'PAYLOAD_TOO_LARGE',
       message: 'Payload too large',
       details: { maxBytes: 1024 },
+    });
+  });
+
+  it('preserves explicit flat error codes and moves metadata into details', async () => {
+    const response = await request(buildApp()).get('/api/deep-offset');
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toMatchObject({
+      code: 'DOCUMENT_LIST_OFFSET_TOO_DEEP',
+      message:
+        'Document list offset is too deep. Refine the filters or use search instead of walking deep pages.',
+      details: { maxOffset: 10000 },
     });
   });
 });

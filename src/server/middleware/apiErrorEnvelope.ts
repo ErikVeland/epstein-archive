@@ -84,7 +84,7 @@ export const toApiErrorEnvelope = (
 
     const details: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(body)) {
-      if (key !== 'error' && key !== 'message') details[key] = value;
+      if (key !== 'error' && key !== 'message' && key !== 'code') details[key] = value;
     }
 
     return {

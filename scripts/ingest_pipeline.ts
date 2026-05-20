@@ -47,6 +47,7 @@ import { TextCleaner } from './utils/text_cleaner.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { markViewsDirty } from '../src/server/services/matViewRefresh.js';
+import { getWorkerConfig, intFromEnv } from '../src/server/pipeline/workerConfig.js';
 import {
   computeSha256Hex,
   documentProvenanceService,
@@ -2510,7 +2511,7 @@ async function processCollection(
 
   // Stream files via walkDir (fs.opendir) — reads one entry at a time to avoid
   // OOM / event-loop blocking on collections with 300K+ files in one directory.
-  const CONCURRENCY_LIMIT = parseInt(process.env.INGEST_CONCURRENCY || '30', 10);
+  const CONCURRENCY_LIMIT = intFromEnv('INGEST_CONCURRENCY', 30, 1, 64);
   let activePromises = 0;
   const completionCallbacks: Array<() => void> = [];
 
@@ -2700,8 +2701,8 @@ async function enrichCompleted() {
   const db = getIngestPool();
   // Exo serves ~1 request at a time; 3-4 concurrent keeps the pipeline fed
   // without building a queue (30 concurrent = 30x latency penalty).
-  const CONCURRENCY = 4;
-  const BATCH = 300;
+  const CONCURRENCY = intFromEnv('AI_SUMMARY_CONCURRENCY', 4, 1, 16);
+  const BATCH = intFromEnv('AI_SUMMARY_BATCH_SIZE', 300, 1, 1000);
 
   // Count total work
   const { rows: countRows } = await db.query(`
@@ -2814,7 +2815,7 @@ async function enrichCompleted() {
  */
 async function ocrCleanCompleted() {
   const db = getIngestPool();
-  const CONCURRENCY = 8; // Lower than summaries — each doc spawns up to 5 chunk calls
+  const CONCURRENCY = intFromEnv('AI_OCR_CLEAN_CONCURRENCY', 8, 1, 16);
 
   const { rows: countRows } = await db.query(`
     SELECT COUNT(*) AS n FROM documents
@@ -2838,7 +2839,7 @@ async function ocrCleanCompleted() {
 
   let processed = 0;
   let lastId = 0;
-  const BATCH = 100;
+  const BATCH = intFromEnv('AI_OCR_CLEAN_BATCH_SIZE', 100, 1, 1000);
 
   // eslint-disable-next-line no-constant-condition
   while (true) {
@@ -2929,7 +2930,8 @@ async function processQueue() {
   process.env.ENABLE_AI_ENRICHMENT = 'true';
   console.log('   🚀 Enforcing AI_PROVIDER=exo_cluster for maximum throughput');
 
-  const CONCURRENCY = parseInt(process.env.INGEST_CONCURRENCY || '30', 10);
+  const workerConfig = getWorkerConfig();
+  const CONCURRENCY = intFromEnv('INGEST_CONCURRENCY', 30, 1, 64);
   const activePromises: Set<Promise<void>> = new Set();
   let processedCount = 0;
   let hasMore = true;
@@ -2976,10 +2978,10 @@ async function processQueue() {
         processing_error  = NULL
     WHERE processing_status = 'failed'
       AND source_collection = ANY($1)
-      AND (processing_attempts IS NULL OR processing_attempts < 5)
+      AND (processing_attempts IS NULL OR processing_attempts < $2)
       AND (${PERMANENT_ERROR_FILTER})
   `,
-    [GIANT_COLLECTIONS],
+    [GIANT_COLLECTIONS, workerConfig.maxAttempts],
   );
 
   console.log(
@@ -3040,7 +3042,7 @@ async function processQueue() {
     const promise = (async () => {
       const docId = Math.floor(doc.id);
       try {
-        await jobManager.renewLease(docId, 600);
+        await jobManager.renewLease(docId, workerConfig.leaseSeconds);
 
         const fullDoc =
           (await db.query('SELECT content, content_preview FROM documents WHERE id = $1', [docId]))

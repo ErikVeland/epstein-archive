@@ -127,3 +127,52 @@ export class CacheService {
 }
 
 export const cacheService = new CacheService();
+
+export const queryCache = {
+  getOrSet<T>(key: string, compute: () => T, ttlSeconds?: number): T {
+    const existing = cacheService.get<T>('query', key);
+    if (existing !== undefined) return existing;
+    const value = compute();
+    cacheService.set('query', key, value, ttlSeconds);
+    return value;
+  },
+
+  async getOrSetAsync<T>(key: string, compute: () => Promise<T>, ttlSeconds?: number): Promise<T> {
+    return cacheService.getOrCompute('query', key, compute, ttlSeconds);
+  },
+
+  get<T>(key: string): T | undefined {
+    return cacheService.get<T>('query', key);
+  },
+
+  set<T>(key: string, data: T, ttlSeconds?: number): void {
+    cacheService.set('query', key, data, ttlSeconds);
+  },
+
+  invalidate(key: string): void {
+    cacheService.del('query', key);
+  },
+
+  invalidatePrefix(prefix: string): void {
+    cacheService.purgeByPattern('query', new RegExp(`^${prefix}`));
+  },
+
+  clear(): void {
+    cacheService.flush('query');
+  },
+
+  stats(): { size: number; keys: string[] } {
+    const { size, keys } = cacheService.stats('query');
+    return { size, keys };
+  },
+};
+
+export const CacheKeys = {
+  statistics: () => 'stats:global',
+  entityCount: () => 'count:entities',
+  documentCount: () => 'count:documents',
+  forensicSummary: () => 'forensic:summary',
+  entityById: (id: string | number) => `entity:${id}`,
+  investigationList: (userId?: string) =>
+    userId ? `investigations:list:${userId}` : 'investigations:list',
+} as const;

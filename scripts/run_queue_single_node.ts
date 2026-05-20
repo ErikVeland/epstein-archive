@@ -3,13 +3,15 @@ import 'dotenv/config';
 import { JobManager } from '../src/server/services/JobManager.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
+import { getWorkerConfig } from '../src/server/pipeline/workerConfig.js';
 
 process.env.AI_PROVIDER = 'exo_cluster';
 process.env.ENABLE_AI_ENRICHMENT = 'true';
 
-const CONCURRENCY = parseInt(process.env.INGEST_CONCURRENCY || '2', 10);
-const LEASE_SECONDS = parseInt(process.env.QUEUE_LEASE_SECONDS || '600', 10);
-const HEALTH_URL = process.env.QUEUE_HEALTH_URL || 'http://127.0.0.1:3012/api/health';
+const workerConfig = getWorkerConfig();
+const CONCURRENCY = workerConfig.concurrency;
+const LEASE_SECONDS = workerConfig.leaseSeconds;
+const HEALTH_URL = workerConfig.healthUrl;
 
 async function waitForHealthyApi(): Promise<void> {
   try {

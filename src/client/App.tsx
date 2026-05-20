@@ -21,8 +21,6 @@ import { apiClient } from './services/apiClient';
 // SECURITY: Removed non-authoritative document import paths
 import MobileMenu from './components/layout/MobileMenu';
 import MobileBottomNav from './components/layout/MobileBottomNav';
-import UndoProvider from './components/UndoManager';
-import ToastProvider from './components/common/ToastProvider';
 import ScopedErrorBoundary from './components/common/ScopedErrorBoundary';
 // ProgressBar available but not currently used
 import LoadingIndicator from './components/common/LoadingIndicator';
@@ -37,7 +35,6 @@ import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
 import { useCommandPalette } from './hooks/useCommandPalette';
 import { useAppFilters } from './hooks/useAppFilters';
 import { useGlobalSearch } from './hooks/useGlobalSearch';
-import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
 import {
@@ -53,7 +50,6 @@ import {
   ShellActionButton,
   Stack,
   Surface,
-  TooltipProvider,
 } from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
@@ -115,6 +111,7 @@ import {
 import releaseNotesRaw from '@root/release_notes.md?raw';
 import styles from './App.module.css';
 import type { DocRecord } from './components/documents/DocumentModal';
+import { AppProviders } from './app/AppProviders';
 
 // Release notes logic and interface moved to src/client/utils/releaseNotes.ts
 
@@ -1077,978 +1074,957 @@ function App() {
   }, []);
 
   return (
-    <TooltipProvider>
-      <ToastProvider>
-        <UndoProvider>
-          <InvestigationsProvider>
-            <div className={cn(styles.appRoot)} data-scroll-lock-root="true">
-              <SEO {...seoConfig} />
-              {shouldShowOnboarding && (
-                <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />
+    <AppProviders>
+      <div className={cn(styles.appRoot)} data-scroll-lock-root="true">
+        <SEO {...seoConfig} />
+        {shouldShowOnboarding && (
+          <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />
+        )}
+
+        {/* Skip links for accessibility */}
+        <div className={styles.srOnly}>
+          <a href="#main-content" className={styles.skipLink}>
+            Skip to main content
+          </a>
+          <a href="#navigation" className={cn(styles.skipLink, styles.skipNavigation)}>
+            Skip to navigation
+          </a>
+        </div>
+        <div className={styles.bgEffects}>
+          {/* Background effects removed requested by user for stability */}
+
+          {/* Floating particles removed due to UI blocking/performance issues */}
+        </div>
+
+        {/* Header */}
+        <header className={cn(styles.headerShell)}>
+          <div className={styles.contentShell}>
+            <div className={styles.header}>
+              {!isMobile && (
+                <div className={styles.logoArea}>
+                  {/* Logo */}
+                  <Link to="/" className={styles.logoArea}>
+                    <RedactedLogo text="THE EPSTEIN FILES" />
+                  </Link>
+                </div>
               )}
 
-              {/* Skip links for accessibility */}
-              <div className={styles.srOnly}>
-                <a href="#main-content" className={styles.skipLink}>
-                  Skip to main content
-                </a>
-                <a href="#navigation" className={cn(styles.skipLink, styles.skipNavigation)}>
-                  Skip to navigation
-                </a>
-              </div>
-              <div className={styles.bgEffects}>
-                {/* Background effects removed requested by user for stability */}
+              {/* RIGHT: Actions and Search */}
+              <div className={styles.actionsArea}>
+                {!isMobile && (
+                  <>
+                    <div className={styles.buttonGroup}>
+                      <ShellActionButton
+                        onClick={() => navigate('/investigations')}
+                        icon="Plus"
+                        iconColor="white"
+                        label="New"
+                        title="New Investigation"
+                      />
 
-                {/* Floating particles removed due to UI blocking/performance issues */}
-              </div>
+                      <ShellActionButton
+                        onClick={() => setShowKeyboardShortcuts(true)}
+                        icon="Command"
+                        iconColor="info"
+                        label="Shortcuts"
+                        title="Keyboard Shortcuts"
+                      />
 
-              {/* Header */}
-              <header className={cn(styles.headerShell)}>
-                <div className={styles.contentShell}>
-                  <div className={styles.header}>
-                    {!isMobile && (
-                      <div className={styles.logoArea}>
-                        {/* Logo */}
-                        <Link to="/" className={styles.logoArea}>
-                          <RedactedLogo text="THE EPSTEIN FILES" />
-                        </Link>
-                      </div>
-                    )}
+                      <ShellActionButton
+                        onClick={() => navigate('/about')}
+                        icon="Shield"
+                        iconColor="success"
+                        label="Sources"
+                        title="Verified Sources"
+                      />
 
-                    {/* RIGHT: Actions and Search */}
-                    <div className={styles.actionsArea}>
-                      {!isMobile && (
-                        <>
-                          <div className={styles.buttonGroup}>
-                            <ShellActionButton
-                              onClick={() => navigate('/investigations')}
-                              icon="Plus"
-                              iconColor="white"
-                              label="New"
-                              title="New Investigation"
-                            />
+                      <ShellActionButton
+                        onClick={() => setShowReleaseNotes(true)}
+                        icon="Book"
+                        iconColor="info"
+                        label="What's New"
+                        title="What's New"
+                      />
 
-                            <ShellActionButton
-                              onClick={() => setShowKeyboardShortcuts(true)}
-                              icon="Command"
-                              iconColor="info"
-                              label="Shortcuts"
-                              title="Keyboard Shortcuts"
-                            />
-
-                            <ShellActionButton
-                              onClick={() => navigate('/about')}
-                              icon="Shield"
-                              iconColor="success"
-                              label="Sources"
-                              title="Verified Sources"
-                            />
-
-                            <ShellActionButton
-                              onClick={() => setShowReleaseNotes(true)}
-                              icon="Book"
-                              iconColor="info"
-                              label="What's New"
-                              title="What's New"
-                            />
-
-                            {isAdmin && (
-                              <ShellActionButton
-                                onClick={() => navigate('/admin')}
-                                icon="Shield"
-                                iconClassName={styles.adminIcon}
-                                label="Admin"
-                                labelClassName={styles.adminButtonText}
-                                title="Admin Dashboard"
-                              />
-                            )}
-                          </div>
-
-                          <div className={styles.searchWrapper}>
-                            <div className={styles.headerSearchPill}>
-                              <SearchField
-                                type="text"
-                                placeholder="Search evidence..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && searchTerm.trim()) {
-                                    openSearchResultsRoute();
-                                  } else if (e.key === 'Escape') {
-                                    setSearchTerm('');
-                                    e.currentTarget.blur();
-                                  }
-                                }}
-                                rootClassName={styles.headerSearchFieldRoot}
-                                className={styles.headerSearchFieldInput}
-                              />
-                              {searchTerm.trim().length > 0 && (
-                                <Button
-                                  unstyled
-                                  type="button"
-                                  onClick={() => setSearchTerm('')}
-                                  aria-label="Clear search"
-                                  className={styles.searchClearButton}
-                                >
-                                  <Icon name="X" size="xs" />
-                                </Button>
-                              )}
-                              <Button
-                                unstyled
-                                onClick={openSearchResultsRoute}
-                                aria-label="Run search"
-                                className={cn(styles.searchButton)}
-                              >
-                                <Icon name="Search" size="sm" />
-                              </Button>
-                            </div>
-                            {searchTerm.trim().length >= 2 && renderSearchSuggestions()}
-                          </div>
-
-                          <div ref={dateRangePickerRef} className={styles.dateFilterWrap}>
-                            <Button
-                              onClick={() => setShowDateRangePicker((v) => !v)}
-                              aria-expanded={showDateRangePicker}
-                              aria-haspopup="dialog"
-                              variant="ghost"
-                              size="sm"
-                              className={cn(
-                                styles.dateFilterButton,
-                                (filters.timeRange[0] || filters.timeRange[1]) &&
-                                  styles.dateFilterButtonActive,
-                              )}
-                              title="Global date range filter"
-                            >
-                              <Icon
-                                name="Calendar"
-                                size="sm"
-                                color={
-                                  filters.timeRange[0] || filters.timeRange[1] ? 'warning' : 'gray'
-                                }
-                              />
-                              {(filters.timeRange[0] || filters.timeRange[1]) && (
-                                <span className={styles.dateFilterValue}>
-                                  {filters.timeRange[0] ?? '…'} – {filters.timeRange[1] ?? '…'}
-                                </span>
-                              )}
-                            </Button>
-                            {showDateRangePicker && (
-                              <Surface
-                                className={styles.dateFilterPanel}
-                                role="dialog"
-                                aria-label="Global date range filter"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Escape') {
-                                    setShowDateRangePicker(false);
-                                  }
-                                }}
-                              >
-                                <div className={styles.dateFilterTitle}>Global Date Filter</div>
-                                {renderDateFilterFields()}
-                              </Surface>
-                            )}
-                          </div>
-                        </>
-                      )}
-
-                      {isMobile && (
-                        <div className={styles.mobileHeaderStack}>
-                          <div className={styles.mobileHeaderTopRow}>
-                            <Link
-                              to="/"
-                              className={styles.logoArea}
-                              onClick={() => setIsMobileMenuOpen(false)}
-                            >
-                              <RedactedLogo text="THE EPSTEIN FILES" />
-                            </Link>
-                            <Button
-                              unstyled
-                              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                              className={styles.mobileMenuButton}
-                              aria-label={
-                                isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
-                              }
-                            >
-                              {isMobileMenuOpen ? (
-                                <Icon name="X" size="sm" />
-                              ) : (
-                                <Icon name="Menu" size="sm" />
-                              )}
-                            </Button>
-                          </div>
-
-                          <div className={styles.mobileHeaderControls}>
-                            <Button
-                              unstyled
-                              onClick={() => setIsMobileSearchOpen(true)}
-                              className={cn(
-                                styles.mobileControlButton,
-                                (searchTerm.trim() ||
-                                  filters.timeRange[0] ||
-                                  filters.timeRange[1]) &&
-                                  styles.mobileHeaderButtonActive,
-                              )}
-                              aria-label="Open search and filters"
-                            >
-                              <span className={styles.mobileControlLead}>
-                                <Icon name="Search" size="sm" />
-                                <span className={styles.mobileControlLabel}>Search & Filters</span>
-                              </span>
-                              <span className={styles.mobileControlValue}>
-                                {searchTerm.trim()
-                                  ? `“${searchTerm}”`
-                                  : 'People, evidence, documents'}
-                                {(filters.timeRange[0] || filters.timeRange[1]) &&
-                                  ` • ${filters.timeRange[0] ?? '…'} – ${filters.timeRange[1] ?? '…'}`}
-                              </span>
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </header>
-
-              <div className={cn(styles.contentShell, styles.mainShell)}>
-                {/* Simple loading indicator - no text labels */}
-                <LoadingIndicator
-                  isLoading={isInitializing || analyticsLoading}
-                  label={isInitializing ? loadingProgress : undefined}
-                />
-                {/* Navigation Tabs - segmented pill with responsive horizontal track */}
-                <Box id="navigation" mb={6} className={styles.navShell}>
-                  <div className={styles.navWrap}>
-                    <div ref={navTrackRef} className={styles.navTrack}>
-                      <AppSegmentedNav density={navLayoutMode}>
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/people')}
-                          tone="people"
-                          active={activeTab === 'people'}
-                          density={navLayoutMode}
-                          icon="Users"
-                          label="People"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => {
-                            try {
-                              localStorage.setItem('investigate_attract_shown', 'true');
-                              localStorage.setItem('investigate_popover_dismissed', 'true');
-                            } catch {
-                              // Ignore localStorage access errors.
-                            }
-                            setInvestigateAttract(false);
-                            setInvestigatePopoverOpen(false);
-                            navigate('/investigations');
-                          }}
-                          tone="investigations"
-                          active={activeTab === 'investigations'}
-                          density={navLayoutMode}
-                          icon="Target"
-                          label="Investigations"
-                          wrapperClassName={styles.navItemRelative}
-                          className={cn(
-                            investigateAttract && activeTab !== 'investigations'
-                              ? styles.investigationPulse
-                              : '',
-                          )}
-                          aria-haspopup="dialog"
-                          aria-expanded={investigatePopoverOpen}
-                          ref={investigateBtnRef}
-                          data-investigation-nav-top
-                        />
-                        {investigatePopoverOpen &&
-                          activeTab !== 'investigations' &&
-                          investigatePopoverPos.x !== 0 &&
-                          createPortal(
-                            <Surface
-                              variant="glass-strong"
-                              p={4}
-                              style={{
-                                position: 'fixed',
-                                width: '320px',
-                                left: investigatePopoverPos.x,
-                                top: investigatePopoverPos.y,
-                                zIndex: 50,
-                              }}
-                              className={styles.popoverSurface}
-                            >
-                              <div
-                                className={styles.popoverPointer}
-                                style={{ left: `${investigateArrowLeft}px` }}
-                              >
-                                <div className={styles.popoverPointerDiamond}></div>
-                              </div>
-                              <Box mb={1}>
-                                <LqText weight="semibold">Investigations</LqText>
-                              </Box>
-                              <Box mb={3}>
-                                <LqText variant="small" color="secondary">
-                                  Create and manage deep-dive investigations, link evidence, and
-                                  track findings.
-                                </LqText>
-                              </Box>
-                              <Flex align="center" gap={2}>
-                                <Button
-                                  unstyled
-                                  className={styles.popoverButton}
-                                  onClick={() => {
-                                    try {
-                                      localStorage.setItem('investigate_popover_dismissed', 'true');
-                                    } catch {
-                                      // Ignore localStorage access errors.
-                                    }
-                                    setInvestigatePopoverOpen(false);
-                                    setInvestigateAttract(false);
-                                  }}
-                                >
-                                  Got it
-                                </Button>
-                                <Button
-                                  unstyled
-                                  className={cn(styles.popoverButton, styles.popoverButtonPrimary)}
-                                  onClick={() => {
-                                    try {
-                                      localStorage.setItem('investigate_popover_dismissed', 'true');
-                                      localStorage.setItem('investigate_attract_shown', 'true');
-                                    } catch {
-                                      // Ignore localStorage access errors.
-                                    }
-                                    setInvestigatePopoverOpen(false);
-                                    setInvestigateAttract(false);
-                                    navigate('/investigations');
-                                  }}
-                                >
-                                  Try it
-                                </Button>
-                              </Flex>
-                            </Surface>,
-                            document.body,
-                          )}
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/documents')}
-                          tone="documents"
-                          active={activeTab === 'documents'}
-                          density={navLayoutMode}
-                          icon="FileText"
-                          label="Documents"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/redactions')}
-                          onMouseEnter={() =>
-                            preloader.prefetchJson(
-                              '/api/documents?hasFailedRedactions=true&limit=25',
-                            )
-                          }
-                          tone="documents"
-                          active={activeTab === 'redactions'}
-                          density={navLayoutMode}
-                          icon="ScanText"
-                          label="Redactions"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/media')}
-                          onMouseEnter={() => {
-                            preloader.prefetchJson('/api/media/albums');
-                            preloader.prefetchJson('/api/media/images?limit=24');
-                          }}
-                          tone="media"
-                          active={activeTab === 'media'}
-                          density={navLayoutMode}
-                          icon="Newspaper"
-                          label="Media"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/emails')}
-                          onMouseEnter={() => preloader.prefetchJson('/api/emails')}
-                          tone="emails"
-                          active={activeTab === 'emails'}
-                          density={navLayoutMode}
-                          icon="Mail"
-                          label="Emails"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/flights')}
-                          onMouseEnter={() => preloader.prefetchJson('/api/flights')}
-                          tone="flights"
-                          active={activeTab === 'flights'}
-                          density={navLayoutMode}
-                          icon="Navigation"
-                          label="Flights"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/properties')}
-                          onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
-                          tone="properties"
-                          active={activeTab === 'properties'}
-                          density={navLayoutMode}
-                          icon="Building"
-                          label="Properties"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/blackbook')}
-                          onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
-                          tone="blackbook"
-                          active={activeTab === 'blackbook'}
-                          density={navLayoutMode}
-                          icon="BookOpen"
-                          label="Black Book"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/timeline')}
-                          onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
-                          tone="timeline"
-                          active={activeTab === 'timeline'}
-                          density={navLayoutMode}
-                          icon="Clock"
-                          label="Timeline"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/financial')}
-                          onMouseEnter={() =>
-                            preloader.prefetchJson('/api/financial/transactions?limit=100')
-                          }
-                          tone="financial"
-                          active={activeTab === 'financial'}
-                          density={navLayoutMode}
-                          icon="DollarSign"
-                          label="Financial"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/analytics')}
-                          tone="analytics"
-                          active={activeTab === 'analytics'}
-                          density={navLayoutMode}
-                          icon="BarChart3"
-                          label="Analytics"
-                        />
-                        <AppSegmentedNavItem
-                          onClick={() => navigate('/about')}
-                          tone="about"
-                          active={activeTab === 'about'}
-                          density={navLayoutMode}
+                      {isAdmin && (
+                        <ShellActionButton
+                          onClick={() => navigate('/admin')}
                           icon="Shield"
-                          label="About"
+                          iconClassName={styles.adminIcon}
+                          label="Admin"
+                          labelClassName={styles.adminButtonText}
+                          title="Admin Dashboard"
                         />
-                      </AppSegmentedNav>
+                      )}
                     </div>
-                    {navEdgeFade.left && (
-                      <div className={cn(styles.navEdgeFade, styles.navEdgeFadeLeft)} />
-                    )}
-                    {navEdgeFade.right && (
-                      <div className={cn(styles.navEdgeFade, styles.navEdgeFadeRight)} />
-                    )}
-                  </div>
-                </Box>
-                <MobileMenu
-                  open={isMobileMenuOpen}
-                  searchTerm={searchTerm}
-                  onSearchTermChange={setSearchTerm}
-                  onNavigate={(p) => navigate(p)}
-                  onClose={() => setIsMobileMenuOpen(false)}
-                  onSearch={(term) => {
-                    setSearchTerm(term);
-                    setIsMobileMenuOpen(false);
-                  }}
-                />
-                {isMobile && (
-                  <BottomSheet
-                    isOpen={isMobileSearchOpen || showDateRangePicker}
-                    onClose={() => {
-                      setIsMobileSearchOpen(false);
-                      setShowDateRangePicker(false);
-                    }}
-                    title="Search & Filters"
-                  >
-                    <Stack gap="lg" className={styles.mobileSheetStack}>
-                      <div className={styles.mobileSheetSearchRoot}>
-                        <LqText
-                          variant="xs"
-                          weight="bold"
-                          color="secondary"
-                          className={styles.mobileControlLabel}
-                          style={{ marginBottom: '0.5rem' }}
-                        >
-                          Archive Query
-                        </LqText>
+
+                    <div className={styles.searchWrapper}>
+                      <div className={styles.headerSearchPill}>
                         <SearchField
                           type="text"
-                          placeholder="Search evidence…"
+                          placeholder="Search evidence..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
+                            if (e.key === 'Enter' && searchTerm.trim()) {
                               openSearchResultsRoute();
-                              setIsMobileSearchOpen(false);
+                            } else if (e.key === 'Escape') {
+                              setSearchTerm('');
+                              e.currentTarget.blur();
                             }
                           }}
-                          rootClassName={styles.mobileSheetSearchRoot}
-                          className={styles.mobileSheetSearchInput}
-                          aria-label="Search the archive"
+                          rootClassName={styles.headerSearchFieldRoot}
+                          className={styles.headerSearchFieldInput}
                         />
-                        {searchTerm.trim().length >= 2 ? (
-                          <div style={{ marginTop: '1rem' }}>
-                            {renderSearchSuggestions(styles.mobileSheetDropdown)}
-                          </div>
-                        ) : (
-                          <Surface
-                            variant="panel"
-                            className={cn(
-                              styles.mobileSearchEmptyState,
-                              styles.mobileSearchEmptyStateOffset,
-                            )}
+                        {searchTerm.trim().length > 0 && (
+                          <Button
+                            unstyled
+                            type="button"
+                            onClick={() => setSearchTerm('')}
+                            aria-label="Clear search"
+                            className={styles.searchClearButton}
                           >
-                            <LqText variant="small" color="secondary">
-                              Search people, evidence, and document excerpts.
-                            </LqText>
-                          </Surface>
+                            <Icon name="X" size="xs" />
+                          </Button>
                         )}
-                      </div>
-
-                      <div className={cn(styles.divider, styles.mobileFilterDivider)} />
-
-                      <div className={styles.mobileDateSection}>
-                        <LqText
-                          variant="xs"
-                          weight="bold"
-                          color="secondary"
-                          className={styles.mobileControlLabel}
-                          style={{ marginBottom: '0.5rem' }}
+                        <Button
+                          unstyled
+                          onClick={openSearchResultsRoute}
+                          aria-label="Run search"
+                          className={cn(styles.searchButton)}
                         >
-                          Global Date Range
-                        </LqText>
-                        {renderDateFilterFields(styles.mobileDateFields)}
+                          <Icon name="Search" size="sm" />
+                        </Button>
                       </div>
-                    </Stack>
-                  </BottomSheet>
+                      {searchTerm.trim().length >= 2 && renderSearchSuggestions()}
+                    </div>
+
+                    <div ref={dateRangePickerRef} className={styles.dateFilterWrap}>
+                      <Button
+                        onClick={() => setShowDateRangePicker((v) => !v)}
+                        aria-expanded={showDateRangePicker}
+                        aria-haspopup="dialog"
+                        variant="ghost"
+                        size="sm"
+                        className={cn(
+                          styles.dateFilterButton,
+                          (filters.timeRange[0] || filters.timeRange[1]) &&
+                            styles.dateFilterButtonActive,
+                        )}
+                        title="Global date range filter"
+                      >
+                        <Icon
+                          name="Calendar"
+                          size="sm"
+                          color={filters.timeRange[0] || filters.timeRange[1] ? 'warning' : 'gray'}
+                        />
+                        {(filters.timeRange[0] || filters.timeRange[1]) && (
+                          <span className={styles.dateFilterValue}>
+                            {filters.timeRange[0] ?? '…'} – {filters.timeRange[1] ?? '…'}
+                          </span>
+                        )}
+                      </Button>
+                      {showDateRangePicker && (
+                        <Surface
+                          className={styles.dateFilterPanel}
+                          role="dialog"
+                          aria-label="Global date range filter"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowDateRangePicker(false);
+                            }
+                          }}
+                        >
+                          <div className={styles.dateFilterTitle}>Global Date Filter</div>
+                          {renderDateFilterFields()}
+                        </Surface>
+                      )}
+                    </div>
+                  </>
                 )}
 
-                {/* Tab Content */}
-                <div id="main-content" className={styles.mainContent}>
-                  {/* Breadcrumb navigation */}
-                  <div className={styles.breadcrumbContainer}>
-                    <Breadcrumb
-                      items={[
-                        { label: 'Home', href: '/' },
-                        {
-                          label: tabLabels[activeTab],
-                        },
-                      ]}
-                    />
-                  </div>
-                  <div className={styles.viewTransition}>
-                    <Suspense
-                      fallback={
-                        <div className={styles.centerLoader}>
-                          <div className={styles.largeSpinner}></div>
-                        </div>
-                      }
-                    >
-                      {apiStatus === 'down' &&
-                      !(
-                        location.pathname === '/login' ||
-                        location.pathname.startsWith('/about') ||
-                        location.pathname.startsWith('/privacy') ||
-                        location.pathname.startsWith('/terms') ||
-                        location.pathname.startsWith('/faq') ||
-                        location.pathname.startsWith('/guide')
-                      ) ? (
-                        <ApiUnavailableScreen />
-                      ) : (
-                        <Routes>
-                          <Route
-                            path="/"
-                            element={
-                              <PeoplePage
-                                dataStats={dataStats}
-                                selectedRiskLevel={selectedRiskLevel}
-                                onRiskLevelClick={handleRiskLevelClick}
-                                onResetFilters={handleResetFilters}
-                                isAdmin={isAdmin}
-                                onAddSubject={() => setShowCreateEntityModal(true)}
-                                entityType={entityType}
-                                onEntityTypeChange={setEntityType}
-                                sortBy={sortBy}
-                                onSortByChange={(val) => {
-                                  if (
-                                    val === 'name' ||
-                                    val === 'mentions' ||
-                                    val === 'red_flag' ||
-                                    val === 'risk'
-                                  ) {
-                                    setSortBy(val);
-                                  }
-                                }}
-                                sortOrder={sortOrder}
-                                onSortOrderToggle={() =>
-                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                                }
-                                searchTerm={searchTerm}
-                                onPersonClick={handlePersonClick}
-                              />
-                            }
-                          />
-                          <Route
-                            path="/people"
-                            element={
-                              <PeoplePage
-                                dataStats={dataStats}
-                                selectedRiskLevel={selectedRiskLevel}
-                                onRiskLevelClick={handleRiskLevelClick}
-                                onResetFilters={handleResetFilters}
-                                isAdmin={isAdmin}
-                                onAddSubject={() => setShowCreateEntityModal(true)}
-                                entityType={entityType}
-                                onEntityTypeChange={setEntityType}
-                                sortBy={sortBy}
-                                onSortByChange={(val) => {
-                                  if (
-                                    val === 'name' ||
-                                    val === 'mentions' ||
-                                    val === 'red_flag' ||
-                                    val === 'risk'
-                                  ) {
-                                    setSortBy(val);
-                                  }
-                                }}
-                                sortOrder={sortOrder}
-                                onSortOrderToggle={() =>
-                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                                }
-                                searchTerm={searchTerm}
-                                onPersonClick={handlePersonClick}
-                              />
-                            }
-                          />
-                          {/* Entity deep-link — modal is handled separately; render people tab underneath */}
-                          <Route
-                            path="/entity/:id"
-                            element={
-                              <PeoplePage
-                                dataStats={dataStats}
-                                selectedRiskLevel={selectedRiskLevel}
-                                onRiskLevelClick={handleRiskLevelClick}
-                                onResetFilters={handleResetFilters}
-                                isAdmin={isAdmin}
-                                onAddSubject={() => setShowCreateEntityModal(true)}
-                                entityType={entityType}
-                                onEntityTypeChange={setEntityType}
-                                sortBy={sortBy}
-                                onSortByChange={(val) => {
-                                  if (
-                                    val === 'name' ||
-                                    val === 'mentions' ||
-                                    val === 'red_flag' ||
-                                    val === 'risk'
-                                  ) {
-                                    setSortBy(val);
-                                  }
-                                }}
-                                sortOrder={sortOrder}
-                                onSortOrderToggle={() =>
-                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                                }
-                                searchTerm={searchTerm}
-                                onPersonClick={handlePersonClick}
-                              />
-                            }
-                          />
-                          <Route
-                            path="/analytics"
-                            element={
-                              <AnalyticsPage
-                                analyticsData={analyticsData ?? undefined}
-                                loading={analyticsLoading}
-                                error={analyticsError}
-                                onRetry={refetchAnalytics}
-                                onPersonSelect={handlePersonClick}
-                              />
-                            }
-                          />
-                          <Route
-                            path="/search"
-                            element={
-                              <EvidenceSearch
-                                onPersonClick={handlePersonClick}
-                                onDocumentClick={handleDocumentSuggestionClick}
-                              />
-                            }
-                          />
-                          <Route
-                            path="/documents/*"
-                            element={
-                              <DocumentsPage
-                                searchTerm={selectedDocumentSearchTerm}
-                                onSearchTermChange={setSelectedDocumentSearchTerm}
-                                selectedDocumentId={documentModalId || ''}
-                              />
-                            }
-                          />
-                          <Route path="/redactions" element={<RedactionsPage />} />
-                          <Route path="/timeline/*" element={<TimelinePage />} />
-                          <Route path="/claims/corroborated" element={<CorroborationPage />} />
-                          <Route path="/connections" element={<ConnectionDossierPage />} />
-                          <Route path="/legal-proceedings" element={<LegalTrackerPage />} />
-                          <Route path="/survivors" element={<SurvivorTrackingPage />} />
-                          <Route path="/claims/:id" element={<ClaimDetailPage />} />
-                          <Route
-                            path="/financial/:id"
-                            element={<FinancialTransactionDetailPage />}
-                          />
-                          <Route path="/financial/*" element={<FinancialPage />} />
-                          <Route path="/flights/:id" element={<FlightDetailPage />} />
-                          <Route path="/flights/*" element={<FlightsPage />} />
-                          <Route path="/properties/*" element={<PropertyPage />} />
-                          <Route path="/emails/*" element={<EmailPage />} />
-                          <Route path="/media/article/:id" element={<ArticleDetailPage />} />
-                          <Route path="/media/*" element={<MediaPage />} />
-                          <Route path="/about/*" element={<AboutPage />} />
-                          <Route path="/privacy" element={<LegalPage mode="privacy" />} />
-                          <Route path="/terms" element={<LegalPage mode="terms" />} />
-                          <Route path="/faq" element={<FAQPage />} />
-                          <Route path="/guide" element={<GuidePage />} />
-                          <Route
-                            path="/the-epstein-files"
-                            element={<TheEpsteinFilesPage variant="overview" />}
-                          />
-                          <Route
-                            path="/epstein-documents"
-                            element={<TheEpsteinFilesPage variant="documents" />}
-                          />
-                          <Route
-                            path="/epstein-people"
-                            element={<TheEpsteinFilesPage variant="people" />}
-                          />
-                          <Route
-                            path="/epstein-media"
-                            element={<TheEpsteinFilesPage variant="media" />}
-                          />
-                          <Route
-                            path="/epstein-timeline"
-                            element={<TheEpsteinFilesPage variant="timeline" />}
-                          />
-                          <Route
-                            path="/epstein-flights"
-                            element={<TheEpsteinFilesPage variant="flights" />}
-                          />
-                          <Route path="/network" element={<NetworkPage />} />
-                          <Route path="/login" element={<LoginPage />} />
-                          <Route path="/admin/*" element={<AdminDashboard />} />
-                          <Route path="/intelligence" element={<IntelligenceDashboard />} />
-                          <Route path="/evidence/:id" element={<EvidenceDetail />} />
-                          <Route
-                            path="/review/*"
-                            element={
-                              <Suspense
-                                fallback={
-                                  <LoadingIndicator
-                                    isLoading={true}
-                                    label="Loading Review Dashboard..."
-                                  />
-                                }
-                              >
-                                <ReviewDashboard />
-                              </Suspense>
-                            }
-                          />
-                          <Route
-                            path="/investigations/*"
-                            element={
-                              <ScopedErrorBoundary>
-                                <InvestigationWorkspace
-                                  investigationId={(() => {
-                                    const parts = location.pathname.split('/');
-                                    return parts[1] === 'investigations' && parts[2]
-                                      ? parts[2]
-                                      : undefined;
-                                  })()}
-                                  currentUser={
-                                    currentUser
-                                      ? {
-                                          id: currentUser.id,
-                                          name: currentUser.username,
-                                          email: currentUser.email || 'investigator@example.com',
-                                          role: isAdmin ? 'lead' : 'analyst',
-                                          permissions: [
-                                            'read',
-                                            'write',
-                                            ...(isAdmin ? ['admin'] : []),
-                                          ],
-                                          joinedAt: new Date(),
-                                          expertise: ['investigative journalism', 'data analysis'],
-                                        }
-                                      : {
-                                          id: 'guest',
-                                          name: 'Guest',
-                                          email: 'guest@example.com',
-                                          role: 'analyst',
-                                          permissions: ['read'],
-                                          joinedAt: new Date(),
-                                          expertise: [],
-                                        }
-                                  }
-                                />
-                              </ScopedErrorBoundary>
-                            }
-                          />
-                          <Route
-                            path="/blackbook/*"
-                            element={
-                              <Box mt={6}>
-                                <Suspense
-                                  fallback={
-                                    <div className={styles.centerLoader}>
-                                      <div className={styles.largeSpinner}></div>
-                                    </div>
-                                  }
-                                >
-                                  <BlackBookViewer />
-                                </Suspense>
-                              </Box>
-                            }
-                          />
-                          {/* Fallback — default to people */}
-                          <Route
-                            path="*"
-                            element={
-                              <PeoplePage
-                                dataStats={dataStats}
-                                selectedRiskLevel={selectedRiskLevel}
-                                onRiskLevelClick={handleRiskLevelClick}
-                                onResetFilters={handleResetFilters}
-                                isAdmin={isAdmin}
-                                onAddSubject={() => setShowCreateEntityModal(true)}
-                                entityType={entityType}
-                                onEntityTypeChange={setEntityType}
-                                sortBy={sortBy}
-                                onSortByChange={(val) => {
-                                  if (
-                                    val === 'name' ||
-                                    val === 'mentions' ||
-                                    val === 'red_flag' ||
-                                    val === 'risk'
-                                  ) {
-                                    setSortBy(val);
-                                  }
-                                }}
-                                sortOrder={sortOrder}
-                                onSortOrderToggle={() =>
-                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                                }
-                                searchTerm={searchTerm}
-                                onPersonClick={handlePersonClick}
-                              />
-                            }
-                          />
-                        </Routes>
-                      )}
-                      <CollaborationIndicator />
-                    </Suspense>
-                  </div>
-                </div>
-              </div>
+                {isMobile && (
+                  <div className={styles.mobileHeaderStack}>
+                    <div className={styles.mobileHeaderTopRow}>
+                      <Link
+                        to="/"
+                        className={styles.logoArea}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <RedactedLogo text="THE EPSTEIN FILES" />
+                      </Link>
+                      <Button
+                        unstyled
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className={styles.mobileMenuButton}
+                        aria-label={
+                          isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
+                        }
+                      >
+                        {isMobileMenuOpen ? (
+                          <Icon name="X" size="sm" />
+                        ) : (
+                          <Icon name="Menu" size="sm" />
+                        )}
+                      </Button>
+                    </div>
 
-              {/* Evidence Modal */}
+                    <div className={styles.mobileHeaderControls}>
+                      <Button
+                        unstyled
+                        onClick={() => setIsMobileSearchOpen(true)}
+                        className={cn(
+                          styles.mobileControlButton,
+                          (searchTerm.trim() || filters.timeRange[0] || filters.timeRange[1]) &&
+                            styles.mobileHeaderButtonActive,
+                        )}
+                        aria-label="Open search and filters"
+                      >
+                        <span className={styles.mobileControlLead}>
+                          <Icon name="Search" size="sm" />
+                          <span className={styles.mobileControlLabel}>Search & Filters</span>
+                        </span>
+                        <span className={styles.mobileControlValue}>
+                          {searchTerm.trim() ? `“${searchTerm}”` : 'People, evidence, documents'}
+                          {(filters.timeRange[0] || filters.timeRange[1]) &&
+                            ` • ${filters.timeRange[0] ?? '…'} – ${filters.timeRange[1] ?? '…'}`}
+                        </span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className={cn(styles.contentShell, styles.mainShell)}>
+          {/* Simple loading indicator - no text labels */}
+          <LoadingIndicator
+            isLoading={isInitializing || analyticsLoading}
+            label={isInitializing ? loadingProgress : undefined}
+          />
+          {/* Navigation Tabs - segmented pill with responsive horizontal track */}
+          <Box id="navigation" mb={6} className={styles.navShell}>
+            <div className={styles.navWrap}>
+              <div ref={navTrackRef} className={styles.navTrack}>
+                <AppSegmentedNav density={navLayoutMode}>
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/people')}
+                    tone="people"
+                    active={activeTab === 'people'}
+                    density={navLayoutMode}
+                    icon="Users"
+                    label="People"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => {
+                      try {
+                        localStorage.setItem('investigate_attract_shown', 'true');
+                        localStorage.setItem('investigate_popover_dismissed', 'true');
+                      } catch {
+                        // Ignore localStorage access errors.
+                      }
+                      setInvestigateAttract(false);
+                      setInvestigatePopoverOpen(false);
+                      navigate('/investigations');
+                    }}
+                    tone="investigations"
+                    active={activeTab === 'investigations'}
+                    density={navLayoutMode}
+                    icon="Target"
+                    label="Investigations"
+                    wrapperClassName={styles.navItemRelative}
+                    className={cn(
+                      investigateAttract && activeTab !== 'investigations'
+                        ? styles.investigationPulse
+                        : '',
+                    )}
+                    aria-haspopup="dialog"
+                    aria-expanded={investigatePopoverOpen}
+                    ref={investigateBtnRef}
+                    data-investigation-nav-top
+                  />
+                  {investigatePopoverOpen &&
+                    activeTab !== 'investigations' &&
+                    investigatePopoverPos.x !== 0 &&
+                    createPortal(
+                      <Surface
+                        variant="glass-strong"
+                        p={4}
+                        style={{
+                          position: 'fixed',
+                          width: '320px',
+                          left: investigatePopoverPos.x,
+                          top: investigatePopoverPos.y,
+                          zIndex: 50,
+                        }}
+                        className={styles.popoverSurface}
+                      >
+                        <div
+                          className={styles.popoverPointer}
+                          style={{ left: `${investigateArrowLeft}px` }}
+                        >
+                          <div className={styles.popoverPointerDiamond}></div>
+                        </div>
+                        <Box mb={1}>
+                          <LqText weight="semibold">Investigations</LqText>
+                        </Box>
+                        <Box mb={3}>
+                          <LqText variant="small" color="secondary">
+                            Create and manage deep-dive investigations, link evidence, and track
+                            findings.
+                          </LqText>
+                        </Box>
+                        <Flex align="center" gap={2}>
+                          <Button
+                            unstyled
+                            className={styles.popoverButton}
+                            onClick={() => {
+                              try {
+                                localStorage.setItem('investigate_popover_dismissed', 'true');
+                              } catch {
+                                // Ignore localStorage access errors.
+                              }
+                              setInvestigatePopoverOpen(false);
+                              setInvestigateAttract(false);
+                            }}
+                          >
+                            Got it
+                          </Button>
+                          <Button
+                            unstyled
+                            className={cn(styles.popoverButton, styles.popoverButtonPrimary)}
+                            onClick={() => {
+                              try {
+                                localStorage.setItem('investigate_popover_dismissed', 'true');
+                                localStorage.setItem('investigate_attract_shown', 'true');
+                              } catch {
+                                // Ignore localStorage access errors.
+                              }
+                              setInvestigatePopoverOpen(false);
+                              setInvestigateAttract(false);
+                              navigate('/investigations');
+                            }}
+                          >
+                            Try it
+                          </Button>
+                        </Flex>
+                      </Surface>,
+                      document.body,
+                    )}
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/documents')}
+                    tone="documents"
+                    active={activeTab === 'documents'}
+                    density={navLayoutMode}
+                    icon="FileText"
+                    label="Documents"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/redactions')}
+                    onMouseEnter={() =>
+                      preloader.prefetchJson('/api/documents?hasFailedRedactions=true&limit=25')
+                    }
+                    tone="documents"
+                    active={activeTab === 'redactions'}
+                    density={navLayoutMode}
+                    icon="ScanText"
+                    label="Redactions"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/media')}
+                    onMouseEnter={() => {
+                      preloader.prefetchJson('/api/media/albums');
+                      preloader.prefetchJson('/api/media/images?limit=24');
+                    }}
+                    tone="media"
+                    active={activeTab === 'media'}
+                    density={navLayoutMode}
+                    icon="Newspaper"
+                    label="Media"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/emails')}
+                    onMouseEnter={() => preloader.prefetchJson('/api/emails')}
+                    tone="emails"
+                    active={activeTab === 'emails'}
+                    density={navLayoutMode}
+                    icon="Mail"
+                    label="Emails"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/flights')}
+                    onMouseEnter={() => preloader.prefetchJson('/api/flights')}
+                    tone="flights"
+                    active={activeTab === 'flights'}
+                    density={navLayoutMode}
+                    icon="Navigation"
+                    label="Flights"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/properties')}
+                    onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
+                    tone="properties"
+                    active={activeTab === 'properties'}
+                    density={navLayoutMode}
+                    icon="Building"
+                    label="Properties"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/blackbook')}
+                    onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
+                    tone="blackbook"
+                    active={activeTab === 'blackbook'}
+                    density={navLayoutMode}
+                    icon="BookOpen"
+                    label="Black Book"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/timeline')}
+                    onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
+                    tone="timeline"
+                    active={activeTab === 'timeline'}
+                    density={navLayoutMode}
+                    icon="Clock"
+                    label="Timeline"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/financial')}
+                    onMouseEnter={() =>
+                      preloader.prefetchJson('/api/financial/transactions?limit=100')
+                    }
+                    tone="financial"
+                    active={activeTab === 'financial'}
+                    density={navLayoutMode}
+                    icon="DollarSign"
+                    label="Financial"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/analytics')}
+                    tone="analytics"
+                    active={activeTab === 'analytics'}
+                    density={navLayoutMode}
+                    icon="BarChart3"
+                    label="Analytics"
+                  />
+                  <AppSegmentedNavItem
+                    onClick={() => navigate('/about')}
+                    tone="about"
+                    active={activeTab === 'about'}
+                    density={navLayoutMode}
+                    icon="Shield"
+                    label="About"
+                  />
+                </AppSegmentedNav>
+              </div>
+              {navEdgeFade.left && (
+                <div className={cn(styles.navEdgeFade, styles.navEdgeFadeLeft)} />
+              )}
+              {navEdgeFade.right && (
+                <div className={cn(styles.navEdgeFade, styles.navEdgeFadeRight)} />
+              )}
+            </div>
+          </Box>
+          <MobileMenu
+            open={isMobileMenuOpen}
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
+            onNavigate={(p) => navigate(p)}
+            onClose={() => setIsMobileMenuOpen(false)}
+            onSearch={(term) => {
+              setSearchTerm(term);
+              setIsMobileMenuOpen(false);
+            }}
+          />
+          {isMobile && (
+            <BottomSheet
+              isOpen={isMobileSearchOpen || showDateRangePicker}
+              onClose={() => {
+                setIsMobileSearchOpen(false);
+                setShowDateRangePicker(false);
+              }}
+              title="Search & Filters"
+            >
+              <Stack gap="lg" className={styles.mobileSheetStack}>
+                <div className={styles.mobileSheetSearchRoot}>
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="secondary"
+                    className={styles.mobileControlLabel}
+                    style={{ marginBottom: '0.5rem' }}
+                  >
+                    Archive Query
+                  </LqText>
+                  <SearchField
+                    type="text"
+                    placeholder="Search evidence…"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        openSearchResultsRoute();
+                        setIsMobileSearchOpen(false);
+                      }
+                    }}
+                    rootClassName={styles.mobileSheetSearchRoot}
+                    className={styles.mobileSheetSearchInput}
+                    aria-label="Search the archive"
+                  />
+                  {searchTerm.trim().length >= 2 ? (
+                    <div style={{ marginTop: '1rem' }}>
+                      {renderSearchSuggestions(styles.mobileSheetDropdown)}
+                    </div>
+                  ) : (
+                    <Surface
+                      variant="panel"
+                      className={cn(
+                        styles.mobileSearchEmptyState,
+                        styles.mobileSearchEmptyStateOffset,
+                      )}
+                    >
+                      <LqText variant="small" color="secondary">
+                        Search people, evidence, and document excerpts.
+                      </LqText>
+                    </Surface>
+                  )}
+                </div>
+
+                <div className={cn(styles.divider, styles.mobileFilterDivider)} />
+
+                <div className={styles.mobileDateSection}>
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="secondary"
+                    className={styles.mobileControlLabel}
+                    style={{ marginBottom: '0.5rem' }}
+                  >
+                    Global Date Range
+                  </LqText>
+                  {renderDateFilterFields(styles.mobileDateFields)}
+                </div>
+              </Stack>
+            </BottomSheet>
+          )}
+
+          {/* Tab Content */}
+          <div id="main-content" className={styles.mainContent}>
+            {/* Breadcrumb navigation */}
+            <div className={styles.breadcrumbContainer}>
+              <Breadcrumb
+                items={[
+                  { label: 'Home', href: '/' },
+                  {
+                    label: tabLabels[activeTab],
+                  },
+                ]}
+              />
+            </div>
+            <div className={styles.viewTransition}>
               <Suspense
                 fallback={
-                  <div className={cn(styles.modalFallback, styles.modalFallbackBlur)}>
+                  <div className={styles.centerLoader}>
                     <div className={styles.largeSpinner}></div>
                   </div>
                 }
               >
-                {selectedPerson && (
-                  <ScopedErrorBoundary>
-                    <EvidenceModal
-                      entityId={selectedPerson.id.toString()}
-                      isOpen={!!selectedPerson}
-                      onClose={() => {
-                        closingEntityModal.current = true;
-                        setSelectedPerson(null);
-                        const params = new URLSearchParams(location.search);
-                        params.delete('entityId');
-                        params.delete('entityTab');
-                        const targetPath = `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-                        sessionStorage.setItem(
-                          'nav-return:scroll',
-                          String(window.scrollY || window.pageYOffset || 0),
-                        );
-                        navigate(targetPath, {
-                          state: { ...location.state, _navReturn: targetPath },
-                        });
-                      }}
+                {apiStatus === 'down' &&
+                !(
+                  location.pathname === '/login' ||
+                  location.pathname.startsWith('/about') ||
+                  location.pathname.startsWith('/privacy') ||
+                  location.pathname.startsWith('/terms') ||
+                  location.pathname.startsWith('/faq') ||
+                  location.pathname.startsWith('/guide')
+                ) ? (
+                  <ApiUnavailableScreen />
+                ) : (
+                  <Routes>
+                    <Route
+                      path="/"
+                      element={
+                        <PeoplePage
+                          dataStats={dataStats}
+                          selectedRiskLevel={selectedRiskLevel}
+                          onRiskLevelClick={handleRiskLevelClick}
+                          onResetFilters={handleResetFilters}
+                          isAdmin={isAdmin}
+                          onAddSubject={() => setShowCreateEntityModal(true)}
+                          entityType={entityType}
+                          onEntityTypeChange={setEntityType}
+                          sortBy={sortBy}
+                          onSortByChange={(val) => {
+                            if (
+                              val === 'name' ||
+                              val === 'mentions' ||
+                              val === 'red_flag' ||
+                              val === 'risk'
+                            ) {
+                              setSortBy(val);
+                            }
+                          }}
+                          sortOrder={sortOrder}
+                          onSortOrderToggle={() =>
+                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                          }
+                          searchTerm={searchTerm}
+                          onPersonClick={handlePersonClick}
+                        />
+                      }
                     />
-                  </ScopedErrorBoundary>
-                )}
-              </Suspense>
-              {/* Inline Document Modal */}
-              <Suspense
-                fallback={
-                  <div className={styles.modalFallback}>
-                    <div className={styles.smallSpinner} />
-                  </div>
-                }
-              >
-                {documentModalId && (
-                  <ScopedErrorBoundary>
-                    <DocumentModal
-                      id={documentModalId}
-                      searchTerm={selectedDocumentSearchTerm}
-                      initialDoc={documentModalInitial ?? undefined}
-                      onClose={() => {
-                        setDocumentModalId('');
-                        setDocumentModalInitial(null);
-                        sessionStorage.setItem(
-                          'nav-return:scroll',
-                          String(window.scrollY || window.pageYOffset || 0),
-                        );
-                        goBack('/documents');
-                      }}
+                    <Route
+                      path="/people"
+                      element={
+                        <PeoplePage
+                          dataStats={dataStats}
+                          selectedRiskLevel={selectedRiskLevel}
+                          onRiskLevelClick={handleRiskLevelClick}
+                          onResetFilters={handleResetFilters}
+                          isAdmin={isAdmin}
+                          onAddSubject={() => setShowCreateEntityModal(true)}
+                          entityType={entityType}
+                          onEntityTypeChange={setEntityType}
+                          sortBy={sortBy}
+                          onSortByChange={(val) => {
+                            if (
+                              val === 'name' ||
+                              val === 'mentions' ||
+                              val === 'red_flag' ||
+                              val === 'risk'
+                            ) {
+                              setSortBy(val);
+                            }
+                          }}
+                          sortOrder={sortOrder}
+                          onSortOrderToggle={() =>
+                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                          }
+                          searchTerm={searchTerm}
+                          onPersonClick={handlePersonClick}
+                        />
+                      }
                     />
-                  </ScopedErrorBoundary>
+                    {/* Entity deep-link — modal is handled separately; render people tab underneath */}
+                    <Route
+                      path="/entity/:id"
+                      element={
+                        <PeoplePage
+                          dataStats={dataStats}
+                          selectedRiskLevel={selectedRiskLevel}
+                          onRiskLevelClick={handleRiskLevelClick}
+                          onResetFilters={handleResetFilters}
+                          isAdmin={isAdmin}
+                          onAddSubject={() => setShowCreateEntityModal(true)}
+                          entityType={entityType}
+                          onEntityTypeChange={setEntityType}
+                          sortBy={sortBy}
+                          onSortByChange={(val) => {
+                            if (
+                              val === 'name' ||
+                              val === 'mentions' ||
+                              val === 'red_flag' ||
+                              val === 'risk'
+                            ) {
+                              setSortBy(val);
+                            }
+                          }}
+                          sortOrder={sortOrder}
+                          onSortOrderToggle={() =>
+                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                          }
+                          searchTerm={searchTerm}
+                          onPersonClick={handlePersonClick}
+                        />
+                      }
+                    />
+                    <Route
+                      path="/analytics"
+                      element={
+                        <AnalyticsPage
+                          analyticsData={analyticsData ?? undefined}
+                          loading={analyticsLoading}
+                          error={analyticsError}
+                          onRetry={refetchAnalytics}
+                          onPersonSelect={handlePersonClick}
+                        />
+                      }
+                    />
+                    <Route
+                      path="/search"
+                      element={
+                        <EvidenceSearch
+                          onPersonClick={handlePersonClick}
+                          onDocumentClick={handleDocumentSuggestionClick}
+                        />
+                      }
+                    />
+                    <Route
+                      path="/documents/*"
+                      element={
+                        <DocumentsPage
+                          searchTerm={selectedDocumentSearchTerm}
+                          onSearchTermChange={setSelectedDocumentSearchTerm}
+                          selectedDocumentId={documentModalId || ''}
+                        />
+                      }
+                    />
+                    <Route path="/redactions" element={<RedactionsPage />} />
+                    <Route path="/timeline/*" element={<TimelinePage />} />
+                    <Route path="/claims/corroborated" element={<CorroborationPage />} />
+                    <Route path="/connections" element={<ConnectionDossierPage />} />
+                    <Route path="/legal-proceedings" element={<LegalTrackerPage />} />
+                    <Route path="/survivors" element={<SurvivorTrackingPage />} />
+                    <Route path="/claims/:id" element={<ClaimDetailPage />} />
+                    <Route path="/financial/:id" element={<FinancialTransactionDetailPage />} />
+                    <Route path="/financial/*" element={<FinancialPage />} />
+                    <Route path="/flights/:id" element={<FlightDetailPage />} />
+                    <Route path="/flights/*" element={<FlightsPage />} />
+                    <Route path="/properties/*" element={<PropertyPage />} />
+                    <Route path="/emails/*" element={<EmailPage />} />
+                    <Route path="/media/article/:id" element={<ArticleDetailPage />} />
+                    <Route path="/media/*" element={<MediaPage />} />
+                    <Route path="/about/*" element={<AboutPage />} />
+                    <Route path="/privacy" element={<LegalPage mode="privacy" />} />
+                    <Route path="/terms" element={<LegalPage mode="terms" />} />
+                    <Route path="/faq" element={<FAQPage />} />
+                    <Route path="/guide" element={<GuidePage />} />
+                    <Route
+                      path="/the-epstein-files"
+                      element={<TheEpsteinFilesPage variant="overview" />}
+                    />
+                    <Route
+                      path="/epstein-documents"
+                      element={<TheEpsteinFilesPage variant="documents" />}
+                    />
+                    <Route
+                      path="/epstein-people"
+                      element={<TheEpsteinFilesPage variant="people" />}
+                    />
+                    <Route
+                      path="/epstein-media"
+                      element={<TheEpsteinFilesPage variant="media" />}
+                    />
+                    <Route
+                      path="/epstein-timeline"
+                      element={<TheEpsteinFilesPage variant="timeline" />}
+                    />
+                    <Route
+                      path="/epstein-flights"
+                      element={<TheEpsteinFilesPage variant="flights" />}
+                    />
+                    <Route path="/network" element={<NetworkPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/admin/*" element={<AdminDashboard />} />
+                    <Route path="/intelligence" element={<IntelligenceDashboard />} />
+                    <Route path="/evidence/:id" element={<EvidenceDetail />} />
+                    <Route
+                      path="/review/*"
+                      element={
+                        <Suspense
+                          fallback={
+                            <LoadingIndicator
+                              isLoading={true}
+                              label="Loading Review Dashboard..."
+                            />
+                          }
+                        >
+                          <ReviewDashboard />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/investigations/*"
+                      element={
+                        <ScopedErrorBoundary>
+                          <InvestigationWorkspace
+                            investigationId={(() => {
+                              const parts = location.pathname.split('/');
+                              return parts[1] === 'investigations' && parts[2]
+                                ? parts[2]
+                                : undefined;
+                            })()}
+                            currentUser={
+                              currentUser
+                                ? {
+                                    id: currentUser.id,
+                                    name: currentUser.username,
+                                    email: currentUser.email || 'investigator@example.com',
+                                    role: isAdmin ? 'lead' : 'analyst',
+                                    permissions: ['read', 'write', ...(isAdmin ? ['admin'] : [])],
+                                    joinedAt: new Date(),
+                                    expertise: ['investigative journalism', 'data analysis'],
+                                  }
+                                : {
+                                    id: 'guest',
+                                    name: 'Guest',
+                                    email: 'guest@example.com',
+                                    role: 'analyst',
+                                    permissions: ['read'],
+                                    joinedAt: new Date(),
+                                    expertise: [],
+                                  }
+                            }
+                          />
+                        </ScopedErrorBoundary>
+                      }
+                    />
+                    <Route
+                      path="/blackbook/*"
+                      element={
+                        <Box mt={6}>
+                          <Suspense
+                            fallback={
+                              <div className={styles.centerLoader}>
+                                <div className={styles.largeSpinner}></div>
+                              </div>
+                            }
+                          >
+                            <BlackBookViewer />
+                          </Suspense>
+                        </Box>
+                      }
+                    />
+                    {/* Fallback — default to people */}
+                    <Route
+                      path="*"
+                      element={
+                        <PeoplePage
+                          dataStats={dataStats}
+                          selectedRiskLevel={selectedRiskLevel}
+                          onRiskLevelClick={handleRiskLevelClick}
+                          onResetFilters={handleResetFilters}
+                          isAdmin={isAdmin}
+                          onAddSubject={() => setShowCreateEntityModal(true)}
+                          entityType={entityType}
+                          onEntityTypeChange={setEntityType}
+                          sortBy={sortBy}
+                          onSortByChange={(val) => {
+                            if (
+                              val === 'name' ||
+                              val === 'mentions' ||
+                              val === 'red_flag' ||
+                              val === 'risk'
+                            ) {
+                              setSortBy(val);
+                            }
+                          }}
+                          sortOrder={sortOrder}
+                          onSortOrderToggle={() =>
+                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                          }
+                          searchTerm={searchTerm}
+                          onPersonClick={handlePersonClick}
+                        />
+                      }
+                    />
+                  </Routes>
                 )}
+                <CollaborationIndicator />
               </Suspense>
-
-              <Suspense fallback={null}>
-                {/* ReleaseNotesPanel: intentionally no spinner — panel appears inline */}
-                <ReleaseNotesPanel
-                  isOpen={showReleaseNotes}
-                  onClose={() => setShowReleaseNotes(false)}
-                  releaseNotes={parsedReleaseNotes}
-                />
-              </Suspense>
-
-              <KeyboardShortcutsModal
-                isOpen={showKeyboardShortcuts}
-                onClose={() => setShowKeyboardShortcuts(false)}
-              />
-
-              <Suspense fallback={null}>
-                <CommandPalette isOpen={isCommandPaletteOpen} onClose={closeCommandPalette} />
-              </Suspense>
-
-              {showCreateEntityModal && (
-                <CreateEntityModal
-                  onClose={() => setShowCreateEntityModal(false)}
-                  onSuccess={() => {
-                    setShowCreateEntityModal(false);
-                    void queryClient.invalidateQueries({ queryKey: ['entities'] });
-                    void queryClient.invalidateQueries({ queryKey: ['globalStats'] });
-                    void queryClient.invalidateQueries({ queryKey: ['initDataService'] });
-                  }}
-                />
-              )}
-
-              <OfflineIndicator />
-
-              <Footer onVersionClick={() => setShowReleaseNotes(true)} />
-
-              {/* Mobile Bottom Navigation */}
-              <MobileBottomNav />
             </div>
-          </InvestigationsProvider>
-        </UndoProvider>
-      </ToastProvider>
-    </TooltipProvider>
+          </div>
+        </div>
+
+        {/* Evidence Modal */}
+        <Suspense
+          fallback={
+            <div className={cn(styles.modalFallback, styles.modalFallbackBlur)}>
+              <div className={styles.largeSpinner}></div>
+            </div>
+          }
+        >
+          {selectedPerson && (
+            <ScopedErrorBoundary>
+              <EvidenceModal
+                entityId={selectedPerson.id.toString()}
+                isOpen={!!selectedPerson}
+                onClose={() => {
+                  closingEntityModal.current = true;
+                  setSelectedPerson(null);
+                  const params = new URLSearchParams(location.search);
+                  params.delete('entityId');
+                  params.delete('entityTab');
+                  const targetPath = `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
+                  sessionStorage.setItem(
+                    'nav-return:scroll',
+                    String(window.scrollY || window.pageYOffset || 0),
+                  );
+                  navigate(targetPath, {
+                    state: { ...location.state, _navReturn: targetPath },
+                  });
+                }}
+              />
+            </ScopedErrorBoundary>
+          )}
+        </Suspense>
+        {/* Inline Document Modal */}
+        <Suspense
+          fallback={
+            <div className={styles.modalFallback}>
+              <div className={styles.smallSpinner} />
+            </div>
+          }
+        >
+          {documentModalId && (
+            <ScopedErrorBoundary>
+              <DocumentModal
+                id={documentModalId}
+                searchTerm={selectedDocumentSearchTerm}
+                initialDoc={documentModalInitial ?? undefined}
+                onClose={() => {
+                  setDocumentModalId('');
+                  setDocumentModalInitial(null);
+                  sessionStorage.setItem(
+                    'nav-return:scroll',
+                    String(window.scrollY || window.pageYOffset || 0),
+                  );
+                  goBack('/documents');
+                }}
+              />
+            </ScopedErrorBoundary>
+          )}
+        </Suspense>
+
+        <Suspense fallback={null}>
+          {/* ReleaseNotesPanel: intentionally no spinner — panel appears inline */}
+          <ReleaseNotesPanel
+            isOpen={showReleaseNotes}
+            onClose={() => setShowReleaseNotes(false)}
+            releaseNotes={parsedReleaseNotes}
+          />
+        </Suspense>
+
+        <KeyboardShortcutsModal
+          isOpen={showKeyboardShortcuts}
+          onClose={() => setShowKeyboardShortcuts(false)}
+        />
+
+        <Suspense fallback={null}>
+          <CommandPalette isOpen={isCommandPaletteOpen} onClose={closeCommandPalette} />
+        </Suspense>
+
+        {showCreateEntityModal && (
+          <CreateEntityModal
+            onClose={() => setShowCreateEntityModal(false)}
+            onSuccess={() => {
+              setShowCreateEntityModal(false);
+              void queryClient.invalidateQueries({ queryKey: ['entities'] });
+              void queryClient.invalidateQueries({ queryKey: ['globalStats'] });
+              void queryClient.invalidateQueries({ queryKey: ['initDataService'] });
+            }}
+          />
+        )}
+
+        <OfflineIndicator />
+
+        <Footer onVersionClick={() => setShowReleaseNotes(true)} />
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
+      </div>
+    </AppProviders>
   );
 }
 

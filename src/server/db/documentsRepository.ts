@@ -1,6 +1,6 @@
 import { documentsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
-import { CacheKeys, queryCache } from './cache.js';
+import { CacheKeys, queryCache } from '../cache/cacheService.js';
 import type { SharedDocumentDto } from '@shared/dto/connections';
 
 const PREVIEW_MAX_CHARS = 320;

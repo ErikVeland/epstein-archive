@@ -19,15 +19,8 @@ import { ViewerShell } from '../viewer/ViewerShell';
 import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { isJunkEntity } from '@client/utils/entityFilters';
-import {
-  Button,
-  Flex,
-  SearchField,
-  Select,
-  Surface,
-  Switch,
-  TextInput,
-} from '@client/design-system/lib';
+import { EmailSettingsModal } from './EmailSettingsModal';
+import { Button, Flex, SearchField, Select, Surface, TextInput } from '@client/design-system/lib';
 
 const STATIC_PEOPLE = [
   'Jeffrey Epstein',
@@ -1625,60 +1618,12 @@ export const EmailClient: React.FC = () => {
       )}
 
       {isSettingsModalOpen && (
-        <div className={styles.modalOverlay} onClick={() => setIsSettingsModalOpen(false)}>
-          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>Settings</h2>
-              <Button
-                unstyled
-                type="button"
-                className={styles.modalCloseBtn}
-                onClick={() => setIsSettingsModalOpen(false)}
-              >
-                <Icon name="X" size="lg" />
-              </Button>
-            </div>
-            <div className={styles.modalContent}>
-              <div className={styles.sectionTitle}>YAHOO INBOX</div>
-
-              <div className={styles.settingRow}>
-                <Switch
-                  checked={showYahooPostMortem}
-                  onCheckedChange={(checked) => handleToggleSetting('showYahooPostMortem', checked)}
-                  aria-label="Show Yahoo emails after August 15, 2019"
-                  className={styles.settingsSwitch}
-                />
-                <div className={styles.settingTexts}>
-                  <span className={styles.settingLabel}>
-                    Show Yahoo emails after August 15, 2019
-                  </span>
-                  <span className={styles.settingSubtitle}>
-                    Nearly all newsletters and spam, but potentially interesting
-                  </span>
-                </div>
-              </div>
-
-              <div className={styles.settingsSpacer} />
-
-              <div className={styles.settingRow}>
-                <Switch
-                  checked={showEmptyBodies}
-                  onCheckedChange={(checked) => handleToggleSetting('showEmptyBodies', checked)}
-                  aria-label="Show emails with empty or fully redacted bodies"
-                  className={styles.settingsSwitch}
-                />
-                <div className={styles.settingTexts}>
-                  <span className={styles.settingLabel}>
-                    Show emails with empty or fully redacted bodies
-                  </span>
-                  <span className={styles.settingSubtitle}>
-                    Emails where the content is blank or completely redacted
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <EmailSettingsModal
+          showYahooPostMortem={showYahooPostMortem}
+          showEmptyBodies={showEmptyBodies}
+          onClose={() => setIsSettingsModalOpen(false)}
+          onToggleSetting={handleToggleSetting}
+        />
       )}
     </div>
   );

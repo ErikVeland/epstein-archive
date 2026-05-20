@@ -28,6 +28,7 @@ import {
 } from '../auth/middleware.js';
 
 const router = express.Router();
+const MAX_DOCUMENT_LIST_OFFSET = Number(process.env.DOCUMENT_LIST_MAX_OFFSET || 10_000);
 
 const documentsListQuerySchema = z.object({
   query: z.object({
@@ -162,12 +163,22 @@ router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
     const query = req.query;
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 50);
+    const offset = (page - 1) * limit;
     const sortOrder =
       query.sortOrder === 'asc' || query.sortOrder === 'desc' ? query.sortOrder : undefined;
     const searchMode =
       query.mode === 'semantic' || query.mode === 'hybrid' || query.mode === 'lexical'
         ? query.mode
         : 'lexical';
+
+    if (offset > MAX_DOCUMENT_LIST_OFFSET) {
+      return res.status(400).json({
+        error:
+          'Document list offset is too deep. Refine the filters or use search instead of walking deep pages.',
+        code: 'DOCUMENT_LIST_OFFSET_TOO_DEEP',
+        maxOffset: MAX_DOCUMENT_LIST_OFFSET,
+      });
+    }
 
     if (
       typeof query.search === 'string' &&

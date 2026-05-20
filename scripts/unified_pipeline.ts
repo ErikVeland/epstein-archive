@@ -11,6 +11,7 @@ import crypto from 'crypto';
 import 'dotenv/config';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { getIngestPool } from '../src/server/db/connection.js';
+import { getWorkerConfig } from '../src/server/pipeline/workerConfig.js';
 import { PipelineService, type PipelineRun } from '../src/server/services/pipelineService.js';
 
 /**
@@ -62,7 +63,7 @@ async function ensureDatabaseRunning(): Promise<void> {
 }
 
 // Configuration
-const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '20', 10);
+const BATCH_SIZE = getWorkerConfig().batchSize;
 const CHECKPOINT_DIR = './pipeline_checkpoints';
 const LIVE_STATUS_FILE = './pipeline_checkpoints/live_status.json';
 const EXO_HEALTHCHECK_TIMEOUT_MS = Math.max(
