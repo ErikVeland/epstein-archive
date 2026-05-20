@@ -7,6 +7,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getRevisionInfo } from '../revisionManager.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
+import { ADMIN_AUDIT_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 import { dataQualityRepository } from '../db/dataQualityRepository.js';
 
@@ -44,7 +45,10 @@ router.get(
   requireRole('admin'),
   async (req: Request, res: Response, next) => {
     try {
-      const limit = Math.min(Math.max(parseInt(req.query.limit as string, 10) || 100, 1), 1000);
+      const limit = Math.min(
+        Math.max(parseInt(req.query.limit as string, 10) || 100, 1),
+        ADMIN_AUDIT_LIMIT_CAP,
+      );
       const logs = await dataQualityRepository.getAuditLog({}, limit);
 
       // Map repository fields to client-expected shape

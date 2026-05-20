@@ -3,6 +3,7 @@ import { blackBookRepository } from '../db/blackBookRepository.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate, blackBookQuerySchema, blackBookReviewSchema } from '../middleware/validate.js';
+import { BULK_EXPORT_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -31,7 +32,7 @@ router.get('/', validate(blackBookQuerySchema), async (req, res, next) => {
         ? rawCategory
         : ''
     ) as 'original' | 'contact' | 'credential' | '';
-    const limit = Math.min(10000, Math.max(1, Number(q.limit || 1000)));
+    const limit = Math.min(BULK_EXPORT_LIMIT_CAP, Math.max(1, Number(q.limit || 1000)));
 
     const rows = await blackBookRepository.getBlackBookEntries({
       letter,

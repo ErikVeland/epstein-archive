@@ -27,7 +27,7 @@ import {
   requireRole,
   type AuthRequest,
 } from '../auth/middleware.js';
-import { rejectDeepOffset } from '../utils/paginationGuards.js';
+import { rejectDeepOffset, RELATED_LIST_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 const ASSET_PROXY_TIMEOUT_MS = 30_000;
@@ -851,7 +851,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
 router.get('/:id/related', validate(documentIdSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const limit = Math.min(50, Math.max(1, Number(req.query.limit || 10)));
+    const limit = Math.min(RELATED_LIST_LIMIT_CAP, Math.max(1, Number(req.query.limit || 10)));
     const related = await documentsRepository.getRelatedDocuments(id, limit);
     res.json(related);
   } catch (error) {

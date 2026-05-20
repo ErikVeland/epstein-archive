@@ -124,7 +124,10 @@ router.get('/:entityId/documents', async (req: Request, res: Response, next: Nex
   try {
     const { entityId } = req.params as { entityId: string };
     const page = parseInt(req.query.page as string) || 1;
-    const limit = Math.min(ENTITY_TAB_LIMIT_CAP, parseInt(req.query.limit as string) || 50);
+    const limit = Math.min(
+      ENTITY_TAB_LIMIT_CAP,
+      Math.max(1, parseInt(req.query.limit as string) || 50),
+    );
     if (rejectDeepOffset(res, 'Entity document', page, limit)) return;
     const search = (req.query.search as string) || '';
     const source = (req.query.source as string) || 'all';

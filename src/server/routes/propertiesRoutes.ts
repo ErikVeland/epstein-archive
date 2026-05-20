@@ -1,7 +1,7 @@
 import express from 'express';
 import { propertiesRepository } from '../db/propertiesRepository.js';
 import { validate, propertiesQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
-import { rejectDeepOffset, LIST_LIMIT_CAP } from '../utils/paginationGuards.js';
+import { rejectDeepOffset, LIST_LIMIT_CAP, SEARCH_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -61,7 +61,7 @@ router.get('/value-distribution', async (_req, res, next) => {
 router.get('/top-owners', async (req, res, next) => {
   try {
     const limit = Math.min(
-      100,
+      SEARCH_LIMIT_CAP,
       Math.max(1, Number((req.query as Record<string, string | undefined>).limit || 20)),
     );
     const rows = await propertiesRepository.getTopOwners(limit);
