@@ -67,7 +67,7 @@
       }
     },
     {
-      "files": ["scripts/ingest_pipeline.ts"],
+      "files": ["scripts/ingest_pipeline.ts", "scripts/ingest/**/*.ts"],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off"
       }
