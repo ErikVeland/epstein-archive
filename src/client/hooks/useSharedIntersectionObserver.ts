@@ -26,7 +26,7 @@ function getGlobalObserver(options: IntersectionObserverInit): IntersectionObser
 }
 
 export function useSharedIntersectionObserver(
-  elementRef: React.RefObject<Element>,
+  elementRef: React.RefObject<Element | null>,
   callback: ObserverCallback,
   options: IntersectionObserverInit = { threshold: 0.1, rootMargin: '200px' },
 ) {

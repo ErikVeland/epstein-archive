@@ -32,7 +32,7 @@ interface DocumentListProps {
   itemsPerPage: number;
   setCurrentPage: (page: number) => void;
   searchTerm?: string;
-  documentContainerRef: React.RefObject<HTMLDivElement>;
+  documentContainerRef: React.RefObject<HTMLDivElement | null>;
   jumpToPage: string;
   setJumpToPage: (page: string) => void;
 }

@@ -16,7 +16,7 @@ interface PrefetchOptions {
  */
 export function usePrefetchEntity(entityId: string | null, options: PrefetchOptions = {}) {
   const { enabled = true, delay = 200, priority = 0 } = options;
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const prefetch = () => {
     if (!enabled || !entityId) return;

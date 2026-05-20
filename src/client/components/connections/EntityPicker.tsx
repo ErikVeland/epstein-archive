@@ -26,7 +26,7 @@ export function EntityPicker({
   const [results, setResults] = useState<EntityOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const search = useCallback(
     (q: string) => {

@@ -46,7 +46,7 @@ const EntitySearch: React.FC<{
   const [searching, setSearching] = useState(false);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const debounce = useRef<ReturnType<typeof setTimeout>>();
+  const debounce = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     const close = (e: MouseEvent) => {

@@ -245,7 +245,7 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
                 <div className={styles.iconGlow} />
                 <div className={styles.iconFrame}>
                   {icon &&
-                    React.cloneElement(icon as React.ReactElement, {
+                    React.cloneElement(icon as React.ReactElement<{ className?: string }>, {
                       className: styles.contentIcon,
                     })}
                 </div>

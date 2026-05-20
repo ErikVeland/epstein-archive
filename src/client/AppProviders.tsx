@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from './design-system/components/interactive/Tooltip';
 import ToastProvider from './components/common/ToastProvider';
@@ -10,7 +10,7 @@ export interface AppProvidersProps {
   children: ReactNode;
 }
 
-export function AppProviders({ children }: AppProvidersProps): JSX.Element {
+export function AppProviders({ children }: AppProvidersProps): React.ReactElement {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

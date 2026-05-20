@@ -13,7 +13,7 @@ interface ViewerShellProps {
   headerClassName?: string;
   tabsClassName?: string;
   bodyClassName?: string;
-  bodyRef?: React.RefObject<HTMLDivElement>;
+  bodyRef?: React.RefObject<HTMLDivElement | null>;
   bodyTestId?: string;
   bodyScrollable?: boolean;
 }

@@ -36,7 +36,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
   const [savingPersonId, setSavingPersonId] = useState<number | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const { addToast } = useToasts();
 
   // Close dropdown when clicking outside

@@ -33,7 +33,7 @@ export function SensitiveContent({
   const [isRevealing, setIsRevealing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number | undefined>(undefined);
   const particlesRef = useRef<
     Array<{ x: number; y: number; vx: number; vy: number; alpha: number; size: number }>
   >([]);

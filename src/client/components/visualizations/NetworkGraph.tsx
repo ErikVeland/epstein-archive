@@ -151,7 +151,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   const [selectedNodeId, setSelectedNodeId] = useState<string | number | null>(null);
 
   // Debounced Zoom Callback
-  const zoomTimeoutRef = useRef<NodeJS.Timeout>();
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const reportZoomLevel = useCallback(
     (k: number) => {
       if (onZoomLevelChange) {

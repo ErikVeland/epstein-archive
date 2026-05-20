@@ -6,7 +6,7 @@ import { useCallback, useState, useLayoutEffect, useEffect, useRef } from 'react
  */
 export function useHighlightNavigation(
   searchTerm: string | undefined,
-  containerRef: React.RefObject<HTMLElement>,
+  containerRef: React.RefObject<HTMLElement | null>,
 ) {
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   const [totalHighlights, setTotalHighlights] = useState(0);
