@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { entityEvidenceRepository } from '../db/entityEvidenceRepository.js';
 import crypto from 'crypto';
 import { logger } from '../services/Logger.js';
@@ -37,7 +37,7 @@ router.param('entityId', async (req, res, next, value) => {
 });
 
 // GET /api/entities/:id/evidence
-router.get('/:entityId/evidence', async (req: Request, res: Response) => {
+router.get('/:entityId/evidence', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const result = await entityEvidenceRepository.getEntityMentionEvidence(entityId);
@@ -48,13 +48,12 @@ router.get('/:entityId/evidence', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity mention evidence');
-    res.status(500).json({ error: 'Failed to fetch entity evidence' });
+    next(error);
   }
 });
 
 // GET /api/entities/:id/relations
-router.get('/:entityId/relations', async (req: Request, res: Response) => {
+router.get('/:entityId/relations', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const result = await entityEvidenceRepository.getRelationEvidenceForEntity(entityId);
@@ -84,12 +83,11 @@ router.get('/:entityId/relations', async (req: Request, res: Response) => {
       : [];
     res.json({ relations });
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity relation evidence');
-    res.status(500).json({ error: 'Failed to fetch relation evidence' });
+    next(error);
   }
 });
 
-const getEntityGraph = async (req: Request, res: Response) => {
+const getEntityGraph = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const dbEntityId = parseInt(entityId, 10);
@@ -111,8 +109,7 @@ const getEntityGraph = async (req: Request, res: Response) => {
     );
     res.json(graph);
   } catch (error) {
-    logger.error({ err: error }, 'Error building entity graph');
-    res.status(500).json({ error: 'Failed to fetch entity graph' });
+    next(error);
   }
 };
 
@@ -123,7 +120,7 @@ router.get('/:entityId/analytics/graph', getEntityGraph);
 router.get('/:entityId/graph', getEntityGraph);
 
 // GET /api/entities/:id/documents
-router.get('/:entityId/documents', async (req: Request, res: Response) => {
+router.get('/:entityId/documents', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const page = parseInt(req.query.page as string) || 1;
@@ -153,13 +150,12 @@ router.get('/:entityId/documents', async (req: Request, res: Response) => {
       limit,
     });
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity photo path');
-    res.status(500).json({ error: 'Failed to fetch entity documents' });
+    next(error);
   }
 });
 
 // GET /api/entities/:id/investigations
-router.get('/:entityId/investigations', async (req: Request, res: Response) => {
+router.get('/:entityId/investigations', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const { investigationsRepository } = await import('../db/investigationsRepository.js');
@@ -178,14 +174,13 @@ router.get('/:entityId/investigations', async (req: Request, res: Response) => {
             : 'active',
       })),
     );
-  } catch (_error) {
-    logger.error({ err: _error }, 'Error fetching entity investigations');
-    res.status(500).json({ error: 'Failed to fetch entity investigations' });
+  } catch (error) {
+    next(error);
   }
 });
 
 // GET /api/entities/:id/media
-router.get('/:entityId/media', async (req: Request, res: Response) => {
+router.get('/:entityId/media', async (req: Request, res: Response, next: NextFunction) => {
   const { entityId } = req.params as { entityId: string };
   try {
     const { mediaRepository } = await import('../db/mediaRepository.js');
@@ -214,13 +209,12 @@ router.get('/:entityId/media', async (req: Request, res: Response) => {
     }
 
     res.json(result);
-  } catch (_error) {
-    logger.error({ err: _error, entityId }, 'Error fetching entity media');
-    res.status(500).json({ error: 'Failed to fetch entity media' });
+  } catch (error) {
+    next(error);
   }
 });
 
-router.get('/:entityId/photo', async (req: Request, res: Response) => {
+router.get('/:entityId/photo', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const { mediaRepository } = await import('../db/mediaRepository.js');
@@ -260,13 +254,12 @@ router.get('/:entityId/photo', async (req: Request, res: Response) => {
 
     res.status(404).json({ error: 'Photo file not found on disk' });
   } catch (err) {
-    logger.error({ err, entityId: req.params.entityId }, 'Error fetching entity photo');
-    res.status(500).json({ error: 'Failed to fetch entity photo' });
+    next(err);
   }
 });
 
 // GET /api/entities/:entityId/claims
-router.get('/:entityId/claims', async (req: Request, res: Response) => {
+router.get('/:entityId/claims', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const { claimTriplesRepository } = await import('../db/claimTriplesRepository.js');
@@ -277,14 +270,13 @@ router.get('/:entityId/claims', async (req: Request, res: Response) => {
       [],
     );
     res.json(claims);
-  } catch (_error) {
-    logger.error({ err: _error, entityId: req.params.entityId }, 'Error fetching entity claims');
-    res.status(500).json({ error: 'Failed to fetch entity claims' });
+  } catch (error) {
+    next(error);
   }
 });
 
 // GET /api/entities/:entityId/flights
-router.get('/:entityId/flights', async (req: Request, res: Response) => {
+router.get('/:entityId/flights', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const flights = await withEntityTabTimeout(
@@ -295,13 +287,12 @@ router.get('/:entityId/flights', async (req: Request, res: Response) => {
     );
     res.json({ flights });
   } catch (error) {
-    logger.error({ err: error, entityId: req.params.entityId }, 'Error fetching entity flights');
-    res.status(500).json({ error: 'Failed to fetch entity flights' });
+    next(error);
   }
 });
 
 // GET /api/entities/:entityId/transactions
-router.get('/:entityId/transactions', async (req: Request, res: Response) => {
+router.get('/:entityId/transactions', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const result = await withEntityTabTimeout(
@@ -315,16 +306,12 @@ router.get('/:entityId/transactions', async (req: Request, res: Response) => {
     }
     res.json(result);
   } catch (error) {
-    logger.error(
-      { err: error, entityId: req.params.entityId },
-      'Error fetching entity transactions',
-    );
-    res.status(500).json({ error: 'Failed to fetch entity transactions' });
+    next(error);
   }
 });
 
 // GET /api/entities/:entityId/properties
-router.get('/:entityId/properties', async (req: Request, res: Response) => {
+router.get('/:entityId/properties', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const properties = await withEntityTabTimeout(
@@ -335,8 +322,7 @@ router.get('/:entityId/properties', async (req: Request, res: Response) => {
     );
     res.json({ properties });
   } catch (error) {
-    logger.error({ err: error, entityId: req.params.entityId }, 'Error fetching entity properties');
-    res.status(500).json({ error: 'Failed to fetch entity properties' });
+    next(error);
   }
 });
 
