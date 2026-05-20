@@ -11,7 +11,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { preloader } from './utils/ResourcePreloader';
 import { runDevAffordanceAudit } from './utils/devAffordanceAudit';
 import { createPortal } from 'react-dom';
-import { useNavigate, Link, Routes, Route } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 // Icons imported as needed via Icon component
 import { Person, Photo } from './types';
 import type { GlobalStatsPayload, EntityByIdResponse } from './types/api';
@@ -21,11 +21,8 @@ import { apiClient } from './services/apiClient';
 // SECURITY: Removed non-authoritative document import paths
 import MobileMenu from './components/layout/MobileMenu';
 import MobileBottomNav from './components/layout/MobileBottomNav';
-import ScopedErrorBoundary from './components/common/ScopedErrorBoundary';
 // ProgressBar available but not currently used
 import LoadingIndicator from './components/common/LoadingIndicator';
-import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
-import { CommandPalette } from './components/common/CommandPalette';
 import { Breadcrumb } from './components/layout/Breadcrumb';
 import Icon from './components/common/Icon';
 import { RedactedLogo } from './components/RedactedLogo';
@@ -52,7 +49,6 @@ import {
   Surface,
 } from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
-import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
 import { useSeoConfig } from './hooks/useSeoConfig';
 import { useAppNavigation, tabLabels } from './hooks/useAppNavigation';
@@ -68,45 +64,10 @@ import {
 } from './hooks/useNavigationContextManager';
 import { parseReleaseNotes } from './utils/releaseNotes';
 import { useApiStatus } from './contexts/ApiStatusContext';
-import { ApiUnavailableScreen } from './components/common/ApiUnavailableScreen';
 import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { CollaborationIndicator } from './components/common/CollaborationIndicator';
-import {
-  AboutPage,
-  AdminDashboard,
-  AnalyticsPage,
-  ArticleDetailPage,
-  BlackBookViewer,
-  ClaimDetailPage,
-  ConnectionDossierPage,
-  CorroborationPage,
-  DocumentModal,
-  DocumentsPage,
-  EmailPage,
-  EvidenceDetail,
-  EvidenceModal,
-  EvidenceSearch,
-  FAQPage,
-  FinancialPage,
-  FinancialTransactionDetailPage,
-  FlightDetailPage,
-  FlightsPage,
-  GuidePage,
-  IntelligenceDashboard,
-  InvestigationWorkspace,
-  LegalPage,
-  LegalTrackerPage,
-  MediaPage,
-  NetworkPage,
-  PeoplePage,
-  PropertyPage,
-  RedactionsPage,
-  ReleaseNotesPanel,
-  ReviewDashboard,
-  SurvivorTrackingPage,
-  TheEpsteinFilesPage,
-  TimelinePage,
-} from './app/lazyRoutes';
+import { AppRoutes } from './app/AppRoutes';
+import { ModalHost } from './app/ModalHost';
 
 import releaseNotesRaw from '@root/release_notes.md?raw';
 import styles from './App.module.css';
@@ -115,7 +76,6 @@ import { AppProviders } from './app/AppProviders';
 
 // Release notes logic and interface moved to src/client/utils/releaseNotes.ts
 
-import { CreateEntityModal } from './components/entities/CreateEntityModal';
 import Footer from './components/layout/Footer';
 
 function App() {
@@ -1630,392 +1590,74 @@ function App() {
                   </div>
                 }
               >
-                {apiStatus === 'down' &&
-                !(
-                  location.pathname === '/login' ||
-                  location.pathname.startsWith('/about') ||
-                  location.pathname.startsWith('/privacy') ||
-                  location.pathname.startsWith('/terms') ||
-                  location.pathname.startsWith('/faq') ||
-                  location.pathname.startsWith('/guide')
-                ) ? (
-                  <ApiUnavailableScreen />
-                ) : (
-                  <Routes>
-                    <Route
-                      path="/"
-                      element={
-                        <PeoplePage
-                          dataStats={dataStats}
-                          selectedRiskLevel={selectedRiskLevel}
-                          onRiskLevelClick={handleRiskLevelClick}
-                          onResetFilters={handleResetFilters}
-                          isAdmin={isAdmin}
-                          onAddSubject={() => setShowCreateEntityModal(true)}
-                          entityType={entityType}
-                          onEntityTypeChange={setEntityType}
-                          sortBy={sortBy}
-                          onSortByChange={(val) => {
-                            if (
-                              val === 'name' ||
-                              val === 'mentions' ||
-                              val === 'red_flag' ||
-                              val === 'risk'
-                            ) {
-                              setSortBy(val);
-                            }
-                          }}
-                          sortOrder={sortOrder}
-                          onSortOrderToggle={() =>
-                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                          }
-                          searchTerm={searchTerm}
-                          onPersonClick={handlePersonClick}
-                        />
-                      }
-                    />
-                    <Route
-                      path="/people"
-                      element={
-                        <PeoplePage
-                          dataStats={dataStats}
-                          selectedRiskLevel={selectedRiskLevel}
-                          onRiskLevelClick={handleRiskLevelClick}
-                          onResetFilters={handleResetFilters}
-                          isAdmin={isAdmin}
-                          onAddSubject={() => setShowCreateEntityModal(true)}
-                          entityType={entityType}
-                          onEntityTypeChange={setEntityType}
-                          sortBy={sortBy}
-                          onSortByChange={(val) => {
-                            if (
-                              val === 'name' ||
-                              val === 'mentions' ||
-                              val === 'red_flag' ||
-                              val === 'risk'
-                            ) {
-                              setSortBy(val);
-                            }
-                          }}
-                          sortOrder={sortOrder}
-                          onSortOrderToggle={() =>
-                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                          }
-                          searchTerm={searchTerm}
-                          onPersonClick={handlePersonClick}
-                        />
-                      }
-                    />
-                    {/* Entity deep-link — modal is handled separately; render people tab underneath */}
-                    <Route
-                      path="/entity/:id"
-                      element={
-                        <PeoplePage
-                          dataStats={dataStats}
-                          selectedRiskLevel={selectedRiskLevel}
-                          onRiskLevelClick={handleRiskLevelClick}
-                          onResetFilters={handleResetFilters}
-                          isAdmin={isAdmin}
-                          onAddSubject={() => setShowCreateEntityModal(true)}
-                          entityType={entityType}
-                          onEntityTypeChange={setEntityType}
-                          sortBy={sortBy}
-                          onSortByChange={(val) => {
-                            if (
-                              val === 'name' ||
-                              val === 'mentions' ||
-                              val === 'red_flag' ||
-                              val === 'risk'
-                            ) {
-                              setSortBy(val);
-                            }
-                          }}
-                          sortOrder={sortOrder}
-                          onSortOrderToggle={() =>
-                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                          }
-                          searchTerm={searchTerm}
-                          onPersonClick={handlePersonClick}
-                        />
-                      }
-                    />
-                    <Route
-                      path="/analytics"
-                      element={
-                        <AnalyticsPage
-                          analyticsData={analyticsData ?? undefined}
-                          loading={analyticsLoading}
-                          error={analyticsError}
-                          onRetry={refetchAnalytics}
-                          onPersonSelect={handlePersonClick}
-                        />
-                      }
-                    />
-                    <Route
-                      path="/search"
-                      element={
-                        <EvidenceSearch
-                          onPersonClick={handlePersonClick}
-                          onDocumentClick={handleDocumentSuggestionClick}
-                        />
-                      }
-                    />
-                    <Route
-                      path="/documents/*"
-                      element={
-                        <DocumentsPage
-                          searchTerm={selectedDocumentSearchTerm}
-                          onSearchTermChange={setSelectedDocumentSearchTerm}
-                          selectedDocumentId={documentModalId || ''}
-                        />
-                      }
-                    />
-                    <Route path="/redactions" element={<RedactionsPage />} />
-                    <Route path="/timeline/*" element={<TimelinePage />} />
-                    <Route path="/claims/corroborated" element={<CorroborationPage />} />
-                    <Route path="/connections" element={<ConnectionDossierPage />} />
-                    <Route path="/legal-proceedings" element={<LegalTrackerPage />} />
-                    <Route path="/survivors" element={<SurvivorTrackingPage />} />
-                    <Route path="/claims/:id" element={<ClaimDetailPage />} />
-                    <Route path="/financial/:id" element={<FinancialTransactionDetailPage />} />
-                    <Route path="/financial/*" element={<FinancialPage />} />
-                    <Route path="/flights/:id" element={<FlightDetailPage />} />
-                    <Route path="/flights/*" element={<FlightsPage />} />
-                    <Route path="/properties/*" element={<PropertyPage />} />
-                    <Route path="/emails/*" element={<EmailPage />} />
-                    <Route path="/media/article/:id" element={<ArticleDetailPage />} />
-                    <Route path="/media/*" element={<MediaPage />} />
-                    <Route path="/about/*" element={<AboutPage />} />
-                    <Route path="/privacy" element={<LegalPage mode="privacy" />} />
-                    <Route path="/terms" element={<LegalPage mode="terms" />} />
-                    <Route path="/faq" element={<FAQPage />} />
-                    <Route path="/guide" element={<GuidePage />} />
-                    <Route
-                      path="/the-epstein-files"
-                      element={<TheEpsteinFilesPage variant="overview" />}
-                    />
-                    <Route
-                      path="/epstein-documents"
-                      element={<TheEpsteinFilesPage variant="documents" />}
-                    />
-                    <Route
-                      path="/epstein-people"
-                      element={<TheEpsteinFilesPage variant="people" />}
-                    />
-                    <Route
-                      path="/epstein-media"
-                      element={<TheEpsteinFilesPage variant="media" />}
-                    />
-                    <Route
-                      path="/epstein-timeline"
-                      element={<TheEpsteinFilesPage variant="timeline" />}
-                    />
-                    <Route
-                      path="/epstein-flights"
-                      element={<TheEpsteinFilesPage variant="flights" />}
-                    />
-                    <Route path="/network" element={<NetworkPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/admin/*" element={<AdminDashboard />} />
-                    <Route path="/intelligence" element={<IntelligenceDashboard />} />
-                    <Route path="/evidence/:id" element={<EvidenceDetail />} />
-                    <Route
-                      path="/review/*"
-                      element={
-                        <Suspense
-                          fallback={
-                            <LoadingIndicator
-                              isLoading={true}
-                              label="Loading Review Dashboard..."
-                            />
-                          }
-                        >
-                          <ReviewDashboard />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="/investigations/*"
-                      element={
-                        <ScopedErrorBoundary>
-                          <InvestigationWorkspace
-                            investigationId={(() => {
-                              const parts = location.pathname.split('/');
-                              return parts[1] === 'investigations' && parts[2]
-                                ? parts[2]
-                                : undefined;
-                            })()}
-                            currentUser={
-                              currentUser
-                                ? {
-                                    id: currentUser.id,
-                                    name: currentUser.username,
-                                    email: currentUser.email || 'investigator@example.com',
-                                    role: isAdmin ? 'lead' : 'analyst',
-                                    permissions: ['read', 'write', ...(isAdmin ? ['admin'] : [])],
-                                    joinedAt: new Date(),
-                                    expertise: ['investigative journalism', 'data analysis'],
-                                  }
-                                : {
-                                    id: 'guest',
-                                    name: 'Guest',
-                                    email: 'guest@example.com',
-                                    role: 'analyst',
-                                    permissions: ['read'],
-                                    joinedAt: new Date(),
-                                    expertise: [],
-                                  }
-                            }
-                          />
-                        </ScopedErrorBoundary>
-                      }
-                    />
-                    <Route
-                      path="/blackbook/*"
-                      element={
-                        <Box mt={6}>
-                          <Suspense
-                            fallback={
-                              <div className={styles.centerLoader}>
-                                <div className={styles.largeSpinner}></div>
-                              </div>
-                            }
-                          >
-                            <BlackBookViewer />
-                          </Suspense>
-                        </Box>
-                      }
-                    />
-                    {/* Fallback — default to people */}
-                    <Route
-                      path="*"
-                      element={
-                        <PeoplePage
-                          dataStats={dataStats}
-                          selectedRiskLevel={selectedRiskLevel}
-                          onRiskLevelClick={handleRiskLevelClick}
-                          onResetFilters={handleResetFilters}
-                          isAdmin={isAdmin}
-                          onAddSubject={() => setShowCreateEntityModal(true)}
-                          entityType={entityType}
-                          onEntityTypeChange={setEntityType}
-                          sortBy={sortBy}
-                          onSortByChange={(val) => {
-                            if (
-                              val === 'name' ||
-                              val === 'mentions' ||
-                              val === 'red_flag' ||
-                              val === 'risk'
-                            ) {
-                              setSortBy(val);
-                            }
-                          }}
-                          sortOrder={sortOrder}
-                          onSortOrderToggle={() =>
-                            setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                          }
-                          searchTerm={searchTerm}
-                          onPersonClick={handlePersonClick}
-                        />
-                      }
-                    />
-                  </Routes>
-                )}
+                <AppRoutes
+                  apiStatus={apiStatus}
+                  location={location}
+                  dataStats={dataStats}
+                  selectedRiskLevel={selectedRiskLevel}
+                  onRiskLevelClick={handleRiskLevelClick}
+                  onResetFilters={handleResetFilters}
+                  isAdmin={isAdmin}
+                  onAddSubject={() => setShowCreateEntityModal(true)}
+                  entityType={entityType}
+                  onEntityTypeChange={setEntityType}
+                  sortBy={sortBy}
+                  onSortByChange={(val) => {
+                    if (
+                      val === 'name' ||
+                      val === 'mentions' ||
+                      val === 'red_flag' ||
+                      val === 'risk'
+                    ) {
+                      setSortBy(val);
+                    }
+                  }}
+                  sortOrder={sortOrder}
+                  onSortOrderToggle={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  searchTerm={searchTerm}
+                  onPersonClick={handlePersonClick}
+                  analyticsData={analyticsData ?? undefined}
+                  analyticsLoading={analyticsLoading}
+                  analyticsError={analyticsError}
+                  onRetryAnalytics={refetchAnalytics}
+                  onDocumentClick={handleDocumentSuggestionClick}
+                  selectedDocumentSearchTerm={selectedDocumentSearchTerm}
+                  onSelectedDocumentSearchTermChange={setSelectedDocumentSearchTerm}
+                  selectedDocumentId={documentModalId || ''}
+                  currentUser={currentUser}
+                />
                 <CollaborationIndicator />
               </Suspense>
             </div>
           </div>
         </div>
 
-        {/* Evidence Modal */}
-        <Suspense
-          fallback={
-            <div className={cn(styles.modalFallback, styles.modalFallbackBlur)}>
-              <div className={styles.largeSpinner}></div>
-            </div>
-          }
-        >
-          {selectedPerson && (
-            <ScopedErrorBoundary>
-              <EvidenceModal
-                entityId={selectedPerson.id.toString()}
-                isOpen={!!selectedPerson}
-                onClose={() => {
-                  closingEntityModal.current = true;
-                  setSelectedPerson(null);
-                  const params = new URLSearchParams(location.search);
-                  params.delete('entityId');
-                  params.delete('entityTab');
-                  const targetPath = `${location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-                  sessionStorage.setItem(
-                    'nav-return:scroll',
-                    String(window.scrollY || window.pageYOffset || 0),
-                  );
-                  navigate(targetPath, {
-                    state: { ...location.state, _navReturn: targetPath },
-                  });
-                }}
-              />
-            </ScopedErrorBoundary>
-          )}
-        </Suspense>
-        {/* Inline Document Modal */}
-        <Suspense
-          fallback={
-            <div className={styles.modalFallback}>
-              <div className={styles.smallSpinner} />
-            </div>
-          }
-        >
-          {documentModalId && (
-            <ScopedErrorBoundary>
-              <DocumentModal
-                id={documentModalId}
-                searchTerm={selectedDocumentSearchTerm}
-                initialDoc={documentModalInitial ?? undefined}
-                onClose={() => {
-                  setDocumentModalId('');
-                  setDocumentModalInitial(null);
-                  sessionStorage.setItem(
-                    'nav-return:scroll',
-                    String(window.scrollY || window.pageYOffset || 0),
-                  );
-                  goBack('/documents');
-                }}
-              />
-            </ScopedErrorBoundary>
-          )}
-        </Suspense>
-
-        <Suspense fallback={null}>
-          {/* ReleaseNotesPanel: intentionally no spinner — panel appears inline */}
-          <ReleaseNotesPanel
-            isOpen={showReleaseNotes}
-            onClose={() => setShowReleaseNotes(false)}
-            releaseNotes={parsedReleaseNotes}
-          />
-        </Suspense>
-
-        <KeyboardShortcutsModal
-          isOpen={showKeyboardShortcuts}
-          onClose={() => setShowKeyboardShortcuts(false)}
+        <ModalHost
+          selectedPerson={selectedPerson}
+          setSelectedPerson={setSelectedPerson}
+          markClosingEntityModal={() => {
+            closingEntityModal.current = true;
+          }}
+          location={location}
+          navigate={navigate}
+          backLinkState={backLinkState}
+          documentModalId={documentModalId}
+          setDocumentModalId={setDocumentModalId}
+          selectedDocumentSearchTerm={selectedDocumentSearchTerm}
+          documentModalInitial={documentModalInitial}
+          setDocumentModalInitial={setDocumentModalInitial}
+          goBack={goBack}
+          showReleaseNotes={showReleaseNotes}
+          setShowReleaseNotes={setShowReleaseNotes}
+          parsedReleaseNotes={parsedReleaseNotes}
+          showKeyboardShortcuts={showKeyboardShortcuts}
+          setShowKeyboardShortcuts={setShowKeyboardShortcuts}
+          isCommandPaletteOpen={isCommandPaletteOpen}
+          closeCommandPalette={closeCommandPalette}
+          showCreateEntityModal={showCreateEntityModal}
+          setShowCreateEntityModal={setShowCreateEntityModal}
+          queryClient={queryClient}
         />
-
-        <Suspense fallback={null}>
-          <CommandPalette isOpen={isCommandPaletteOpen} onClose={closeCommandPalette} />
-        </Suspense>
-
-        {showCreateEntityModal && (
-          <CreateEntityModal
-            onClose={() => setShowCreateEntityModal(false)}
-            onSuccess={() => {
-              setShowCreateEntityModal(false);
-              void queryClient.invalidateQueries({ queryKey: ['entities'] });
-              void queryClient.invalidateQueries({ queryKey: ['globalStats'] });
-              void queryClient.invalidateQueries({ queryKey: ['initDataService'] });
-            }}
-          />
-        )}
 
         <OfflineIndicator />
 

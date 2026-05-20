@@ -1,5 +1,21 @@
 # Release Notes
 
+## 21.6.0 - 2026-05-20 - Provenance & Annotation Hardening
+
+### Forensic Provenance
+
+- **AI Summary Provenance Isolation**: Stops writing AI summaries into canonical `documents.metadata_json`; stores summaries in `document_ai_artifacts` and serves the latest artifact in API responses.
+- **Artifact-Backed Previews**: Document list previews can source `ai_summary` from the latest summary artifact without requiring metadata contamination.
+
+### Security & Collaboration
+
+- **Authenticated Annotation Writes**: `POST /api/documents/:id/annotations` now requires authentication.
+- **Frictionless Guest Identity**: Mutations can be cryptographically signed client-side and verified server-side to support "guest" authenticated writes with stable provenance fingerprinting.
+
+### Client Maintainability
+
+- **App Module Split (First Slice)**: Extracts the route registry and modal overlay orchestration into dedicated modules, shrinking the responsibilities of `src/client/App.tsx`.
+
 ## 21.5.0 - 2026-05-18 - Production Hardening Release Candidate
 
 ### Production Reliability

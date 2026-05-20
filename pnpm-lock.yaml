@@ -241,9 +241,6 @@ importers:
       sharp:
         specifier: ^0.34.5
         version: 0.34.5
-      tailwind-merge:
-        specifier: ^3.5.0
-        version: 3.5.0
       tesseract.js:
         specifier: ^7.0.0
         version: 7.0.0(encoding@0.1.13)
@@ -8537,12 +8534,6 @@ packages:
       }
     engines: { node: ^14.18.0 || >=16.0.0 }
 
-  tailwind-merge@3.5.0:
-    resolution:
-      {
-        integrity: sha512-I8K9wewnVDkL1NTGoqWmVEIlUcB9gFriAEkXkfCjX5ib8ezGxtR3xD7iZIxrfArjEsH7F1CHD4RFUtxefdqV/A==,
-      }
-
   tar-fs@2.1.4:
     resolution:
       {
@@ -14153,8 +14144,6 @@ snapshots:
   synckit@0.11.11:
     dependencies:
       '@pkgr/core': 0.2.9
-
-  tailwind-merge@3.5.0: {}
 
   tar-fs@2.1.4:
     dependencies:
