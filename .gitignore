@@ -99,6 +99,7 @@ Thumbs.db
 .vscode/
 .idea/
 .chuck/
+.trae/
 .claude/
 .playwright-mcp/
 .pnpm-store/
