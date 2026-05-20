@@ -261,74 +261,28 @@ export async function processQueue(ctx: IngestContext): Promise<void> {
   // These are the large in-progress sets we want to save for last.
   const GIANT_COLLECTIONS = ['DOJ Data Set 9', 'DOJ Data Set 10', 'DOJ Data Set 11'];
 
-  // Permanent failure signatures — never retry these regardless of collection.
-  const PERMANENT_ERROR_FILTER = `
-    processing_error IS NULL
-    OR (
-      processing_error NOT ILIKE '%corrupt%'
-      AND processing_error NOT ILIKE '%encrypt%'
-      AND processing_error NOT ILIKE '%password%'
-      AND processing_error NOT ILIKE '%invalid pdf%'
-    )
-  `;
-
   // Non-giant collections: re-queue ALL retryable failures regardless of
-  // attempt count — "database is locked" and similar transient errors must
-  // not leave a tranche permanently stuck below 100%.
-  const requeuedMopUp = await db.query(
-    `
-    UPDATE documents
-    SET processing_status = 'queued',
-        worker_id         = NULL,
-        lease_expires_at  = NULL,
-        processing_error  = NULL
-    WHERE processing_status = 'failed'
-      AND source_collection != ALL($1)
-      AND (${PERMANENT_ERROR_FILTER})
-  `,
-    [GIANT_COLLECTIONS],
-  );
+  // attempt count — transient errors must not leave a tranche permanently stuck.
+  const requeuedMopUp = await jobManager.requeueFailed({
+    excludeCollections: GIANT_COLLECTIONS,
+    retryableOnly: true,
+  });
 
-  // Giant collections: only re-queue docs that haven't exhausted retries
-  // (we'll get to them eventually, no need to hammer them).
-  const requeuedGiants = await db.query(
-    `
-    UPDATE documents
-    SET processing_status = 'queued',
-        worker_id         = NULL,
-        lease_expires_at  = NULL,
-        processing_error  = NULL
-    WHERE processing_status = 'failed'
-      AND source_collection = ANY($1)
-      AND (processing_attempts IS NULL OR processing_attempts < $2)
-      AND (${PERMANENT_ERROR_FILTER})
-  `,
-    [GIANT_COLLECTIONS, workerConfig.maxAttempts],
-  );
+  // Giant collections: only re-queue docs that haven't exhausted retries.
+  const requeuedGiants = await jobManager.requeueFailed({
+    onlyCollections: GIANT_COLLECTIONS,
+    maxAttempts: workerConfig.maxAttempts,
+    retryableOnly: true,
+  });
 
   console.log(
-    `   ♻️  Re-queued ${requeuedMopUp.rowCount ?? 0} mop-up docs (non-giant) + ${requeuedGiants.rowCount ?? 0} giant-collection docs.`,
+    `   ♻️  Re-queued ${requeuedMopUp} mop-up docs (non-giant) + ${requeuedGiants} giant-collection docs.`,
   );
 
   // Pre-compute collection priority: collections closest to 100% go first so
   // tranches complete fully rather than all advancing in parallel.
-  const priorityRows = (
-    await db.query<{ source_collection: string; pct_done: string; remaining: string }>(`
-      SELECT
-        source_collection,
-        ROUND(
-          COUNT(*) FILTER (WHERE processing_status IN ('succeeded','completed')) * 100.0 / COUNT(*),
-          1
-        ) AS pct_done,
-        COUNT(*) FILTER (WHERE processing_status = 'queued') AS remaining
-      FROM documents
-      WHERE source_collection IS NOT NULL
-        AND processing_status IN ('queued','succeeded','completed','processing','failed')
-      GROUP BY source_collection
-      HAVING COUNT(*) FILTER (WHERE processing_status = 'queued') > 0
-      ORDER BY pct_done DESC
-    `)
-  ).rows;
+  const priorityRows = await jobManager.getCollectionPriority();
+
   // These large datasets are deprioritized — all other collections drain to
   // 100% first. DS 9 joins DS 10/11 so near-complete tranches finish before
   // the big multi-day sets get any slots.
