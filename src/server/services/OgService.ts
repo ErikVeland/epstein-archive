@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import crypto from 'crypto';
 import { logger } from './Logger.js';
 import { dataPath } from '../utils/pathResolver.js';
