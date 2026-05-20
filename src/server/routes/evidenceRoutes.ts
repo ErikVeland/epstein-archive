@@ -5,7 +5,7 @@
  * with full-text search, filtering, and entity relationships.
  */
 
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -17,7 +17,6 @@ import { logAudit } from '../utils/auditLogger.js';
 import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
-import { logger } from '../services/Logger.js';
 
 interface RequestWithId extends Request {
   requestId?: string;
@@ -155,7 +154,7 @@ router.post(
   authenticateRequest,
   upload.single('file'),
   validate(uploadEvidenceSchema),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
@@ -212,12 +211,11 @@ router.post(
         message: 'File uploaded successfully',
       });
     } catch (error) {
-      logger.error({ err: error }, 'Upload error');
       // Cleanup temp file if it exists
       if (req.file?.path) {
         await fsPromises.unlink(req.file.path).catch(() => undefined);
       }
-      res.status(500).json({ error: 'Upload failed' });
+      next(error);
     }
   },
 );
@@ -226,7 +224,7 @@ router.post(
  * GET /api/evidence/search
  * Search evidence with filtering and pagination
  */
-router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: Response) => {
+router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: Response, next) => {
   try {
     type SearchQuery = z.infer<typeof searchEvidenceSchema>['query'];
     const { q, query, limit, mode } = req.query as unknown as SearchQuery;
@@ -260,18 +258,17 @@ router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: 
       },
     });
   } catch (error) {
-    logger.error({ err: error }, 'Evidence search error');
-    res.status(500).json({ error: 'Search failed' });
+    next(error);
   }
 });
 
 // Get available evidence types
-router.get('/types', async (_req: Request, res: Response) => {
+router.get('/types', async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const types = await getEvidenceTypes();
     res.json(types);
-  } catch (_error) {
-    res.status(500).json({ error: 'Failed to fetch evidence types' });
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -279,7 +276,7 @@ router.get('/types', async (_req: Request, res: Response) => {
  * GET /api/evidence/:id
  * Get single evidence record with full details
  */
-router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Response) => {
+router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Response, next) => {
   try {
     const { id } = req.params as { id: string };
     const evidence = await documentsRepository.getDocumentById(id);
@@ -373,8 +370,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
 
     res.json(canonical);
   } catch (error) {
-    logger.error({ err: error }, 'Evidence retrieval error');
-    res.status(500).json({ error: 'Retrieval failed' });
+    next(error);
   }
 });
 
@@ -383,32 +379,38 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
  * Legacy route alias (backward compatibility) for /api/documents/:id/analytics/metrics
  * Get forensic metrics
  */
-router.get('/:id/metrics', validate(evidenceIdSchema), async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params as { id: string };
-    const metrics = forensicRepository.getMetrics(id);
-    res.json(metrics || { metrics_json: '{}', authenticity_score: 0 });
-  } catch (e) {
-    logger.error({ err: e }, 'Metrics error');
-    res.status(500).json({ error: 'Failed to get metrics' });
-  }
-});
+router.get(
+  '/:id/metrics',
+  validate(evidenceIdSchema),
+  async (req: Request, res: Response, next) => {
+    try {
+      const { id } = req.params as { id: string };
+      const metrics = forensicRepository.getMetrics(id);
+      res.json(metrics || { metrics_json: '{}', authenticity_score: 0 });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 /**
  * GET /api/evidence/:id/custody
  * Legacy route alias (backward compatibility) for /api/documents/:id/analytics/custody
  * Get chain of custody
  */
-router.get('/:id/custody', validate(evidenceIdSchema), async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params as { id: string };
-    const chain = forensicRepository.getChainOfCustody(id);
-    res.json(chain || []);
-  } catch (e) {
-    logger.error({ err: e }, 'Custody error');
-    res.status(500).json({ error: 'Failed to get chain of custody' });
-  }
-});
+router.get(
+  '/:id/custody',
+  validate(evidenceIdSchema),
+  async (req: Request, res: Response, next) => {
+    try {
+      const { id } = req.params as { id: string };
+      const chain = forensicRepository.getChainOfCustody(id);
+      res.json(chain || []);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 /**
  * POST /api/evidence/:id/analyze
@@ -424,7 +426,7 @@ router.post(
   authenticateRequest,
   requireRole('admin'),
   validate(evidenceIdSchema),
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params as { id: string };
       const doc = await documentsRepository.getDocumentById(id);
@@ -511,9 +513,8 @@ router.post(
         documentSignalScore,
         authenticityScore: documentSignalScore,
       });
-    } catch (e) {
-      logger.error({ err: e }, 'Analysis error');
-      res.status(500).json({ error: 'Analysis failed' });
+    } catch (error) {
+      next(error);
     }
   },
 );
