@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { authenticateRequest } from '../auth/middleware.js';
 import { evidenceRepository } from '../db/evidenceRepository.js';
-import { logger } from '../services/Logger.js';
 import { validate } from '../middleware/validate.js';
 
 const router = Router();
@@ -45,7 +44,7 @@ const addSnippetSchema = z.object({
  * GET /api/investigation/evidence/:entityId
  * Get evidence summary for a specific entity
  */
-router.get('/evidence/:entityId', validate(entityIdParamSchema), async (req, res) => {
+router.get('/evidence/:entityId', validate(entityIdParamSchema), async (req, res, next) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const result = await evidenceRepository.getEntityEvidence(entityId);
@@ -56,8 +55,7 @@ router.get('/evidence/:entityId', validate(entityIdParamSchema), async (req, res
 
     res.json(result);
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity evidence');
-    res.status(500).json({ error: 'Failed to fetch entity evidence' });
+    next(error);
   }
 });
 
@@ -65,26 +63,30 @@ router.get('/evidence/:entityId', validate(entityIdParamSchema), async (req, res
  * POST /api/investigation/add-evidence
  * Add evidence to an investigation session
  */
-router.post('/add-evidence', authenticateRequest, validate(addEvidenceSchema), async (req, res) => {
-  try {
-    const { investigationId, evidenceId, notes, relevance } = req.body;
-    const result = await evidenceRepository.addEvidenceToInvestigation(
-      investigationId,
-      evidenceId,
-      notes,
-      relevance,
-    );
-    res.json({ success: true, ...result });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === 'Evidence not found') {
-      return res.status(404).json({ error: 'Evidence not found' });
+router.post(
+  '/add-evidence',
+  authenticateRequest,
+  validate(addEvidenceSchema),
+  async (req, res, next) => {
+    try {
+      const { investigationId, evidenceId, notes, relevance } = req.body;
+      const result = await evidenceRepository.addEvidenceToInvestigation(
+        investigationId,
+        evidenceId,
+        notes,
+        relevance,
+      );
+      res.json({ success: true, ...result });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === 'Evidence not found') {
+        return res.status(404).json({ error: 'Evidence not found' });
+      }
+      next(error);
     }
-    logger.error({ err: error }, 'Error adding evidence to investigation');
-    res.status(500).json({ error: 'Failed to add evidence to investigation' });
-  }
-});
+  },
+);
 
-router.post('/add-media', authenticateRequest, validate(addMediaSchema), async (req, res) => {
+router.post('/add-media', authenticateRequest, validate(addMediaSchema), async (req, res, next) => {
   try {
     const { investigationId, mediaItemId, notes, relevance } = req.body;
     const result = await evidenceRepository.addMediaToInvestigation(
@@ -98,8 +100,7 @@ router.post('/add-media', authenticateRequest, validate(addMediaSchema), async (
     if (error instanceof Error && error.message === 'Media not found') {
       return res.status(404).json({ error: 'Media not found' });
     }
-    logger.error({ err: error }, 'Error adding media to investigation');
-    res.status(500).json({ error: 'Failed to add media to investigation' });
+    next(error);
   }
 });
 
@@ -107,25 +108,29 @@ router.post('/add-media', authenticateRequest, validate(addMediaSchema), async (
  * POST /api/investigation/add-snippet
  * Add a text snippet from a document to an investigation
  */
-router.post('/add-snippet', authenticateRequest, validate(addSnippetSchema), async (req, res) => {
-  try {
-    const { investigationId, documentId, snippetText, notes, relevance } = req.body;
-    const result = await evidenceRepository.addSnippetToInvestigation(
-      investigationId,
-      documentId,
-      snippetText,
-      notes,
-      relevance,
-    );
-    res.json({ success: true, ...result });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === 'Document not found') {
-      return res.status(404).json({ error: 'Document not found' });
+router.post(
+  '/add-snippet',
+  authenticateRequest,
+  validate(addSnippetSchema),
+  async (req, res, next) => {
+    try {
+      const { investigationId, documentId, snippetText, notes, relevance } = req.body;
+      const result = await evidenceRepository.addSnippetToInvestigation(
+        investigationId,
+        documentId,
+        snippetText,
+        notes,
+        relevance,
+      );
+      res.json({ success: true, ...result });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === 'Document not found') {
+        return res.status(404).json({ error: 'Document not found' });
+      }
+      next(error);
     }
-    logger.error({ err: error }, 'Error adding snippet to investigation');
-    res.status(500).json({ error: 'Failed to add snippet to investigation' });
-  }
-});
+  },
+);
 /**
  * DELETE /api/investigation/remove-evidence/:investigationEvidenceId
  * Remove evidence from an investigation
@@ -133,7 +138,7 @@ router.post('/add-snippet', authenticateRequest, validate(addSnippetSchema), asy
 router.delete(
   '/remove-evidence/:investigationEvidenceId',
   authenticateRequest,
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const { investigationEvidenceId } = req.params as { investigationEvidenceId: string };
 
@@ -142,8 +147,7 @@ router.delete(
 
       res.json({ success });
     } catch (error) {
-      logger.error({ err: error }, 'Error removing evidence from investigation');
-      res.status(500).json({ error: 'Failed to remove evidence from investigation' });
+      next(error);
     }
   },
 );
