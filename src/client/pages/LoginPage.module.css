@@ -112,6 +112,24 @@
   margin-top: var(--space-4);
 }
 
+.passkeyButton {
+  flex: 1;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--glass-border);
+  box-shadow: none;
+}
+
+.passkeySuccessBox {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-success) 5%, transparent);
+  color: var(--accent-success);
+  text-align: center;
+  font-weight: var(--weight-semibold);
+  margin: var(--space-3) 0;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

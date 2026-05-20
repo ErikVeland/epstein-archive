@@ -287,13 +287,7 @@ export const LoginPage: React.FC = () => {
               type="button"
               disabled={loading || !username.trim()}
               onClick={handlePasskeyLogin}
-              className={styles.submitButton}
-              style={{
-                flex: 1,
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid var(--glass-border)',
-                boxShadow: 'none',
-              }}
+              className={`${styles.submitButton} ${styles.passkeyButton}`}
             >
               Sign In with Passkey
             </Button>
@@ -360,18 +354,7 @@ export const LoginPage: React.FC = () => {
             </LqText>
 
             {passkeySuccess ? (
-              <Box
-                style={{
-                  padding: 'var(--space-4)',
-                  border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(0, 255, 128, 0.05)',
-                  color: 'var(--accent-success)',
-                  textAlign: 'center',
-                  fontWeight: 'var(--weight-semibold)',
-                  margin: 'var(--space-3) 0',
-                }}
-              >
+              <Box className={styles.passkeySuccessBox}>
                 ✓ Passkey successfully registered on this device!
               </Box>
             ) : error ? (
