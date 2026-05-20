@@ -4,7 +4,7 @@
  * Admin endpoint to get canonical revision token
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { getRevisionInfo } from '../revisionManager.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 
@@ -22,12 +22,12 @@ router.get(
   '/revision',
   authenticateRequest,
   requireRole('admin'),
-  async (_req: Request, res: Response) => {
+  async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const revisionInfo = await getRevisionInfo();
       res.json(revisionInfo);
-    } catch (_error) {
-      res.status(500).json({ error: 'Internal server error' });
+    } catch (error) {
+      next(error);
     }
   },
 );

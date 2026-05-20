@@ -2,7 +2,6 @@ import express from 'express';
 import { mapRateLimiter } from '../middleware/rateLimit.js';
 import { cacheResponse } from '../middleware/cache.js';
 import { getMapEntities } from '../db/healthQueries.js';
-import { logger } from '../services/Logger.js';
 import { validate, mapEntitiesQuerySchema } from '../middleware/validate.js';
 
 const router = express.Router();
@@ -14,7 +13,7 @@ router.get(
   mapRateLimiter,
   cacheResponse(60),
   validate(mapEntitiesQuerySchema),
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const limit = 500;
       const minRisk = Number((req.query as Record<string, string | undefined>).minRisk || 0);
@@ -31,8 +30,7 @@ router.get(
 
       res.json(entities);
     } catch (error) {
-      logger.error({ err: error }, 'Error fetching map entities');
-      res.status(500).json({ error: 'Failed to fetch map data' });
+      next(error);
     }
   },
 );

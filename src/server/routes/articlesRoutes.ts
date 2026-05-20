@@ -2,7 +2,6 @@ import express from 'express';
 import { articlesRepository } from '../db/articlesRepository.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
-import { logger } from '../services/Logger.js';
 import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = express.Router();
@@ -25,7 +24,7 @@ const articleIdSchema = z.object({
 });
 
 // GET /api/articles
-router.get('/', validate(getArticlesSchema), async (req, res) => {
+router.get('/', validate(getArticlesSchema), async (req, res, next) => {
   try {
     type ArticlesQuery = z.infer<typeof getArticlesSchema>['query'];
     const { page, limit, search, publication, sort } = req.query as unknown as ArticlesQuery;
@@ -44,13 +43,12 @@ router.get('/', validate(getArticlesSchema), async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching articles');
-    res.status(500).json({ error: 'Failed to fetch articles' });
+    next(error);
   }
 });
 
 // GET /api/articles/:id
-router.get('/:id', validate(articleIdSchema), async (req, res) => {
+router.get('/:id', validate(articleIdSchema), async (req, res, next) => {
   try {
     const article = await articlesRepository.getArticleById(req.params.id);
     if (!article) {
@@ -58,8 +56,7 @@ router.get('/:id', validate(articleIdSchema), async (req, res) => {
     }
     res.json(article);
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching article');
-    res.status(500).json({ error: 'Failed to fetch article' });
+    next(error);
   }
 });
 
