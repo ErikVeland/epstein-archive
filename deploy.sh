@@ -525,7 +525,8 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
     fi
 
     log_step "Building locally to verify integrity..."
-    pnpm build:prod
+    # Schema hash check requires a live DB; the remote cert gate performs the authoritative check.
+    SKIP_SCHEMA_HASH_CHECK=true pnpm build:prod
 
     # CRITICAL GATE: Catch bundle-level initialization errors (ReferenceError, TDZ)
     # that only appear after minification.
@@ -537,7 +538,7 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
   sync_local_main_with_origin
   if [ "$SYNCED_HEAD_CHANGED" = true ]; then
     log_warning "origin/main advanced during local gates; re-running build gates after rebase."
-    pnpm build:prod
+    SKIP_SCHEMA_HASH_CHECK=true pnpm build:prod
     pnpm test:bundle-smoke:only
   fi
 
