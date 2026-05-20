@@ -2,21 +2,17 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { entityConnectionsRepository } from '../db/entityConnectionsRepository.js';
 import { entitiesRepository } from '../db/entitiesRepository.js';
 import { logger } from '../services/Logger.js';
+import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
 
 const router = Router();
 const CONNECTIONS_TIMEOUT_MS = 5_000;
 
 const withConnectionsTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
-  Promise.race([
-    promise,
-    new Promise<T>((resolve) => {
-      setTimeout(() => {
-        logger.warn('entityConnections: query timed out; returning bounded fallback');
-        resolve(fallback);
-      }, CONNECTIONS_TIMEOUT_MS);
-    }),
-  ]);
+  withTimeoutFallback(promise, fallback, {
+    timeoutMs: CONNECTIONS_TIMEOUT_MS,
+    onTimeout: () => logger.warn('entityConnections: query timed out; returning bounded fallback'),
+  });
 
 router.param('entityId', async (req, res, next, value) => {
   try {

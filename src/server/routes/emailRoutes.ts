@@ -29,6 +29,7 @@ import {
 } from '../db/healthQueries.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 
 import { searchDocumentsSemantic } from '../semantic/search.js';
 import { communicationsRepository } from '../db/communicationsRepository.js';
@@ -68,15 +69,10 @@ const emailRevisionKey = () =>
   `${process.env.INGEST_RUN_ID || process.env.LATEST_INGEST_RUN_ID || 'default'}:${process.env.RULESET_VERSION || 'v1'}`;
 
 const withEmailListTimeout = async <T>(label: string, promise: Promise<T>, fallback: T) =>
-  Promise.race([
-    promise,
-    new Promise<T>((resolve) => {
-      setTimeout(() => {
-        console.warn(`[emails] ${label} timed out; returning bounded fallback`);
-        resolve(fallback);
-      }, EMAIL_LIST_TIMEOUT_MS);
-    }),
-  ]);
+  withTimeoutFallback(promise, fallback, {
+    timeoutMs: EMAIL_LIST_TIMEOUT_MS,
+    onTimeout: () => console.warn(`[emails] ${label} timed out; returning bounded fallback`),
+  });
 
 interface ParsedCursor {
   lastMessageAt: string;

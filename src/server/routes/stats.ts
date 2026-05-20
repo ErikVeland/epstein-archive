@@ -15,6 +15,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 import { getDbMetaPayload } from '../services/dbMetaService.js';
+import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
@@ -25,15 +26,10 @@ const READINESS_TIMEOUT_MS = Math.max(
 );
 
 const withStatsTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
-  Promise.race([
-    promise,
-    new Promise<T>((resolve) => {
-      setTimeout(() => {
-        logger.warn('[Stats] aggregate stats timed out; returning degraded fallback');
-        resolve(fallback);
-      }, STATS_TIMEOUT_MS);
-    }),
-  ]);
+  withTimeoutFallback(promise, fallback, {
+    timeoutMs: STATS_TIMEOUT_MS,
+    onTimeout: () => logger.warn('[Stats] aggregate stats timed out; returning degraded fallback'),
+  });
 
 // ── /meta/db ─── Canary endpoint: database dialect, version, timeouts, pool stats
 router.get('/meta/db', authenticateRequest, async (_req, res, next) => {

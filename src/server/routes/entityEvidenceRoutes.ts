@@ -3,6 +3,7 @@ import { entityEvidenceRepository } from '../db/entityEvidenceRepository.js';
 import crypto from 'crypto';
 import { logger } from '../services/Logger.js';
 import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
+import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = Router();
@@ -14,15 +15,11 @@ const withEntityTabTimeout = async <T>(
   promise: Promise<T>,
   fallback: T,
 ): Promise<T> =>
-  Promise.race([
-    promise,
-    new Promise<T>((resolve) => {
-      setTimeout(() => {
-        logger.warn({ entityId }, `Entity tab ${label} timed out; returning bounded fallback`);
-        resolve(fallback);
-      }, ENTITY_TAB_TIMEOUT_MS);
-    }),
-  ]);
+  withTimeoutFallback(promise, fallback, {
+    timeoutMs: ENTITY_TAB_TIMEOUT_MS,
+    onTimeout: () =>
+      logger.warn({ entityId }, `Entity tab ${label} timed out; returning bounded fallback`),
+  });
 
 router.param('entityId', async (req, res, next, value) => {
   try {

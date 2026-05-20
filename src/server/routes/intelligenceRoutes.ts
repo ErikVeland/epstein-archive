@@ -2,6 +2,7 @@ import express from 'express';
 import { intelligenceRepository } from '../db/intelligenceRepository.js';
 import { cacheResponse } from '../middleware/cache.js';
 import { logger } from '../services/Logger.js';
+import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 
 const router = express.Router();
 const DASHBOARD_TIMEOUT_MS = 5_000;
@@ -32,15 +33,10 @@ const emptyReadinessResponse = () => ({
 });
 
 const withDashboardTimeout = async <T>(label: string, promise: Promise<T>, fallback: T) =>
-  Promise.race([
-    promise,
-    new Promise<T>((resolve) => {
-      setTimeout(() => {
-        logger.warn(`[Intelligence] ${label} timed out; returning bounded fallback`);
-        resolve(fallback);
-      }, DASHBOARD_TIMEOUT_MS);
-    }),
-  ]);
+  withTimeoutFallback(promise, fallback, {
+    timeoutMs: DASHBOARD_TIMEOUT_MS,
+    onTimeout: () => logger.warn(`[Intelligence] ${label} timed out; returning bounded fallback`),
+  });
 
 /**
  * GET /api/intelligence/review

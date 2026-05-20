@@ -20,6 +20,7 @@ import rateLimit from 'express-rate-limit';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
+import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 import {
   authenticateRequest,
   optionalAuthenticate,
@@ -140,22 +141,12 @@ const emptyDocumentsList = (page: number, limit: number) => ({
   totalPages: 0,
 });
 
-const withDocumentsListTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> => {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((resolve) => {
-        timeout = setTimeout(() => {
-          logger.warn('[Documents] list query timed out; returning degraded empty response');
-          resolve(fallback);
-        }, 5000);
-      }),
-    ]);
-  } finally {
-    if (timeout) clearTimeout(timeout);
-  }
-};
+const withDocumentsListTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
+  withTimeoutFallback(promise, fallback, {
+    timeoutMs: 5_000,
+    onTimeout: () =>
+      logger.warn('[Documents] list query timed out; returning degraded empty response'),
+  });
 
 // GET /api/documents
 router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {

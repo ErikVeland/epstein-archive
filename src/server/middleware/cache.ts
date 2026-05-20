@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { cacheService } from '../cache/cacheService.js';
 import { getRevisionTokenAsync } from '../revisionManager.js';
+import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 
 export const apiCache = {
   get: <T>(key: string): T | undefined => cacheService.get<T>('http', key),
@@ -36,10 +37,9 @@ export const cacheResponse = (ttlSeconds: number) => {
       return next();
     }
 
-    const revision = await Promise.race([
-      getRevisionTokenAsync(),
-      new Promise<string>((resolve) => setTimeout(() => resolve('no-rev'), 250)),
-    ]).catch(() => 'no-rev');
+    const revision = await withTimeoutFallback(getRevisionTokenAsync(), 'no-rev', {
+      timeoutMs: 250,
+    }).catch(() => 'no-rev');
     const cacheKey = `${revision}:${req.method}:${req.path}:${stableStringify(req.query)}`;
     const cachedData = apiCache.get<string>(cacheKey);
 
