@@ -128,3 +128,85 @@ export async function signRequestPayload(
     publicKey: publicKeyBase64,
   };
 }
+
+/**
+ * Generates and stores a WebAuthn-like passkey for a specific investigator/admin user.
+ */
+export async function createUserPasskey(
+  userId: string,
+): Promise<{ credentialId: string; publicKey: string }> {
+  const keyPair = await window.crypto.subtle.generateKey(
+    {
+      name: 'ECDSA',
+      namedCurve: 'P-256',
+    },
+    true,
+    ['sign', 'verify'],
+  );
+
+  const spkiBuffer = await window.crypto.subtle.exportKey('spki', keyPair.publicKey);
+  const publicKey = arrayBufferToBase64(spkiBuffer);
+
+  const privateJwk = await window.crypto.subtle.exportKey('jwk', keyPair.privateKey);
+  const publicJwk = await window.crypto.subtle.exportKey('jwk', keyPair.publicKey);
+
+  const credentialId = window.crypto.randomUUID
+    ? window.crypto.randomUUID()
+    : Math.random().toString(36).substring(2);
+
+  localStorage.setItem(
+    `epstein_archive_passkey_${userId}_${credentialId}`,
+    JSON.stringify({
+      privateJwk,
+      publicJwk,
+      publicKey,
+    }),
+  );
+
+  const credsKey = `epstein_archive_user_credentials_${userId}`;
+  const existingCreds = JSON.parse(localStorage.getItem(credsKey) || '[]');
+  existingCreds.push(credentialId);
+  localStorage.setItem(credsKey, JSON.stringify(existingCreds));
+
+  return {
+    credentialId,
+    publicKey,
+  };
+}
+
+/**
+ * Signs a login challenge for a registered investigator/admin passkey.
+ */
+export async function signLoginChallenge(
+  userId: string,
+  credentialId: string,
+  challenge: string,
+): Promise<string> {
+  const stored = localStorage.getItem(`epstein_archive_passkey_${userId}_${credentialId}`);
+  if (!stored) {
+    throw new Error('Local credential key not found on this device');
+  }
+
+  const parsed = JSON.parse(stored);
+  const privateKey = await window.crypto.subtle.importKey(
+    'jwk',
+    parsed.privateJwk,
+    { name: 'ECDSA', namedCurve: 'P-256' },
+    true,
+    ['sign'],
+  );
+
+  const encoder = new TextEncoder();
+  const challengeBytes = encoder.encode(challenge);
+
+  const signatureBuffer = await window.crypto.subtle.sign(
+    {
+      name: 'ECDSA',
+      hash: { name: 'SHA-256' },
+    },
+    privateKey,
+    challengeBytes,
+  );
+
+  return arrayBufferToBase64(signatureBuffer);
+}
