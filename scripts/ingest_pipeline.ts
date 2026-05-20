@@ -48,6 +48,7 @@ import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { markViewsDirty } from '../src/server/services/matViewRefresh.js';
 import { getWorkerConfig, intFromEnv } from '../src/server/pipeline/workerConfig.js';
+import { WorkerPool } from '../src/server/pipeline/workerPool.js';
 import {
   computeSha256Hex,
   documentProvenanceService,
@@ -2512,18 +2513,7 @@ async function processCollection(
   // Stream files via walkDir (fs.opendir) — reads one entry at a time to avoid
   // OOM / event-loop blocking on collections with 300K+ files in one directory.
   const CONCURRENCY_LIMIT = intFromEnv('INGEST_CONCURRENCY', 30, 1, 64);
-  let activePromises = 0;
-  const completionCallbacks: Array<() => void> = [];
-
-  const waitForSlot = (): Promise<void> => {
-    if (activePromises < CONCURRENCY_LIMIT) return Promise.resolve();
-    return new Promise<void>((resolve) => completionCallbacks.push(resolve));
-  };
-
-  const releaseSlot = (): void => {
-    activePromises--;
-    if (completionCallbacks.length > 0) completionCallbacks.shift()!();
-  };
+  const pool = new WorkerPool();
 
   const results: { processed: number; skipped: number; errors: number } = {
     processed: 0,
@@ -2532,16 +2522,16 @@ async function processCollection(
   };
 
   for await (const file of walkDir(collection.rootPath)) {
-    await waitForSlot();
-    activePromises++;
+    await pool.waitForCapacity(CONCURRENCY_LIMIT);
 
-    processDocument(file, collection)
-      .then((result) => {
+    pool.run(async () => {
+      try {
+        const result = await processDocument(file, collection);
         if (result.success && result.documentId) {
           results.processed++;
           if (results.processed % 50 === 0) {
             process.stdout.write(
-              `   Progress: ${results.processed} processed (Active: ${activePromises})...\r`,
+              `   Progress: ${results.processed} processed (Active: ${pool.size})...\r`,
             );
           }
         } else if (result.success) {
@@ -2550,18 +2540,14 @@ async function processCollection(
           results.errors++;
           console.error(`   ❌ Error processing ${basename(file)}: ${result.error}`);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         results.errors++;
         console.error(`   ❌ Unhandled error processing ${basename(file)}:`, err);
-      })
-      .finally(releaseSlot);
+      }
+    });
   }
 
-  // Drain any remaining in-flight work
-  while (activePromises > 0) {
-    await new Promise<void>((resolve) => completionCallbacks.push(resolve));
-  }
+  await pool.drain();
 
   console.log(
     `   ✅ Complete: ${results.processed} processed, ${results.skipped} skipped, ${results.errors} errors`,
@@ -2932,7 +2918,7 @@ async function processQueue() {
 
   const workerConfig = getWorkerConfig();
   const CONCURRENCY = intFromEnv('INGEST_CONCURRENCY', 30, 1, 64);
-  const activePromises: Set<Promise<void>> = new Set();
+  const pool = new WorkerPool();
   let processedCount = 0;
   let hasMore = true;
 
@@ -3039,7 +3025,7 @@ async function processQueue() {
     source_collection: string | null;
     processing_attempts: number;
   }) => {
-    const promise = (async () => {
+    pool.run(async () => {
       const docId = Math.floor(doc.id);
       try {
         await jobManager.renewLease(docId, workerConfig.leaseSeconds);
@@ -3139,23 +3125,20 @@ async function processQueue() {
 
         if (processedCount % 10 === 0) {
           process.stdout.write(
-            `\r   ✅ Processed ${processedCount} documents (Active: ${activePromises.size})`,
+            `\r   ✅ Processed ${processedCount} documents (Active: ${pool.size})`,
           );
         }
       } catch (e) {
         console.error(`\n      ❌ Job Failed (Doc ${docId}): ${(e as Error).message}`);
         await jobManager.failJob(docId, (e as Error).message);
       }
-    })();
-
-    promise.finally(() => activePromises.delete(promise));
-    activePromises.add(promise);
+    });
   };
 
-  while (hasMore || activePromises.size > 0) {
+  while (hasMore || pool.size > 0) {
     // Batch-fill all open slots in one DB round-trip so every AI call fires
     // simultaneously instead of serialising behind individual acquires.
-    const slots = CONCURRENCY - activePromises.size;
+    const slots = CONCURRENCY - pool.size;
     if (slots > 0 && hasMore) {
       const batch = await jobManager.acquireJobBatch(slots, 600, collectionPriority);
       if (batch.length === 0) {
@@ -3167,8 +3150,8 @@ async function processQueue() {
       }
     }
 
-    if (activePromises.size > 0) {
-      await Promise.race(activePromises);
+    if (pool.size > 0) {
+      await pool.waitForNext();
     } else if (!hasMore) {
       break;
     }

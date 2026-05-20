@@ -22,6 +22,12 @@ export class WorkerPool {
     await Promise.race(this.active);
   }
 
+  async waitForCapacity(concurrency: number): Promise<void> {
+    while (!this.hasCapacity(concurrency)) {
+      await this.waitForNext();
+    }
+  }
+
   async drain(): Promise<void> {
     while (this.active.size > 0) {
       await this.waitForNext();

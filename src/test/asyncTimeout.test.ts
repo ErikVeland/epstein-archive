@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { withTimeoutFallback } from '../server/utils/asyncTimeout.js';
+import { withTimeoutFallback, withTimeoutReject } from '../server/utils/asyncTimeout.js';
 
 describe('withTimeoutFallback', () => {
   afterEach(() => {
@@ -31,5 +31,23 @@ describe('withTimeoutFallback', () => {
     await expect(
       withTimeoutFallback(Promise.reject(new Error('boom')), 'fallback', { timeoutMs: 1000 }),
     ).rejects.toThrow('boom');
+  });
+
+  it('rejects and runs timeout recovery after the deadline', async () => {
+    vi.useFakeTimers();
+    const onTimeout = vi.fn().mockResolvedValue(undefined);
+
+    const result = expect(
+      withTimeoutReject(new Promise<string>(() => {}), {
+        timeoutMs: 1000,
+        timeoutMessage: 'timed out',
+        onTimeout,
+      }),
+    ).rejects.toThrow('timed out');
+
+    await vi.advanceTimersByTimeAsync(1000);
+
+    await result;
+    expect(onTimeout).toHaveBeenCalledOnce();
   });
 });

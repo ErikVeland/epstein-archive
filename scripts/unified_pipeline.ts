@@ -12,6 +12,7 @@ import 'dotenv/config';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { getWorkerConfig } from '../src/server/pipeline/workerConfig.js';
+import { withTimeoutReject } from '../src/server/utils/asyncTimeout.js';
 import { PipelineService, type PipelineRun } from '../src/server/services/pipelineService.js';
 
 /**
@@ -326,31 +327,6 @@ async function ensureServiceHealthyOrRecover(
     `Recovery failed: ${service}`,
   );
   throw new PipelineBlockedError(fatalMessage, service);
-}
-
-async function withTimeout<T>(
-  work: Promise<T>,
-  timeoutMs: number,
-  onTimeout: () => Promise<void>,
-  timeoutMessage: string,
-): Promise<T> {
-  let timer: NodeJS.Timeout | null = null;
-  try {
-    return await Promise.race([
-      work,
-      new Promise<T>((_, reject) => {
-        timer = setTimeout(async () => {
-          try {
-            await onTimeout();
-          } finally {
-            reject(new Error(timeoutMessage));
-          }
-        }, timeoutMs);
-      }),
-    ]);
-  } finally {
-    if (timer) clearTimeout(timer);
-  }
 }
 
 function startWatchdog() {
@@ -962,19 +938,21 @@ async function runEnrichPhase(
         // Release raw content from row object — refinedText is the only copy we need
         doc.content = null;
 
-        let summary = await withTimeout(
+        let summary = await withTimeoutReject(
           AIEnrichmentService.summarizeDocument(analysisText, {
             fileName: doc.file_name || undefined,
             subject,
           }),
-          DOC_PROCESSING_TIMEOUT_MS,
-          async () => {
-            await attemptRecovery(
-              'exo',
-              `AI enrichment timed out after ${Math.round(DOC_PROCESSING_TIMEOUT_MS / 1000)}s on ${doc.file_name || 'unknown'}`,
-            );
+          {
+            timeoutMs: DOC_PROCESSING_TIMEOUT_MS,
+            timeoutMessage: `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,
+            onTimeout: async () => {
+              await attemptRecovery(
+                'exo',
+                `AI enrichment timed out after ${Math.round(DOC_PROCESSING_TIMEOUT_MS / 1000)}s on ${doc.file_name || 'unknown'}`,
+              );
+            },
           },
-          `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,
         );
 
         if (!summary || summary.length < 10) {
