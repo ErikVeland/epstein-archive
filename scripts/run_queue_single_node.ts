@@ -4,6 +4,7 @@ import { JobManager } from '../src/server/services/JobManager.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { getWorkerConfig } from '../src/server/pipeline/workerConfig.js';
+import { WorkerPool } from '../src/server/pipeline/workerPool.js';
 
 process.env.AI_PROVIDER = 'exo_cluster';
 process.env.ENABLE_AI_ENRICHMENT = 'true';
@@ -32,7 +33,7 @@ async function runQueue() {
   let processed = 0;
   let failed = 0;
   let hasMore = true;
-  const active: Set<Promise<void>> = new Set();
+  const active = new WorkerPool();
   const startedAt = Date.now();
 
   const initialQueued = (
@@ -63,14 +64,14 @@ async function runQueue() {
   while (!shuttingDown && (hasMore || active.size > 0)) {
     await waitForHealthyApi();
 
-    while (!shuttingDown && hasMore && active.size < CONCURRENCY) {
+    while (!shuttingDown && hasMore && active.hasCapacity(CONCURRENCY)) {
       const job = await jobManager.acquireJob(LEASE_SECONDS);
       if (!job) {
         hasMore = false;
         break;
       }
 
-      const p = (async () => {
+      active.run(async () => {
         const docId = Number(job.id);
         try {
           await jobManager.renewLease(docId, LEASE_SECONDS);
@@ -112,22 +113,17 @@ async function runQueue() {
           await jobManager.failJob(docId, message || 'unknown error');
           process.stdout.write(`\n❌ Doc ${docId} failed: ${message || 'unknown error'}\n`);
         }
-      })();
-
-      p.finally(() => active.delete(p));
-      active.add(p);
+      });
     }
 
     if (active.size > 0) {
-      await Promise.race(active);
+      await active.waitForNext();
     } else if (!hasMore) {
       break;
     }
   }
 
-  while (active.size > 0) {
-    await Promise.race(active);
-  }
+  await active.drain();
 
   const queuedLeft = (
     await pool.query("SELECT COUNT(*) AS c FROM documents WHERE processing_status = 'queued'")

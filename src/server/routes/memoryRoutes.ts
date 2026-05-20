@@ -4,6 +4,7 @@ import { getApiPool } from '../db/connection.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -52,6 +53,7 @@ router.get('/', authenticateRequest, validate(memoryQuerySchema), async (req, re
   try {
     type MemoryQuery = z.infer<typeof memoryQuerySchema>['query'];
     const { page, limit, memoryType, status, q } = req.query as unknown as MemoryQuery;
+    if (rejectDeepOffset(res, 'Memory entry', page, limit)) return;
     const pool = getApiPool();
     const result = await memoryRepository.searchMemoryEntries(
       pool,

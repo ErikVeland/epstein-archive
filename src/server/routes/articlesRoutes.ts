@@ -3,6 +3,7 @@ import { articlesRepository } from '../db/articlesRepository.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { logger } from '../services/Logger.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.get('/', validate(getArticlesSchema), async (req, res) => {
   try {
     type ArticlesQuery = z.infer<typeof getArticlesSchema>['query'];
     const { page, limit, search, publication, sort } = req.query as unknown as ArticlesQuery;
+    if (rejectDeepOffset(res, 'Article', page, limit)) return;
     const offset = (page - 1) * limit;
 
     const result = await articlesRepository.getArticles(limit, offset, search, publication, sort);

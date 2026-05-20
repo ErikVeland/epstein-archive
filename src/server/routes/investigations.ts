@@ -16,6 +16,7 @@ import { InvestigationIngestorService } from '../services/InvestigationIngestorS
 import { buildManifest, buildEvidenceCsv, buildBundleReadme } from '../utils/exportManifest.js';
 import { buildExportFileInventory } from '../utils/investigationExportInventory.js';
 import { InvestigationRow, InvestigationEvidenceRow } from '../db/rowTypes.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = Router();
 const DATA_ROOT = path.resolve(process.cwd(), 'data');
@@ -388,6 +389,7 @@ router.get('/', validate(getInvestigationsSchema), async (req, res, next) => {
       page: Number(page),
       limit: Math.min(HARD_CAP_INVESTIGATIONS_LIMIT, Number(limit)),
     };
+    if (rejectDeepOffset(res, 'Investigation', filters.page, filters.limit)) return;
     res.setHeader('X-Limit-Applied', String(filters.limit));
 
     const result = await investigationsRepository.getInvestigations(filters);

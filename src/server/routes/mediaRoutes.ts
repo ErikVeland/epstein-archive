@@ -11,6 +11,7 @@ import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { findFirstExistingPath } from '../utils/pathResolver.js';
 import { documentsRepository } from '../db/documentsRepository.js';
 import { MediaExtractionService } from '../services/MediaExtractionService.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const DATA_ROOT = path.resolve(process.cwd(), 'data');
 
@@ -160,6 +161,7 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
     const query = req.query as Record<string, unknown>;
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 24);
+    if (rejectDeepOffset(res, 'Media image', page, limit)) return;
     const sortField = String(query.sortField || 'date_added').toLowerCase();
     const sortOrder = String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc';
     const slim = query.slim === true;
@@ -629,17 +631,25 @@ const makeAvListHandler =
     try {
       const query = req.query as Record<string, string | undefined>;
       const { page, limit, albumId, sortBy, transcriptQuery, hasPeople } = query;
-      const result = await mediaRepository.getMediaItemsPaginated(
-        Number(page || 1),
-        Number(limit || 24),
-        {
-          fileType,
-          albumId: albumId ? Number(albumId) : undefined,
-          sortBy: (sortBy as 'title' | 'date' | 'rating' | 'date_taken') ?? 'title',
-          transcriptQuery: transcriptQuery || undefined,
-          hasPeople: hasPeople === 'true',
-        },
-      );
+      const pageNumber = Number(page || 1);
+      const limitNumber = Number(limit || 24);
+      if (
+        rejectDeepOffset(
+          res,
+          `${fileType === 'audio' ? 'Audio' : 'Video'} media`,
+          pageNumber,
+          limitNumber,
+        )
+      ) {
+        return;
+      }
+      const result = await mediaRepository.getMediaItemsPaginated(pageNumber, limitNumber, {
+        fileType,
+        albumId: albumId ? Number(albumId) : undefined,
+        sortBy: (sortBy as 'title' | 'date' | 'rating' | 'date_taken') ?? 'title',
+        transcriptQuery: transcriptQuery || undefined,
+        hasPeople: hasPeople === 'true',
+      });
       res.json(result);
     } catch (error) {
       next(error);

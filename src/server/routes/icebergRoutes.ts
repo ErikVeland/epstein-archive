@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { authenticateRequest, type AuthRequest } from '../auth/middleware.js';
 import { validate } from '../middleware/validate.js';
 import { icebergRepository } from '../db/icebergRepository.js';
+import { rejectOffset } from '../utils/paginationGuards.js';
 
 const router = Router({ mergeParams: true });
 
@@ -43,6 +44,7 @@ router.get('/leads', validate(icebergLeadListSchema), async (req, res, next) => 
   try {
     const params = req.params as unknown as { id: number };
     const query = req.query as unknown as z.infer<typeof icebergLeadListSchema>['query'];
+    if (rejectOffset(res, 'Iceberg lead', query.offset)) return;
     const leads = await icebergRepository.getLeads(params.id, {
       limit: query.limit,
       offset: query.offset,

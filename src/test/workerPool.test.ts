@@ -1,0 +1,25 @@
+import { describe, expect, it } from 'vitest';
+import { WorkerPool } from '../server/pipeline/workerPool.js';
+
+describe('WorkerPool', () => {
+  it('tracks active work and drains completed tasks', async () => {
+    const pool = new WorkerPool();
+    const completed: number[] = [];
+
+    pool.run(async () => {
+      completed.push(1);
+    });
+    pool.run(async () => {
+      completed.push(2);
+    });
+
+    expect(pool.size).toBe(2);
+    expect(pool.hasCapacity(2)).toBe(false);
+    expect(pool.hasCapacity(3)).toBe(true);
+
+    await pool.drain();
+
+    expect(pool.size).toBe(0);
+    expect(completed.sort()).toEqual([1, 2]);
+  });
+});

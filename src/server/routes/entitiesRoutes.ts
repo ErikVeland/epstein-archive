@@ -19,6 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import type { SearchFilters, SortOption } from '../../types.js';
 import type { EntityRow } from '../db/rowTypes.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -29,6 +30,7 @@ router.get('/', validate(entitiesQuerySchema), async (req, res, next) => {
     const query = req.query as unknown as z.infer<typeof entitiesQuerySchema>['query'];
     const page = Math.max(1, Number(query.page || 1));
     const limit = Math.min(500, Math.max(1, Number(query.limit || 24)));
+    if (rejectDeepOffset(res, 'Entity', page, limit)) return;
     const sortByRaw = String(query.sortBy || 'risk').toLowerCase();
     const sortByAliases: Record<string, SortOption> = {
       default: 'red_flag',

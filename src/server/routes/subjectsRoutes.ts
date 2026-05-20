@@ -4,6 +4,7 @@ import { entitiesRepository } from '../db/entitiesRepository.js';
 import { mapSubjectsListResponseDto } from '../mappers/entitiesDtoMapper.js';
 import { validate, subjectsQuerySchema } from '../middleware/validate.js';
 import type { SearchFilters, SortOption } from '../../types.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 export const subjectsRouter = express.Router();
 
@@ -20,6 +21,7 @@ subjectsRouter.get('/', validate(subjectsQuerySchema), async (req, res, next) =>
     const query = req.query as unknown as z.infer<typeof subjectsQuerySchema>['query'];
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 24);
+    if (rejectDeepOffset(res, 'Subject', page, limit)) return;
 
     const likelihoodRaw = query.likelihoodScore;
     const likelihoodScore = Array.isArray(likelihoodRaw)

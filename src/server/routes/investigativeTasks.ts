@@ -3,6 +3,7 @@ import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { InvestigativeTaskService } from '../services/InvestigativeTaskService.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 const taskService = new InvestigativeTaskService();
@@ -57,6 +58,9 @@ const updateProgressSchema = z.object({
 router.get('/', validate(getTasksSchema), async (req, res, next) => {
   try {
     const filters = req.query as Record<string, string | undefined>;
+    const page = Number(filters.page || 1);
+    const limit = Number(filters.limit || 20);
+    if (rejectDeepOffset(res, 'Task', page, limit)) return;
 
     const result = await taskService.getTasks(filters);
     res.json(result);

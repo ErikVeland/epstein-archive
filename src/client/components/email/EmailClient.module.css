@@ -589,6 +589,14 @@
   opacity: 0.6;
 }
 
+.priorityMetricIconActive {
+  color: var(--accent-yellow);
+}
+
+.priorityMetricIconMuted {
+  color: var(--text-disabled);
+}
+
 .providerPill {
   padding: 0.125rem 0.5rem;
   background: var(--glass-bg-strong);

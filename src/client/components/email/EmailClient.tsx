@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { MobileStackHeader } from '../layout/MobileStackHeader';
 import styles from './EmailClient.module.css';
-import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
+import { FixedSizeList as List } from 'react-window';
 import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
 import {
   useBackLinkState,
@@ -11,7 +11,6 @@ import {
 } from '@client/hooks/useReliableBackNavigation';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import Icon from '@client/components/common/Icon';
-import { EmailThreadDTO } from '@client/services/apiClient';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { AnimatedSegmentedControl } from '../common/AnimatedSegmentedControl';
 import { EvidenceModal } from '../common/EvidenceModal';
@@ -20,6 +19,8 @@ import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { isJunkEntity } from '@client/utils/entityFilters';
 import { EmailSettingsModal } from './EmailSettingsModal';
+import { EmailThreadRow, type EmailDensity } from './EmailThreadRow';
+import { formatEmailTime } from './emailFormatting';
 import { Button, Flex, SearchField, Select, Surface, TextInput } from '@client/design-system/lib';
 
 const STATIC_PEOPLE = [
@@ -56,8 +57,6 @@ const STATIC_PEOPLE = [
   'Howard Lutnick',
 ];
 
-type EmailDensity = 'comfortable' | 'compact';
-
 const minRiskOptions = [
   { value: 0, label: 'Any' },
   { value: 1, label: '≥ 1' },
@@ -74,22 +73,6 @@ const ladderTone = (ladder: string | null): string => {
   return styles.ladderDefault;
 };
 
-const formatTime = (value: string | null): string => {
-  if (!value) return 'Unknown';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  const now = new Date();
-  const age = now.getTime() - date.getTime();
-  const oneDay = 24 * 60 * 60 * 1000;
-  if (age < oneDay) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  if (age < oneDay * 7) {
-    return date.toLocaleDateString([], { weekday: 'short' });
-  }
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-};
-
 const copyText = async (value: string): Promise<void> => {
   try {
     await navigator.clipboard.writeText(value);
@@ -97,70 +80,6 @@ const copyText = async (value: string): Promise<void> => {
     // Ignore clipboard failures.
   }
 };
-
-const ThreadRow = React.memo(
-  ({
-    index,
-    style,
-    data,
-  }: ListChildComponentProps<{
-    rows: EmailThreadDTO[];
-    selectedThreadId: string | null;
-    onOpen: (threadId: string) => void;
-    density: EmailDensity;
-  }>) => {
-    const thread = data.rows[index];
-    const selected = data.selectedThreadId === thread.threadId;
-
-    // Use real analytics metrics derived from significance_score and signal_score
-    const viewCount = Math.max(1, Math.floor((thread.significanceScore || 0) * 10 + 12));
-    const starCount = Math.max(0, Math.floor((thread.signalScore || 0) * 10));
-
-    const formattedSnippet = (thread.snippet || '').replace(/^(\s*[-–—]\s*)+/, '').trim();
-
-    return (
-      <Button
-        style={style}
-        onClick={() => data.onOpen(thread.threadId)}
-        type="button"
-        variant="ghost"
-        size="sm"
-        data-thread-id={thread.threadId}
-        className={`${styles.emailRow} ${selected ? styles.active : ''} ${
-          data.density === 'compact' ? styles.compactRow : styles.comfortableRow
-        }`}
-      >
-        <div className={styles.metricCluster}>
-          <div className={styles.metricItem} title="Priority Indicator">
-            <Icon
-              name="Star"
-              className={styles.metricIcon}
-              style={{ color: starCount > 3 ? 'var(--accent-yellow)' : 'var(--text-disabled)' }}
-            />
-            <span>{starCount}</span>
-          </div>
-          <div className={styles.metricItem} title="Significance View Factor">
-            <Icon name="Eye" className={styles.metricIcon} />
-            <span>{viewCount}</span>
-          </div>
-        </div>
-
-        <div className={styles.rowParticipants}>
-          {thread.participants[0]?.split('@')[0] || 'Unknown'}
-        </div>
-
-        <div className={styles.rowMain}>
-          <span className={styles.rowSubject}>{thread.subject}</span>
-          <span className={styles.rowSnippet}>{formattedSnippet || '(No content)'}</span>
-        </div>
-
-        <div className={styles.rowAside}>
-          <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>
-        </div>
-      </Button>
-    );
-  },
-);
 
 export const EmailClient: React.FC = () => {
   const navigate = useNavigate();
@@ -1189,7 +1108,7 @@ export const EmailClient: React.FC = () => {
                             density,
                           }}
                         >
-                          {ThreadRow}
+                          {EmailThreadRow}
                         </List>
                       ) : null
                     }
@@ -1261,7 +1180,7 @@ export const EmailClient: React.FC = () => {
                                   <div className={styles.messageFromRow}>
                                     <div className={styles.messageFrom}>{message.from}</div>
                                     <div className={styles.messageTime}>
-                                      {formatTime(message.date)}
+                                      {formatEmailTime(message.date)}
                                     </div>
                                   </div>
                                 </div>
@@ -1394,7 +1313,7 @@ export const EmailClient: React.FC = () => {
                                     {message.from || 'Unknown Sender'}
                                   </div>
                                   <div className={styles.messageTime}>
-                                    {formatTime(message.date)}
+                                    {formatEmailTime(message.date)}
                                   </div>
                                 </div>
                                 <div className={styles.messageTo}>

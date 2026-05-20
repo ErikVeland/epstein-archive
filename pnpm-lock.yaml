@@ -398,12 +398,6 @@ importers:
       '@pgtyped/runtime':
         specifier: ^2.4.2
         version: 2.4.2
-      '@types/express':
-        specifier: ^5.0.6
-        version: 5.0.6
-      '@types/express-rate-limit':
-        specifier: ^6.0.2
-        version: 6.0.2(express@4.22.1)
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -3713,13 +3707,6 @@ packages:
         integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==,
       }
 
-  '@types/express-rate-limit@6.0.2':
-    resolution:
-      {
-        integrity: sha512-e1xZLOOlxCDvplAGq7rDcXtbdBu2CWRsMjaIu1LVqGxWtKvwr884YE5mPs3IvHeG/OMDhf24oTaqG5T1bV3rBQ==,
-      }
-    deprecated: This is a stub types definition. express-rate-limit provides its own type definitions, so you do not need this installed.
-
   '@types/express-serve-static-core@5.1.0':
     resolution:
       {
@@ -5591,15 +5578,6 @@ packages:
     resolution:
       {
         integrity: sha512-5O6KYmyJEpuPJV5hNTXKbAHWRqrzyu+OI3vUnSd2kXFubIVpG7ezpgxQy76Zo5GQZtrQBg86hF+CM/NX+cioiQ==,
-      }
-    engines: { node: '>= 16' }
-    peerDependencies:
-      express: '>= 4.11'
-
-  express-rate-limit@8.5.2:
-    resolution:
-      {
-        integrity: sha512-5Kb34ipNX694DH48vN9irak1Qx30nb0PLYHXfJgw4YEjiC3ZEmZJhwOp+VfiCYwFzvFTdB9QkArYS5kXa2cx2A==,
       }
     engines: { node: '>= 16' }
     peerDependencies:
@@ -11213,12 +11191,6 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
-  '@types/express-rate-limit@6.0.2(express@4.22.1)':
-    dependencies:
-      express-rate-limit: 8.5.2(express@4.22.1)
-    transitivePeerDependencies:
-      - express
-
   '@types/express-serve-static-core@5.1.0':
     dependencies:
       '@types/node': 22.19.2
@@ -12329,11 +12301,6 @@ snapshots:
   expect-type@1.3.0: {}
 
   express-rate-limit@8.5.1(express@4.22.1):
-    dependencies:
-      express: 4.22.1
-      ip-address: 10.2.0
-
-  express-rate-limit@8.5.2(express@4.22.1):
     dependencies:
       express: 4.22.1
       ip-address: 10.2.0

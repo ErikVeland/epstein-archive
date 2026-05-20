@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { flightsRepository } from '../db/flightsRepository.js';
 import { validate, flightsQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
 import { apiRateLimiter } from '../middleware/rateLimit.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.get('/', apiRateLimiter, validate(flightsQuerySchema), async (req, res, n
     const q = req.query as Record<string, string | undefined>;
     const page = Math.max(1, Number(q.page || 1));
     const limit = Math.min(500, Math.max(1, Number(q.limit || 50)));
+    if (rejectDeepOffset(res, 'Flight', page, limit)) return;
     const startDate = String(q.startDate || '').trim() || undefined;
     const endDate = String(q.endDate || '').trim() || undefined;
     const passenger = String(q.passenger || '').trim() || undefined;

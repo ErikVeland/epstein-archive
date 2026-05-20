@@ -3,6 +3,7 @@ import { entityEvidenceRepository } from '../db/entityEvidenceRepository.js';
 import crypto from 'crypto';
 import { logger } from '../services/Logger.js';
 import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
+import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = Router();
 const ENTITY_TAB_TIMEOUT_MS = 1_000;
@@ -130,6 +131,7 @@ router.get('/:entityId/documents', async (req: Request, res: Response) => {
     const { entityId } = req.params as { entityId: string };
     const page = parseInt(req.query.page as string) || 1;
     const limit = Math.min(200, parseInt(req.query.limit as string) || 50);
+    if (rejectDeepOffset(res, 'Entity document', page, limit)) return;
     const search = (req.query.search as string) || '';
     const source = (req.query.source as string) || 'all';
     const sort = (req.query.sort as string) || 'date';
