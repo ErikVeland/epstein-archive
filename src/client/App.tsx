@@ -68,6 +68,7 @@ import { OfflineIndicator } from './components/common/OfflineIndicator';
 import { CollaborationIndicator } from './components/common/CollaborationIndicator';
 import { AppRoutes } from './app/AppRoutes';
 import { ModalHost } from './app/ModalHost';
+import { useAppKeyboardShortcuts } from './app/useAppKeyboardShortcuts';
 
 import releaseNotesRaw from '@root/release_notes.md?raw';
 import styles from './App.module.css';
@@ -372,146 +373,19 @@ function App() {
     }
   }, [legacyFilePayload, navigate]);
 
-  // Keyboard shortcuts for power users
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle shortcuts when not in an input field
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      // Ctrl/Cmd + K for search focus
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        const searchInput = document.querySelector('input[type="text"]');
-        if (searchInput) {
-          (searchInput as HTMLInputElement).focus();
-          // Announce focus change for screen readers
-          const announcement = document.createElement('div');
-          announcement.setAttribute('aria-live', 'polite');
-          announcement.setAttribute('aria-atomic', 'true');
-          announcement.className = 'sr-only';
-          announcement.textContent = 'Search input focused';
-          document.body.appendChild(announcement);
-          setTimeout(() => document.body.removeChild(announcement), 1000);
-        }
-      }
-
-      // Ctrl/Cmd + 1-9 for tab navigation
-      if (e.ctrlKey || e.metaKey) {
-        const tabMap: Record<string, string> = {
-          '1': '/people',
-          '2': '/search',
-          '3': '/documents',
-          '4': '/media',
-          '5': '/timeline',
-          '7': '/analytics',
-          '8': '/blackbook',
-          '9': '/about',
-          '0': '/admin',
-        };
-
-        if (tabMap[e.key]) {
-          e.preventDefault();
-          navigate(tabMap[e.key]);
-          // Announce navigation change for screen readers
-          const announcement = document.createElement('div');
-          announcement.setAttribute('aria-live', 'polite');
-          announcement.setAttribute('aria-atomic', 'true');
-          announcement.className = 'sr-only';
-          announcement.textContent = `Navigated to ${tabMap[e.key].substring(1)} section`;
-          document.body.appendChild(announcement);
-          setTimeout(() => document.body.removeChild(announcement), 1000);
-        }
-      }
-
-      // ESC to close modals
-      if (e.key === 'Escape') {
-        if (selectedPerson) {
-          setSelectedPerson(null);
-          const params = new URLSearchParams(location.search);
-          params.delete('entityId');
-          params.delete('entityTab');
-          navigate(`${location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
-          // Announce modal close for screen readers
-          const announcement = document.createElement('div');
-          announcement.setAttribute('aria-live', 'polite');
-          announcement.setAttribute('aria-atomic', 'true');
-          announcement.className = 'sr-only';
-          announcement.textContent = 'Person details modal closed';
-          document.body.appendChild(announcement);
-          setTimeout(() => document.body.removeChild(announcement), 1000);
-        }
-        if (documentModalId) {
-          setDocumentModalId('');
-          setDocumentModalInitial(null);
-          goBack('/documents');
-          // Announce modal close for screen readers
-          const announcement = document.createElement('div');
-          announcement.setAttribute('aria-live', 'polite');
-          announcement.setAttribute('aria-atomic', 'true');
-          announcement.className = 'sr-only';
-          announcement.textContent = 'Document modal closed';
-          document.body.appendChild(announcement);
-          setTimeout(() => document.body.removeChild(announcement), 1000);
-        }
-        if (showReleaseNotes) {
-          setShowReleaseNotes(false);
-          // Announce modal close for screen readers
-          const announcement = document.createElement('div');
-          announcement.setAttribute('aria-live', 'polite');
-          announcement.setAttribute('aria-atomic', 'true');
-          announcement.className = 'sr-only';
-          announcement.textContent = 'Release notes closed';
-          document.body.appendChild(announcement);
-          setTimeout(() => document.body.removeChild(announcement), 1000);
-        }
-      }
-
-      // Ctrl/Cmd + Shift + R for refresh/reload
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
-        e.preventDefault();
-        window.location.reload();
-        // Announce reload for screen readers
-        const announcement = document.createElement('div');
-        announcement.setAttribute('aria-live', 'polite');
-        announcement.setAttribute('aria-atomic', 'true');
-        announcement.className = 'sr-only';
-        announcement.textContent = 'Reloading application';
-        document.body.appendChild(announcement);
-        setTimeout(() => document.body.removeChild(announcement), 1000);
-      }
-
-      // Ctrl/Cmd + / for keyboard shortcuts help
-      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-        e.preventDefault();
-        setShowKeyboardShortcuts(true);
-        // Announce modal open for screen readers
-        const announcement = document.createElement('div');
-        announcement.setAttribute('aria-live', 'polite');
-        announcement.setAttribute('aria-atomic', 'true');
-        announcement.className = 'sr-only';
-        announcement.textContent = 'Keyboard shortcuts help opened';
-        document.body.appendChild(announcement);
-        setTimeout(() => document.body.removeChild(announcement), 1000);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [
+  useAppKeyboardShortcuts({
     navigate,
     selectedPerson,
+    setSelectedPerson,
     documentModalId,
+    setDocumentModalId,
+    setDocumentModalInitial,
     showReleaseNotes,
-    showKeyboardShortcuts,
-    activeTab,
-    location.pathname,
-    location.search,
+    setShowReleaseNotes,
+    setShowKeyboardShortcuts,
+    location,
     goBack,
-  ]);
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
