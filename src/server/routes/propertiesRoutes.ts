@@ -1,7 +1,7 @@
 import express from 'express';
 import { propertiesRepository } from '../db/propertiesRepository.js';
 import { validate, propertiesQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
-import { rejectDeepOffset } from '../utils/paginationGuards.js';
+import { rejectDeepOffset, LIST_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get('/', validate(propertiesQuerySchema), async (req, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
     const page = Math.max(1, Number(q.page || 1));
-    const limit = Math.min(500, Math.max(1, Number(q.limit || 50)));
+    const limit = Math.min(LIST_LIMIT_CAP, Math.max(1, Number(q.limit || 50)));
     if (rejectDeepOffset(res, 'Property', page, limit)) return;
 
     const sortByRaw = String(q.sortBy || '').trim();

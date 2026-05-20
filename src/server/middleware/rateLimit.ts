@@ -49,3 +49,17 @@ export const graphRateLimiter = rateLimit({
     res.status(options.statusCode).send(options.message);
   },
 });
+
+export const annotationWriteLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: isDevOrTest ? 10000 : 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const vitalsPostLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isDevOrTest ? 10000 : 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+});

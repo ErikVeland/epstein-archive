@@ -19,7 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import type { SearchFilters, SortOption } from '../../types.js';
 import type { EntityRow } from '../db/rowTypes.js';
-import { rejectDeepOffset } from '../utils/paginationGuards.js';
+import { rejectDeepOffset, LIST_LIMIT_CAP, SEARCH_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -29,7 +29,7 @@ router.get('/', validate(entitiesQuerySchema), async (req, res, next) => {
   try {
     const query = req.query as unknown as z.infer<typeof entitiesQuerySchema>['query'];
     const page = Math.max(1, Number(query.page || 1));
-    const limit = Math.min(500, Math.max(1, Number(query.limit || 24)));
+    const limit = Math.min(LIST_LIMIT_CAP, Math.max(1, Number(query.limit || 24)));
     if (rejectDeepOffset(res, 'Entity', page, limit)) return;
     const sortByRaw = String(query.sortBy || 'risk').toLowerCase();
     const sortByAliases: Record<string, SortOption> = {
@@ -98,7 +98,7 @@ router.get('/search', validate(searchSchema), async (req, res, next) => {
   try {
     const query = req.query as unknown as z.infer<typeof searchSchema>['query'];
     const q = String(query.q || '').trim();
-    const limit = Math.min(100, Math.max(1, Number(query.limit || 20)));
+    const limit = Math.min(SEARCH_LIMIT_CAP, Math.max(1, Number(query.limit || 20)));
     const result = await entitiesRepository.getEntities(
       1,
       limit,

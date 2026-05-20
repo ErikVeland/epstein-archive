@@ -3,7 +3,11 @@ import { z } from 'zod';
 import { flightsRepository } from '../db/flightsRepository.js';
 import { validate, flightsQuerySchema, numericIdParamSchema } from '../middleware/validate.js';
 import { apiRateLimiter } from '../middleware/rateLimit.js';
-import { rejectDeepOffset } from '../utils/paginationGuards.js';
+import {
+  rejectDeepOffset,
+  LIST_LIMIT_CAP,
+  ENTITY_TAB_LIMIT_CAP,
+} from '../utils/paginationGuards.js';
 
 const router = express.Router();
 
@@ -20,7 +24,7 @@ router.get('/', apiRateLimiter, validate(flightsQuerySchema), async (req, res, n
   try {
     const q = req.query as Record<string, string | undefined>;
     const page = Math.max(1, Number(q.page || 1));
-    const limit = Math.min(500, Math.max(1, Number(q.limit || 50)));
+    const limit = Math.min(LIST_LIMIT_CAP, Math.max(1, Number(q.limit || 50)));
     if (rejectDeepOffset(res, 'Flight', page, limit)) return;
     const startDate = String(q.startDate || '').trim() || undefined;
     const endDate = String(q.endDate || '').trim() || undefined;
@@ -73,7 +77,7 @@ router.get('/co-occurrences', validate(coOccurrenceQuerySchema), async (req, res
   try {
     const query = req.query as Record<string, string | string[] | undefined>;
     const minFlights = Math.max(1, Number(query.minFlights || 2));
-    const limit = Math.min(200, Math.max(1, Number(query.limit || 100)));
+    const limit = Math.min(ENTITY_TAB_LIMIT_CAP, Math.max(1, Number(query.limit || 100)));
     const rows = await flightsRepository.getPassengerCoOccurrences(minFlights);
     const shaped = rows.slice(0, limit).map((r: Record<string, unknown>) => ({
       passenger1: String(r.passenger1 || ''),

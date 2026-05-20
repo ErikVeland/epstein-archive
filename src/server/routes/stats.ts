@@ -15,7 +15,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 import { getDbMetaPayload } from '../services/dbMetaService.js';
-import { withTimeoutFallback } from '../utils/asyncTimeout.js';
+import { withTimeoutFallback, withTimeoutReject } from '../utils/asyncTimeout.js';
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
@@ -97,13 +97,11 @@ router.get('/health/ready', async (req, res) => {
   const start = Date.now();
   try {
     const pingStart = Date.now();
-    const pingPromise = pingDatabase();
     const timeoutMs = soft ? 5000 : READINESS_TIMEOUT_MS;
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), timeoutMs),
-    );
-
-    await Promise.race([pingPromise, timeoutPromise]);
+    await withTimeoutReject(pingDatabase(), {
+      timeoutMs,
+      timeoutMessage: 'Database readiness check timed out',
+    });
     const latencyMs = Date.now() - pingStart;
 
     if (!soft) {

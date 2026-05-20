@@ -16,7 +16,7 @@ import { AnnotationPolicyService } from '../services/AnnotationPolicyService.js'
 import { logger } from '../services/Logger.js';
 import fs from 'fs';
 import path from 'path';
-import rateLimit from 'express-rate-limit';
+import { annotationWriteLimiter } from '../middleware/rateLimit.js';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
@@ -30,6 +30,7 @@ import {
 import { rejectDeepOffset } from '../utils/paginationGuards.js';
 
 const router = express.Router();
+const ASSET_PROXY_TIMEOUT_MS = 30_000;
 
 const documentsListQuerySchema = z.object({
   query: z.object({
@@ -110,13 +111,6 @@ const createDocumentAnnotationSchema = z.object({
     pdfWidth: z.number().positive().max(1).optional(),
     pdfHeight: z.number().positive().max(1).optional(),
   }),
-});
-
-const annotationWriteLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 50,
-  standardHeaders: true,
-  legacyHeaders: false,
 });
 
 const createFingerprint = (ip: string, userAgent: string): string => {
@@ -785,7 +779,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
 
         const rangeHeader = req.header('range') || undefined;
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30_000);
+        const timeout = setTimeout(() => controller.abort(), ASSET_PROXY_TIMEOUT_MS);
         try {
           const parsedUpstreamUrl = new URL(candidateUrl);
           const ageGateCookie = parsedUpstreamUrl.hostname.endsWith('justice.gov')

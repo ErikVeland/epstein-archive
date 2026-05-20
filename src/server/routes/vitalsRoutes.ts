@@ -6,7 +6,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import rateLimit from 'express-rate-limit';
+import { vitalsPostLimiter } from '../middleware/rateLimit.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import {
@@ -18,13 +18,6 @@ import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
 
 const router = Router();
-
-const vitalsPostLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 const vitalsPayloadSchema = z.object({
   body: z.object({

@@ -75,9 +75,8 @@ export const enforceQuarantine = (resourceType: 'document' | 'media') => {
 
       next();
     } catch (err) {
-      logger.error({ err: err }, 'Quarantine check failed');
       // Fail closed
-      res.status(500).json({ error: 'Security check failed' });
+      next(err);
     }
   };
 };

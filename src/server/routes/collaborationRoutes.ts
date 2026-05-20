@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
 import { optionalAuthenticate } from '../auth/middleware.js';
 
 const router = express.Router();
@@ -27,23 +27,26 @@ setInterval(() => {
 }, 5000);
 
 // POST /api/collaboration/heartbeat
-router.post('/heartbeat', optionalAuthenticate, (req: AuthRequest, res) => {
-  const user = req.user || { id: 'anonymous', username: 'Anonymous Researcher' };
-  const { path } = req.body;
+router.post('/heartbeat', optionalAuthenticate, (req: AuthRequest, res, next: NextFunction) => {
+  try {
+    const user = req.user || { id: 'anonymous', username: 'Anonymous Researcher' };
+    const { path } = req.body;
 
-  presenceStore.set(String(user.id), {
-    id: String(user.id),
-    username: String(user.username),
-    path: String(path || '/'),
-    lastActive: Date.now(),
-  });
+    presenceStore.set(String(user.id), {
+      id: String(user.id),
+      username: String(user.username),
+      path: String(path || '/'),
+      lastActive: Date.now(),
+    });
 
-  // Get other active users on the same page
-  const coPresent = Array.from(presenceStore.values()).filter(
-    (u) => u.id !== String(user.id) && u.path === String(path || '/'),
-  );
+    const coPresent = Array.from(presenceStore.values()).filter(
+      (u) => u.id !== String(user.id) && u.path === String(path || '/'),
+    );
 
-  res.json({ success: true, coPresent });
+    res.json({ success: true, coPresent });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;
