@@ -4,6 +4,7 @@ import { entitiesRepository } from '../db/entitiesRepository.js';
 import { logger } from '../services/Logger.js';
 import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 import { EntityIdError, resolveCanonicalEntityId } from '../utils/id_utils.js';
+import { ENTITY_TAB_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 const router = Router();
 const CONNECTIONS_TIMEOUT_MS = 5_000;
@@ -38,7 +39,8 @@ router.get('/:entityId/connections', async (req: Request, res: Response, next: N
   }
 
   const rawLimit = Number(req.query.limit ?? 50);
-  const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 200) : 50;
+  const limit =
+    Number.isFinite(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, ENTITY_TAB_LIMIT_CAP) : 50;
   const rawMinScore = Number(req.query.minScore ?? 0);
   const minScore = Number.isFinite(rawMinScore) ? rawMinScore : 0;
 
@@ -63,9 +65,8 @@ router.get('/:entityId/connections', async (req: Request, res: Response, next: N
     }
 
     return res.json({ connections, totalCount: connections.length });
-  } catch (err) {
-    logger.error({ err }, 'entityConnections: query failed');
-    return next(err);
+  } catch (error) {
+    return next(error);
   }
 });
 

@@ -63,3 +63,11 @@ export const vitalsPostLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+export const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isDevOrTest ? 10000 : 10,
+  message: { error: 'Too many authentication attempts, please try again after 15 minutes' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});

@@ -5,8 +5,7 @@ import crypto from 'crypto';
 import { getApiPool } from '../db/connection.js';
 import { authenticateRequest, optionalAuthenticate } from './middleware.js';
 import { logger } from '../services/Logger.js';
-
-import rateLimit from 'express-rate-limit';
+import { authRateLimiter } from '../middleware/rateLimit.js';
 
 const router = express.Router();
 
@@ -22,13 +21,6 @@ if (!JWT_ACCESS_SECRET || !JWT_REFRESH_SECRET) {
 }
 
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
-// Rate limiter for login/refresh: 5 attempts per 15 mins
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10, // Slightly more for refresh retries
-  message: { error: 'Too many authentication attempts, please try again after 15 minutes' },
-});
 
 type TokenUser = { id: number | string; username?: string; role?: string };
 type AuthenticatedRequest = express.Request & {
@@ -53,7 +45,7 @@ const generateRefreshToken = (user: TokenUser) => {
 const hashToken = (token: string) => crypto.createHash('sha256').update(token).digest('hex');
 
 // POST /api/auth/login
-router.post('/login', authLimiter, async (req, res) => {
+router.post('/login', authRateLimiter, async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -142,7 +134,7 @@ router.post('/guest', async (_req, res) => {
 });
 
 // POST /api/auth/refresh
-router.post('/refresh', authLimiter, async (req, res) => {
+router.post('/refresh', authRateLimiter, async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
