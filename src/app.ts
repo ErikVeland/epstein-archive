@@ -324,7 +324,7 @@ export class App {
     );
     const corsOptions = this.buildCorsOptions();
     this.app.use(cors(corsOptions));
-    this.app.options('*', cors(corsOptions));
+    this.app.options('/{*splat}', cors(corsOptions));
     this.app.use(compression());
 
     // 2. Load Shedding
@@ -390,7 +390,7 @@ export class App {
     // Both /files/* and /data/* expose only the explicitly public data subset.
     // Authenticated/private corpus files are served by typed API routes such as
     // /api/documents/:id/file and /api/media/* so policy stays attached to DB records.
-    this.app.get(['/files/*', '/data/*'], (req, res) => {
+    this.app.get(['/files/{*splat}', '/data/{*splat}'], (req, res) => {
       const prefix = req.path.startsWith('/files/') ? '/files/' : '/data/';
       const wildcardPath = req.path.slice(prefix.length);
       const filePath = wildcardPath ?? '';
@@ -744,7 +744,7 @@ export class App {
     this.app.use('/api', router);
 
     // SPA Fallback
-    this.app.get('*', async (req, res) => {
+    this.app.get('/{*splat}', async (req, res) => {
       if (await this.tryServeMediaShareMeta(req, res)) {
         return;
       }
