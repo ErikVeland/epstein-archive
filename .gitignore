@@ -153,3 +153,4 @@ api-server.log
 .env.production
 .env.local
 .worktrees/
+PRODUCTION_HARDENING_FINAL_AUDIT.md
