@@ -28,6 +28,14 @@ export function validateOrigin(req: Request, res: Response, next: NextFunction):
     return;
   }
 
+  // Browsers send `Origin: null` for sandboxed iframes and some file:// navigations.
+  // Reject it explicitly before attempting URL parsing.
+  if (originHeader === 'null') {
+    logger.warn({ requestId: req.requestId }, '[CSRF] Rejecting null origin (sandboxed context)');
+    res.status(403).json({ error: 'Forbidden' });
+    return;
+  }
+
   let originHost: string | null = null;
   try {
     originHost = new URL(originHeader).hostname;
@@ -41,9 +49,17 @@ export function validateOrigin(req: Request, res: Response, next: NextFunction):
     return;
   }
 
+  // Guard against empty hostname (e.g. `new URL('file://').hostname === ""`).
+  if (!originHost) {
+    res.status(403).json({ error: 'Forbidden' });
+    return;
+  }
+
   // Build the set of allowed hosts.
   const allowedHosts = new Set<string>();
-  allowedHosts.add(req.hostname);
+  if (req.hostname) {
+    allowedHosts.add(req.hostname);
+  }
 
   if (process.env.APP_URL) {
     try {
