@@ -13,6 +13,7 @@ export interface AuthRequest extends Request {
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { logger } from '../services/Logger.js';
+import { cacheService } from '../cache/cacheService.js';
 
 interface JwtPayload {
   id: string | number;
@@ -36,18 +37,33 @@ const getJwtSecret = (): string => {
 // P-256 SPKI DER public key is 91 bytes (124 base64 chars). Reject anything larger to prevent DoS.
 const MAX_GUEST_KEY_BASE64_LEN = 200;
 
+const MAX_GUEST_NONCE_LEN = 128;
+const GUEST_SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
+const GUEST_SIGNATURE_MAX_FUTURE_SKEW_MS = 60 * 1000;
+
 const verifyGuestSignature = (req: Request): AuthRequest['user'] | null => {
   const signature = req.headers['x-signature'] as string;
   const publicKeyBase64 = req.headers['x-public-key'] as string;
+  const timestampHeader = req.headers['x-guest-timestamp'] as string;
+  const nonce = req.headers['x-guest-nonce'] as string;
 
   if (!signature || !publicKeyBase64) return null;
+  if (!timestampHeader || !nonce) return null;
   if (publicKeyBase64.length > MAX_GUEST_KEY_BASE64_LEN) return null;
+  if (nonce.length > MAX_GUEST_NONCE_LEN) return null;
+  if (!/^[A-Za-z0-9_-]{8,128}$/.test(nonce)) return null;
+
+  const timestampMs = Number(timestampHeader);
+  if (!Number.isFinite(timestampMs)) return null;
+  const now = Date.now();
+  if (timestampMs > now + GUEST_SIGNATURE_MAX_FUTURE_SKEW_MS) return null;
+  if (now - timestampMs > GUEST_SIGNATURE_MAX_AGE_MS) return null;
 
   try {
     const method = req.method.toUpperCase();
     const path = req.originalUrl || req.path;
     const bodyStr = req.body && Object.keys(req.body).length > 0 ? JSON.stringify(req.body) : '';
-    const message = `${method}:${path}:${bodyStr}`;
+    const message = `${method}:${path}:${timestampHeader}:${nonce}:${bodyStr}`;
 
     const keyBuffer = Buffer.from(publicKeyBase64, 'base64');
     const pubKey = crypto.createPublicKey({
@@ -69,6 +85,11 @@ const verifyGuestSignature = (req: Request): AuthRequest['user'] | null => {
     if (!isVerified) return null;
 
     const fingerprint = crypto.createHash('sha256').update(keyBuffer).digest('hex');
+
+    const replayKey = `guest_sig:${fingerprint}:${nonce}`;
+    if (cacheService.get<boolean>('general', replayKey)) return null;
+    cacheService.set('general', replayKey, true, Math.ceil(GUEST_SIGNATURE_MAX_AGE_MS / 1000));
+
     return {
       id: `guest:${fingerprint}`,
       username: `Guest ${fingerprint.slice(0, 8)}`,

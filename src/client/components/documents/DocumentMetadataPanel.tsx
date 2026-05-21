@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import styles from './DocumentMetadataPanel.module.css';
 
 interface DocumentMetadata {
-  ai_summary?: string;
   ai_provider?: string;
   ai_enriched_at?: string;
   ai_error?: string;
@@ -54,6 +53,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
 
   const metadata = (document.metadata || {}) as DocumentMetadata;
   const linguistics = metadata.linguistics || {};
+  const aiSummary = typeof document.aiSummary === 'string' ? document.aiSummary : null;
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown';
@@ -84,7 +84,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
   return (
     <div className={cx(styles.container, className)}>
       {/* AI Analysis - Premium Card */}
-      {metadata.ai_summary && (
+      {aiSummary && (
         <section className={styles.aiCard}>
           <div className={styles.aiCardDecoration}>
             <Icon name="Bot" size="xl" className={styles.aiCardDecorationIcon} />
@@ -94,7 +94,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
             AI Intelligence Summary
           </h3>
           <div className={styles.aiCardBody}>
-            <p className={styles.aiSummaryText}>{metadata.ai_summary}</p>
+            <p className={styles.aiSummaryText}>{aiSummary}</p>
             <div className={styles.aiMetaRow}>
               {metadata.ai_provider && (
                 <div className={styles.aiMetaItem}>

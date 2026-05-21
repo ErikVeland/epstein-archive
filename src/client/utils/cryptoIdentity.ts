@@ -23,6 +23,16 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return window.btoa(binary);
 }
 
+function base64ToBase64Url(value: string): string {
+  return value.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+
+function randomNonce(bytes = 16): string {
+  const buf = new Uint8Array(bytes);
+  window.crypto.getRandomValues(buf);
+  return base64ToBase64Url(arrayBufferToBase64(buf.buffer));
+}
+
 /**
  * Gets or dynamically generates the client-side cryptographic identity.
  */
@@ -103,11 +113,13 @@ export async function signRequestPayload(
   method: string,
   path: string,
   body: string,
-): Promise<{ signature: string; publicKey: string }> {
+): Promise<{ signature: string; publicKey: string; timestamp: string; nonce: string }> {
   const { privateKey, publicKeyBase64 } = await getOrCreateIdentity();
 
   const formattedMethod = method.toUpperCase();
-  const message = `${formattedMethod}:${path}:${body || ''}`;
+  const timestamp = String(Date.now());
+  const nonce = randomNonce();
+  const message = `${formattedMethod}:${path}:${timestamp}:${nonce}:${body || ''}`;
 
   const encoder = new TextEncoder();
   const messageBytes = encoder.encode(message);
@@ -126,6 +138,8 @@ export async function signRequestPayload(
   return {
     signature,
     publicKey: publicKeyBase64,
+    timestamp,
+    nonce,
   };
 }
 

@@ -105,6 +105,18 @@ async function main() {
   const mode: Mode = arg === 'update' || arg === '--update' ? 'update' : 'check';
 
   if (process.env.SKIP_SCHEMA_HASH_CHECK === 'true') {
+    const disallowed =
+      process.env.NODE_ENV === 'production' ||
+      process.env.CI === 'true' ||
+      process.env.DEPLOY_CERTIFY === 'true';
+
+    if (disallowed) {
+      console.error(
+        '[pg_schema_hash] ERROR: SKIP_SCHEMA_HASH_CHECK=true is not allowed in CI/production/certify.',
+      );
+      process.exit(1);
+    }
+
     console.warn(
       '[pg_schema_hash] WARNING: Schema hash check explicitly skipped via SKIP_SCHEMA_HASH_CHECK=true.',
     );

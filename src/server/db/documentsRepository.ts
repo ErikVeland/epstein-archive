@@ -164,6 +164,7 @@ const buildPreview = (doc: {
   contentPreview?: string | null;
   contentRaw?: string | null;
   metadata?: DocumentMetadata;
+  aiSummary?: string | null;
 }) => {
   const curatedTitle =
     typeof doc.title === 'string' && doc.title.trim() && doc.title !== doc.fileName
@@ -174,16 +175,13 @@ const buildPreview = (doc: {
   const refined = (doc.contentRefined || '').trim();
   const preview = (doc.contentPreview || '').trim();
   const raw = (doc.contentRaw || '').trim();
-  const aiSummary =
-    (typeof doc.metadata?.ai_summary === 'string' && doc.metadata.ai_summary.trim()) ||
-    (typeof doc.metadata?.summary === 'string' && doc.metadata.summary.trim()) ||
-    '';
+  const aiSummary = typeof doc.aiSummary === 'string' ? doc.aiSummary.trim() : '';
   const metaText =
     (typeof doc.metadata?.extracted_text === 'string' && doc.metadata.extracted_text.trim()) ||
     (typeof doc.metadata?.body_clean_text === 'string' && doc.metadata.body_clean_text.trim()) ||
     '';
 
-  // Best-quality first: refined → ai_summary → preview → raw → metadata text
+  // Best-quality first: refined → aiSummary → preview → raw → metadata text
   if (refined && !looksLikeJunk(refined)) {
     return { title, previewText: firstMeaningfulExcerpt(refined), previewKind: 'excerpt' as const };
   }
@@ -507,13 +505,8 @@ export const documentsRepository = {
       const evidenceType = typeof doc.evidenceType === 'string' ? doc.evidenceType : undefined;
       const fileType = typeof doc.fileType === 'string' ? doc.fileType : undefined;
       const metadata = parseMetadata(doc.metadata);
+      if ('ai_summary' in metadata) delete (metadata as Record<string, unknown>).ai_summary;
       const aiSummary = typeof doc.aiSummary === 'string' ? doc.aiSummary.trim() : '';
-      const hasMetaSummary =
-        (typeof metadata.ai_summary === 'string' && metadata.ai_summary.trim()) ||
-        (typeof metadata.summary === 'string' && metadata.summary.trim());
-      if (aiSummary && !hasMetaSummary) {
-        metadata.ai_summary = aiSummary;
-      }
       const preview = buildPreview({
         title,
         fileName,
@@ -521,6 +514,7 @@ export const documentsRepository = {
         contentPreview: typeof doc.contentPreview === 'string' ? doc.contentPreview : '',
         contentRaw: typeof doc.contentRaw === 'string' ? doc.contentRaw : '',
         metadata,
+        aiSummary: aiSummary || null,
       });
 
       const entities = entityRowsByDocId.get(Number(doc.id)) || [];
@@ -615,6 +609,7 @@ export const documentsRepository = {
     if (!document) return null;
 
     const metadata = parseMetadata(document.metadataJson);
+    if ('ai_summary' in metadata) delete (metadata as Record<string, unknown>).ai_summary;
 
     let aiSummary: string | null = null;
     try {
@@ -634,13 +629,6 @@ export const documentsRepository = {
       aiSummary = typeof raw === 'string' && raw.trim() ? raw.trim() : null;
     } catch {
       aiSummary = null;
-    }
-
-    const hasMetaSummary =
-      (typeof metadata.ai_summary === 'string' && metadata.ai_summary.trim()) ||
-      (typeof metadata.summary === 'string' && metadata.summary.trim());
-    if (aiSummary && !hasMetaSummary) {
-      metadata.ai_summary = aiSummary;
     }
 
     let entityRowsRes;

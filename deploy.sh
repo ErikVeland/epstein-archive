@@ -175,7 +175,6 @@ export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
 export CI=true
-export SKIP_SCHEMA_HASH_CHECK="${SKIP_SCHEMA_HASH_CHECK:-}"
 
 
 if [ -f .env ]; then
@@ -394,7 +393,7 @@ wait_for_ci_green() {
     elif [ -n "${GITHUB_TOKEN:-}" ]; then
       curl_args+=("-H" "Authorization: Bearer $GITHUB_TOKEN")
     fi
-    
+
     payload=$(curl "${curl_args[@]}" "$api_url") || {
         if command -v gh >/dev/null 2>&1; then
           row=$(gh run list --workflow CI --limit 20 --json headSha,status,conclusion,url,createdAt \

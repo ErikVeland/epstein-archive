@@ -35,15 +35,7 @@ const toSentenceBullets = (text: string, max = 5): string[] => {
 export const deriveSummary = (
   doc: Record<string, unknown> | null | undefined,
 ): { bullets: string[]; sourceLabel: string } => {
-  const metadata =
-    typeof doc?.metadata === 'object' && doc.metadata !== null && !Array.isArray(doc.metadata)
-      ? (doc.metadata as Record<string, unknown>)
-      : {};
-  const aiSummary =
-    (typeof metadata.ai_summary === 'string' && metadata.ai_summary.trim()) ||
-    (typeof metadata.summary === 'string' && metadata.summary.trim()) ||
-    (typeof doc?.ai_summary === 'string' && doc.ai_summary.trim()) ||
-    '';
+  const aiSummary = typeof doc?.aiSummary === 'string' ? doc.aiSummary.trim() : '';
 
   const aiBullets = toSentenceBullets(aiSummary, 5);
   if (aiBullets.length > 0) {

@@ -19,7 +19,7 @@
       "@server/*": ["src/server/*"]
     },
     "skipLibCheck": true,
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   },
   "include": [
     "src/client/**/*.ts",

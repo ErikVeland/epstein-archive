@@ -344,9 +344,15 @@ class ApiClient {
           }
           const bodyStr = typeof fetchOptions?.body === 'string' ? fetchOptions.body : '';
           const { signRequestPayload } = await import('../utils/cryptoIdentity');
-          const { signature, publicKey } = await signRequestPayload(method, path, bodyStr);
+          const { signature, publicKey, timestamp, nonce } = await signRequestPayload(
+            method,
+            path,
+            bodyStr,
+          );
           headers.set('X-Signature', signature);
           headers.set('X-Public-Key', publicKey);
+          headers.set('X-Guest-Timestamp', timestamp);
+          headers.set('X-Guest-Nonce', nonce);
         } catch {
           void 0;
         }
