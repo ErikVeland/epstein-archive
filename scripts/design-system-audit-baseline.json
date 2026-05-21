@@ -15,7 +15,7 @@
     "count": 8,
     "files": [
       "src/client/components/common/Icon.tsx",
-      "src/client/components/email/EmailClient.tsx",
+      "src/client/features/email/EmailClient.tsx",
       "src/client/components/layout/GlobalSearch.tsx",
       "src/client/pages/CorroborationPage.tsx",
       "src/client/pages/LegalTrackerPage.tsx",
@@ -29,7 +29,7 @@
     "files": [
       "src/client/components/BlackBookViewer.tsx",
       "src/client/components/common/Icon.tsx",
-      "src/client/components/email/EmailClient.tsx",
+      "src/client/features/email/EmailClient.tsx",
       "src/client/pages/CorroborationPage.tsx",
       "src/client/pages/LegalTrackerPage.tsx",
       "src/client/pages/NetworkPage.tsx",
