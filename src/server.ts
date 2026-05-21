@@ -19,6 +19,7 @@ async function bootstrap() {
     const app = new App();
     await app.init();
     await app.listen(PORT);
+    process.send?.('ready');
 
     const shutdown = async (signal: string) => {
       logger.info(`Received ${signal}, shutting down gracefully`);
