@@ -236,6 +236,7 @@ export class JobManager {
    * Returns the number of rows updated.
    */
   async requeueDeadLetters(opts: { onlyIds?: number[] } = {}): Promise<number> {
+    if (opts.onlyIds !== undefined && opts.onlyIds.length === 0) return 0;
     const pool = getIngestPool();
     const where =
       opts.onlyIds && opts.onlyIds.length > 0
