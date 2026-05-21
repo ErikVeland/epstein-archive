@@ -1,4 +1,5 @@
 import express from 'express';
+import { logger } from '../services/Logger.js';
 import { cleanMime } from '../services/mimeCleaner.js';
 import {
   getEntitiesInEmail,
@@ -71,7 +72,7 @@ const emailRevisionKey = () =>
 const withEmailListTimeout = async <T>(label: string, promise: Promise<T>, fallback: T) =>
   withTimeoutFallback(promise, fallback, {
     timeoutMs: EMAIL_LIST_TIMEOUT_MS,
-    onTimeout: () => console.warn(`[emails] ${label} timed out; returning bounded fallback`),
+    onTimeout: () => logger.warn({ label }, '[emails] timed out; returning bounded fallback'),
   });
 
 interface ParsedCursor {
@@ -357,7 +358,7 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
         const semanticResults = await searchDocumentsSemantic(topic, 500);
         topicDocIds = semanticResults.map((r) => r.id);
       } catch (err) {
-        console.warn('[emails] Semantic topic search disabled or failed:', err);
+        logger.warn({ err }, '[emails] Semantic topic search disabled or failed');
       }
     }
 

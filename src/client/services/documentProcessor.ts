@@ -928,9 +928,6 @@ export class DocumentProcessor {
 
   getDocumentCollection(): DocumentCollection {
     const documents = Array.from(this.documents.values());
-    console.log(
-      `DocumentProcessor: getDocumentCollection called, documents in Map: ${this.documents.size}, array length: ${documents.length}`,
-    );
     const fileTypes = new Map<string, number>();
     const categories = new Map<string, number>();
 

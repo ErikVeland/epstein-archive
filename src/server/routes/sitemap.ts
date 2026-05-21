@@ -1,6 +1,7 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import { getApiPool } from '../db/connection.js';
+import { logger } from '../services/Logger.js';
 
 const router = express.Router();
 
@@ -70,7 +71,7 @@ router.get('/', async (_req: Request, res: Response) => {
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.status(200).send(xml);
   } catch (err) {
-    console.error('[sitemap] Failed to generate sitemap:', err);
+    logger.error({ err }, '[sitemap] Failed to generate sitemap');
     res.status(500).type('text').send('Error generating sitemap');
   }
 });
