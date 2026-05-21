@@ -12,7 +12,13 @@ export const validate = (schema: AnyZodObject, target?: 'body' | 'query' | 'para
   return async (req: Request, _res: Response, next: NextFunction) => {
     try {
       if (target) {
-        req[target] = await schema.parseAsync(req[target]);
+        const parsed = await schema.parseAsync(req[target]);
+        if (target === 'query') {
+          // Express 5: req.query is a read-only getter — override via defineProperty
+          Object.defineProperty(req, 'query', { get: () => parsed, configurable: true });
+        } else {
+          req[target] = parsed;
+        }
       } else {
         const parsed = (await schema.parseAsync({
           body: req.body,
@@ -24,7 +30,9 @@ export const validate = (schema: AnyZodObject, target?: 'body' | 'query' | 'para
           params?: Record<string, string>;
         };
         if (parsed.body) req.body = parsed.body;
-        if (parsed.query) req.query = parsed.query;
+        if (parsed.query) {
+          Object.defineProperty(req, 'query', { get: () => parsed.query, configurable: true });
+        }
         if (parsed.params) req.params = parsed.params;
       }
       return next();
