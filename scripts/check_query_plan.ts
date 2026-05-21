@@ -40,7 +40,7 @@ const QUERIES: ExplainQuery[] = [
   {
     name: 'documents_list_paginated',
     sql: `SELECT d.id, d.file_name, d.file_type, d.evidence_type,
-                 d.date_created, d.red_flag, d.file_size, d.significance,
+                 d.date_created, d.red_flag_rating, d.file_size, d.significance_score,
                  d.metadata_json
           FROM documents d
           ORDER BY d.date_created DESC NULLS LAST
@@ -92,21 +92,21 @@ const QUERIES: ExplainQuery[] = [
     name: 'media_by_album',
     sql: `SELECT mi.id, mi.file_path, mi.file_type, mi.title
           FROM media_items mi
-          JOIN album_items ai ON ai.media_item_id = mi.id
-          WHERE ai.album_id = $1
-          ORDER BY ai.sort_order, mi.id
+          WHERE mi.album_id = $1
+          ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.created_at DESC
           LIMIT 200`,
     params: [1],
-    expectIndex: 'album_items_album_id_idx',
+    expectIndex: 'idx_media_items_album_redflag_created',
   },
   {
     name: 'emails_list_paginated',
-    sql: `SELECT e.id, e.subject, e.sender, e.date_sent
-          FROM emails e
-          ORDER BY e.date_sent DESC NULLS LAST
+    sql: `SELECT d.id, d.file_name, d.date_created
+          FROM documents d
+          WHERE d.evidence_type = 'email'
+          ORDER BY d.date_created DESC NULLS LAST
           LIMIT $1 OFFSET $2`,
     params: [50, 0],
-    expectIndex: 'emails_date_sent_idx',
+    expectIndex: 'idx_documents_evidence_type_date_created',
   },
   {
     name: 'graph_neighbors',
@@ -119,13 +119,13 @@ const QUERIES: ExplainQuery[] = [
   },
   {
     name: 'investigation_evidence',
-    sql: `SELECT ie.id, ie.document_id, ie.entity_id, ie.evidence_type, ie.created_at
+    sql: `SELECT ie.id, ie.document_id, ie.relevance, ie.added_at, ie.added_by
           FROM investigation_evidence ie
           WHERE ie.investigation_id = $1
-          ORDER BY ie.created_at DESC
+          ORDER BY ie.added_at DESC
           LIMIT 500`,
     params: [1],
-    expectIndex: 'investigation_evidence_investigation_idx',
+    expectIndex: 'idx_investigation_evidence_investigation_added',
   },
   {
     name: 'search_hybrid',
