@@ -206,7 +206,7 @@ router.patch(
 
 // Get urgent tasks for the current user
 // Get urgent tasks for the current user
-router.get('/urgent/:userId?', async (req, res, next) => {
+router.get('/urgent{/:userId}', async (req, res, next) => {
   try {
     const userId =
       (req.params.userId as string | undefined) || (req as { user?: { id?: string } }).user?.id;
