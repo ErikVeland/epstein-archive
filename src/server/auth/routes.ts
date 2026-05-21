@@ -7,8 +7,18 @@ import { authenticateRequest, optionalAuthenticate, requireRole } from './middle
 import { logger } from '../services/Logger.js';
 import { authRateLimiter } from '../middleware/rateLimit.js';
 import { cacheService } from '../cache/cacheService.js';
+import { validateOrigin } from '../middleware/csrfOriginCheck.js';
 
 const router = express.Router();
+
+// Defense-in-depth Origin check on all cookie-mutating auth routes.
+router.use((req, res, next) => {
+  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
+    validateOrigin(req, res, next);
+  } else {
+    next();
+  }
+});
 
 const JWT_ACCESS_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;

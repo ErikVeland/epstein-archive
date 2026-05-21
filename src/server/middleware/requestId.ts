@@ -17,7 +17,9 @@ declare global {
 export const requestContext = new AsyncLocalStorage<{ requestId: string }>();
 
 export function requestIdMiddleware(req: Request, res: Response, next: NextFunction) {
-  const reqId = (req.headers['x-request-id'] as string) || crypto.randomUUID();
+  // Always generate a fresh server-side UUID — never trust a caller-supplied
+  // x-request-id header, as that would allow log injection attacks.
+  const reqId = crypto.randomUUID();
   req.headers['x-request-id'] = reqId;
   res.setHeader('X-Request-Id', reqId);
   req.requestId = reqId;

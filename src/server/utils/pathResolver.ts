@@ -13,9 +13,18 @@ import fs from 'fs';
  * @param fallbackDir - Optional fallback directory for relative paths (defaults to 'data')
  * @returns The resolved absolute path
  */
+const REMOTE_PATH_PREFIXES = ['http://', 'https://', 'file://', 'ftp://', '//'];
+
 export function resolveMediaPath(dbPath: string, fallbackDir: string = 'data'): string {
   if (!dbPath) {
     return '';
+  }
+
+  // Reject protocol-based paths — DB-sourced paths must never point to remote resources.
+  for (const prefix of REMOTE_PATH_PREFIXES) {
+    if (dbPath.startsWith(prefix)) {
+      return '';
+    }
   }
 
   const cwd = process.cwd();
