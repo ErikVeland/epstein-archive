@@ -1,156 +1,164 @@
 /**
  * Bundle Budget CI Gate
  *
- * Enforces hard limits on bundle sizes to prevent regression.
- * Run after `pnpm build:client` in CI.
+ * Enforces hard limits on bundle sizes after `pnpm build:client`.
+ * Uses real gzip compression (zlib) — not an approximation.
  *
- * Budgets:
- * - Main JS: < 500KB gzip
- * - Vendor: < 300KB gzip (per chunk)
- * - Total initial load: < 1MB gzip
+ * Budgets (plan section 9):
+ *   Main entry chunk:   ≤ 350 KB gzip
+ *   Feature/page chunk: ≤ 250 KB gzip each
+ *   Vendor chunk:       ≤ 500 KB gzip each (cached by browsers; less critical)
+ *   Total initial JS:   ≤ 700 KB gzip (main + vendor combined)
  */
 
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
+import { gzipSync } from 'zlib';
 
 interface BundleResult {
   file: string;
-  sizeKB: number;
-  gzipSizeKB: number;
+  rawKB: number;
+  gzipKB: number;
+  kind: 'main' | 'vendor' | 'feature' | 'other';
 }
 
 interface BudgetResult {
-  name: string;
+  label: string;
   limitKB: number;
   actualKB: number;
   passed: boolean;
 }
 
 const BUDGETS = {
-  mainChunk: 500, // KB gzip
-  vendorChunk: 300, // KB gzip per vendor chunk
-  totalInitial: 1000, // KB gzip total
-};
+  mainChunkKB: 350,
+  featureChunkKB: 250,
+  vendorChunkKB: 500,
+  totalInitialKB: 700,
+} as const;
 
-function getGzipSize(filePath: string): number {
-  try {
-    const content = readFileSync(filePath);
-    // Simple gzip estimation: compressed is roughly 30-40% of original for JS
-    // This is an approximation - real gzip would be more accurate
-    const sizeKB = content.length / 1024;
-    return Math.round(sizeKB * 0.35); // Estimate gzip as 35% of original
-  } catch {
-    return 0;
-  }
+function classifyChunk(filename: string): BundleResult['kind'] {
+  if (/^(index|main)-/.test(filename)) return 'main';
+  if (/^vendor(-|$)/.test(filename)) return 'vendor';
+  if (/^feature-/.test(filename)) return 'feature';
+  return 'other';
+}
+
+function gzipKB(filePath: string): number {
+  const content = readFileSync(filePath);
+  return Math.round(gzipSync(content).length / 1024);
 }
 
 function analyzeDist(): BundleResult[] {
   const distPath = join(process.cwd(), 'dist', 'assets');
 
+  let files: string[];
   try {
-    const files = readdirSync(distPath);
-    return files
-      .filter((f) => f.endsWith('.js') || f.endsWith('.css'))
-      .map((file) => {
-        const filePath = join(distPath, file);
-        const stats = statSync(filePath);
-        return {
-          file,
-          sizeKB: Math.round(stats.size / 1024),
-          gzipSizeKB: getGzipSize(filePath),
-        };
-      })
-      .sort((a, b) => b.gzipSizeKB - a.gzipSizeKB);
+    files = readdirSync(distPath);
   } catch {
     return [];
   }
+
+  return files
+    .filter((f) => f.endsWith('.js'))
+    .map((file) => {
+      const filePath = join(distPath, file);
+      const raw = statSync(filePath).size;
+      return {
+        file,
+        rawKB: Math.round(raw / 1024),
+        gzipKB: gzipKB(filePath),
+        kind: classifyChunk(file),
+      };
+    })
+    .sort((a, b) => b.gzipKB - a.gzipKB);
 }
 
-function checkBudgets(results: BundleResult[]): BudgetResult[] {
-  const budgetResults: BudgetResult[] = [];
+function checkBudgets(chunks: BundleResult[]): BudgetResult[] {
+  const results: BudgetResult[] = [];
 
-  // Check main chunk (typically index-*.js or similar)
-  const mainChunk = results.find((r) => r.file.includes('index') && r.file.endsWith('.js'));
-  if (mainChunk) {
-    budgetResults.push({
-      name: 'Main chunk',
-      limitKB: BUDGETS.mainChunk,
-      actualKB: mainChunk.gzipSizeKB,
-      passed: mainChunk.gzipSizeKB <= BUDGETS.mainChunk,
+  const main = chunks.filter((c) => c.kind === 'main');
+  const feature = chunks.filter((c) => c.kind === 'feature');
+  const vendor = chunks.filter((c) => c.kind === 'vendor');
+
+  for (const chunk of main) {
+    results.push({
+      label: `Main chunk (${chunk.file})`,
+      limitKB: BUDGETS.mainChunkKB,
+      actualKB: chunk.gzipKB,
+      passed: chunk.gzipKB <= BUDGETS.mainChunkKB,
     });
   }
 
-  // Check vendor chunks
-  const vendorChunks = results.filter((r) => r.file.includes('vendor') || r.file.includes('chunk'));
-  for (const chunk of vendorChunks) {
-    budgetResults.push({
-      name: `Vendor chunk: ${chunk.file}`,
-      limitKB: BUDGETS.vendorChunk,
-      actualKB: chunk.gzipSizeKB,
-      passed: chunk.gzipSizeKB <= BUDGETS.vendorChunk,
+  for (const chunk of feature) {
+    results.push({
+      label: `Feature chunk (${chunk.file})`,
+      limitKB: BUDGETS.featureChunkKB,
+      actualKB: chunk.gzipKB,
+      passed: chunk.gzipKB <= BUDGETS.featureChunkKB,
     });
   }
 
-  // Check total initial load
-  const initialChunks = results.filter(
-    (r) =>
-      r.file.includes('index') || r.file.includes('chunk-vendor') || r.file.includes('chunk-main'),
-  );
-  const totalInitialKB = initialChunks.reduce((sum, r) => sum + r.gzipSizeKB, 0);
-  budgetResults.push({
-    name: 'Total initial load',
-    limitKB: BUDGETS.totalInitial,
+  for (const chunk of vendor) {
+    results.push({
+      label: `Vendor chunk (${chunk.file})`,
+      limitKB: BUDGETS.vendorChunkKB,
+      actualKB: chunk.gzipKB,
+      passed: chunk.gzipKB <= BUDGETS.vendorChunkKB,
+    });
+  }
+
+  // Total initial load: entry + all vendor (feature chunks are lazy-loaded)
+  const totalInitialKB = [...main, ...vendor].reduce((s, c) => s + c.gzipKB, 0);
+  results.push({
+    label: 'Total initial load (main + vendor)',
+    limitKB: BUDGETS.totalInitialKB,
     actualKB: totalInitialKB,
-    passed: totalInitialKB <= BUDGETS.totalInitial,
+    passed: totalInitialKB <= BUDGETS.totalInitialKB,
   });
 
-  return budgetResults;
+  return results;
 }
 
-function runBudgetCheck(): void {
-  console.log('🔍 Analyzing bundle sizes...\n');
+function run(): void {
+  console.log('[bundle-budget] Analyzing bundle sizes (real gzip)...\n');
 
-  const results = analyzeDist();
+  const chunks = analyzeDist();
 
-  if (results.length === 0) {
-    console.error('❌ No bundle files found in dist/assets');
-    console.error('   Run `pnpm build:client` first');
+  if (chunks.length === 0) {
+    console.error('[bundle-budget] ❌ No JS files found in dist/assets');
+    console.error('               Run `pnpm build:client` first');
     process.exit(1);
   }
 
-  console.log('📦 Bundle Analysis:\n');
-  for (const result of results.slice(0, 10)) {
-    const status = result.gzipSizeKB > BUDGETS.vendorChunk ? '⚠️' : '✅';
-    console.log(`   ${status} ${result.file}: ${result.gzipSizeKB}KB gzip`);
+  console.log('Chunks:');
+  for (const c of chunks) {
+    const warn = c.gzipKB > BUDGETS.vendorChunkKB ? ' ⚠️' : '';
+    console.log(`  ${c.file}: ${c.rawKB}KB raw → ${c.gzipKB}KB gzip [${c.kind}]${warn}`);
   }
 
-  console.log('\n📋 Budget Check:\n');
-  const budgetResults = checkBudgets(results);
+  console.log('\nBudget check:');
+  const results = checkBudgets(chunks);
   let allPassed = true;
 
-  for (const budget of budgetResults) {
-    const status = budget.passed ? '✅' : '❌';
-    const actual = budget.actualKB;
-    const limit = budget.limitKB;
-    const pct = Math.round((actual / limit) * 100);
-
-    console.log(`   ${status} ${budget.name}: ${actual}KB / ${limit}KB (${pct}%)`);
-
-    if (!budget.passed) {
-      allPassed = false;
-    }
+  for (const r of results) {
+    const pct = Math.round((r.actualKB / r.limitKB) * 100);
+    const status = r.passed ? '✅' : '❌';
+    console.log(`  ${status} ${r.label}: ${r.actualKB}KB / ${r.limitKB}KB (${pct}%)`);
+    if (!r.passed) allPassed = false;
   }
 
   console.log('');
 
   if (allPassed) {
-    console.log('✅ All bundle budgets passed!\n');
+    console.log('[bundle-budget] ✅ All bundle budgets passed');
     process.exit(0);
   } else {
-    console.log('❌ Bundle budget exceeded!\n');
-    console.log('   Reduce bundle size or update budgets in: scripts/check_bundle_budget.ts');
+    console.error('[bundle-budget] ❌ Bundle budget exceeded');
+    console.error(
+      '               Reduce bundle size or update budgets in scripts/check_bundle_budget.ts',
+    );
     process.exit(1);
   }
 }
 
-runBudgetCheck();
+run();
