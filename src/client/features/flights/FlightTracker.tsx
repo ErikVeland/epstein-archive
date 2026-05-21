@@ -6,7 +6,7 @@ import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
 import { MobileToolScreen } from '../investigation/mobile/MobileToolScreen';
 import { useIsTouch } from '@client/hooks/useIsTouch';
 
-import '../FlightTracker.css';
+import '@client/components/FlightTracker.css';
 import styles from './FlightTracker.module.css';
 
 import { FlightTimelineView } from './FlightTimelineView';
