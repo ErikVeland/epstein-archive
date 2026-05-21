@@ -18,14 +18,26 @@ export function useEntityModalUrlSync(params: {
   documentModalInitial: DocRecord | null;
   setDocumentModalInitial: (next: DocRecord | null) => void;
 }) {
+  const {
+    apiEnabled,
+    location,
+    selectedPerson,
+    setSelectedPerson,
+    closingEntityModal,
+    clearClosingEntityModal,
+    documentModalId,
+    setDocumentModalId,
+    documentModalInitial,
+    setDocumentModalInitial,
+  } = params;
   const urlEntityId = useMemo(() => {
-    const match = params.location.pathname.match(/^\/entity\/(\d+)/);
+    const match = location.pathname.match(/^\/entity\/(\d+)/);
     return match ? parseInt(match[1], 10) : null;
-  }, [params.location.pathname]);
+  }, [location.pathname]);
 
   const needsEntityFetch = useMemo(
-    () => !!urlEntityId && (!params.selectedPerson || params.selectedPerson.id !== urlEntityId),
-    [urlEntityId, params.selectedPerson],
+    () => !!urlEntityId && (!selectedPerson || selectedPerson.id !== urlEntityId),
+    [urlEntityId, selectedPerson],
   );
 
   const { data: urlEntityData } = useQuery<EntityByIdResponse | null>({
@@ -35,7 +47,7 @@ export function useEntityModalUrlSync(params: {
       const res = await fetch(`/api/entities/${urlEntityId}`);
       return (await res.json()) as EntityByIdResponse;
     },
-    enabled: params.apiEnabled && needsEntityFetch,
+    enabled: apiEnabled && needsEntityFetch,
     staleTime: 60_000,
   });
 
@@ -44,27 +56,24 @@ export function useEntityModalUrlSync(params: {
     if (urlEntityId !== prevUrlEntityIdRef.current) {
       prevUrlEntityIdRef.current = urlEntityId;
       if (urlEntityId) {
-        if (params.documentModalId) params.setDocumentModalId('');
-        if (params.documentModalInitial) params.setDocumentModalInitial(null);
+        if (documentModalId) setDocumentModalId('');
+        if (documentModalInitial) setDocumentModalInitial(null);
       }
     }
   }, [
     urlEntityId,
-    params.documentModalId,
-    params.documentModalInitial,
-    params.setDocumentModalId,
-    params.setDocumentModalInitial,
+    documentModalId,
+    documentModalInitial,
+    setDocumentModalId,
+    setDocumentModalInitial,
   ]);
 
   useEffect(() => {
-    if (params.closingEntityModal.current) {
-      params.clearClosingEntityModal();
+    if (closingEntityModal.current) {
+      clearClosingEntityModal();
       return;
     }
-    if (
-      urlEntityData?.id &&
-      (!params.selectedPerson || params.selectedPerson.id !== urlEntityData.id)
-    ) {
+    if (urlEntityData?.id && (!selectedPerson || selectedPerson.id !== urlEntityData.id)) {
       const photos: Photo[] = Array.isArray(urlEntityData.photos)
         ? (urlEntityData.photos as unknown[])
             .map((p) => {
@@ -123,25 +132,25 @@ export function useEntityModalUrlSync(params: {
         entityType: urlEntityData.entityType || urlEntityData.type,
         redFlagDescription: urlEntityData.redFlagDescription,
       };
-      params.setSelectedPerson(person);
+      setSelectedPerson(person);
     }
   }, [
     urlEntityData,
-    params.selectedPerson,
-    params.setSelectedPerson,
-    params.closingEntityModal,
-    params.clearClosingEntityModal,
+    selectedPerson,
+    setSelectedPerson,
+    closingEntityModal,
+    clearClosingEntityModal,
   ]);
 
-  const prevPathnameRef = useRef(params.location.pathname);
+  const prevPathnameRef = useRef(location.pathname);
   useEffect(() => {
-    if (params.location.pathname !== prevPathnameRef.current) {
-      prevPathnameRef.current = params.location.pathname;
-      if (!urlEntityId && params.selectedPerson) {
-        params.setSelectedPerson(null);
+    if (location.pathname !== prevPathnameRef.current) {
+      prevPathnameRef.current = location.pathname;
+      if (!urlEntityId && selectedPerson) {
+        setSelectedPerson(null);
       }
     }
-  }, [params.location.pathname, urlEntityId, params.selectedPerson, params.setSelectedPerson]);
+  }, [location.pathname, urlEntityId, selectedPerson, setSelectedPerson]);
 
   useEffect(() => {
     const handleEntityClick = (event: CustomEvent) => {
@@ -158,7 +167,7 @@ export function useEntityModalUrlSync(params: {
           significantPassages: [],
           fileReferences: [],
         };
-        params.setSelectedPerson(partialPerson);
+        setSelectedPerson(partialPerson);
       }
     };
 
@@ -166,5 +175,5 @@ export function useEntityModalUrlSync(params: {
     return () => {
       window.removeEventListener('entityClick', handleEntityClick as EventListener);
     };
-  }, [params.setSelectedPerson]);
+  }, [setSelectedPerson]);
 }

@@ -181,6 +181,13 @@ else
   PG_EXPLAIN_WRITE_OUTPUT=0 node --import tsx/esm scripts/pg_explain.ts
 fi
 
+log "High-traffic route query plan gate"
+if [[ "$SKIP_PLAN_GATE" = "1" ]]; then
+  PG_EXPLAIN_SYNTAX_ONLY=1 node --import tsx/esm scripts/check_query_plan.ts
+else
+  node --import tsx/esm scripts/check_query_plan.ts
+fi
+
 if command -v psql >/dev/null 2>&1; then
   log "Media file_type completeness gate"
   MISSING_MEDIA_FILETYPE="$(

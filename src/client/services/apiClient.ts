@@ -146,6 +146,46 @@ class ContractError extends Error {
   }
 }
 
+export class ApiResponseError extends Error {
+  status: number;
+  code?: string;
+  requestId?: string;
+  details?: unknown;
+  url?: string;
+
+  constructor(
+    message: string,
+    opts: { status: number; code?: string; requestId?: string; details?: unknown; url?: string },
+  ) {
+    super(message);
+    this.name = 'ApiResponseError';
+    this.status = opts.status;
+    this.code = opts.code;
+    this.requestId = opts.requestId;
+    this.details = opts.details;
+    this.url = opts.url;
+  }
+}
+
+function extractApiErrorEnvelope(data: unknown): {
+  message?: string;
+  code?: string;
+  requestId?: string;
+  details?: unknown;
+} | null {
+  if (!data || typeof data !== 'object') return null;
+  const root = data as Record<string, unknown>;
+  const err = root.error;
+  if (!err || typeof err !== 'object') return null;
+  const e = err as Record<string, unknown>;
+  return {
+    message: typeof e.message === 'string' ? e.message : undefined,
+    code: typeof e.code === 'string' ? e.code : undefined,
+    requestId: typeof e.requestId === 'string' ? e.requestId : undefined,
+    details: e.details,
+  };
+}
+
 function parseWithSchema<T>(data: unknown, schema: z.ZodTypeAny, context: string): T {
   try {
     return schema.parse(data) as T;
@@ -422,12 +462,25 @@ class ApiClient {
           }
         }
 
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        const contentType = response.headers.get('content-type') ?? '';
+        const errorData = contentType.includes('application/json')
+          ? await response.json().catch(() => null)
+          : await response.text().catch(() => null);
+
+        const envelope = extractApiErrorEnvelope(errorData);
         const msg =
+          envelope?.message ||
           stringifyApiErrorMessage((errorData as Record<string, unknown>)?.error) ||
           stringifyApiErrorMessage((errorData as Record<string, unknown>)?.message) ||
+          stringifyApiErrorMessage(errorData) ||
           `HTTP ${response.status}: ${response.statusText}`;
-        throw new Error(msg);
+        throw new ApiResponseError(msg, {
+          status: response.status,
+          code: envelope?.code,
+          requestId: envelope?.requestId,
+          details: envelope?.details,
+          url,
+        });
       }
 
       const contentType = response.headers.get('content-type') ?? '';
@@ -557,12 +610,20 @@ class ApiClient {
       const errorData = contentType.includes('application/json')
         ? await response.json().catch(() => null)
         : await response.text().catch(() => null);
+      const envelope = extractApiErrorEnvelope(errorData);
       const msg =
+        envelope?.message ||
         stringifyApiErrorMessage((errorData as Record<string, unknown>)?.error) ||
         stringifyApiErrorMessage((errorData as Record<string, unknown>)?.message) ||
         stringifyApiErrorMessage(errorData) ||
         `HTTP ${response.status}: ${response.statusText}`;
-      throw new Error(msg);
+      throw new ApiResponseError(msg, {
+        status: response.status,
+        code: envelope?.code,
+        requestId: envelope?.requestId,
+        details: envelope?.details,
+        url,
+      });
     }
 
     const disposition = response.headers.get('content-disposition') ?? '';

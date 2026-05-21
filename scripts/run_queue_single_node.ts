@@ -1,10 +1,8 @@
 #!/usr/bin/env tsx
 import 'dotenv/config';
-import { JobManager } from '../src/server/services/JobManager.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
-import { getWorkerConfig } from '../src/server/pipeline/workerConfig.js';
-import { WorkerPool } from '../src/server/pipeline/workerPool.js';
+import { JobManager, getWorkerConfig, WorkerPool } from '../src/server/queue/index.js';
 
 process.env.AI_PROVIDER = 'exo_cluster';
 process.env.ENABLE_AI_ENRICHMENT = 'true';

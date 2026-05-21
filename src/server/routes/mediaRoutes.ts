@@ -2,12 +2,14 @@ import { Router, Response, Request, NextFunction } from 'express';
 import { mediaRepository } from '../db/mediaRepository.js';
 import { cacheResponse } from '../middleware/cache.js';
 import crypto from 'crypto';
+import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { MediaService } from '../services/MediaService.js';
 import { ThumbnailService } from '../services/ThumbnailService.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
+import { mediaStreamLimiter } from '../middleware/rateLimit.js';
 import { findFirstExistingPath } from '../utils/pathResolver.js';
 import { documentsRepository } from '../db/documentsRepository.js';
 import { MediaExtractionService } from '../services/MediaExtractionService.js';
@@ -290,29 +292,44 @@ const sendImageFile = async (id: number, res: Response, preferThumbnail: boolean
   return res.sendFile(resolvedPath);
 };
 
-router.get('/images/:id/thumbnail', validate(mediaIdParamSchema), async (req, res, next) => {
-  try {
-    await sendImageFile(Number(req.params.id), res, true);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/images/:id/thumbnail',
+  mediaStreamLimiter,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      await sendImageFile(Number(req.params.id), res, true);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-router.get('/images/:id/file', validate(mediaIdParamSchema), async (req, res, next) => {
-  try {
-    await sendImageFile(Number(req.params.id), res, false);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/images/:id/file',
+  mediaStreamLimiter,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      await sendImageFile(Number(req.params.id), res, false);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-router.get('/images/:id/raw', validate(mediaIdParamSchema), async (req, res, next) => {
-  try {
-    await sendImageFile(Number(req.params.id), res, false);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/images/:id/raw',
+  mediaStreamLimiter,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      await sendImageFile(Number(req.params.id), res, false);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get('/images/:id/tags', validate(mediaIdParamSchema), async (req, res, next) => {
   try {
@@ -679,37 +696,47 @@ router.get('/audio/:id', validate(mediaIdParamSchema), async (req, res, next) =>
   }
 });
 
-router.get('/audio/:id/stream', validate(mediaIdParamSchema), async (req, res, next) => {
-  try {
-    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: 'Audio item not found' });
+router.get(
+  '/audio/:id/stream',
+  mediaStreamLimiter,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+      if (!item) return res.status(404).json({ error: 'Audio item not found' });
 
-    const resolvedPath = findFirstExistingPath([String(item.filePath || '')]);
-    if (!resolvedPath) return res.status(404).json({ error: 'Audio file not found on disk' });
+      const resolvedPath = findFirstExistingPath([String(item.filePath || '')]);
+      if (!resolvedPath) return res.status(404).json({ error: 'Audio file not found on disk' });
 
-    if (item.fileType) res.type(String(item.fileType));
-    return res.sendFile(resolvedPath);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/audio/:id/thumbnail', validate(mediaIdParamSchema), async (req, res, next) => {
-  try {
-    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: 'Audio item not found' });
-
-    const thumbnailPath = findFirstExistingPath([String(item.thumbnailPath || '')]);
-    if (!thumbnailPath) {
-      return res.status(404).json({ error: 'Audio thumbnail not available' });
+      if (item.fileType) res.type(String(item.fileType));
+      return res.sendFile(resolvedPath);
+    } catch (error) {
+      next(error);
     }
+  },
+);
 
-    res.type(path.extname(thumbnailPath) || 'image/jpeg');
-    return res.sendFile(thumbnailPath);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/audio/:id/thumbnail',
+  mediaStreamLimiter,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+      if (!item) return res.status(404).json({ error: 'Audio item not found' });
+
+      const thumbnailPath = findFirstExistingPath([String(item.thumbnailPath || '')]);
+      if (!thumbnailPath) {
+        return res.status(404).json({ error: 'Audio thumbnail not available' });
+      }
+
+      res.type(path.extname(thumbnailPath) || 'image/jpeg');
+      return res.sendFile(thumbnailPath);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // ─── Video routes ─────────────────────────────────────────────────────────────
 
@@ -734,44 +761,54 @@ router.get('/video/:id', validate(mediaIdParamSchema), async (req, res, next) =>
   }
 });
 
-router.get('/video/:id/thumbnail', validate(mediaIdParamSchema), async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    const item = await mediaRepository.getMediaItemById(id);
-    if (!item) return res.status(404).json({ error: 'Video item not found' });
+router.get(
+  '/video/:id/thumbnail',
+  mediaStreamLimiter,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const id = Number(req.params.id);
+      const item = await mediaRepository.getMediaItemById(id);
+      if (!item) return res.status(404).json({ error: 'Video item not found' });
 
-    let thumbnailPath = findFirstExistingPath([String(item.thumbnailPath || '')]);
-    if (!thumbnailPath) {
-      const videoPath = findFirstExistingPath([String(item.filePath || '')]);
-      if (!videoPath) return res.status(404).json({ error: 'Video file not found on disk' });
-      thumbnailPath = await ThumbnailService.generateVideoThumbnail(videoPath, id);
+      let thumbnailPath = findFirstExistingPath([String(item.thumbnailPath || '')]);
+      if (!thumbnailPath) {
+        const videoPath = findFirstExistingPath([String(item.filePath || '')]);
+        if (!videoPath) return res.status(404).json({ error: 'Video file not found on disk' });
+        thumbnailPath = await ThumbnailService.generateVideoThumbnail(videoPath, id);
+      }
+
+      if (!thumbnailPath) {
+        return res.status(404).json({ error: 'Video thumbnail not available' });
+      }
+
+      res.type(path.extname(thumbnailPath) || 'application/octet-stream');
+      return res.sendFile(thumbnailPath);
+    } catch (error) {
+      next(error);
     }
+  },
+);
 
-    if (!thumbnailPath) {
-      return res.status(404).json({ error: 'Video thumbnail not available' });
+router.get(
+  '/video/:id/stream',
+  mediaStreamLimiter,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+      if (!item) return res.status(404).json({ error: 'Video item not found' });
+
+      const resolvedPath = findFirstExistingPath([String(item.filePath || '')]);
+      if (!resolvedPath) return res.status(404).json({ error: 'Video file not found on disk' });
+
+      if (item.fileType) res.type(String(item.fileType));
+      return res.sendFile(resolvedPath);
+    } catch (error) {
+      next(error);
     }
-
-    res.type(path.extname(thumbnailPath) || 'application/octet-stream');
-    return res.sendFile(thumbnailPath);
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get('/video/:id/stream', validate(mediaIdParamSchema), async (req, res, next) => {
-  try {
-    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
-    if (!item) return res.status(404).json({ error: 'Video item not found' });
-
-    const resolvedPath = findFirstExistingPath([String(item.filePath || '')]);
-    if (!resolvedPath) return res.status(404).json({ error: 'Video file not found on disk' });
-
-    if (item.fileType) res.type(String(item.fileType));
-    return res.sendFile(resolvedPath);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // ─── PDF route ────────────────────────────────────────────────────────────────
 
@@ -781,19 +818,24 @@ const pdfQuerySchema = z.object({
   }),
 });
 
-router.get('/pdf', validate(pdfQuerySchema), async (req, res, next) => {
+router.get('/pdf', mediaStreamLimiter, validate(pdfQuerySchema), async (req, res, next) => {
   try {
-    const filePath = req.query.filePath as string;
-    const resolvedPath = findFirstExistingPath([filePath]);
+    const rawPath = req.query.filePath as string;
+    const resolvedPath = findFirstExistingPath([rawPath]);
     if (!resolvedPath) return res.status(404).json({ error: 'PDF file not found on disk' });
-    if (
-      !resolvedPath.startsWith(DATA_ROOT + path.sep) &&
-      !resolvedPath.startsWith(DATA_ROOT + '/')
-    ) {
+    let canonical: string;
+    try {
+      canonical = fs.realpathSync(resolvedPath);
+    } catch {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    const dataRoot = path.resolve(DATA_ROOT);
+    const normalizedRoot = dataRoot.endsWith(path.sep) ? dataRoot : `${dataRoot}${path.sep}`;
+    if (canonical !== dataRoot && !canonical.startsWith(normalizedRoot)) {
       return res.status(403).json({ error: 'Access denied' });
     }
     res.type('application/pdf');
-    return res.sendFile(resolvedPath);
+    return res.sendFile(canonical);
   } catch (error) {
     next(error);
   }

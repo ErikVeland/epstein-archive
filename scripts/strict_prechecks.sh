@@ -55,6 +55,7 @@ run_full_prechecks() {
 
   run "repo hygiene" pnpm run check:hygiene
   run "client/server boundary" pnpm run check:boundaries
+  run "select-star checks" pnpm run check:select-star
   run "migration seed-conflict policy" pnpm run check:seed-conflict-policy
   run "test hygiene" pnpm run check:test-hygiene
   run "deploy certification" pnpm run check:deploy-certify
@@ -74,6 +75,12 @@ run_staged_prechecks() {
     run "client/server boundary" pnpm run check:boundaries
   else
     log "client/server boundary skipped (no staged client files)"
+  fi
+
+  if has_staged_match '^src/server/|^packages/|\.sql$|^scripts/check_select_star\.ts$|^package\.json$'; then
+    run "select-star checks" pnpm run check:select-star
+  else
+    log "select-star checks skipped (no staged query/server files)"
   fi
 
   if has_staged_match '(^|/)migrations/.*\.(js|sql)$'; then

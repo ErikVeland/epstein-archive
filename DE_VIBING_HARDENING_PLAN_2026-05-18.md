@@ -349,33 +349,34 @@ Runbooks required:
 
 ## 22. Technical Debt Elimination Roadmap
 
-Phase 0 completed in this pass:
+Phase 0 completed (first pass):
 
-- Remove tracked diagnostics.
-- Delete duplicate About page.
-- Strengthen hygiene gate.
-- Begin cache consolidation.
+- Remove tracked diagnostics. ✅
+- Delete duplicate About page. ✅
+- Strengthen hygiene gate. ✅
+- Begin cache consolidation. ✅
 
-Phase 1:
+Phase 1 — completed:
 
-- Finish cache merge.
-- Add canonical error envelope.
-- Convert top 10 `SELECT *` queries.
-- Split `App.tsx` route registry/shell.
+- Finish cache merge (unified `cacheService.ts`, old files removed). ✅
+- Add canonical error envelope (`errorHandler.ts`, `apiErrorEnvelopeMiddleware` in `app.ts`). ✅
+- Convert top 10 `SELECT *` queries (`check:select-star` gate active, no `SELECT *` in db/ or queries/). ✅
+- Split `App.tsx` route registry/shell (1547→AppRoot + hooks + shell). ✅
 
-Phase 2:
+Phase 2 — completed:
 
-- Split ingestion pipeline.
-- Replace client data service duplication with typed hooks.
-- Enforce Knip baseline.
-- Remove dead client OCR/ML bundles if unused.
+- Split ingestion pipeline (`scripts/pipeline/` with config, stages, runner, recovery, status, notifications). ✅
+- Replace client data service duplication with typed hooks (38 hooks, `OptimizedDataService` removed). ✅
+- Enforce Knip baseline (`knip-baseline.txt` committed, `check:knip-baseline` in `prebuild:prod` and `strict_prechecks.sh`). ✅
+- Remove dead client OCR/ML bundles (client OCR services removed, `@tensorflow/tfjs-*` deps removed). ✅
 
-Phase 3:
+Phase 3 — completed:
 
-- Worker redesign.
-- React 19/Vite 8 upgrade.
-- Express 5/Zod 4 upgrade.
-- Bundle and query budgets blocking release.
+- React 19 + Vite 8 upgrade (React 19.2.6, Vite 8.0.13, @vitejs/plugin-react 5.2.0). ✅
+- Express 5 + Zod 4 upgrade (Express 5.2.1, Zod 4.4.3). ✅
+- TypeScript 6.0 + React Router 7 upgrades. ✅
+- Bundle budget gate blocking release (`check:budget` runs in `postbuild:prod`). ✅
+- Worker redesign (`pipeline_jobs` table, JobManager dead-letter/reaper, `src/server/queue/` canonical module with single-purpose workers). ✅
 
 ## 23. Long-Term Maintainability Strategy
 
@@ -385,6 +386,20 @@ Ownership:
 - Product frontend owns pages/components/hooks.
 - Platform owns deploy, observability, CI gates, cache, auth middleware.
 - Investigations domain owns evidence/provenance/scoring semantics.
+
+## 24. Completion Status — 2026-05-21
+
+All three phases of the original plan are now complete. Items marked during initial assessment as out of scope or deferred were addressed in this session:
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| Knip baseline in `prebuild:prod` | ✅ | `pnpm check:knip-baseline` added to `prebuild:prod` chain |
+| Query-plan gate for high-traffic routes | ✅ | `scripts/check_query_plan.ts` created, wired into `ci_pg_nuclear_gates.sh` |
+| Rate-limit file-serving + search/export endpoints | ✅ | `mediaStreamLimiter`, `documentFileLimiter`, `documentsListLimiter`, `exportRateLimiter`, `aiRateLimiter` added; applied to media file routes, document file/list routes |
+| PDF route symlink-bypass hardening | ✅ | `mediaRoutes.ts` `/pdf` route now uses `fs.realpathSync()` + root allowlist |
+| 7 incident runbooks | ✅ | `docs/runbooks/01` through `07` — search latency, ingest stuck, AI timeout, missing asset, schema hash, cache stale, auth failure |
+| Worker redesign — canonical queue module | ✅ | `src/server/queue/` with `JobManager`, `WorkerPool`, `WorkerConfig`, single-purpose `BaseWorker`/`IngestWorker`/`AIEnrichmentWorker`/`MediaThumbnailWorker`; backward-compat re-exports at old locations |
+| All old imports migrated to `src/server/queue/` | ✅ | 5 files updated to import from canonical module |
 
 Non-negotiables:
 

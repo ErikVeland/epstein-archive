@@ -38,11 +38,8 @@ export function AppShellLayout(props: {
   setIsMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isMobileSearchOpen: boolean;
   setIsMobileSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  showReleaseNotes: boolean;
   setShowReleaseNotes: React.Dispatch<React.SetStateAction<boolean>>;
-  showKeyboardShortcuts: boolean;
   setShowKeyboardShortcuts: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowCreateEntityModal: React.Dispatch<React.SetStateAction<boolean>>;
   searchTerm: string;
   setSearchTerm: (next: string) => void;
   searchSuggestions: Array<
@@ -62,22 +59,55 @@ export function AppShellLayout(props: {
   loadingProgress: string;
   children: ReactNode;
 }) {
+  const {
+    seoConfig,
+    shouldShowOnboarding,
+    completeOnboarding,
+    skipOnboarding,
+    isMobile,
+    navigate,
+    isAdmin,
+    activeTab,
+    breadcrumbLabel,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen,
+    isMobileSearchOpen,
+    setIsMobileSearchOpen,
+    setShowReleaseNotes,
+    setShowKeyboardShortcuts,
+    searchTerm,
+    setSearchTerm,
+    searchSuggestions,
+    searchSuggestionsLoading,
+    onPersonClick,
+    onDocumentSuggestionClick,
+    openSearchResultsRoute,
+    filters,
+    setFilters,
+    showDateRangePicker,
+    setShowDateRangePicker,
+    isInitializing,
+    analyticsLoading,
+    loadingProgress,
+    children,
+  } = props;
+
   const dateRangePickerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!props.showDateRangePicker) return;
+    if (!showDateRangePicker) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (dateRangePickerRef.current && !dateRangePickerRef.current.contains(e.target as Node)) {
-        props.setShowDateRangePicker(false);
+        setShowDateRangePicker(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [props.showDateRangePicker, props.setShowDateRangePicker]);
+  }, [showDateRangePicker, setShowDateRangePicker]);
 
   const clearDateFilter = useCallback(() => {
-    props.setFilters({ timeRange: [null, null] });
-    props.setShowDateRangePicker(false);
-  }, [props.setFilters, props.setShowDateRangePicker]);
+    setFilters({ timeRange: [null, null] });
+    setShowDateRangePicker(false);
+  }, [setFilters, setShowDateRangePicker]);
 
   const renderDateFilterFields = useCallback(
     (className?: string) => (
@@ -90,10 +120,10 @@ export function AppShellLayout(props: {
             id="global-date-from"
             type="date"
             className={styles.dateInput}
-            value={props.filters.timeRange[0] ?? ''}
+            value={filters.timeRange[0] ?? ''}
             onChange={(e) =>
-              props.setFilters({
-                timeRange: [e.target.value || null, props.filters.timeRange[1]],
+              setFilters({
+                timeRange: [e.target.value || null, filters.timeRange[1]],
               })
             }
           />
@@ -106,43 +136,43 @@ export function AppShellLayout(props: {
             id="global-date-to"
             type="date"
             className={styles.dateInput}
-            value={props.filters.timeRange[1] ?? ''}
+            value={filters.timeRange[1] ?? ''}
             onChange={(e) =>
-              props.setFilters({
-                timeRange: [props.filters.timeRange[0], e.target.value || null],
+              setFilters({
+                timeRange: [filters.timeRange[0], e.target.value || null],
               })
             }
           />
         </div>
-        {(props.filters.timeRange[0] || props.filters.timeRange[1]) && (
+        {(filters.timeRange[0] || filters.timeRange[1]) && (
           <Button unstyled onClick={clearDateFilter} className={styles.dateClearButton}>
             Clear date filter
           </Button>
         )}
       </div>
     ),
-    [clearDateFilter, props.filters.timeRange, props.setFilters],
+    [clearDateFilter, filters.timeRange, setFilters],
   );
 
   const renderSearchSuggestions = useCallback(
     (containerClassName?: string) => (
       <Surface className={cn(styles.searchDropdown, containerClassName)}>
-        <div className={styles.searchDropdownHeader}>Search results for "{props.searchTerm}"</div>
-        {props.searchSuggestionsLoading ? (
+        <div className={styles.searchDropdownHeader}>Search results for "{searchTerm}"</div>
+        {searchSuggestionsLoading ? (
           <div className={styles.searchDropdownLoading}>
             <div className={styles.miniSpinner}></div>
             Searching…
           </div>
-        ) : props.searchSuggestions.length > 0 ? (
-          props.searchSuggestions.slice(0, 8).map((suggestion, i) =>
+        ) : searchSuggestions.length > 0 ? (
+          searchSuggestions.slice(0, 8).map((suggestion, i) =>
             suggestion.kind === 'entity' ? (
               <Button
                 unstyled
                 key={`entity-sugg-${String(suggestion.id)}-${i}`}
                 className={styles.searchSuggestionButton}
                 onClick={() => {
-                  props.onPersonClick(suggestion);
-                  props.setIsMobileSearchOpen(false);
+                  onPersonClick(suggestion);
+                  setIsMobileSearchOpen(false);
                 }}
               >
                 <Icon name="User" size="sm" color="gray" />
@@ -164,8 +194,8 @@ export function AppShellLayout(props: {
                 key={`doc-sugg-${suggestion.id}-${i}`}
                 className={styles.searchDocButton}
                 onClick={() => {
-                  props.onDocumentSuggestionClick(suggestion.id);
-                  props.setIsMobileSearchOpen(false);
+                  onDocumentSuggestionClick(suggestion.id);
+                  setIsMobileSearchOpen(false);
                 }}
               >
                 <Icon name="FileText" size="sm" color="gray" className={styles.searchDocIcon} />
@@ -187,39 +217,35 @@ export function AppShellLayout(props: {
           <div className={styles.searchDropdownEmpty}>No subjects or documents found</div>
         )}
         <div className={styles.searchDropdownFooter}>
-          <Button
-            unstyled
-            className={styles.searchAllButton}
-            onClick={props.openSearchResultsRoute}
-          >
+          <Button unstyled className={styles.searchAllButton} onClick={openSearchResultsRoute}>
             <Icon name="Search" size="sm" />
-            <span>Search all documents for "{props.searchTerm}"</span>
+            <span>Search all documents for "{searchTerm}"</span>
           </Button>
         </div>
       </Surface>
     ),
     [
-      props.onDocumentSuggestionClick,
-      props.onPersonClick,
-      props.openSearchResultsRoute,
-      props.searchSuggestions,
-      props.searchSuggestionsLoading,
-      props.searchTerm,
-      props.setIsMobileSearchOpen,
+      onDocumentSuggestionClick,
+      onPersonClick,
+      openSearchResultsRoute,
+      searchSuggestions,
+      searchSuggestionsLoading,
+      searchTerm,
+      setIsMobileSearchOpen,
     ],
   );
 
-  const dateFilterActive = Boolean(props.filters.timeRange[0] || props.filters.timeRange[1]);
+  const dateFilterActive = Boolean(filters.timeRange[0] || filters.timeRange[1]);
   const dateFilterLabel = useMemo(() => {
     if (!dateFilterActive) return null;
-    return `${props.filters.timeRange[0] ?? '…'} – ${props.filters.timeRange[1] ?? '…'}`;
-  }, [dateFilterActive, props.filters.timeRange]);
+    return `${filters.timeRange[0] ?? '…'} – ${filters.timeRange[1] ?? '…'}`;
+  }, [dateFilterActive, filters.timeRange]);
 
   return (
     <>
-      <SEO {...props.seoConfig} />
-      {props.shouldShowOnboarding && (
-        <FirstRunOnboarding onComplete={props.completeOnboarding} onSkip={props.skipOnboarding} />
+      <SEO {...seoConfig} />
+      {shouldShowOnboarding && (
+        <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />
       )}
 
       <div className={styles.srOnly}>
@@ -236,7 +262,7 @@ export function AppShellLayout(props: {
       <header className={cn(styles.headerShell)}>
         <div className={styles.contentShell}>
           <div className={styles.header}>
-            {!props.isMobile && (
+            {!isMobile && (
               <div className={styles.logoArea}>
                 <Link to="/" className={styles.logoArea}>
                   <RedactedLogo text="THE EPSTEIN FILES" />
@@ -245,40 +271,40 @@ export function AppShellLayout(props: {
             )}
 
             <div className={styles.actionsArea}>
-              {!props.isMobile && (
+              {!isMobile && (
                 <>
                   <div className={styles.buttonGroup}>
                     <ShellActionButton
-                      onClick={() => props.navigate('/investigations')}
+                      onClick={() => navigate('/investigations')}
                       icon="Plus"
                       iconColor="white"
                       label="New"
                       title="New Investigation"
                     />
                     <ShellActionButton
-                      onClick={() => props.setShowKeyboardShortcuts(true)}
+                      onClick={() => setShowKeyboardShortcuts(true)}
                       icon="Command"
                       iconColor="info"
                       label="Shortcuts"
                       title="Keyboard Shortcuts"
                     />
                     <ShellActionButton
-                      onClick={() => props.navigate('/about')}
+                      onClick={() => navigate('/about')}
                       icon="Shield"
                       iconColor="success"
                       label="Sources"
                       title="Verified Sources"
                     />
                     <ShellActionButton
-                      onClick={() => props.setShowReleaseNotes(true)}
+                      onClick={() => setShowReleaseNotes(true)}
                       icon="Book"
                       iconColor="info"
                       label="What's New"
                       title="What's New"
                     />
-                    {props.isAdmin && (
+                    {isAdmin && (
                       <ShellActionButton
-                        onClick={() => props.navigate('/admin')}
+                        onClick={() => navigate('/admin')}
                         icon="Shield"
                         iconClassName={styles.adminIcon}
                         label="Admin"
@@ -293,24 +319,24 @@ export function AppShellLayout(props: {
                       <SearchField
                         type="text"
                         placeholder="Search evidence..."
-                        value={props.searchTerm}
-                        onChange={(e) => props.setSearchTerm(e.target.value)}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === 'Enter' && props.searchTerm.trim()) {
-                            props.openSearchResultsRoute();
+                          if (e.key === 'Enter' && searchTerm.trim()) {
+                            openSearchResultsRoute();
                           } else if (e.key === 'Escape') {
-                            props.setSearchTerm('');
+                            setSearchTerm('');
                             e.currentTarget.blur();
                           }
                         }}
                         rootClassName={styles.headerSearchFieldRoot}
                         className={styles.headerSearchFieldInput}
                       />
-                      {props.searchTerm.trim().length > 0 && (
+                      {searchTerm.trim().length > 0 && (
                         <Button
                           unstyled
                           type="button"
-                          onClick={() => props.setSearchTerm('')}
+                          onClick={() => setSearchTerm('')}
                           aria-label="Clear search"
                           className={styles.searchClearButton}
                         >
@@ -319,20 +345,20 @@ export function AppShellLayout(props: {
                       )}
                       <Button
                         unstyled
-                        onClick={props.openSearchResultsRoute}
+                        onClick={openSearchResultsRoute}
                         aria-label="Run search"
                         className={cn(styles.searchButton)}
                       >
                         <Icon name="Search" size="sm" />
                       </Button>
                     </div>
-                    {props.searchTerm.trim().length >= 2 && renderSearchSuggestions()}
+                    {searchTerm.trim().length >= 2 && renderSearchSuggestions()}
                   </div>
 
                   <div ref={dateRangePickerRef} className={styles.dateFilterWrap}>
                     <Button
-                      onClick={() => props.setShowDateRangePicker((v) => !v)}
-                      aria-expanded={props.showDateRangePicker}
+                      onClick={() => setShowDateRangePicker((v) => !v)}
+                      aria-expanded={showDateRangePicker}
                       aria-haspopup="dialog"
                       variant="ghost"
                       size="sm"
@@ -351,14 +377,14 @@ export function AppShellLayout(props: {
                         <span className={styles.dateFilterValue}>{dateFilterLabel}</span>
                       )}
                     </Button>
-                    {props.showDateRangePicker && (
+                    {showDateRangePicker && (
                       <Surface
                         className={styles.dateFilterPanel}
                         role="dialog"
                         aria-label="Global date range filter"
                         onKeyDown={(e) => {
                           if (e.key === 'Escape') {
-                            props.setShowDateRangePicker(false);
+                            setShowDateRangePicker(false);
                           }
                         }}
                       >
@@ -370,25 +396,25 @@ export function AppShellLayout(props: {
                 </>
               )}
 
-              {props.isMobile && (
+              {isMobile && (
                 <div className={styles.mobileHeaderStack}>
                   <div className={styles.mobileHeaderTopRow}>
                     <Link
                       to="/"
                       className={styles.logoArea}
-                      onClick={() => props.setIsMobileMenuOpen(false)}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <RedactedLogo text="THE EPSTEIN FILES" />
                     </Link>
                     <Button
                       unstyled
-                      onClick={() => props.setIsMobileMenuOpen((v) => !v)}
+                      onClick={() => setIsMobileMenuOpen((v) => !v)}
                       className={styles.mobileMenuButton}
                       aria-label={
-                        props.isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
+                        isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
                       }
                     >
-                      {props.isMobileMenuOpen ? (
+                      {isMobileMenuOpen ? (
                         <Icon name="X" size="sm" />
                       ) : (
                         <Icon name="Menu" size="sm" />
@@ -399,11 +425,10 @@ export function AppShellLayout(props: {
                   <div className={styles.mobileHeaderControls}>
                     <Button
                       unstyled
-                      onClick={() => props.setIsMobileSearchOpen(true)}
+                      onClick={() => setIsMobileSearchOpen(true)}
                       className={cn(
                         styles.mobileControlButton,
-                        (props.searchTerm.trim() || dateFilterActive) &&
-                          styles.mobileHeaderButtonActive,
+                        (searchTerm.trim() || dateFilterActive) && styles.mobileHeaderButtonActive,
                       )}
                       aria-label="Open search and filters"
                     >
@@ -412,9 +437,7 @@ export function AppShellLayout(props: {
                         <span className={styles.mobileControlLabel}>Search & Filters</span>
                       </span>
                       <span className={styles.mobileControlValue}>
-                        {props.searchTerm.trim()
-                          ? `“${props.searchTerm}”`
-                          : 'People, evidence, documents'}
+                        {searchTerm.trim() ? `"${searchTerm}"` : 'People, evidence, documents'}
                         {dateFilterActive && ` • ${dateFilterLabel}`}
                       </span>
                     </Button>
@@ -428,34 +451,34 @@ export function AppShellLayout(props: {
 
       <div className={cn(styles.contentShell, styles.mainShell)}>
         <LoadingIndicator
-          isLoading={props.isInitializing || props.analyticsLoading}
-          label={props.isInitializing ? props.loadingProgress : undefined}
+          isLoading={isInitializing || analyticsLoading}
+          label={isInitializing ? loadingProgress : undefined}
         />
 
         <SegmentedNav
-          activeTab={props.activeTab}
-          navigate={props.navigate}
-          shouldShowOnboarding={props.shouldShowOnboarding}
+          activeTab={activeTab}
+          navigate={navigate}
+          shouldShowOnboarding={shouldShowOnboarding}
         />
 
         <MobileMenu
-          open={props.isMobileMenuOpen}
-          searchTerm={props.searchTerm}
-          onSearchTermChange={props.setSearchTerm}
-          onNavigate={(p) => props.navigate(p)}
-          onClose={() => props.setIsMobileMenuOpen(false)}
+          open={isMobileMenuOpen}
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          onNavigate={(p) => navigate(p)}
+          onClose={() => setIsMobileMenuOpen(false)}
           onSearch={(term) => {
-            props.setSearchTerm(term);
-            props.setIsMobileMenuOpen(false);
+            setSearchTerm(term);
+            setIsMobileMenuOpen(false);
           }}
         />
 
-        {props.isMobile && (
+        {isMobile && (
           <BottomSheet
-            isOpen={props.isMobileSearchOpen || props.showDateRangePicker}
+            isOpen={isMobileSearchOpen || showDateRangePicker}
             onClose={() => {
-              props.setIsMobileSearchOpen(false);
-              props.setShowDateRangePicker(false);
+              setIsMobileSearchOpen(false);
+              setShowDateRangePicker(false);
             }}
             title="Search & Filters"
           >
@@ -473,19 +496,19 @@ export function AppShellLayout(props: {
                 <SearchField
                   type="text"
                   placeholder="Search evidence…"
-                  value={props.searchTerm}
-                  onChange={(e) => props.setSearchTerm(e.target.value)}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      props.openSearchResultsRoute();
-                      props.setIsMobileSearchOpen(false);
+                      openSearchResultsRoute();
+                      setIsMobileSearchOpen(false);
                     }
                   }}
                   rootClassName={styles.mobileSheetSearchRoot}
                   className={styles.mobileSheetSearchInput}
                   aria-label="Search the archive"
                 />
-                {props.searchTerm.trim().length >= 2 ? (
+                {searchTerm.trim().length >= 2 ? (
                   <div style={{ marginTop: '1rem' }}>
                     {renderSearchSuggestions(styles.mobileSheetDropdown)}
                   </div>
@@ -524,7 +547,7 @@ export function AppShellLayout(props: {
 
         <div id="main-content" className={styles.mainContent}>
           <div className={styles.breadcrumbContainer}>
-            <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: props.breadcrumbLabel }]} />
+            <Breadcrumb items={[{ label: 'Home', href: '/' }, { label: breadcrumbLabel }]} />
           </div>
           <div className={styles.viewTransition}>
             <Suspense
@@ -534,7 +557,7 @@ export function AppShellLayout(props: {
                 </div>
               }
             >
-              {props.children}
+              {children}
             </Suspense>
           </div>
         </div>

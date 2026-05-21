@@ -7,8 +7,9 @@ export function useLegacyFileRedirect(params: {
   pathname: string;
   navigate: NavigateFunction;
 }) {
-  const legacyFileSuffix = params.pathname.startsWith('/epstein/files/')
-    ? params.pathname.replace(/^\/epstein\/files\//, '')
+  const { apiEnabled, pathname, navigate } = params;
+  const legacyFileSuffix = pathname.startsWith('/epstein/files/')
+    ? pathname.replace(/^\/epstein\/files\//, '')
     : null;
 
   const { data: legacyFilePayload } = useQuery<{
@@ -25,18 +26,18 @@ export function useLegacyFileRedirect(params: {
       if (!response.ok) return null;
       return (await response.json()) as { redirectTo?: string; documentId?: string };
     },
-    enabled: params.apiEnabled && !!legacyFileSuffix,
+    enabled: apiEnabled && !!legacyFileSuffix,
     staleTime: Infinity,
   });
 
   useEffect(() => {
     if (!legacyFilePayload) return;
     if (legacyFilePayload.redirectTo) {
-      params.navigate(legacyFilePayload.redirectTo, { replace: true });
+      navigate(legacyFilePayload.redirectTo, { replace: true });
     } else if (legacyFilePayload.documentId) {
-      params.navigate(`/documents/${encodeURIComponent(legacyFilePayload.documentId)}`, {
+      navigate(`/documents/${encodeURIComponent(legacyFilePayload.documentId)}`, {
         replace: true,
       });
     }
-  }, [legacyFilePayload, params.navigate]);
+  }, [legacyFilePayload, navigate]);
 }

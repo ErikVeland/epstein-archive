@@ -6,11 +6,14 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import { getIngestPool } from '../../src/server/db/connection.js';
 import { PipelineService } from '../../src/server/services/pipelineService.js';
-import { JobManager } from '../../src/server/services/JobManager.js';
 import { AIEnrichmentService } from '../../src/server/services/AIEnrichmentService.js';
 import { markViewsDirty } from '../../src/server/services/matViewRefresh.js';
-import { getWorkerConfig, intFromEnv } from '../../src/server/pipeline/workerConfig.js';
-import { WorkerPool } from '../../src/server/pipeline/workerPool.js';
+import {
+  JobManager,
+  getWorkerConfig,
+  intFromEnv,
+  WorkerPool,
+} from '../../src/server/queue/index.js';
 import { PIPELINE_VERSION, ALLOW_AI_CONTENT_REWRITE } from './config.js';
 import type { IngestContext } from './context.js';
 

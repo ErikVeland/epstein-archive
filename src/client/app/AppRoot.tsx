@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import type { Person } from '../types';
@@ -44,6 +44,14 @@ import { useMobileGlobalToggles } from './orchestration/useMobileGlobalToggles';
 import { usePeopleFiltersUrlSync } from './orchestration/usePeopleFiltersUrlSync';
 
 export function AppRoot() {
+  return (
+    <AppProviders>
+      <AppRootContent />
+    </AppProviders>
+  );
+}
+
+function AppRootContent() {
   const { status: apiStatus } = useApiStatus();
   const apiEnabled = apiStatus !== 'down';
   const queryClient = useQueryClient();
@@ -142,9 +150,13 @@ export function AppRoot() {
     showKeyboardShortcuts,
   });
 
-  useEffect(() => {
+  // Sync mobile-only UI state when viewport switches to desktop.
+  // useLayoutEffect runs before paint so the UI never flashes in an inconsistent state.
+  useLayoutEffect(() => {
     if (isMobile) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync viewport-specific overlays before desktop paint.
     setIsMobileSearchOpen(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Sync viewport-specific overlays before desktop paint.
     setShowDateRangePicker(false);
   }, [isMobile]);
 
@@ -221,107 +233,102 @@ export function AppRoot() {
   const breadcrumbLabel = tabLabels[activeTab];
 
   return (
-    <AppProviders>
-      <div className={cn(styles.appRoot)} data-scroll-lock-root="true">
-        <AppShellLayout
-          seoConfig={seoConfig}
-          shouldShowOnboarding={shouldShowOnboarding}
-          completeOnboarding={completeOnboarding}
-          skipOnboarding={skipOnboarding}
-          isMobile={isMobile}
-          navigate={navigate}
-          isAdmin={isAdmin}
-          activeTab={activeTab}
-          breadcrumbLabel={breadcrumbLabel}
-          isMobileMenuOpen={isMobileMenuOpen}
-          setIsMobileMenuOpen={setIsMobileMenuOpen}
-          isMobileSearchOpen={isMobileSearchOpen}
-          setIsMobileSearchOpen={setIsMobileSearchOpen}
-          showReleaseNotes={showReleaseNotes}
-          setShowReleaseNotes={setShowReleaseNotes}
-          showKeyboardShortcuts={showKeyboardShortcuts}
-          setShowKeyboardShortcuts={setShowKeyboardShortcuts}
-          setShowCreateEntityModal={setShowCreateEntityModal}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          searchSuggestions={searchSuggestions}
-          searchSuggestionsLoading={searchSuggestionsLoading}
-          onPersonClick={handlePersonClick}
-          onDocumentSuggestionClick={handleDocumentSuggestionClick}
-          openSearchResultsRoute={openSearchResultsRoute}
-          filters={filters}
-          setFilters={setFilters}
-          showDateRangePicker={showDateRangePicker}
-          setShowDateRangePicker={setShowDateRangePicker}
-          isInitializing={isInitializing}
-          analyticsLoading={analyticsLoading}
-          loadingProgress={loadingProgress}
-        >
-          <AppRoutes
-            apiStatus={apiStatus}
-            location={location}
-            dataStats={dataStats}
-            selectedRiskLevel={selectedRiskLevel}
-            onRiskLevelClick={handleRiskLevelClick}
-            onResetFilters={handleResetFilters}
-            isAdmin={isAdmin}
-            onAddSubject={() => setShowCreateEntityModal(true)}
-            entityType={entityType}
-            onEntityTypeChange={setEntityType}
-            sortBy={sortBy}
-            onSortByChange={(val) => {
-              if (val === 'name' || val === 'mentions' || val === 'red_flag' || val === 'risk') {
-                setSortBy(val);
-              }
-            }}
-            sortOrder={sortOrder}
-            onSortOrderToggle={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            searchTerm={searchTerm}
-            onPersonClick={handlePersonClick}
-            analyticsData={analyticsData ?? undefined}
-            analyticsLoading={analyticsLoading}
-            analyticsError={analyticsError}
-            onRetryAnalytics={() => void refetchAnalytics()}
-            onDocumentClick={handleDocumentSuggestionClick}
-            selectedDocumentSearchTerm={selectedDocumentSearchTerm}
-            onSelectedDocumentSearchTermChange={setSelectedDocumentSearchTerm}
-            selectedDocumentId={documentModalId || ''}
-            currentUser={currentUser}
-          />
-          <CollaborationIndicator />
-        </AppShellLayout>
-
-        <ModalHost
-          selectedPerson={selectedPerson}
-          setSelectedPerson={setSelectedPerson}
-          markClosingEntityModal={() => {
-            closingEntityModal.current = true;
-          }}
+    <div className={cn(styles.appRoot)} data-scroll-lock-root="true">
+      <AppShellLayout
+        seoConfig={seoConfig}
+        shouldShowOnboarding={shouldShowOnboarding}
+        completeOnboarding={completeOnboarding}
+        skipOnboarding={skipOnboarding}
+        isMobile={isMobile}
+        navigate={navigate}
+        isAdmin={isAdmin}
+        activeTab={activeTab}
+        breadcrumbLabel={breadcrumbLabel}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        isMobileSearchOpen={isMobileSearchOpen}
+        setIsMobileSearchOpen={setIsMobileSearchOpen}
+        setShowReleaseNotes={setShowReleaseNotes}
+        setShowKeyboardShortcuts={setShowKeyboardShortcuts}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        searchSuggestions={searchSuggestions}
+        searchSuggestionsLoading={searchSuggestionsLoading}
+        onPersonClick={handlePersonClick}
+        onDocumentSuggestionClick={handleDocumentSuggestionClick}
+        openSearchResultsRoute={openSearchResultsRoute}
+        filters={filters}
+        setFilters={setFilters}
+        showDateRangePicker={showDateRangePicker}
+        setShowDateRangePicker={setShowDateRangePicker}
+        isInitializing={isInitializing}
+        analyticsLoading={analyticsLoading}
+        loadingProgress={loadingProgress}
+      >
+        <AppRoutes
+          apiStatus={apiStatus}
           location={location}
-          navigate={navigate}
-          backLinkState={backLinkState}
-          documentModalId={documentModalId}
-          setDocumentModalId={setDocumentModalId}
+          dataStats={dataStats}
+          selectedRiskLevel={selectedRiskLevel}
+          onRiskLevelClick={handleRiskLevelClick}
+          onResetFilters={handleResetFilters}
+          isAdmin={isAdmin}
+          onAddSubject={() => setShowCreateEntityModal(true)}
+          entityType={entityType}
+          onEntityTypeChange={setEntityType}
+          sortBy={sortBy}
+          onSortByChange={(val) => {
+            if (val === 'name' || val === 'mentions' || val === 'red_flag' || val === 'risk') {
+              setSortBy(val);
+            }
+          }}
+          sortOrder={sortOrder}
+          onSortOrderToggle={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          searchTerm={searchTerm}
+          onPersonClick={handlePersonClick}
+          analyticsData={analyticsData ?? undefined}
+          analyticsLoading={analyticsLoading}
+          analyticsError={analyticsError}
+          onRetryAnalytics={() => void refetchAnalytics()}
+          onDocumentClick={handleDocumentSuggestionClick}
           selectedDocumentSearchTerm={selectedDocumentSearchTerm}
-          documentModalInitial={documentModalInitial}
-          setDocumentModalInitial={setDocumentModalInitial}
-          goBack={goBack}
-          showReleaseNotes={showReleaseNotes}
-          setShowReleaseNotes={setShowReleaseNotes}
-          parsedReleaseNotes={parsedReleaseNotes}
-          showKeyboardShortcuts={showKeyboardShortcuts}
-          setShowKeyboardShortcuts={setShowKeyboardShortcuts}
-          isCommandPaletteOpen={isCommandPaletteOpen}
-          closeCommandPalette={closeCommandPalette}
-          showCreateEntityModal={showCreateEntityModal}
-          setShowCreateEntityModal={setShowCreateEntityModal}
-          queryClient={queryClient}
+          onSelectedDocumentSearchTermChange={setSelectedDocumentSearchTerm}
+          selectedDocumentId={documentModalId || ''}
+          currentUser={currentUser}
         />
+        <CollaborationIndicator />
+      </AppShellLayout>
 
-        <OfflineIndicator />
-        <Footer onVersionClick={() => setShowReleaseNotes(true)} />
-        <MobileBottomNav />
-      </div>
-    </AppProviders>
+      <ModalHost
+        selectedPerson={selectedPerson}
+        setSelectedPerson={setSelectedPerson}
+        markClosingEntityModal={() => {
+          closingEntityModal.current = true;
+        }}
+        location={location}
+        navigate={navigate}
+        backLinkState={backLinkState}
+        documentModalId={documentModalId}
+        setDocumentModalId={setDocumentModalId}
+        selectedDocumentSearchTerm={selectedDocumentSearchTerm}
+        documentModalInitial={documentModalInitial}
+        setDocumentModalInitial={setDocumentModalInitial}
+        goBack={goBack}
+        showReleaseNotes={showReleaseNotes}
+        setShowReleaseNotes={setShowReleaseNotes}
+        parsedReleaseNotes={parsedReleaseNotes}
+        showKeyboardShortcuts={showKeyboardShortcuts}
+        setShowKeyboardShortcuts={setShowKeyboardShortcuts}
+        isCommandPaletteOpen={isCommandPaletteOpen}
+        closeCommandPalette={closeCommandPalette}
+        showCreateEntityModal={showCreateEntityModal}
+        setShowCreateEntityModal={setShowCreateEntityModal}
+        queryClient={queryClient}
+      />
+
+      <OfflineIndicator />
+      <Footer onVersionClick={() => setShowReleaseNotes(true)} />
+      <MobileBottomNav />
+    </div>
   );
 }

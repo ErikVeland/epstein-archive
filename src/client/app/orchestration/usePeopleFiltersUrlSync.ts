@@ -10,32 +10,24 @@ export function usePeopleFiltersUrlSync(params: {
   entityType: string;
   selectedRiskLevel: string | null;
 }) {
+  const { pathname, search, navigate, sortBy, sortOrder, entityType, selectedRiskLevel } = params;
+
   useEffect(() => {
     const isPeoplePath =
-      params.pathname === '/' ||
-      params.pathname === '/people' ||
-      params.pathname.startsWith('/entity/');
+      pathname === '/' || pathname === '/people' || pathname.startsWith('/entity/');
     if (!isPeoplePath) return;
 
-    const next = new URLSearchParams(params.search);
+    const next = new URLSearchParams(search);
     ['sort', 'order', 'type', 'risk'].forEach((k) => next.delete(k));
-    if (params.sortBy !== 'red_flag') next.set('sort', params.sortBy);
-    if (params.sortOrder !== 'desc') next.set('order', params.sortOrder);
-    if (params.entityType !== 'all') next.set('type', params.entityType);
-    if (params.selectedRiskLevel) next.set('risk', params.selectedRiskLevel);
+    if (sortBy !== 'red_flag') next.set('sort', sortBy);
+    if (sortOrder !== 'desc') next.set('order', sortOrder);
+    if (entityType !== 'all') next.set('type', entityType);
+    if (selectedRiskLevel) next.set('risk', selectedRiskLevel);
 
     const newSearch = next.toString();
-    const currentSearch = new URLSearchParams(params.search).toString();
+    const currentSearch = new URLSearchParams(search).toString();
     if (newSearch !== currentSearch) {
-      params.navigate(`${params.pathname}${newSearch ? `?${newSearch}` : ''}`, { replace: true });
+      navigate(`${pathname}${newSearch ? `?${newSearch}` : ''}`, { replace: true });
     }
-  }, [
-    params.entityType,
-    params.navigate,
-    params.pathname,
-    params.search,
-    params.selectedRiskLevel,
-    params.sortBy,
-    params.sortOrder,
-  ]);
+  }, [entityType, navigate, pathname, search, selectedRiskLevel, sortBy, sortOrder]);
 }

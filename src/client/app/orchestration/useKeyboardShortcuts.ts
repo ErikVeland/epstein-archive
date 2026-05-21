@@ -20,6 +20,22 @@ export function useKeyboardShortcuts(params: {
   activeTab: string;
   showKeyboardShortcuts: boolean;
 }) {
+  const {
+    navigate,
+    location,
+    selectedPerson,
+    setSelectedPerson,
+    documentModalId,
+    setDocumentModalId,
+    setDocumentModalInitial,
+    goBack,
+    showReleaseNotes,
+    setShowReleaseNotes,
+    setShowKeyboardShortcuts,
+    activeTab,
+    showKeyboardShortcuts,
+  } = params;
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -56,7 +72,7 @@ export function useKeyboardShortcuts(params: {
 
         if (tabMap[e.key]) {
           e.preventDefault();
-          params.navigate(tabMap[e.key]);
+          navigate(tabMap[e.key]);
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
           announcement.setAttribute('aria-atomic', 'true');
@@ -68,14 +84,12 @@ export function useKeyboardShortcuts(params: {
       }
 
       if (e.key === 'Escape') {
-        if (params.selectedPerson) {
-          params.setSelectedPerson(null);
-          const urlParams = new URLSearchParams(params.location.search);
+        if (selectedPerson) {
+          setSelectedPerson(null);
+          const urlParams = new URLSearchParams(location.search);
           urlParams.delete('entityId');
           urlParams.delete('entityTab');
-          params.navigate(
-            `${params.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`,
-          );
+          navigate(`${location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`);
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
           announcement.setAttribute('aria-atomic', 'true');
@@ -84,10 +98,10 @@ export function useKeyboardShortcuts(params: {
           document.body.appendChild(announcement);
           setTimeout(() => document.body.removeChild(announcement), 1000);
         }
-        if (params.documentModalId) {
-          params.setDocumentModalId('');
-          params.setDocumentModalInitial(null);
-          params.goBack('/documents');
+        if (documentModalId) {
+          setDocumentModalId('');
+          setDocumentModalInitial(null);
+          goBack('/documents');
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
           announcement.setAttribute('aria-atomic', 'true');
@@ -96,8 +110,8 @@ export function useKeyboardShortcuts(params: {
           document.body.appendChild(announcement);
           setTimeout(() => document.body.removeChild(announcement), 1000);
         }
-        if (params.showReleaseNotes) {
-          params.setShowReleaseNotes(false);
+        if (showReleaseNotes) {
+          setShowReleaseNotes(false);
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
           announcement.setAttribute('aria-atomic', 'true');
@@ -122,7 +136,7 @@ export function useKeyboardShortcuts(params: {
 
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
-        params.setShowKeyboardShortcuts(true);
+        setShowKeyboardShortcuts(true);
         const announcement = document.createElement('div');
         announcement.setAttribute('aria-live', 'polite');
         announcement.setAttribute('aria-atomic', 'true');
@@ -138,19 +152,19 @@ export function useKeyboardShortcuts(params: {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [
-    params.navigate,
-    params.selectedPerson,
-    params.documentModalId,
-    params.showReleaseNotes,
-    params.showKeyboardShortcuts,
-    params.activeTab,
-    params.location.pathname,
-    params.location.search,
-    params.goBack,
-    params.setDocumentModalId,
-    params.setDocumentModalInitial,
-    params.setSelectedPerson,
-    params.setShowKeyboardShortcuts,
-    params.setShowReleaseNotes,
+    navigate,
+    selectedPerson,
+    documentModalId,
+    showReleaseNotes,
+    showKeyboardShortcuts,
+    activeTab,
+    location.pathname,
+    location.search,
+    goBack,
+    setDocumentModalId,
+    setDocumentModalInitial,
+    setSelectedPerson,
+    setShowKeyboardShortcuts,
+    setShowReleaseNotes,
   ]);
 }

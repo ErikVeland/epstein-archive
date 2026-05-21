@@ -5,8 +5,7 @@
 import { join, extname, basename } from 'path';
 import { statSync, existsSync } from 'fs';
 import { opendir } from 'fs/promises';
-import { WorkerPool } from '../../src/server/pipeline/workerPool.js';
-import { intFromEnv } from '../../src/server/pipeline/workerConfig.js';
+import { WorkerPool, intFromEnv } from '../../src/server/queue/index.js';
 import { INGEST_EXTENSIONS } from './config.js';
 import { processDocument } from './document_processor.js';
 import type { CollectionConfig } from './types.js';

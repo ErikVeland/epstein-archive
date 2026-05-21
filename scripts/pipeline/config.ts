@@ -2,7 +2,7 @@
 // PIPELINE CONFIGURATION — constants shared across all pipeline modules
 // ============================================================================
 
-import { getWorkerConfig } from '../../src/server/pipeline/workerConfig.js';
+import { getWorkerConfig } from '../../src/server/queue/index.js';
 
 export const BATCH_SIZE = getWorkerConfig().batchSize;
 export const CHECKPOINT_DIR = './pipeline_checkpoints';

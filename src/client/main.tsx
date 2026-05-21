@@ -8,14 +8,10 @@ import './index.css';
 import { NavigationProvider } from './services/ContentNavigationService';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
-import ToastProvider from './components/common/ToastProvider';
 
 import { SensitiveSettingsProvider } from './contexts/SensitiveSettingsContext';
 import { FilterProvider } from './contexts/FilterContext';
 import { DegradedModeProvider } from './contexts/DegradedModeContext';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { queryClient } from './services/queryClient';
 import { ApiStatusProvider } from './contexts/ApiStatusContext';
 
 // Initialise Sentry before anything else renders.
@@ -45,28 +41,23 @@ window.onunhandledrejection = function (event) {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <ToastProvider>
-        <HelmetProvider>
-          <AuthProvider>
-            <SensitiveSettingsProvider>
-              <BrowserRouter>
-                <NavigationProvider>
-                  <DegradedModeProvider>
-                    <FilterProvider>
-                      <QueryClientProvider client={queryClient}>
-                        <ApiStatusProvider>
-                          <App />
-                          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-                        </ApiStatusProvider>
-                      </QueryClientProvider>
-                    </FilterProvider>
-                  </DegradedModeProvider>
-                </NavigationProvider>
-              </BrowserRouter>
-            </SensitiveSettingsProvider>
-          </AuthProvider>
-        </HelmetProvider>
-      </ToastProvider>
+      <HelmetProvider>
+        <AuthProvider>
+          <SensitiveSettingsProvider>
+            <BrowserRouter>
+              <NavigationProvider>
+                <DegradedModeProvider>
+                  <FilterProvider>
+                    <ApiStatusProvider>
+                      <App />
+                    </ApiStatusProvider>
+                  </FilterProvider>
+                </DegradedModeProvider>
+              </NavigationProvider>
+            </BrowserRouter>
+          </SensitiveSettingsProvider>
+        </AuthProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WorkerPool } from '../server/pipeline/workerPool.js';
+import { WorkerPool } from '../server/queue/index.js';
 
 describe('WorkerPool', () => {
   it('tracks active work and drains completed tasks', async () => {

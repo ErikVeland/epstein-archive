@@ -16,7 +16,11 @@ import { AnnotationPolicyService } from '../services/AnnotationPolicyService.js'
 import { logger } from '../services/Logger.js';
 import fs from 'fs';
 import path from 'path';
-import { annotationWriteLimiter } from '../middleware/rateLimit.js';
+import {
+  annotationWriteLimiter,
+  documentFileLimiter,
+  documentsListLimiter,
+} from '../middleware/rateLimit.js';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
@@ -143,80 +147,85 @@ const withDocumentsListTimeout = async <T>(promise: Promise<T>, fallback: T): Pr
   });
 
 // GET /api/documents
-router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
-  try {
-    const query = req.query;
-    const page = Number(query.page || 1);
-    const limit = Number(query.limit || 50);
-    const sortOrder =
-      query.sortOrder === 'asc' || query.sortOrder === 'desc' ? query.sortOrder : undefined;
-    const searchMode =
-      query.mode === 'semantic' || query.mode === 'hybrid' || query.mode === 'lexical'
-        ? query.mode
-        : 'lexical';
+router.get(
+  '/',
+  documentsListLimiter,
+  validate(documentsListQuerySchema),
+  async (req, res, next) => {
+    try {
+      const query = req.query;
+      const page = Number(query.page || 1);
+      const limit = Number(query.limit || 50);
+      const sortOrder =
+        query.sortOrder === 'asc' || query.sortOrder === 'desc' ? query.sortOrder : undefined;
+      const searchMode =
+        query.mode === 'semantic' || query.mode === 'hybrid' || query.mode === 'lexical'
+          ? query.mode
+          : 'lexical';
 
-    if (rejectDeepOffset(res, 'Document', page, limit)) return;
+      if (rejectDeepOffset(res, 'Document', page, limit)) return;
 
-    if (
-      typeof query.search === 'string' &&
-      query.search.trim().length > 0 &&
-      searchMode !== 'lexical'
-    ) {
-      const semanticResult = await searchRepository.search(query.search, limit, {
-        mode: searchMode,
-        evidenceType: query.evidenceType as string | undefined,
-      });
-      const semanticAvailable = semanticResult.semanticCapability?.available === true;
-      const effectiveMode = semanticAvailable ? searchMode : 'lexical';
-      const response = mapDocumentsListResponseDto({
-        documents: semanticResult.documents,
-        total: semanticResult.documents.length,
-        page,
-        pageSize: limit,
-        totalPages: 1,
-        searchMeta: {
-          requestedMode: searchMode,
-          effectiveMode,
-          semanticAvailable,
-          semanticReason: semanticResult.semanticCapability?.reason,
-          message:
-            searchMode === 'semantic' && !semanticAvailable
-              ? 'Conceptual search is unavailable in this environment, so keyword results are shown instead.'
-              : searchMode === 'hybrid' && !semanticAvailable
-                ? 'Hybrid search is using keyword results because semantic indexes are unavailable.'
-                : undefined,
-        },
-      });
-      return res.json(response);
+      if (
+        typeof query.search === 'string' &&
+        query.search.trim().length > 0 &&
+        searchMode !== 'lexical'
+      ) {
+        const semanticResult = await searchRepository.search(query.search, limit, {
+          mode: searchMode,
+          evidenceType: query.evidenceType as string | undefined,
+        });
+        const semanticAvailable = semanticResult.semanticCapability?.available === true;
+        const effectiveMode = semanticAvailable ? searchMode : 'lexical';
+        const response = mapDocumentsListResponseDto({
+          documents: semanticResult.documents,
+          total: semanticResult.documents.length,
+          page,
+          pageSize: limit,
+          totalPages: 1,
+          searchMeta: {
+            requestedMode: searchMode,
+            effectiveMode,
+            semanticAvailable,
+            semanticReason: semanticResult.semanticCapability?.reason,
+            message:
+              searchMode === 'semantic' && !semanticAvailable
+                ? 'Conceptual search is unavailable in this environment, so keyword results are shown instead.'
+                : searchMode === 'hybrid' && !semanticAvailable
+                  ? 'Hybrid search is using keyword results because semantic indexes are unavailable.'
+                  : undefined,
+          },
+        });
+        return res.json(response);
+      }
+
+      const result = await withDocumentsListTimeout(
+        documentsRepository.getDocuments(page, limit, {
+          search: query.search as string | undefined,
+          fileType: query.fileType as string | undefined,
+          evidenceType: query.evidenceType as string | undefined,
+          source: query.source as string | undefined,
+          startDate: query.startDate as string | undefined,
+          endDate: query.endDate as string | undefined,
+          hasFailedRedactions:
+            typeof query.hasFailedRedactions === 'boolean' ? query.hasFailedRedactions : undefined,
+          minRedFlag: query.minRedFlag !== undefined ? Number(query.minRedFlag) : undefined,
+          maxRedFlag: query.maxRedFlag !== undefined ? Number(query.maxRedFlag) : undefined,
+          sortBy: query.sortBy as string | undefined,
+          sortOrder,
+          collectionId: query.collectionId as string | undefined,
+          includeMedia: (query.includeMedia as unknown as boolean) ?? false,
+          excludedFileTypes: query.excludedFileTypes
+            ? (query.excludedFileTypes as string).split(',').filter(Boolean)
+            : undefined,
+        }),
+        emptyDocumentsList(page, limit),
+      );
+      return res.json(mapDocumentsListResponseDto(result));
+    } catch (error) {
+      next(error);
     }
-
-    const result = await withDocumentsListTimeout(
-      documentsRepository.getDocuments(page, limit, {
-        search: query.search as string | undefined,
-        fileType: query.fileType as string | undefined,
-        evidenceType: query.evidenceType as string | undefined,
-        source: query.source as string | undefined,
-        startDate: query.startDate as string | undefined,
-        endDate: query.endDate as string | undefined,
-        hasFailedRedactions:
-          typeof query.hasFailedRedactions === 'boolean' ? query.hasFailedRedactions : undefined,
-        minRedFlag: query.minRedFlag !== undefined ? Number(query.minRedFlag) : undefined,
-        maxRedFlag: query.maxRedFlag !== undefined ? Number(query.maxRedFlag) : undefined,
-        sortBy: query.sortBy as string | undefined,
-        sortOrder,
-        collectionId: query.collectionId as string | undefined,
-        includeMedia: (query.includeMedia as unknown as boolean) ?? false,
-        excludedFileTypes: query.excludedFileTypes
-          ? (query.excludedFileTypes as string).split(',').filter(Boolean)
-          : undefined,
-      }),
-      emptyDocumentsList(page, limit),
-    );
-    return res.json(mapDocumentsListResponseDto(result));
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // GET /api/documents/:id/context
 router.get('/:id/context', validate(documentContextSchema), async (req, res, next) => {
@@ -515,7 +524,7 @@ router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next)
 
 // GET /api/documents/:id/file — intentionally public (no auth): corpus files are public research material.
 // Path traversal is prevented by withinAllowedRoots check below.
-router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
+router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
     const variant = String(req.query.variant || 'dirty').toLowerCase();

@@ -13,13 +13,21 @@ export function useDocumentModalUrlSync(params: {
   documentModalInitial: DocRecord | null;
   setDocumentModalInitial: (next: DocRecord | null) => void;
 }) {
+  const {
+    location,
+    selectedPerson,
+    setSelectedPerson,
+    documentModalId,
+    setDocumentModalId,
+    setDocumentModalInitial,
+  } = params;
   const docId = useMemo(() => {
-    const pathMatch = params.location.pathname.match(/^\/(?:documents|evidence)\/(.+)$/);
-    const searchParams = new URLSearchParams(params.location.search);
+    const pathMatch = location.pathname.match(/^\/(?:documents|evidence)\/(.+)$/);
+    const searchParams = new URLSearchParams(location.search);
     const queryDocId =
       searchParams.get('id') || searchParams.get('docId') || searchParams.get('documentId');
     return pathMatch?.[1] ? decodeURIComponent(pathMatch[1]) : queryDocId;
-  }, [params.location.pathname, params.location.search]);
+  }, [location.pathname, location.search]);
 
   const prevDocIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -28,20 +36,20 @@ export function useDocumentModalUrlSync(params: {
     }
 
     if (docId) {
-      if (params.documentModalId !== docId) {
-        if (params.selectedPerson) params.setSelectedPerson(null);
-        params.setDocumentModalId(docId);
+      if (documentModalId !== docId) {
+        if (selectedPerson) setSelectedPerson(null);
+        setDocumentModalId(docId);
       }
-    } else if (params.documentModalId) {
-      params.setDocumentModalId('');
-      params.setDocumentModalInitial(null);
+    } else if (documentModalId) {
+      setDocumentModalId('');
+      setDocumentModalInitial(null);
     }
   }, [
     docId,
-    params.documentModalId,
-    params.selectedPerson,
-    params.setDocumentModalId,
-    params.setDocumentModalInitial,
-    params.setSelectedPerson,
+    documentModalId,
+    selectedPerson,
+    setDocumentModalId,
+    setDocumentModalInitial,
+    setSelectedPerson,
   ]);
 }

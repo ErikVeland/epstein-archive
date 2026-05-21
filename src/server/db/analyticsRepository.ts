@@ -1,13 +1,16 @@
 import { getApiPool } from './runtime.js';
 import { logger } from '../services/Logger.js';
+import { cacheService } from '../cache/cacheService.js';
 
-// Stale-while-revalidate cache for the expensive top-connected query.
-// The double-scan of entity_relationships takes minutes on large datasets;
-// background caching ensures the /enhanced endpoint always responds quickly.
-let _topConnectedCache: TopConnectedPerson[] | null = null;
-let _topConnectedCacheExpiry = 0;
-let _topConnectedRefreshInFlight = false;
-const _TOP_CONNECTED_TTL_MS = 30 * 60 * 1000; // 30 minutes
+type TopConnectedCacheEntry = {
+  value: TopConnectedPerson[];
+  freshUntil: number;
+};
+
+const TOP_CONNECTED_CACHE_KEY = 'analytics:topConnectedPeople';
+const TOP_CONNECTED_REFRESH_KEY = 'analytics:topConnectedPeople:refresh';
+const TOP_CONNECTED_FRESH_TTL_MS = 30 * 60 * 1000;
+const TOP_CONNECTED_STORE_TTL_SECONDS = 24 * 60 * 60;
 
 async function _runTopConnectedQuery(): Promise<TopConnectedPerson[]> {
   const client = await getApiPool().connect();
@@ -113,20 +116,24 @@ async function _runTopConnectedQuery(): Promise<TopConnectedPerson[]> {
 }
 
 function _scheduleTopConnectedRefresh(): void {
-  if (_topConnectedRefreshInFlight) return;
-  _topConnectedRefreshInFlight = true;
-
-  _runTopConnectedQuery()
-    .then((rows) => {
-      _topConnectedCache = rows;
-      _topConnectedCacheExpiry = Date.now() + _TOP_CONNECTED_TTL_MS;
-      logger.info(`[Analytics] top-connected cache refreshed (${rows.length} rows)`);
-    })
+  void cacheService
+    .getOrCompute(
+      'query',
+      TOP_CONNECTED_REFRESH_KEY,
+      async () => {
+        const rows = await _runTopConnectedQuery();
+        const entry: TopConnectedCacheEntry = {
+          value: rows,
+          freshUntil: Date.now() + TOP_CONNECTED_FRESH_TTL_MS,
+        };
+        cacheService.set('query', TOP_CONNECTED_CACHE_KEY, entry, TOP_CONNECTED_STORE_TTL_SECONDS);
+        logger.info(`[Analytics] top-connected cache refreshed (${rows.length} rows)`);
+        return true;
+      },
+      90,
+    )
     .catch((err) => {
       logger.error({ err }, '[Analytics] getTopConnectedPeople background refresh failed');
-    })
-    .finally(() => {
-      _topConnectedRefreshInFlight = false;
     });
 }
 
@@ -247,19 +254,20 @@ export const analyticsRepository = {
 
   getTopConnectedPeople: async (): Promise<TopConnectedPerson[]> => {
     const now = Date.now();
+    const cached = cacheService.get<TopConnectedCacheEntry>('query', TOP_CONNECTED_CACHE_KEY);
 
     // Cache hit — return immediately, pro-actively refresh if near expiry
-    if (_topConnectedCache !== null && now < _topConnectedCacheExpiry) {
-      if (_topConnectedCacheExpiry - now < 5 * 60 * 1000) {
+    if (cached && now < cached.freshUntil) {
+      if (cached.freshUntil - now < 5 * 60 * 1000) {
         _scheduleTopConnectedRefresh();
       }
-      return _topConnectedCache;
+      return cached.value;
     }
 
     // Cache expired but we have stale data — serve stale, refresh in background
-    if (_topConnectedCache !== null) {
+    if (cached) {
       _scheduleTopConnectedRefresh();
-      return _topConnectedCache;
+      return cached.value;
     }
 
     // Cold start — trigger background refresh, return empty array immediately
