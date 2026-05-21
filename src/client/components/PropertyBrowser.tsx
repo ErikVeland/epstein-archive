@@ -1,15 +1,20 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from './common/Icon';
-import { PropertyBrowseView } from './properties/PropertyBrowseView';
-import { PropertyAssociatesView } from './properties/PropertyAssociatesView';
-import { PropertyAnalyticsView } from './properties/PropertyAnalyticsView';
-import { PropertyStatsHeader } from './properties/PropertyStatsHeader';
-import { PropertyDetailPanel } from './properties/PropertyDetailPanel';
+import { PropertyBrowseView } from '@client/features/properties/PropertyBrowseView';
+import { PropertyAssociatesView } from '@client/features/properties/PropertyAssociatesView';
+import { PropertyAnalyticsView } from '@client/features/properties/PropertyAnalyticsView';
+import { PropertyStatsHeader } from '@client/features/properties/PropertyStatsHeader';
+import { PropertyDetailPanel } from '@client/features/properties/PropertyDetailPanel';
 import { cn } from '@client/utils/cn';
 import { usePageScrollRestoration } from '@client/hooks/usePageScrollRestoration';
 import { Button, EmptyState } from '@client/design-system/lib';
-import type { Property, PropertyStats, ValueDistribution, TopOwner } from './properties/types';
+import type {
+  Property,
+  PropertyStats,
+  ValueDistribution,
+  TopOwner,
+} from '@client/features/properties/types';
 import styles from './PropertyBrowser.module.css';
 
 export type { Property, PropertyStats, ValueDistribution, TopOwner };

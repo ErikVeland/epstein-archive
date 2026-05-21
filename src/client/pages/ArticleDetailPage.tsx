@@ -6,7 +6,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
 import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
 import { useReliableBackNavigation } from '@client/hooks/useReliableBackNavigation';
-import panelStyles from '@client/components/media/ArticleViewerModal.module.css';
+import panelStyles from '@client/features/media/ArticleViewerModal.module.css';
 import styles from './ArticleDetailPage.module.css';
 
 interface ArticleDetail {

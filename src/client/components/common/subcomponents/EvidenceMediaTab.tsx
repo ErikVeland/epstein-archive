@@ -10,8 +10,8 @@ import {
 import { cn } from '@client/utils/cn';
 import { EntityPhoto } from '../EvidenceModal';
 import { EntityMentionPill } from '../EntityMentionPill';
-import { AudioPlayer } from '@client/components/media/AudioPlayer';
-import { VideoPlayer } from '@client/components/media/VideoPlayer';
+import { AudioPlayer } from '@client/features/media/AudioPlayer';
+import { VideoPlayer } from '@client/features/media/VideoPlayer';
 import s from './EvidenceMediaTab.module.css';
 
 import { Button } from '@client/design-system/lib';

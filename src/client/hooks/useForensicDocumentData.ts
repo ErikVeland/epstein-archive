@@ -5,7 +5,7 @@ import { apiClient } from '@client/services/apiClient';
 import type {
   ForensicAnalysis,
   ForensicCaseContext,
-} from '@client/components/investigation/ForensicDocumentAnalyzer';
+} from '@client/features/investigation/ForensicDocumentAnalyzer';
 
 import { ForensicMetricRecord, ForensicSummary } from '@client/types/forensics';
 

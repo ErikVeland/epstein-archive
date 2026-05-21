@@ -13,8 +13,8 @@ import {
 const RouteMap = React.lazy(() =>
   import('@client/components/visualizations/RouteMap').then((m) => ({ default: m.RouteMap })),
 );
-import type { Flight, AirportCoords } from '@client/components/flights/types';
-import panelStyles from '@client/components/flights/FlightDetailPanel.module.css';
+import type { Flight, AirportCoords } from '@client/features/flights/types';
+import panelStyles from '@client/features/flights/FlightDetailPanel.module.css';
 import styles from './FlightDetailPage.module.css';
 
 const formatDate = (dateStr: string): string =>

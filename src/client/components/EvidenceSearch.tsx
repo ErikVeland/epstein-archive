@@ -6,9 +6,9 @@ import { apiClient, type SearchFilters } from '@client/services/apiClient';
 import { Person } from '@client/types';
 import { useNavigation } from '@client/services/NavigationContext';
 import { useUndo } from './useUndo';
-import { EvidenceFilters } from './evidence/EvidenceFilters';
-import { EvidenceResultCard } from './evidence/EvidenceResultCard';
-import { EvidenceDocSnippets } from './evidence/EvidenceDocSnippets';
+import { EvidenceFilters } from '@client/features/evidence/EvidenceFilters';
+import { EvidenceResultCard } from '@client/features/evidence/EvidenceResultCard';
+import { EvidenceDocSnippets } from '@client/features/evidence/EvidenceDocSnippets';
 import { Surface, Flex, Stack, LqText, Grid } from '@client/design-system/lib';
 import styles from './EvidenceSearch.module.css';
 

@@ -108,7 +108,7 @@ export const DocumentModal = lazyWithRetry(
 
 export const InvestigationWorkspace = lazyWithRetry(
   () =>
-    import('../components/investigation/InvestigationWorkspace').then((module) => ({
+    import('../features/investigation/InvestigationWorkspace').then((module) => ({
       default: module.InvestigationWorkspace,
     })),
   'InvestigationWorkspace',

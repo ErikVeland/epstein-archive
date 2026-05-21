@@ -12,14 +12,14 @@ import {
   useReliableBackNavigation,
 } from '@client/hooks/useReliableBackNavigation';
 import Icon from '@client/components/common/Icon';
-import { EmailViewer } from '@client/components/evidence/EmailViewer';
-import { DepositionViewer } from '@client/components/evidence/DepositionViewer';
-import { TableViewer } from '@client/components/evidence/TableViewer';
-import { ImageViewer } from '@client/components/evidence/ImageViewer';
-import { DocumentViewer } from '@client/components/evidence/DocumentViewer';
-import { ContactListViewer } from '@client/components/evidence/ContactListViewer';
+import { EmailViewer } from '@client/features/evidence/EmailViewer';
+import { DepositionViewer } from '@client/features/evidence/DepositionViewer';
+import { TableViewer } from '@client/features/evidence/TableViewer';
+import { ImageViewer } from '@client/features/evidence/ImageViewer';
+import { DocumentViewer } from '@client/features/evidence/DocumentViewer';
+import { ContactListViewer } from '@client/features/evidence/ContactListViewer';
 import { getEntityCategoryIcon } from '@client/utils/entityTypeIcons';
-import { ClaimsList } from '@client/components/evidence/ClaimsList';
+import { ClaimsList } from '@client/features/evidence/ClaimsList';
 import { SEO } from '@client/components/common/SEO';
 import { apiClient } from '@client/services/apiClient';
 import { Surface } from '@client/design-system/components/surfaces/Surface';

@@ -3,7 +3,7 @@ import Icon from '@client/components/common/Icon';
 import { Link, useNavigate } from 'react-router-dom';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { apiClient } from '@client/services/apiClient';
-import { EvidenceLadder } from '../evidence/EvidenceLadder';
+import { EvidenceLadder } from '@client/features/evidence/EvidenceLadder';
 
 import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
