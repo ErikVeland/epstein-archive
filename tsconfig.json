@@ -18,7 +18,8 @@
       "@shared/*": ["src/shared/*"],
       "@server/*": ["src/server/*"]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "ignoreDeprecations": "6.0"
   },
   "include": [
     "src/client/**/*.ts",
