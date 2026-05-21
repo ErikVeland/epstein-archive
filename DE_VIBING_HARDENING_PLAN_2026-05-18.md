@@ -391,15 +391,15 @@ Ownership:
 
 All three phases of the original plan are now complete. Items marked during initial assessment as out of scope or deferred were addressed in this session:
 
-| Item | Status | Evidence |
-|------|--------|----------|
-| Knip baseline in `prebuild:prod` | ✅ | `pnpm check:knip-baseline` added to `prebuild:prod` chain |
-| Query-plan gate for high-traffic routes | ✅ | `scripts/check_query_plan.ts` created, wired into `ci_pg_nuclear_gates.sh` |
-| Rate-limit file-serving + search/export endpoints | ✅ | `mediaStreamLimiter`, `documentFileLimiter`, `documentsListLimiter`, `exportRateLimiter`, `aiRateLimiter` added; applied to media file routes, document file/list routes |
-| PDF route symlink-bypass hardening | ✅ | `mediaRoutes.ts` `/pdf` route now uses `fs.realpathSync()` + root allowlist |
-| 7 incident runbooks | ✅ | `docs/runbooks/01` through `07` — search latency, ingest stuck, AI timeout, missing asset, schema hash, cache stale, auth failure |
-| Worker redesign — canonical queue module | ✅ | `src/server/queue/` with `JobManager`, `WorkerPool`, `WorkerConfig`, single-purpose `BaseWorker`/`IngestWorker`/`AIEnrichmentWorker`/`MediaThumbnailWorker`; backward-compat re-exports at old locations |
-| All old imports migrated to `src/server/queue/` | ✅ | 5 files updated to import from canonical module |
+| Item                                              | Status | Evidence                                                                                                                                                                                                 |
+| ------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Knip baseline in `prebuild:prod`                  | ✅     | `pnpm check:knip-baseline` added to `prebuild:prod` chain                                                                                                                                                |
+| Query-plan gate for high-traffic routes           | ✅     | `scripts/check_query_plan.ts` created, wired into `ci_pg_nuclear_gates.sh`                                                                                                                               |
+| Rate-limit file-serving + search/export endpoints | ✅     | `mediaStreamLimiter`, `documentFileLimiter`, `documentsListLimiter`, `exportRateLimiter`, `aiRateLimiter` added; applied to media file routes, document file/list routes                                 |
+| PDF route symlink-bypass hardening                | ✅     | `mediaRoutes.ts` `/pdf` route now uses `fs.realpathSync()` + root allowlist                                                                                                                              |
+| 7 incident runbooks                               | ✅     | `docs/runbooks/01` through `07` — search latency, ingest stuck, AI timeout, missing asset, schema hash, cache stale, auth failure                                                                        |
+| Worker redesign — canonical queue module          | ✅     | `src/server/queue/` with `JobManager`, `WorkerPool`, `WorkerConfig`, single-purpose `BaseWorker`/`IngestWorker`/`AIEnrichmentWorker`/`MediaThumbnailWorker`; backward-compat re-exports at old locations |
+| All old imports migrated to `src/server/queue/`   | ✅     | 5 files updated to import from canonical module                                                                                                                                                          |
 
 Non-negotiables:
 
