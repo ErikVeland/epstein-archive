@@ -159,7 +159,7 @@
     "react-helmet-async": "^2.0.5",
     "react-leaflet": "^4.2.1",
     "react-pdf": "^10.2.0",
-    "react-router-dom": "^6.22.3",
+    "react-router-dom": "^7.15.1",
     "react-virtualized-auto-sizer": "^2.0.2",
     "react-window": "^1.8.10",
     "react-window-infinite-loader": "^2.0.0",
