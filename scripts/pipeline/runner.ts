@@ -48,7 +48,7 @@ export function runScript(scriptPath: string, args: string[] = []): Promise<numb
 
     child.on('close', (code: number | null) => {
       cleanup();
-      resolve(code || 0);
+      resolve(code ?? 1);
     });
 
     child.on('error', (err: Error) => {
@@ -157,6 +157,9 @@ export async function runIngestPhase(
   console.log('='.repeat(70));
   console.log(`   Source: ${sourceDir}`);
 
+  await checkPipelineControlSignal(currentPipelineRun);
+  if (isShuttingDown()) return { filesProcessed: 0, errors: 0 };
+
   if (!existsSync(sourceDir)) {
     console.log(`   ⚠️  Source directory not found: ${sourceDir}`);
     return { filesProcessed: 0, errors: 0 };
@@ -192,6 +195,9 @@ export async function runIntelPhase(
   console.log('\n' + '='.repeat(70));
   console.log('🔍 PHASE 2: INTELLIGENCE (Entity Extraction, Relations)');
   console.log('='.repeat(70));
+
+  await checkPipelineControlSignal(currentPipelineRun);
+  if (isShuttingDown()) return { entitiesExtracted: 0, relationsFound: 0 };
 
   const stage = stageByName('entity-intelligence');
   const stageRun = await PipelineService.startStageRun({
