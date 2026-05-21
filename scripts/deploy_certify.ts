@@ -120,6 +120,24 @@ function main() {
     'deploy should build/canary in an isolated worktree before atomically switching dist',
   );
 
+  add(
+    'remote_deploy_lock',
+    'Remote deploy mutex',
+    /acquire_remote_deploy_lock\(\)/.test(deploy) &&
+      /release_remote_deploy_lock\(\)/.test(deploy) &&
+      /\.deploy\.lock/.test(deploy) &&
+      /trap cleanup_on_exit EXIT/.test(deploy),
+    'deploy should lock the remote checkout across mutation and health-check phases',
+  );
+
+  const cleanCommands = deploy.match(/^\s*git clean[^\n]+/gm) ?? [];
+  add(
+    'remote_deploy_lock_preserved',
+    'Remote deploy mutex preserved by git clean',
+    cleanCommands.length > 0 && cleanCommands.every((cmd) => cmd.includes('-e .deploy.lock')),
+    `found ${cleanCommands.length} git clean command(s)`,
+  );
+
   const dbHealthyIdx = indexOrNeg(deploy, 'CERT_STEP: db_confirmed_healthy_before_restart');
   const restartIdx = indexOrNeg(deploy, 'CERT_STEP: app_restart_after_db_healthy');
   add(

@@ -1,27 +1,42 @@
 # Epstein Archive De-Vibing And Production Hardening Plan
 
-Date: 2026-05-18
+Date opened: 2026-05-18
+Last updated: 2026-05-22
 
 This is the executable stabilization blueprint for turning the current codebase from accumulated AI-generated drift into a production-grade system. It is based on local repository inspection, TypeScript/lint/test gates, Knip import/export analysis, dependency checks, and database/schema gates.
 
+## 0. Current Status — 2026-05-22
+
+The original hardening plan is complete and production is live on the hardened release path.
+
+Production evidence from the 2026-05-21 deploy:
+
+- GitHub Actions production deploy completed for `8e959be1f`.
+- Live `/api/health` returned `200` with `{"status":"ok"}`.
+- Live homepage returned `200` with title `Epstein Files Archive`.
+- Remote `dist` points at `/home/svc_epstein/epstein-archive/.releases/20260521142823-8e959be1f60c/dist`.
+- PM2 has both `epstein-archive` cluster workers online.
+
+Remaining work is no longer "finish the original plan." It is hardening burn-down: keep the gates strict, remove the remaining large-module and dependency debt, and make deploy operations harder to trip over.
+
 ## 1. Vibe-Code Severity Matrix
 
-| Severity | Issue                                                   | Evidence                                                                                                                      | Operational Impact                                                     | Required Action                                                                          |
-| -------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| RED      | Canonical evidence state mixed with generated AI output | `scripts/ingest_pipeline.ts`, `scripts/unified_pipeline.ts` previously wrote `metadata_json.ai_summary` and `content_refined` | Legal/provenance risk; source text indistinguishable from model output | Completed first-pass fix: artifact-only AI output with `ALLOW_AI_CONTENT_REWRITE` opt-in |
-| RED      | Deploy/schema gates were permissive                     | `deploy.sh`, `scripts/pg_schema_hash.ts` had disabled or warning-only gates                                                   | Drift reaches production undetected                                    | Completed first-pass fix: fail closed in CI/production                                   |
-| RED      | Public mutation endpoint for document annotations       | `POST /api/documents/:id/annotations`                                                                                         | Evidence annotation spam/spoofing                                      | Completed first-pass fix: authenticated writes only                                      |
-| RED      | Huge god files with mixed responsibilities              | `scripts/ingest_pipeline.ts` 3193 LOC, `src/client/App.tsx` 2268 LOC, `src/client/components/email/EmailClient.tsx` 1687 LOC  | Slow review, incident diagnosis, unsafe partial edits                  | Split by bounded contexts in phases 2-4                                                  |
-| AMBER    | Active duplicate cache abstractions                     | `middleware/cache.ts`, `performanceCache.ts`, `db/cache.ts`, `utils/perfCache.ts`                                             | Stale data and invalidation surprises                                  | Merge HTTP cache APIs now; replace remaining DB/email caches with tagged cache adapter   |
-| AMBER    | Root diagnostic artifacts tracked as source             | `tsc_output*.txt`, `build_output*.txt`, `lint_output.txt`, dumps                                                              | Noisy grep, onboarding confusion, stale evidence                       | Deleted in this pass; hygiene gate updated                                               |
-| AMBER    | Duplicate/retired UI surfaces                           | `About.tsx` vs `AboutPage.tsx`                                                                                                | Product drift and inconsistent copy/data                               | Deleted unused `About.tsx` and CSS                                                       |
-| AMBER    | Query files still use `SELECT *` and offset pagination  | `packages/db/src/queries/*.sql`, repository SQL                                                                               | Large-table latency, brittle DTO contracts                             | Replace with explicit projections and cursor pagination by endpoint priority             |
-| AMBER    | Swallowed errors and console logging in app code        | 577 catch sites, 167 console calls in `src`                                                                                   | Incident invisibility                                                  | Route through canonical logger and error envelope                                        |
-| GREEN    | Generated pgtyped files report `any`/unused in Knip     | `packages/db/src/queries/__generated__/*`                                                                                     | Mostly tool artifact noise                                             | Exclude generated files from dead-code reports, regenerate after SQL cleanup             |
+| Severity | Issue                                                   | Current State                                                                                                                                                    | Next Action                                                                                        |
+| -------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| GREEN    | Canonical evidence state mixed with generated AI output | Fixed: AI output is artifact-only unless explicit rewrite override is enabled.                                                                                   | Keep `ALLOW_AI_CONTENT_REWRITE` exceptional and audited.                                           |
+| GREEN    | Deploy/schema/query gates were permissive               | Fixed: schema hash, forbidden identifiers, Knip baseline, query-plan gate, select-star gate, bundle budget, and production certification are wired into release. | Keep gates blocking; review baselines only through intentional commits.                            |
+| GREEN    | Public mutation endpoint for document annotations       | Fixed: annotation writes require authentication.                                                                                                                 | Fold remaining write endpoints through the same auth/rate-limit pattern.                           |
+| AMBER    | Huge modules with mixed responsibilities                | Improved: `App.tsx` and ingest pipeline were split. Remaining heavy surfaces include `EmailClient.tsx`, `mediaRoutes.ts`, and `investigations.ts`.               | Continue bounded route/component extraction, one user-facing flow at a time.                       |
+| GREEN    | Active duplicate cache abstractions                     | Fixed: retired server/client cache services are gone and `check:hygiene` blocks their return.                                                                    | Audit smaller local component caches for stale-data risk; keep server data behind `cacheService`.  |
+| GREEN    | Root diagnostic artifacts tracked as source             | Fixed: tracked dumps removed and hygiene gate blocks reintroduction.                                                                                             | Keep generated diagnostics out of git.                                                             |
+| GREEN    | Duplicate/retired UI surfaces                           | Fixed: duplicate About surface removed.                                                                                                                          | Treat future duplicate pages as delete-first work.                                                 |
+| GREEN    | `SELECT *` and high-traffic query plans                 | Fixed for the release gate: explicit projections are enforced and route explain plans block regressions.                                                         | Add cursor pagination endpoint-by-endpoint where offset pagination still matters for large tables. |
+| AMBER    | Swallowed errors and console logging in app code        | Partially fixed: canonical API error envelope is in place, but broad catch/log cleanup is still a burn-down item.                                                | Prioritize shared route/client utilities and production paths over cosmetic cleanup.               |
+| GREEN    | Generated pgtyped files report `any`/unused in Knip     | Contained: generated-path noise is excluded/baselined and Knip baseline is enforced.                                                                             | Burn down the baseline gradually; do not widen it without review.                                  |
 
 ## 2. Dead Code Elimination Plan
 
-Already removed:
+Removed and guarded:
 
 - `build_output.txt`
 - `build_output_lint.txt`
@@ -39,43 +54,40 @@ Already removed:
 - `tsc_output_v5.txt`
 - `src/client/components/pages/About.tsx`
 - `src/client/components/pages/About.module.css`
+- `src/client/services/OptimizedDataService.ts`
+- `src/client/services/optimizedDataLoader.ts`
+- Client OCR service bundle under `src/client/services/ocr/*`
+- Retired server cache wrappers: `src/server/performanceCache.ts`, `src/server/utils/perfCache.ts`
 
-Next deletion candidates require route-level verification before removal:
+`scripts/check_hygiene.sh` now blocks the retired cache/data-client paths and imports from returning.
 
-- `src/client/components/common/BaseCard.tsx`, `Card.tsx`, `FormLayout.tsx`, `HelpText.tsx`: Knip unused; confirm no dynamic import.
-- `src/client/components/email/mobile/*`: currently wrappers/unused; delete after mobile email route decision.
-- `src/client/services/OptimizedDataService.ts`, `optimizedDataLoader.ts`: overlapping data clients; replace with React Query hooks backed by `apiClient`.
-- `src/client/services/ocr/*`: browser OCR stack should move to worker/server ingestion or be removed from client bundle.
+Remaining deletion candidates require route-level verification before removal:
+
+- `src/client/components/common/Card.tsx`: still present but appears drift-prone; either prove active usage and normalize it or delete after import/design-token verification.
+- `src/client/services/documentProcessor.ts`: still used by uploader/tests; decide whether it remains a client feature or moves behind server ingestion.
+- `src/client/features/email/EmailClient.tsx`: split further before deleting any local helpers.
+- Untracked/editor backup artifacts such as `*.bak` should never enter git; add a hygiene pattern if one is accidentally staged.
 
 Rollback: each deletion must be isolated in its own commit; rollback by reverting that commit. Test gate: `pnpm type-check && pnpm lint --max-warnings=0 && pnpm test:unit`.
 
 ## 3. Dependency Cleanup Plan
 
-Remove after import verification:
+Completed:
 
-- Deprecated types: `@types/diff`, `@types/dompurify`, `@types/react-virtualized-auto-sizer`, `@types/react-window-infinite-loader`, `@types/bcryptjs`.
-- Heavy client-side OCR/ML if no live route needs it: `@tensorflow/tfjs-*`, `@vladmandic/face-api`, `tesseract.js`, `canvas`.
-- Duplicate sanitization stack: keep `dompurify` or `isomorphic-dompurify`, not both.
+- React 19 + React Router 7.
+- Vite 8 + `@vitejs/plugin-react` 5.
+- Express 5 + Zod 4 in the app.
+- React Query patch train to `5.100.10`.
+- Heavy client OCR/ML no longer ships through client OCR services.
 
-Safe patch upgrades first:
+Still open:
 
-- `pg 8.18.0 -> 8.20.0`
-- `@sentry/node/react 10.45.0 -> 10.53.1`
-- `@tanstack/react-query 5.95.0 -> 5.100.10`
-- `dompurify 3.4.1 -> 3.4.4`
-- `tsx 4.20.6 -> 4.22.1`
-- `vitest 4.0.18 -> 4.1.6`
+- `packages/db` still carries Zod 3; upgrade only with generated-query test coverage.
+- TypeScript remains `5.9.x`; TypeScript 6 should stay deferred until the toolchain is stable.
+- Server-side OCR/scan scripts still need `tesseract.js`/`canvas`; keep them out of the client path.
+- Run `pnpm outdated` on a dedicated dependency branch, not during incident/deploy work.
 
-Breaking upgrade train:
-
-- React 18 -> 19, `@types/react` 18 -> 19
-- Vite 7 -> 8 and `@vitejs/plugin-react` 4 -> 6
-- Express 4 -> 5
-- Zod 3 -> 4
-- TypeScript 5.9 -> 6.0
-- React Router 6 -> 7
-
-Order: patch upgrades, test; Express 5 backend branch, test; React 19 frontend branch, test; Vite/TS toolchain branch, test; Zod 4 schema branch, test.
+Order for future dependency work: DB package Zod migration, TypeScript/toolchain branch, then leftover patch upgrades.
 
 ## 4. Architectural Simplification Plan
 
@@ -89,15 +101,19 @@ Canonical boundaries:
 - `src/client/components`: display and interaction only.
 - `src/client/hooks`: React Query/state orchestration only.
 
-Files to split:
+Completed splits:
 
-- `src/client/App.tsx`: extract route registry, shell chrome, global search, modal orchestration, onboarding, keyboard command setup.
-- `scripts/ingest_pipeline.ts`: split into discovery, extraction, provenance, AI artifacts, queue lease worker, CLI runner.
+- `src/client/App.tsx`: route registry, providers, shell, modal host, and orchestration hooks extracted under `src/client/app/`.
+- Ingest pipeline: stage/config/runner/recovery/status/notification modules extracted with CLI wrappers preserved.
+- Queue workers: canonical `src/server/queue/` module with single-purpose workers and dead-letter/reaper behavior.
+
+Files still worth splitting:
+
 - `src/server/routes/investigations.ts`: split notebook, evidence, export, leads, timeline routes.
 - `src/server/routes/mediaRoutes.ts`: split listing, streaming, albums, people/faces, batch operations.
 - `src/client/components/email/EmailClient.tsx`: split mailbox state, thread list, message detail, search, keyboard actions.
 
-Files to merge:
+Completed merges/retirements:
 
 - `src/server/utils/perfCache.ts` into `src/server/middleware/cache.ts`.
 - `src/server/performanceCache.ts` and `src/server/db/cache.ts` into one `src/server/cache/cacheService.ts` with namespaces/tags.
@@ -263,19 +279,23 @@ Next:
 
 ## 15. Cache Consolidation Plan
 
-Current:
+Completed:
 
 - HTTP cache: `middleware/cache.ts`
-- Wrapper HTTP cache: `utils/perfCache.ts`
-- DB query cache: `db/cache.ts`
-- Email/search performance cache: `performanceCache.ts`
+- Server cache namespaces: `src/server/cache/cacheService.ts`
+- Retired duplicate imports/paths blocked by `scripts/check_hygiene.sh`
 
-Target:
+Current rule:
 
 - One `CacheService` with namespaces: `http`, `query`, `search`, `email`.
 - Keys include schema hash/data revision/user scope.
 - Mutations publish tag invalidations.
 - No private cache maps in route files.
+
+Remaining audit:
+
+- Review local component caches that are purely UI affordances versus data freshness risks.
+- Keep route/service data caches centralized and tag-invalidated.
 
 ## 16. Naming Standardization Plan
 
@@ -331,9 +351,10 @@ Rollback:
 Incident prevention:
 
 - Fail deploy if schema drift, pg extensions, query plans, or audit table are unhealthy.
-- Canary 5% read traffic, then 25%, then 100%.
+- Build staged release artifacts and verify them through canary before `dist` promotion.
 - Separate deploy of schema migrations from app behavior changes.
 - Rollback checkpoints after schema, API, frontend, worker phases.
+- Hold a remote `.deploy.lock` during production mutation/check phases so GitHub Actions and manual deploys cannot collide.
 
 ## 21. Incident Prevention Plan
 
@@ -346,6 +367,7 @@ Runbooks required:
 - Schema hash mismatch.
 - Cache stale data incident.
 - Auth/session failure.
+- Production deploy lock.
 
 ## 22. Technical Debt Elimination Roadmap
 
@@ -374,7 +396,8 @@ Phase 3 — completed:
 
 - React 19 + Vite 8 upgrade (React 19.2.6, Vite 8.0.13, @vitejs/plugin-react 5.2.0). ✅
 - Express 5 + Zod 4 upgrade (Express 5.2.1, Zod 4.4.3). ✅
-- TypeScript 6.0 + React Router 7 upgrades. ✅
+- React Router 7 upgrade. ✅
+- TypeScript 6.0 deferred; app remains on TypeScript 5.9.x pending toolchain stability.
 - Bundle budget gate blocking release (`check:budget` runs in `postbuild:prod`). ✅
 - Worker redesign (`pipeline_jobs` table, JobManager dead-letter/reaper, `src/server/queue/` canonical module with single-purpose workers). ✅
 
@@ -387,9 +410,9 @@ Ownership:
 - Platform owns deploy, observability, CI gates, cache, auth middleware.
 - Investigations domain owns evidence/provenance/scoring semantics.
 
-## 24. Completion Status — 2026-05-21
+## 24. Completion Status — 2026-05-22
 
-All three phases of the original plan are now complete. Items marked during initial assessment as out of scope or deferred were addressed in this session:
+All three phases of the original plan are now complete and deployed to production. Items marked during initial assessment as out of scope or deferred were addressed or intentionally reclassified:
 
 | Item                                              | Status | Evidence                                                                                                                                                                                                 |
 | ------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -397,9 +420,34 @@ All three phases of the original plan are now complete. Items marked during init
 | Query-plan gate for high-traffic routes           | ✅     | `scripts/check_query_plan.ts` created, wired into `ci_pg_nuclear_gates.sh`                                                                                                                               |
 | Rate-limit file-serving + search/export endpoints | ✅     | `mediaStreamLimiter`, `documentFileLimiter`, `documentsListLimiter`, `exportRateLimiter`, `aiRateLimiter` added; applied to media file routes, document file/list routes                                 |
 | PDF route symlink-bypass hardening                | ✅     | `mediaRoutes.ts` `/pdf` route now uses `fs.realpathSync()` + root allowlist                                                                                                                              |
-| 7 incident runbooks                               | ✅     | `docs/runbooks/01` through `07` — search latency, ingest stuck, AI timeout, missing asset, schema hash, cache stale, auth failure                                                                        |
+| 8 incident/runbook procedures                     | ✅     | `docs/runbooks/01` through `08` — search latency, ingest stuck, AI timeout, missing asset, schema hash, cache stale, auth failure, production deploy lock                                                |
 | Worker redesign — canonical queue module          | ✅     | `src/server/queue/` with `JobManager`, `WorkerPool`, `WorkerConfig`, single-purpose `BaseWorker`/`IngestWorker`/`AIEnrichmentWorker`/`MediaThumbnailWorker`; backward-compat re-exports at old locations |
 | All old imports migrated to `src/server/queue/`   | ✅     | 5 files updated to import from canonical module                                                                                                                                                          |
+| Production deploy collision guard                 | ✅     | `deploy.sh` now acquires a remote `.deploy.lock`, preserves it across `git clean`, and releases it on exit                                                                                               |
+
+## 25. Next Steps To Completion
+
+The plan is no longer blocked on foundational hardening. The next completion milestone is "boring production maintainability": smaller files, fewer exceptions, and stricter operational safety.
+
+1. Deploy operations
+   - Keep GitHub Actions concurrency enabled.
+   - Keep the remote deploy lock in `deploy.sh`; tune `EPSTEIN_DEPLOY_LOCK_TTL_SECONDS` only if deploys routinely exceed four hours.
+   - Use `docs/runbooks/08-production-deploy-lock.md` before clearing stale `.deploy.lock`.
+
+2. Large-module burn-down
+   - Split `src/client/features/email/EmailClient.tsx` by state, list, detail, search, and settings.
+   - Split `src/server/routes/mediaRoutes.ts` into listing/streaming/albums/faces/batch modules.
+   - Split `src/server/routes/investigations.ts` into notebook/evidence/export/leads/timeline modules.
+
+3. Dependency/toolchain cleanup
+   - Migrate `packages/db` from Zod 3 to Zod 4 with generated-query tests.
+   - Defer TypeScript 6 until the build/test toolchain is fully compatible.
+   - Keep OCR/`canvas` dependencies server-script-only; re-run bundle leak checks before each release.
+
+4. Gate burn-down
+   - Reduce `knip-baseline.txt` instead of widening it.
+   - Convert any remaining offset-heavy endpoints to cursor pagination where live data size justifies it.
+   - Continue replacing broad catches and console logging with the canonical logger/error envelope in production paths first.
 
 Non-negotiables:
 

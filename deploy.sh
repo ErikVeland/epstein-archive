@@ -249,6 +249,9 @@ CMD
 # Runtime flags (used by trap/rollback)
 DEPLOY_MUTATION_STARTED=false
 ROLLBACK_IN_PROGRESS=false
+REMOTE_DEPLOY_LOCK_HELD=false
+DEPLOY_LOCK_TTL_SECONDS="${EPSTEIN_DEPLOY_LOCK_TTL_SECONDS:-14400}"
+DEPLOY_LOCK_TOKEN=""
 
 # Parse args
 CODE_ONLY=false
@@ -280,6 +283,97 @@ if [ "$CODE_ONLY" = true ]; then
 fi
 
 require_env EPSTEIN_PROD_HOST
+
+acquire_remote_deploy_lock() {
+  if [ "$DRY_RUN" = true ]; then
+    return
+  fi
+
+  local local_host local_sha lock_source lock_owner lock_owner_quoted lock_token_quoted lock_ttl_quoted
+  local_host="$(hostname 2>/dev/null || echo unknown-host)"
+  local_sha="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+  lock_source="local"
+  if [ "${GITHUB_ACTIONS:-false}" = "true" ]; then
+    lock_source="github-actions:${GITHUB_RUN_ID:-unknown}"
+  fi
+
+  DEPLOY_LOCK_TOKEN="$(date -u +%Y%m%d%H%M%S)-${local_sha}-$$"
+  lock_owner="source=${lock_source} user=${USER:-unknown} host=${local_host} commit=${local_sha} token=${DEPLOY_LOCK_TOKEN}"
+  lock_owner_quoted="$(printf '%q' "$lock_owner")"
+  lock_token_quoted="$(printf '%q' "$DEPLOY_LOCK_TOKEN")"
+  lock_ttl_quoted="$(printf '%q' "$DEPLOY_LOCK_TTL_SECONDS")"
+
+  log_step "Acquiring remote deploy lock..."
+  remote_ssh "DEPLOY_LOCK_OWNER=${lock_owner_quoted} DEPLOY_LOCK_TOKEN=${lock_token_quoted} DEPLOY_LOCK_TTL_SECONDS=${lock_ttl_quoted} bash -s" <<REMOTE
+set -euo pipefail
+cd "${PRODUCTION_PATH}"
+
+LOCK_DIR=".deploy.lock"
+NOW=\$(date +%s)
+
+if mkdir "\$LOCK_DIR" 2>/dev/null; then
+  printf '%s\n' "\$DEPLOY_LOCK_OWNER" > "\$LOCK_DIR/owner"
+  printf '%s\n' "\$DEPLOY_LOCK_TOKEN" > "\$LOCK_DIR/token"
+  printf '%s\n' "\$NOW" > "\$LOCK_DIR/created_at"
+  date -u +%Y-%m-%dT%H:%M:%SZ > "\$LOCK_DIR/started_at"
+  exit 0
+fi
+
+CREATED=\$(cat "\$LOCK_DIR/created_at" 2>/dev/null || echo 0)
+AGE=\$((NOW - CREATED))
+if [ "\$AGE" -gt "\$DEPLOY_LOCK_TTL_SECONDS" ]; then
+  echo "⚠️ Removing stale deploy lock (age=\${AGE}s, ttl=\${DEPLOY_LOCK_TTL_SECONDS}s)."
+  rm -rf "\$LOCK_DIR"
+  mkdir "\$LOCK_DIR"
+  printf '%s\n' "\$DEPLOY_LOCK_OWNER" > "\$LOCK_DIR/owner"
+  printf '%s\n' "\$DEPLOY_LOCK_TOKEN" > "\$LOCK_DIR/token"
+  printf '%s\n' "\$NOW" > "\$LOCK_DIR/created_at"
+  date -u +%Y-%m-%dT%H:%M:%SZ > "\$LOCK_DIR/started_at"
+  exit 0
+fi
+
+echo "❌ Another production deploy appears to be active."
+echo "Existing lock:"
+cat "\$LOCK_DIR/owner" 2>/dev/null || true
+echo "Started:"
+cat "\$LOCK_DIR/started_at" 2>/dev/null || true
+echo "Remove ${PRODUCTION_PATH}/\$LOCK_DIR only after confirming no deploy is running."
+exit 1
+REMOTE
+
+  REMOTE_DEPLOY_LOCK_HELD=true
+  log_success "Remote deploy lock acquired."
+}
+
+release_remote_deploy_lock() {
+  if [ "$REMOTE_DEPLOY_LOCK_HELD" != true ] || [ "$DRY_RUN" = true ]; then
+    return
+  fi
+
+  local lock_token_quoted
+  lock_token_quoted="$(printf '%q' "$DEPLOY_LOCK_TOKEN")"
+  remote_ssh "DEPLOY_LOCK_TOKEN=${lock_token_quoted} bash -s" <<REMOTE || log_warning "Failed to release remote deploy lock; inspect ${PRODUCTION_PATH}/.deploy.lock"
+set -euo pipefail
+cd "${PRODUCTION_PATH}"
+
+LOCK_DIR=".deploy.lock"
+if [ ! -d "\$LOCK_DIR" ]; then
+  exit 0
+fi
+
+if [ "\$(cat "\$LOCK_DIR/token" 2>/dev/null || true)" = "\$DEPLOY_LOCK_TOKEN" ]; then
+  rm -rf "\$LOCK_DIR"
+else
+  echo "Deploy lock is owned by another token; leaving it in place."
+fi
+REMOTE
+
+  REMOTE_DEPLOY_LOCK_HELD=false
+}
+
+cleanup_on_exit() {
+  release_remote_deploy_lock || true
+}
 
 perform_rollback() {
   if [ "$ROLLBACK_IN_PROGRESS" = true ]; then
@@ -354,6 +448,7 @@ on_error() {
   exit 1
 }
 
+trap cleanup_on_exit EXIT
 trap 'on_error $LINENO' ERR
 
 github_repo_slug() {
@@ -550,6 +645,7 @@ fi
 if [ "$DRY_RUN" = false ]; then
   log_step "Running remote env sanity gate (non-mutating)..."
   remote_ssh "$(remote_env_sanity_cmd)"
+  acquire_remote_deploy_lock
 fi
 
 # ============================================
@@ -570,7 +666,7 @@ if [ "$DEPLOY_DB" = true ]; then
       echo 'Syncing code from origin/main for migration phase...'
       git fetch origin
       git reset --hard origin/main
-      git clean -fd -e dist -e .releases -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
+      git clean -fd -e dist -e .releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
 
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
@@ -756,7 +852,7 @@ if [ "$DB_ONLY" = false ]; then
 
       echo 'Syncing live source tree to promoted commit...'
       git reset --hard \"\$TARGET_SHA\"
-      git clean -fd -e dist -e .releases -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
+      git clean -fd -e dist -e .releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
 
       # CERT_STEP: static_root_invariant
       # git clean has removed symlinked build roots on some filesystems even with
