@@ -18,7 +18,7 @@ PRODUCTION_HOST="${EPSTEIN_PROD_HOST:-}"
 PRODUCTION_PATH="${EPSTEIN_PROD_PATH:-/home/${PRODUCTION_USER}/epstein-archive}"
 REMOTE_HOME="/home/${PRODUCTION_USER}"
 SSH_KEY_PATH="${EPSTEIN_PROD_SSH_KEY_PATH:-$HOME/.ssh/id_epstein_prod_ed25519}"
-SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
+SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=60 -o ServerAliveCountMax=10)
 PUBLIC_ORIGIN="${EPSTEIN_PUBLIC_ORIGIN:-https://epstein.academy}"
 CANARY_PORT="${EPSTEIN_CANARY_PORT:-3013}"
 
