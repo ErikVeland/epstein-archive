@@ -1,6 +1,8 @@
 import { getIngestPool } from '../db/connection.js';
 import os from 'os';
 
+const MAX_ATTEMPTS = 5;
+
 export class JobManager {
   private workerId: string;
 
@@ -136,20 +138,28 @@ export class JobManager {
   }
 
   /**
-   * Record a job failure: keep the pipeline_jobs row as 'failed' for
-   * re-queue at the next run start, and sync documents.processing_status.
+   * Record a job failure: keep the pipeline_jobs row as 'failed' (or 'dead'
+   * if MAX_ATTEMPTS is reached) for re-queue at the next run start, and sync
+   * documents.processing_status.
+   *
+   * Returns the resulting status and attempts count so the caller can log
+   * whether the job was dead-lettered.
    */
-  async failJob(documentId: number | string, error: string) {
+  async failJob(
+    documentId: number | string,
+    error: string,
+  ): Promise<{ status: 'failed' | 'dead'; attempts: number }> {
     const pool = getIngestPool();
-    await pool.query(
+    const { rows } = await pool.query<{ status: 'failed' | 'dead'; attempts: number }>(
       `UPDATE pipeline_jobs
-       SET status     = 'failed',
-           error      = $1,
-           worker_id  = NULL,
+       SET status           = CASE WHEN attempts >= $3 THEN 'dead' ELSE 'failed' END,
+           error            = $1,
+           worker_id        = NULL,
            lease_expires_at = NULL,
-           updated_at = now()
-       WHERE document_id = $2`,
-      [error, documentId],
+           updated_at       = now()
+       WHERE document_id = $2
+       RETURNING status, attempts`,
+      [error, documentId, MAX_ATTEMPTS],
     );
     await pool.query(
       `UPDATE documents
@@ -160,6 +170,90 @@ export class JobManager {
        WHERE id = $2`,
       [error, documentId],
     );
+    const row = rows[0];
+    return {
+      status: row?.status ?? 'failed',
+      attempts: row?.attempts ?? 0,
+    };
+  }
+
+  /**
+   * Resets stale leases: jobs stuck in 'processing' past their lease deadline
+   * are moved back to 'queued' (or 'dead' if MAX_ATTEMPTS is reached).
+   * Call at worker startup or on a periodic timer.
+   *
+   * Returns the number of rows reset.
+   */
+  async reaperStaleLease(): Promise<number> {
+    const pool = getIngestPool();
+    const { rowCount } = await pool.query(
+      `UPDATE pipeline_jobs
+       SET status           = CASE WHEN attempts >= $1 THEN 'dead' ELSE 'queued' END,
+           worker_id        = NULL,
+           lease_expires_at = NULL,
+           updated_at       = now()
+       WHERE status = 'processing'
+         AND lease_expires_at < now()`,
+      [MAX_ATTEMPTS],
+    );
+    return rowCount ?? 0;
+  }
+
+  /**
+   * Returns dead-lettered jobs for observability / admin surfaces.
+   */
+  async getDeadLetterJobs(limit = 100): Promise<
+    Array<{
+      id: number;
+      document_id: number;
+      attempts: number;
+      error: string | null;
+      updated_at: Date;
+    }>
+  > {
+    const pool = getIngestPool();
+    const { rows } = await pool.query(
+      `SELECT id, document_id, attempts, error, updated_at
+       FROM pipeline_jobs
+       WHERE status = 'dead'
+       ORDER BY updated_at DESC
+       LIMIT $1`,
+      [limit],
+    );
+    return rows.map((r) => ({
+      id: Number(r.id),
+      document_id: Number(r.document_id),
+      attempts: Number(r.attempts),
+      error: r.error as string | null,
+      updated_at: r.updated_at as Date,
+    }));
+  }
+
+  /**
+   * Re-queues dead-lettered jobs so they will be picked up again.
+   * Pass `onlyIds` (document IDs) to target specific jobs; omit to requeue all.
+   *
+   * Returns the number of rows updated.
+   */
+  async requeueDeadLetters(opts: { onlyIds?: number[] } = {}): Promise<number> {
+    const pool = getIngestPool();
+    const where =
+      opts.onlyIds && opts.onlyIds.length > 0
+        ? `status = 'dead' AND document_id = ANY($1)`
+        : `status = 'dead'`;
+    const params = opts.onlyIds && opts.onlyIds.length > 0 ? [opts.onlyIds] : [];
+    const { rowCount } = await pool.query(
+      `UPDATE pipeline_jobs
+       SET status           = 'queued',
+           attempts         = 0,
+           error            = NULL,
+           worker_id        = NULL,
+           lease_expires_at = NULL,
+           updated_at       = now()
+       WHERE ${where}`,
+      params,
+    );
+    return rowCount ?? 0;
   }
 
   /**
