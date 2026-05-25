@@ -10,7 +10,7 @@ import {
 
 const THREAD_PAGE_SIZE = 50;
 
-type BodyState = {
+export type BodyState = {
   loading: boolean;
   error: string | null;
   data: EmailMessageBodyDTO | null;

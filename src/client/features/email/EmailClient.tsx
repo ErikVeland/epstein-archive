@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
 import styles from './EmailClient.module.css';
 import { FixedSizeList as List } from 'react-window';
 import { useListScrollRestoration } from '@client/hooks/useListScrollRestoration';
@@ -11,78 +10,20 @@ import {
 } from '@client/hooks/useReliableBackNavigation';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import Icon from '@client/components/common/Icon';
-import { AddToInvestigationButton } from '@client/components/common/AddToInvestigationButton';
 import { AnimatedSegmentedControl } from '@client/components/common/AnimatedSegmentedControl';
 import { EvidenceModal } from '@client/components/common/EvidenceModal';
-import { ViewerShell } from '@client/components/viewer/ViewerShell';
 import { useEmailWorkspaceData } from '@client/hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '@client/components/common/EmptyCorpus';
 import { isJunkEntity } from '@client/utils/entityFilters';
 import { EmailSettingsModal } from './EmailSettingsModal';
 import { EmailThreadRow, type EmailDensity } from './EmailThreadRow';
-import { formatEmailTime } from './emailFormatting';
-import { Button, Flex, SearchField, Select, Surface, TextInput } from '@client/design-system/lib';
-
-const STATIC_PEOPLE = [
-  'Jeffrey Epstein',
-  'Elon Musk',
-  'Ghislaine Maxwell',
-  'Ehud Barak',
-  'Al Seckel',
-  'Kimbal Musk',
-  'Karyna Shuliak',
-  'Deepak Chopra',
-  'Ken Starr',
-  'Peter Attia',
-  'Jeremy Rubin',
-  'Neri Oxman',
-  'Marvin Minsky',
-  'Lawrence Krauss',
-  'Seth Lloyd',
-  'Boris Nikolic',
-  'Jean Luc Brunel',
-  'Lesley Groff',
-  'Sarah Kellen',
-  'Nadia Marcinkova',
-  'Darren Indyke',
-  'Mark Epstein',
-  'Emad Hanna',
-  'Joscha Bach',
-  'Rich Kahn',
-  'Cecilia Steen',
-  'John Amerling',
-  'Sultan Bin Sulayem',
-  'Matthew Hiltzik',
-  'Peter Mandelson',
-  'Howard Lutnick',
-];
-
-const minRiskOptions = [
-  { value: 0, label: 'Any' },
-  { value: 1, label: '≥ 1' },
-  { value: 2, label: '≥ 2' },
-  { value: 3, label: '≥ 3' },
-  { value: 4, label: '≥ 4' },
-];
-
-const ladderTone = (ladder: string | null): string => {
-  const value = (ladder || '').toLowerCase();
-  if (value.includes('direct')) return styles.ladderDirect;
-  if (value.includes('infer')) return styles.ladderInfer;
-  if (value.includes('agentic')) return styles.ladderAgentic;
-  return styles.ladderDefault;
-};
-
-const copyText = async (value: string): Promise<void> => {
-  try {
-    await navigator.clipboard.writeText(value);
-  } catch {
-    // Ignore clipboard failures.
-  }
-};
+import { Button, SearchField } from '@client/design-system/lib';
+import { EmailMailboxSidebar } from './EmailMailboxSidebar';
+import { EmailFilterPanel } from './EmailFilterPanel';
+import { EmailAnalyticsPane } from './EmailAnalyticsPane';
+import { EmailContentPane } from './EmailContentPane';
 
 export const EmailClient: React.FC = () => {
-  const navigate = useNavigate();
   const backLinkState = useBackLinkState();
   const { goBack } = useReliableBackNavigation('/emails');
   const [searchParams, setSearchParams] = useSearchParams();
@@ -529,114 +470,17 @@ export const EmailClient: React.FC = () => {
           } as React.CSSProperties
         }
       >
-        <aside
-          className={`${styles.mailboxPane} ${
-            mobilePane === 'mailboxes' ? styles.mobilePaneVisible : styles.mobilePaneHidden
-          }`}
-        >
-          <div className={styles.sidebarCompose} style={{ height: '20px' }}>
-            {/* Compose artifact retired - read only context */}
-          </div>
-
-          <div className={styles.sidebarSection}>
-            <div className={`${styles.sidebarItem} ${styles.sidebarItemActive}`}>
-              <Icon name="Inbox" />
-              <span>Inbox</span>
-              <span className={styles.sidebarItemCount}>13k</span>
-            </div>
-            <div className={styles.sidebarItem}>
-              <Icon name="Star" />
-              <span>Starred</span>
-            </div>
-            <div className={styles.sidebarItem}>
-              <Icon name="AlertOctagon" />
-              <span>Unredaction Requests</span>
-            </div>
-            <div className={styles.sidebarItem}>
-              <Icon name="Send" />
-              <span>Sent</span>
-            </div>
-            <div className={styles.sidebarItem}>
-              <Icon name="Paperclip" />
-              <span>Attachments</span>
-            </div>
-            <div className={styles.sidebarItem}>
-              <Icon name="History" />
-              <span>Daily Activity</span>
-            </div>
-          </div>
-
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarSectionHeader}>
-              <span>TOPICS</span>
-              <Icon name="ChevronDown" />
-            </div>
-            <div
-              className={`${styles.sidebarItem} ${topic === 'asking for advice' ? styles.sidebarItemActive : ''}`}
-              onClick={() => setTopic('asking for advice')}
-            >
-              <Icon name="MessageSquare" />
-              <span>Asking for advice</span>
-            </div>
-            <div
-              className={`${styles.sidebarItem} ${topic === 'introductions' ? styles.sidebarItemActive : ''}`}
-              onClick={() => setTopic('introductions')}
-            >
-              <Icon name="Users" />
-              <span>Introductions</span>
-            </div>
-            <div
-              className={`${styles.sidebarItem} ${topic === 'damage control' ? styles.sidebarItemActive : ''}`}
-              onClick={() => setTopic('damage control')}
-            >
-              <Icon name="ShieldAlert" />
-              <span>Damage control</span>
-            </div>
-            <div
-              className={`${styles.sidebarItem} ${topic === 'financial discussions' ? styles.sidebarItemActive : ''}`}
-              onClick={() => setTopic('financial discussions')}
-            >
-              <Icon name="DollarSign" />
-              <span>Financial discussions</span>
-            </div>
-            <div
-              className={`${styles.sidebarItem} ${topic === 'travel plans' ? styles.sidebarItemActive : ''}`}
-              onClick={() => setTopic('travel plans')}
-            >
-              <Icon name="Plane" />
-              <span>Travel plans</span>
-            </div>
-          </div>
-
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarSectionHeader}>
-              <span>PEOPLE</span>
-              <Icon name="ChevronDown" />
-            </div>
-            <div className={styles.sidebarItem}>
-              <Icon name="BookOpen" />
-              <span>Browse all people</span>
-            </div>
-            <div
-              className={styles.scrollListWrapper}
-              style={{ overflowY: 'auto', maxHeight: '40vh' }}
-            >
-              {STATIC_PEOPLE.map((person) => (
-                <div
-                  key={person}
-                  className={styles.sidebarItem}
-                  style={person === 'Jeffrey Epstein' ? { fontWeight: 600, opacity: 0.9 } : {}}
-                  onClick={() => {
-                    setSearchInput(person);
-                    setDebouncedSearch(person);
-                  }}
-                >
-                  <span>{person}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </aside>
+        <EmailMailboxSidebar
+          mobilePane={mobilePane}
+          mailboxes={mailboxes}
+          selectedMailboxId={selectedMailboxId}
+          topic={topic}
+          onTopicChange={setTopic}
+          onPersonClick={(name) => {
+            setSearchInput(name);
+            setDebouncedSearch(name);
+          }}
+        />
 
         <section
           className={`${styles.threadPane} ${
@@ -777,216 +621,25 @@ export const EmailClient: React.FC = () => {
             </div>
           </div>
           {showFilterPanel && (
-            <div className={styles.filterPanel}>
-              <div className={styles.filterGrid}>
-                <div className={styles.filterLead}>
-                  Refine by sender, recipient, date, attachments, and risk.
-                </div>
-                <div className={styles.filterFormGrid}>
-                  <label className={styles.filterField}>
-                    <span className={styles.filterLabel}>From</span>
-                    <TextInput
-                      value={fromFilter}
-                      onChange={(event) => setFromFilter(event.target.value)}
-                      placeholder="sender@domain.com or name"
-                      aria-label="From"
-                      density="compact"
-                      className={styles.filterTextInput}
-                    />
-                  </label>
-                  <label className={styles.filterField}>
-                    <span className={styles.filterLabel}>To</span>
-                    <TextInput
-                      value={toFilter}
-                      onChange={(event) => setToFilter(event.target.value)}
-                      placeholder="recipient@domain.com or name"
-                      aria-label="To"
-                      density="compact"
-                      className={styles.filterTextInput}
-                    />
-                  </label>
-                  <label className={styles.filterField}>
-                    <span className={styles.filterLabel}>Date From</span>
-                    <TextInput
-                      value={dateFrom}
-                      onChange={(event) => setDateFrom(event.target.value)}
-                      type="date"
-                      aria-label="Date from"
-                      density="compact"
-                      className={styles.filterDateInput}
-                    />
-                  </label>
-                  <label className={styles.filterField}>
-                    <span className={styles.filterLabel}>Date To</span>
-                    <TextInput
-                      value={dateTo}
-                      onChange={(event) => setDateTo(event.target.value)}
-                      type="date"
-                      aria-label="Date to"
-                      density="compact"
-                      className={styles.filterDateInput}
-                    />
-                  </label>
-                </div>
-
-                <div className={styles.filterQuickRow}>
-                  <span className={styles.quickLabel}>Quick Toggles</span>
-                  <Button
-                    onClick={() => setHasAttachmentsOnly((prev) => !prev)}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={`${styles.toggleChip} ${
-                      hasAttachmentsOnly ? styles.toggleChipActive : styles.toggleChipInactive
-                    }`}
-                  >
-                    Has attachments
-                  </Button>
-                  <div className={styles.riskPicker}>
-                    <span className={styles.riskLabel}>Min Risk</span>
-                    <Select
-                      value={minRisk}
-                      onChange={(event) => setMinRisk(Number(event.target.value))}
-                      options={minRiskOptions}
-                      size="sm"
-                      className={styles.riskSelect}
-                      aria-label="Minimum risk"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            <EmailFilterPanel
+              fromFilter={fromFilter}
+              toFilter={toFilter}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              hasAttachmentsOnly={hasAttachmentsOnly}
+              minRisk={minRisk}
+              onFromChange={setFromFilter}
+              onToChange={setToFilter}
+              onDateFromChange={setDateFrom}
+              onDateToChange={setDateTo}
+              onAttachmentToggle={() => setHasAttachmentsOnly((prev) => !prev)}
+              onMinRiskChange={setMinRisk}
+            />
           )}
 
           <div className={styles.threadPaneBody}>
             {activeTab === 'analytics' ? (
-              <div style={{ padding: 'var(--space-5)', height: '100%', overflowY: 'auto' }}>
-                <div style={{ marginBottom: 'var(--space-4)' }}>
-                  <h3
-                    style={{
-                      margin: 0,
-                      color: 'var(--text-primary)',
-                      fontSize: '1.25rem',
-                      fontWeight: 'var(--weight-light)',
-                    }}
-                  >
-                    Forensic Communication Heatmap
-                  </h3>
-                  <p
-                    style={{
-                      margin: 'var(--space-1) 0 0',
-                      color: 'var(--text-muted)',
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    Pairwise communication frequency analysis mapped between foreclosure targets and
-                    senders.
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-                  {(analyticsData?.matrix || []).map((item, idx) => {
-                    const maxVal = Math.max(
-                      ...(analyticsData?.matrix || []).map((m) => m.count),
-                      1,
-                    );
-                    const percent = (item.count / maxVal) * 100;
-                    return (
-                      <Surface
-                        key={idx}
-                        variant="glass"
-                        style={{
-                          padding: 'var(--space-4)',
-                          borderRadius: 'var(--radius-md)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 'var(--space-2)',
-                        }}
-                      >
-                        <Flex
-                          justify="between"
-                          align="center"
-                          style={{ flexWrap: 'wrap', gap: 'var(--space-2)' }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 'var(--space-2)',
-                              flexWrap: 'wrap',
-                            }}
-                          >
-                            <span
-                              style={{
-                                fontWeight: 'bold',
-                                color: 'var(--accent)',
-                                fontSize: '0.9rem',
-                              }}
-                            >
-                              {item.sender}
-                            </span>
-                            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>
-                              ➔
-                            </span>
-                            <span
-                              style={{
-                                fontWeight: 'bold',
-                                color: 'var(--text-primary)',
-                                fontSize: '0.9rem',
-                              }}
-                            >
-                              {item.recipient}
-                            </span>
-                          </div>
-                          <span
-                            style={{
-                              fontSize: '0.85rem',
-                              fontWeight: 'bold',
-                              color: 'var(--status-success)',
-                            }}
-                          >
-                            {item.count} messages
-                          </span>
-                        </Flex>
-                        <div
-                          style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}
-                        >
-                          <div
-                            style={{
-                              flex: 1,
-                              height: '8px',
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              borderRadius: '4px',
-                              overflow: 'hidden',
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: `${percent}%`,
-                                height: '100%',
-                                background:
-                                  'linear-gradient(90deg, var(--accent), var(--status-success))',
-                                borderRadius: '4px',
-                              }}
-                            />
-                          </div>
-                        </div>
-                      </Surface>
-                    );
-                  })}
-                  {(!analyticsData || (analyticsData?.matrix || []).length === 0) && (
-                    <div
-                      style={{
-                        padding: 'var(--space-6)',
-                        color: 'var(--text-muted)',
-                        textAlign: 'center',
-                      }}
-                    >
-                      No analytical communications data has been indexed for this mailbox yet.
-                    </div>
-                  )}
-                </div>
-              </div>
+              <EmailAnalyticsPane analyticsData={analyticsData} />
             ) : threadsLoading ? (
               <div className={styles.stateLoading}>
                 <Icon name="Loader2" className={styles.loaderInline} /> Loading conversations
@@ -1138,394 +791,31 @@ export const EmailClient: React.FC = () => {
             )}
           </div>
         </section>
-        <section
-          className={`${styles.contentPane} ${styles.contentPaneShell} ${
-            mobilePane === 'messages' ? styles.threadPaneVisible : styles.threadPaneHidden
-          } ${!isMobile && !selectedThreadId ? styles.hiddenPane : ''}`}
-        >
-          {selectedThreadId ? (
-            threadLoading && !selectedThread ? (
-              <div className={styles.stateLoading}>
-                <Icon name="Loader2" className={styles.loaderInline} /> Opening thread
-              </div>
-            ) : threadError ? (
-              <div className={styles.stateError}>{threadError}</div>
-            ) : selectedThread ? (
-              isMobile ? (
-                <div className={styles.fullScreenMobile}>
-                  <MobileStackHeader
-                    title={selectedThread.subject}
-                    subtitle={`${selectedThread.messages.length} messages · ${selectedMailbox?.displayName || 'Archive'}`}
-                    onBack={() => goBack('/emails')}
-                  />
-                  <div className={styles.fullScreenContent}>
-                    <div className={styles.messageThread}>
-                      {selectedThread.messages.map((message) => {
-                        const expanded = Boolean(expandedMessages[message.messageId]);
-                        const body = bodyState[message.messageId];
-                        return (
-                          <article
-                            key={message.messageId}
-                            className={`${styles.messageCard} ${expanded ? styles.expanded : ''}`}
-                          >
-                            <Button
-                              onClick={() => handleToggleMessage(message.messageId, !expanded)}
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className={styles.messageToggle}
-                            >
-                              <div className={styles.messageHeader}>
-                                <div className={styles.messageMetaMain}>
-                                  <div className={styles.messageFromRow}>
-                                    <div className={styles.messageFrom}>{message.from}</div>
-                                    <div className={styles.messageTime}>
-                                      {formatEmailTime(message.date)}
-                                    </div>
-                                  </div>
-                                </div>
-                                <Icon
-                                  name="ChevronRight"
-                                  className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
-                                />
-                              </div>
-                            </Button>
-                            {expanded && (
-                              <div className={styles.messageBody}>
-                                <div className={styles.messageActionRow}>
-                                  <Button
-                                    onClick={() => void copyText(`message_id=${message.messageId}`)}
-                                    variant="secondary"
-                                    size="sm"
-                                  >
-                                    Citation
-                                  </Button>
-                                  <Button
-                                    onClick={() => handleToggleQuoted(message.messageId)}
-                                    variant="secondary"
-                                    size="sm"
-                                  >
-                                    History
-                                  </Button>
-                                  <Button
-                                    onClick={() =>
-                                      navigate(`/documents/${message.messageId}`, {
-                                        state: backLinkState,
-                                      })
-                                    }
-                                    variant="primary"
-                                    size="sm"
-                                  >
-                                    Evidence
-                                  </Button>
-                                </div>
-                                <div className={styles.mimeContent}>
-                                  {body?.loading
-                                    ? 'Loading...'
-                                    : body?.data?.cleanedText || 'No body content.'}
-                                </div>
-                              </div>
-                            )}
-                          </article>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <ViewerShell
-                  header={
-                    <div className={styles.viewerHeaderMeta}>
-                      <div className={styles.subjectLine}>{selectedThread.subject}</div>
-                      <div className={styles.viewerHeaderSub}>
-                        {selectedThread.messages.length.toLocaleString()} messages · mailbox{' '}
-                        {selectedMailbox?.displayName || 'All'}
-                      </div>
-                    </div>
-                  }
-                  actions={
-                    <div data-testid="email-thread-actions" className={styles.viewerActions}>
-                      <Button
-                        onClick={() => {
-                          if (window.innerWidth < 768) {
-                            updateUrlState({ pane: 'threads' });
-                          } else {
-                            setSelectedThreadId(null);
-                            updateUrlState({ threadId: null, messageId: null });
-                          }
-                        }}
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        iconOnly
-                        className={styles.backToThreadsButton}
-                      >
-                        <Icon name="ArrowLeft" className={styles.backIcon} />
-                      </Button>
-                      <AddToInvestigationButton
-                        item={{
-                          id: selectedThread.threadId,
-                          type: 'evidence',
-                          title: selectedThread.subject,
-                          description: `Email thread with ${selectedThread.messages.length} messages`,
-                          sourceId: selectedThread.threadId,
-                          metadata: {
-                            sourceType: 'email_thread',
-                            threadId: selectedThread.threadId,
-                            messageCount: selectedThread.messages.length,
-                          },
-                        }}
-                        variant="quick"
-                        className={styles.backToThreadsButton}
-                      />
-                    </div>
-                  }
-                  className={styles.viewerShellRoot}
-                  headerClassName={styles.viewerShellHeader}
-                  bodyClassName={styles.viewerShellBody}
-                >
-                  <div className={styles.messageThread}>
-                    {selectedThread.messages.map((message) => {
-                      const expanded = Boolean(expandedMessages[message.messageId]);
-                      const body = bodyState[message.messageId];
-                      const citation = `message_id=${message.messageId}; date=${message.date}; mailbox=${selectedMailbox?.displayName || 'All'}; ingest_run_id=${message.ingestRunId ?? 'unknown'}`;
-
-                      return (
-                        <article
-                          key={message.messageId}
-                          className={`${styles.messageCard} ${expanded ? styles.expanded : ''}`}
-                          data-message-id={message.messageId}
-                        >
-                          <Button
-                            onClick={() => handleToggleMessage(message.messageId, !expanded)}
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className={styles.messageToggle}
-                          >
-                            <div className={styles.messageHeader}>
-                              <div className={styles.messageAvatar}>
-                                <Icon name="User" className={styles.messageAvatarIcon} />
-                              </div>
-                              <div className={styles.messageMetaMain}>
-                                <div className={styles.messageFromRow}>
-                                  <div className={styles.messageFrom}>
-                                    {message.from || 'Unknown Sender'}
-                                  </div>
-                                  <div className={styles.messageTime}>
-                                    {formatEmailTime(message.date)}
-                                  </div>
-                                </div>
-                                <div className={styles.messageTo}>
-                                  To: {message.to.join(' · ') || 'Unknown recipient'}
-                                </div>
-                              </div>
-                              <Icon
-                                name="ChevronRight"
-                                className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
-                              />
-                            </div>
-                          </Button>
-
-                          {expanded && (
-                            <div className={`${styles.messageBody} ${styles.messageBodyExpanded}`}>
-                              <div className={styles.messageTagRow}>
-                                <div
-                                  className={`${styles.messageTagPill} ${ladderTone(message.ladder)}`}
-                                >
-                                  LADDER: {message.ladder || 'N/A'}
-                                </div>
-                                <div
-                                  className={`${styles.messageTagPill} ${styles.messagePillMuted}`}
-                                >
-                                  CONFIDENCE:{' '}
-                                  {typeof message.confidence === 'number'
-                                    ? (message.confidence * 100).toFixed(0)
-                                    : '0'}
-                                  %
-                                </div>
-                                <div
-                                  className={`${styles.messageTagPill} ${styles.messagePillSecondary}`}
-                                >
-                                  ID: {message.ingestRunId || 'RAW_INGEST'}
-                                </div>
-                                {message.wasAgentic && (
-                                  <div className={styles.agenticBadge}>
-                                    <Icon name="Sparkles" className={styles.agenticIcon} />
-                                    Agentic Highlighting
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className={styles.messageActionRow}>
-                                <Button
-                                  onClick={() => void copyText(citation)}
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className={styles.messageActionButton}
-                                >
-                                  Copy Citation
-                                </Button>
-                                <Button
-                                  onClick={() => handleToggleRaw(message.messageId)}
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className={styles.messageActionButton}
-                                >
-                                  {body?.showRaw ? 'Show Cleaned' : 'View MIME'}
-                                </Button>
-                                <Button
-                                  onClick={() => handleToggleQuoted(message.messageId)}
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className={styles.messageActionButton}
-                                >
-                                  {body?.showQuoted ? 'Hide History' : 'Show History'}
-                                </Button>
-                                <AddToInvestigationButton
-                                  item={{
-                                    id: message.messageId,
-                                    type: 'evidence',
-                                    title: message.subject || selectedThread.subject,
-                                    description: `Email message from ${message.from}`,
-                                    sourceId: message.messageId,
-                                    metadata: {
-                                      sourceType: 'email_message',
-                                      threadId: selectedThread.threadId,
-                                      messageId: message.messageId,
-                                      ingestRunId: message.ingestRunId,
-                                    },
-                                  }}
-                                  variant="quick"
-                                  className={styles.messageActionButton}
-                                />
-                              </div>
-
-                              <div data-testid="email-message-body" className={styles.mimeContent}>
-                                {body?.loading ? (
-                                  <div className={styles.bodyLoading}>
-                                    <Icon name="Loader2" className={styles.bodyLoaderIcon} />
-                                    <span className={styles.bodyLoadingLabel}>
-                                      Decompressing MIME Stream
-                                    </span>
-                                  </div>
-                                ) : body?.error ? (
-                                  <div className={styles.bodyError}>{body.error}</div>
-                                ) : body?.showRaw ? (
-                                  <pre className={styles.rawPre}>
-                                    {body.raw || 'No raw content available.'}
-                                  </pre>
-                                ) : (
-                                  <div className={styles.cleanBody}>
-                                    {body?.data?.cleanedText || 'No readable body available.'}
-                                  </div>
-                                )}
-                              </div>
-
-                              {(message.linkedEntities || []).length > 0 && (
-                                <div className={styles.entityPills}>
-                                  {(message.linkedEntities || []).map((entity) => (
-                                    <Button
-                                      key={`${message.messageId}-${entity.entityId}`}
-                                      onClick={() => setSelectedEntityId(String(entity.entityId))}
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      className={styles.entityChip}
-                                      title={`Open entity ${entity.name}`}
-                                    >
-                                      <Icon name="User" className={styles.entityChipIcon} />
-                                      {entity.name}
-                                    </Button>
-                                  ))}
-                                </div>
-                              )}
-
-                              {(message.attachmentsMeta || []).length > 0 && (
-                                <div className={styles.attachmentSection}>
-                                  <div className={styles.attachmentTitle}>
-                                    <Icon name="Paperclip" className={styles.entityChipIcon} />
-                                    Forensic Attachments ({(message.attachmentsMeta || []).length})
-                                  </div>
-                                  <div className={styles.attachmentGrid}>
-                                    {(message.attachmentsMeta || []).map((attachment, index) => {
-                                      const linkedDocumentId = attachment.linkedDocumentId;
-                                      const canOpen = Boolean(linkedDocumentId);
-                                      return (
-                                        <div
-                                          key={`${message.messageId}-attachment-${index}`}
-                                          className={styles.attachmentCard}
-                                        >
-                                          <div className={styles.attachmentInfo}>
-                                            <div className={styles.attachmentName}>
-                                              {attachment.filename || `Attachment ${index + 1}`}
-                                            </div>
-                                            <div className={styles.attachmentMeta}>
-                                              {attachment.mimeType || 'UNKNOWN_MIME'} ·{' '}
-                                              {attachment.size
-                                                ? `${(attachment.size / 1024).toFixed(1)}KB`
-                                                : 'SIZE_UNKNOWN'}
-                                            </div>
-                                          </div>
-                                          {canOpen ? (
-                                            <Button
-                                              onClick={() =>
-                                                navigate(
-                                                  `/documents/${encodeURIComponent(
-                                                    String(linkedDocumentId),
-                                                  )}`,
-                                                  { state: backLinkState },
-                                                )
-                                              }
-                                              type="button"
-                                              variant="ghost"
-                                              size="sm"
-                                              className={styles.attachmentOpenButton}
-                                            >
-                                              Open
-                                            </Button>
-                                          ) : (
-                                            <span className={styles.attachmentMissingWrap}>
-                                              <span className={styles.attachmentMissing}>
-                                                Not Ingested
-                                              </span>
-                                            </span>
-                                          )}
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </article>
-                      );
-                    })}
-                  </div>
-                </ViewerShell>
-              )
-            ) : (
-              <div className={styles.stateNotFound}>Thread not found.</div>
-            )
-          ) : threadError ? (
-            <div className={styles.stateError}>{threadError}</div>
-          ) : (
-            <div className={styles.placeholderState}>
-              <div className={styles.placeholderInner}>
-                <Icon name="Mail" className={styles.placeholderIcon} />
-                <div className={styles.placeholderTitle}>Investigation-grade Email Workspace</div>
-                <p className={styles.placeholderBody}>
-                  Select a thread to load message headers first, then lazy-load bodies. Use linked
-                  entities and Add to Investigation for evidence chaining.
-                </p>
-              </div>
-            </div>
-          )}
-        </section>
+        <EmailContentPane
+          mobilePane={mobilePane}
+          isMobile={isMobile}
+          selectedThreadId={selectedThreadId}
+          threadLoading={threadLoading}
+          threadError={threadError}
+          selectedThread={selectedThread}
+          selectedMailbox={selectedMailbox}
+          expandedMessages={expandedMessages}
+          bodyState={bodyState}
+          backLinkState={backLinkState}
+          onToggleMessage={handleToggleMessage}
+          onToggleRaw={handleToggleRaw}
+          onToggleQuoted={handleToggleQuoted}
+          onBack={() => goBack('/emails')}
+          onClose={() => {
+            if (window.innerWidth < 768) {
+              updateUrlState({ pane: 'threads' });
+            } else {
+              setSelectedThreadId(null);
+              updateUrlState({ threadId: null, messageId: null });
+            }
+          }}
+          onSelectEntity={setSelectedEntityId}
+        />
       </div>
 
       {selectedEntityId && (
