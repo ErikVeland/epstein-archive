@@ -1,7 +1,7 @@
 # Epstein Archive De-Vibing And Production Hardening Plan
 
 Date opened: 2026-05-18
-Last updated: 2026-05-22
+Last updated: 2026-05-25
 
 This is the executable stabilization blueprint for turning the current codebase from accumulated AI-generated drift into a production-grade system. It is based on local repository inspection, TypeScript/lint/test gates, Knip import/export analysis, dependency checks, and database/schema gates.
 
@@ -21,18 +21,18 @@ Remaining work is no longer "finish the original plan." It is hardening burn-dow
 
 ## 1. Vibe-Code Severity Matrix
 
-| Severity | Issue                                                   | Current State                                                                                                                                                    | Next Action                                                                                        |
-| -------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| GREEN    | Canonical evidence state mixed with generated AI output | Fixed: AI output is artifact-only unless explicit rewrite override is enabled.                                                                                   | Keep `ALLOW_AI_CONTENT_REWRITE` exceptional and audited.                                           |
-| GREEN    | Deploy/schema/query gates were permissive               | Fixed: schema hash, forbidden identifiers, Knip baseline, query-plan gate, select-star gate, bundle budget, and production certification are wired into release. | Keep gates blocking; review baselines only through intentional commits.                            |
-| GREEN    | Public mutation endpoint for document annotations       | Fixed: annotation writes require authentication.                                                                                                                 | Fold remaining write endpoints through the same auth/rate-limit pattern.                           |
-| AMBER    | Huge modules with mixed responsibilities                | Improved: `App.tsx` and ingest pipeline were split. Remaining heavy surfaces include `EmailClient.tsx`, `mediaRoutes.ts`, and `investigations.ts`.               | Continue bounded route/component extraction, one user-facing flow at a time.                       |
-| GREEN    | Active duplicate cache abstractions                     | Fixed: retired server/client cache services are gone and `check:hygiene` blocks their return.                                                                    | Audit smaller local component caches for stale-data risk; keep server data behind `cacheService`.  |
-| GREEN    | Root diagnostic artifacts tracked as source             | Fixed: tracked dumps removed and hygiene gate blocks reintroduction.                                                                                             | Keep generated diagnostics out of git.                                                             |
-| GREEN    | Duplicate/retired UI surfaces                           | Fixed: duplicate About surface removed.                                                                                                                          | Treat future duplicate pages as delete-first work.                                                 |
-| GREEN    | `SELECT *` and high-traffic query plans                 | Fixed for the release gate: explicit projections are enforced and route explain plans block regressions.                                                         | Add cursor pagination endpoint-by-endpoint where offset pagination still matters for large tables. |
-| AMBER    | Swallowed errors and console logging in app code        | Partially fixed: canonical API error envelope is in place, but broad catch/log cleanup is still a burn-down item.                                                | Prioritize shared route/client utilities and production paths over cosmetic cleanup.               |
-| GREEN    | Generated pgtyped files report `any`/unused in Knip     | Contained: generated-path noise is excluded/baselined and Knip baseline is enforced.                                                                             | Burn down the baseline gradually; do not widen it without review.                                  |
+| Severity | Issue                                                   | Current State                                                                                                                                                                                           | Next Action                                                                                        |
+| -------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| GREEN    | Canonical evidence state mixed with generated AI output | Fixed: AI output is artifact-only unless explicit rewrite override is enabled.                                                                                                                          | Keep `ALLOW_AI_CONTENT_REWRITE` exceptional and audited.                                           |
+| GREEN    | Deploy/schema/query gates were permissive               | Fixed: schema hash, forbidden identifiers, Knip baseline, query-plan gate, select-star gate, bundle budget, and production certification are wired into release.                                        | Keep gates blocking; review baselines only through intentional commits.                            |
+| GREEN    | Public mutation endpoint for document annotations       | Fixed: annotation writes require authentication.                                                                                                                                                        | Fold remaining write endpoints through the same auth/rate-limit pattern.                           |
+| GREEN    | Huge modules with mixed responsibilities                | Fixed: `App.tsx`, ingest pipeline, `EmailClient.tsx` (1551→841 lines, 4 sub-components), `mediaRoutes.ts` (1050→17 lines, 6 sub-routers), `investigations.ts` (1245→16 lines, 5 sub-routers) all split. | Continue burn-down on any new large surfaces; baseline is now under 900 lines per file.            |
+| GREEN    | Active duplicate cache abstractions                     | Fixed: retired server/client cache services are gone and `check:hygiene` blocks their return.                                                                                                           | Audit smaller local component caches for stale-data risk; keep server data behind `cacheService`.  |
+| GREEN    | Root diagnostic artifacts tracked as source             | Fixed: tracked dumps removed and hygiene gate blocks reintroduction.                                                                                                                                    | Keep generated diagnostics out of git.                                                             |
+| GREEN    | Duplicate/retired UI surfaces                           | Fixed: duplicate About surface removed.                                                                                                                                                                 | Treat future duplicate pages as delete-first work.                                                 |
+| GREEN    | `SELECT *` and high-traffic query plans                 | Fixed for the release gate: explicit projections are enforced and route explain plans block regressions.                                                                                                | Add cursor pagination endpoint-by-endpoint where offset pagination still matters for large tables. |
+| AMBER    | Swallowed errors and console logging in app code        | Partially fixed: canonical API error envelope is in place, but broad catch/log cleanup is still a burn-down item.                                                                                       | Prioritize shared route/client utilities and production paths over cosmetic cleanup.               |
+| GREEN    | Generated pgtyped files report `any`/unused in Knip     | Contained: generated-path noise is excluded/baselined and Knip baseline is enforced.                                                                                                                    | Burn down the baseline gradually; do not widen it without review.                                  |
 
 ## 2. Dead Code Elimination Plan
 
@@ -434,10 +434,10 @@ The plan is no longer blocked on foundational hardening. The next completion mil
    - Keep the remote deploy lock in `deploy.sh`; tune `EPSTEIN_DEPLOY_LOCK_TTL_SECONDS` only if deploys routinely exceed four hours.
    - Use `docs/runbooks/08-production-deploy-lock.md` before clearing stale `.deploy.lock`.
 
-2. Large-module burn-down
-   - Split `src/client/features/email/EmailClient.tsx` by state, list, detail, search, and settings.
-   - Split `src/server/routes/mediaRoutes.ts` into listing/streaming/albums/faces/batch modules.
-   - Split `src/server/routes/investigations.ts` into notebook/evidence/export/leads/timeline modules.
+2. Large-module burn-down ✅ (completed 2026-05-25)
+   - `EmailClient.tsx`: 1551→841 lines — `EmailMailboxSidebar`, `EmailFilterPanel`, `EmailAnalyticsPane`, `EmailContentPane` extracted.
+   - `mediaRoutes.ts`: 1050→17 lines (assembler) — `mediaShared`, `mediaMetadata`, `mediaImages`, `mediaBatch`, `mediaAudio`, `mediaVideo`, `mediaPdf` sub-routers.
+   - `investigations.ts`: 1245→16 lines (assembler) — `investigationsCore`, `investigationsTimeline`, `investigationsEvidence`, `investigationsNotebook`, `investigationsExport` sub-routers.
 
 3. Dependency/toolchain cleanup
    - Migrate `packages/db` from Zod 3 to Zod 4 with generated-query tests.
