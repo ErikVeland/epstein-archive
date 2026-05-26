@@ -19,6 +19,7 @@ type KeyboardShortcutOptions = {
     search: string;
   };
   goBack: (fallbackPath: string) => void;
+  markClosingEntityModal?: () => void;
 };
 
 function announce(message: string) {
@@ -43,6 +44,7 @@ export function useAppKeyboardShortcuts({
   setShowKeyboardShortcuts,
   location,
   goBack,
+  markClosingEntityModal,
 }: KeyboardShortcutOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -81,11 +83,9 @@ export function useAppKeyboardShortcuts({
 
       if (e.key === 'Escape') {
         if (selectedPerson) {
+          markClosingEntityModal?.();
           setSelectedPerson(null);
-          const params = new URLSearchParams(location.search);
-          params.delete('entityId');
-          params.delete('entityTab');
-          navigate(`${location.pathname}${params.toString() ? '?' + params.toString() : ''}`);
+          goBack('/people');
           announce('Person details modal closed');
         }
         if (documentModalId) {
@@ -122,6 +122,7 @@ export function useAppKeyboardShortcuts({
     goBack,
     location.pathname,
     location.search,
+    markClosingEntityModal,
     navigate,
     selectedPerson,
     setDocumentModalId,

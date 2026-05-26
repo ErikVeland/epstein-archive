@@ -10,6 +10,7 @@ export function useKeyboardShortcuts(params: {
   location: LocationLike;
   selectedPerson: Person | null;
   setSelectedPerson: (next: Person | null) => void;
+  markClosingEntityModal: () => void;
   documentModalId: string | null;
   setDocumentModalId: (next: string | null) => void;
   setDocumentModalInitial: (next: DocRecord | null) => void;
@@ -25,6 +26,7 @@ export function useKeyboardShortcuts(params: {
     location,
     selectedPerson,
     setSelectedPerson,
+    markClosingEntityModal,
     documentModalId,
     setDocumentModalId,
     setDocumentModalInitial,
@@ -85,11 +87,9 @@ export function useKeyboardShortcuts(params: {
 
       if (e.key === 'Escape') {
         if (selectedPerson) {
+          markClosingEntityModal();
           setSelectedPerson(null);
-          const urlParams = new URLSearchParams(location.search);
-          urlParams.delete('entityId');
-          urlParams.delete('entityTab');
-          navigate(`${location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`);
+          goBack('/people');
           const announcement = document.createElement('div');
           announcement.setAttribute('aria-live', 'polite');
           announcement.setAttribute('aria-atomic', 'true');
@@ -161,6 +161,7 @@ export function useKeyboardShortcuts(params: {
     location.pathname,
     location.search,
     goBack,
+    markClosingEntityModal,
     setDocumentModalId,
     setDocumentModalInitial,
     setSelectedPerson,

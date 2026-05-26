@@ -32,6 +32,36 @@ test.describe('Fixture-backed route sync', () => {
     await expect(page.getByTestId('subject-card').first()).toBeVisible({ timeout: 20000 });
   });
 
+  test('direct entity deep link close leaves the entity route instead of reopening itself', async ({
+    page,
+  }) => {
+    await mockHealthyApi(page);
+    await mockPeopleEntityApis(page);
+    await prepareDesktopPage(page);
+
+    await page.goto('/entity/101');
+    await expect(page.getByTestId('evidence-modal')).toBeVisible({ timeout: 20000 });
+
+    await page.getByRole('button', { name: 'Close entity profile' }).click();
+    await expect(page).toHaveURL(/\/people(?:\?|$)/, { timeout: 20000 });
+    await expect(page.getByTestId('evidence-modal')).toHaveCount(0);
+    await expect(page.getByTestId('subject-card').first()).toBeVisible({ timeout: 20000 });
+  });
+
+  test('escape closes direct entity deep link without reopening itself', async ({ page }) => {
+    await mockHealthyApi(page);
+    await mockPeopleEntityApis(page);
+    await prepareDesktopPage(page);
+
+    await page.goto('/entity/101');
+    await expect(page.getByTestId('evidence-modal')).toBeVisible({ timeout: 20000 });
+
+    await page.keyboard.press('Escape');
+    await expect(page).toHaveURL(/\/people(?:\?|$)/, { timeout: 20000 });
+    await expect(page.getByTestId('evidence-modal')).toHaveCount(0);
+    await expect(page.getByTestId('subject-card').first()).toBeVisible({ timeout: 20000 });
+  });
+
   test('document modal tab sync works deterministically without live data', async ({ page }) => {
     await mockHealthyApi(page);
     await mockDocumentApis(page);

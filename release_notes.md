@@ -1,5 +1,14 @@
 # Release Notes
 
+## 21.6.1 - 2026-05-26 - Route Close Stability Patch
+
+### Navigation Reliability
+
+- **Routed surfaces now stay closed when dismissed.** Closing an entity profile, using Escape on an entity deep link, dismissing investigation evidence deep-link modals, and closing media direct-link viewers now remove or leave the URL trigger that opened them. This prevents the app from immediately reopening the same surface after a user closes it.
+- **Regression coverage protects close behavior.** Added fixture-backed route-sync coverage for direct entity close and Escape close, plus unit coverage for investigation evidence return paths.
+
+---
+
 ## 21.6.0 - 2026-05-20 - Provenance & Annotation Hardening
 
 ### Document Research

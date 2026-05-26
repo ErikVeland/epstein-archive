@@ -139,6 +139,9 @@ function AppRootContent() {
     location,
     selectedPerson,
     setSelectedPerson,
+    markClosingEntityModal: () => {
+      closingEntityModal.current = true;
+    },
     documentModalId,
     setDocumentModalId,
     setDocumentModalInitial,

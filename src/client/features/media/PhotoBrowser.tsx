@@ -561,6 +561,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     setPreviewPerson(null);
     const url = new URL(window.location.href);
     url.searchParams.delete('photoId');
+    url.searchParams.delete('id');
     const nextUrl = `${url.pathname}${url.search}${url.hash}`;
     const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
     if (nextUrl !== currentUrl) {

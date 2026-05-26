@@ -62,20 +62,7 @@ export const ModalHost: React.FC<ModalHostProps> = (props) => {
               onClose={() => {
                 props.markClosingEntityModal();
                 props.setSelectedPerson(null);
-                const params = new URLSearchParams(props.location.search);
-                params.delete('entityId');
-                params.delete('entityTab');
-                const targetPath = `${props.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-                sessionStorage.setItem(
-                  'nav-return:scroll',
-                  String(window.scrollY || window.pageYOffset || 0),
-                );
-                props.navigate(targetPath, {
-                  state: {
-                    ...((props.location.state as Record<string, unknown> | null) || {}),
-                    _navReturn: targetPath,
-                  },
-                });
+                props.goBack('/people');
               }}
             />
           </ScopedErrorBoundary>

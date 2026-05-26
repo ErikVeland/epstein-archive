@@ -60,6 +60,7 @@ import {
 } from '@client/domains/investigations';
 import type { InvestigationCaseEvidenceItemDto } from '@shared/dto/investigations';
 import { PerformanceMonitor } from '@client/utils/performanceMonitor';
+import { getCaseFolderEvidenceReturnPath } from './investigationRouteUtils';
 
 // UI Library
 import {
@@ -471,14 +472,22 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     }
   };
 
+  const closeCaseFolderEvidenceSurface = () => {
+    const returnPath = getCaseFolderEvidenceReturnPath(location.pathname, location.search);
+    if (returnPath) {
+      navigate(returnPath, { replace: true });
+    }
+    caseFolderFocusReturnEl?.focus();
+  };
+
   const closeCaseFolderDocumentModal = () => {
     setCaseFolderDocumentId(null);
-    caseFolderFocusReturnEl?.focus();
+    closeCaseFolderEvidenceSurface();
   };
 
   const closeCaseFolderEntityModal = () => {
     setCaseFolderEntityId(null);
-    caseFolderFocusReturnEl?.focus();
+    closeCaseFolderEvidenceSurface();
   };
 
   const handleCaseFolderEvidenceClick = useCallback(

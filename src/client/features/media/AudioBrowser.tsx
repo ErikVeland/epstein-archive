@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FixedSizeList as List, ListChildComponentProps, areEqual } from 'react-window';
 import { createPortal } from 'react-dom';
 import Icon from '@client/components/common/Icon';
@@ -260,6 +261,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   initialAudioId,
   initialTimestamp,
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState<AudioItem | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [extendedTranscriptSearch, setExtendedTranscriptSearch] =
@@ -268,8 +271,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
   const urlParams = useMemo(() => {
     if (typeof window === 'undefined') return new URLSearchParams();
-    return new URL(window.location.href).searchParams;
-  }, []);
+    return new URLSearchParams(location.search);
+  }, [location.search]);
 
   const targetAudioId = useMemo(() => {
     const urlId = urlParams.get('id');
@@ -419,6 +422,16 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
       setSelectedItem(directLinkItem);
     }
   }
+
+  const handleClosePlayer = useCallback(() => {
+    setSelectedItem(null);
+    const params = new URLSearchParams(location.search);
+    if (!params.has('id')) return;
+
+    params.delete('id');
+    const query = params.toString();
+    navigate(`${location.pathname}${query ? `?${query}` : ''}`, { replace: true });
+  }, [location.pathname, location.search, navigate]);
 
   const toggleSelection = useCallback(
     (id: number) => {
@@ -613,7 +626,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   title={selectedItem.title}
                   transcript={selectedItem.metadata?.transcript}
                   chapters={selectedItem.metadata?.chapters}
-                  onClose={() => setSelectedItem(null)}
+                  onClose={handleClosePlayer}
                   autoPlay={true}
                   isSensitive={selectedItem.isSensitive}
                   documentId={selectedItem.documentId}
