@@ -1,5 +1,6 @@
 import { getApiPool } from '../db/connection.js';
 import { randomUUID } from 'crypto';
+import { logger } from './Logger.js';
 
 export interface PipelineRun {
   id: number;
@@ -290,10 +291,9 @@ export const PipelineService = {
       if (process.env.NODE_ENV === 'production') {
         throw error;
       }
-      console.warn(
-        `[PipelineService] Failed to persist AI artifact for document ${params.documentId}: ${
-          (error as Error).message
-        }`,
+      logger.warn(
+        { documentId: params.documentId, err: (error as Error).message },
+        '[PipelineService] Failed to persist AI artifact',
       );
     }
   },

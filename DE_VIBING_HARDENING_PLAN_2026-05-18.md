@@ -1,7 +1,7 @@
 # Epstein Archive De-Vibing And Production Hardening Plan
 
 Date opened: 2026-05-18
-Last updated: 2026-05-25
+Last updated: 2026-05-28
 
 This is the executable stabilization blueprint for turning the current codebase from accumulated AI-generated drift into a production-grade system. It is based on local repository inspection, TypeScript/lint/test gates, Knip import/export analysis, dependency checks, and database/schema gates.
 
@@ -31,7 +31,7 @@ Remaining work is no longer "finish the original plan." It is hardening burn-dow
 | GREEN    | Root diagnostic artifacts tracked as source             | Fixed: tracked dumps removed and hygiene gate blocks reintroduction.                                                                                                                                    | Keep generated diagnostics out of git.                                                             |
 | GREEN    | Duplicate/retired UI surfaces                           | Fixed: duplicate About surface removed.                                                                                                                                                                 | Treat future duplicate pages as delete-first work.                                                 |
 | GREEN    | `SELECT *` and high-traffic query plans                 | Fixed for the release gate: explicit projections are enforced and route explain plans block regressions.                                                                                                | Add cursor pagination endpoint-by-endpoint where offset pagination still matters for large tables. |
-| AMBER    | Swallowed errors and console logging in app code        | Partially fixed: canonical API error envelope is in place, but broad catch/log cleanup is still a burn-down item.                                                                                       | Prioritize shared route/client utilities and production paths over cosmetic cleanup.               |
+| GREEN    | Swallowed errors and console logging in app code        | Fixed: zero `console.*` calls remain in `src/server/` (outside the logger itself). Canonical API error envelope is in place. Client `console.*` calls are acceptable browser-side debugging output.     | Continue monitoring for regressions via `grep` in CI; client-side cleanup is lower priority.       |
 | GREEN    | Generated pgtyped files report `any`/unused in Knip     | Contained: generated-path noise is excluded/baselined and Knip baseline is enforced.                                                                                                                    | Burn down the baseline gradually; do not widen it without review.                                  |
 
 ## 2. Dead Code Elimination Plan

@@ -335,7 +335,7 @@ async function getSubjectCardsFallback(
     maxConnResult = results[2] as { maxConn?: number }[];
     vipDisplayLookup = results[3] as Map<string, string>;
   } catch (err) {
-    console.error('[CRITICAL] failure in getSubjectCardsFallback:', err);
+    logger.error({ err }, '[CRITICAL] failure in getSubjectCardsFallback');
     return { subjects: [], total: 0 };
   }
 

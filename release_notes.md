@@ -1,5 +1,13 @@
 # Release Notes
 
+## 21.6.2 - 2026-05-28 - Server Logging Hardening
+
+### Observability
+
+- **All server log output now routes through the canonical structured logger.** The last two remaining `console.error`/`console.warn` calls in server code (a critical fallback in the subject-cards repository and a pipeline AI artifact failure warning) now emit structured pino log entries. This means every server-side error carries consistent fields (`err`, `documentId`, timestamp, log level) and is captured by the same log pipeline as all other server events.
+
+---
+
 ## 21.6.1 - 2026-05-26 - Route Close Stability Patch
 
 ### Navigation Reliability
