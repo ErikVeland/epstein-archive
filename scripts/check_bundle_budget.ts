@@ -10,7 +10,9 @@
  *                                        between local and CI builds on the same source)
  *   Feature/page chunk: ≤ 250 KB gzip each
  *   Vendor chunk:       ≤ 500 KB gzip each (cached by browsers; less critical)
+ *   Page/lazy chunk:    ≤ 200 KB gzip each (lazily-loaded page components)
  *   Total initial JS:   ≤ 700 KB gzip (main + vendor combined)
+ *   Total all JS:       ≤ 1200 KB gzip (all chunks combined)
  */
 
 import { readFileSync, readdirSync, statSync } from 'fs';
@@ -36,6 +38,8 @@ const BUDGETS = {
   featureChunkKB: 250,
   vendorChunkKB: 500,
   totalInitialKB: 700,
+  otherChunkKB: 200, // per-chunk ceiling for lazily-loaded page components
+  totalAllKB: 1200, // grand total across all JS chunks
 } as const;
 
 function classifyChunk(filename: string): BundleResult['kind'] {
@@ -81,6 +85,7 @@ function checkBudgets(chunks: BundleResult[]): BudgetResult[] {
   const main = chunks.filter((c) => c.kind === 'main');
   const feature = chunks.filter((c) => c.kind === 'feature');
   const vendor = chunks.filter((c) => c.kind === 'vendor');
+  const other = chunks.filter((c) => c.kind === 'other');
 
   for (const chunk of main) {
     results.push({
@@ -116,6 +121,25 @@ function checkBudgets(chunks: BundleResult[]): BudgetResult[] {
     limitKB: BUDGETS.totalInitialKB,
     actualKB: totalInitialKB,
     passed: totalInitialKB <= BUDGETS.totalInitialKB,
+  });
+
+  // Per-chunk ceiling for lazily-loaded page components (previously unchecked 'other' kind)
+  for (const chunk of other) {
+    results.push({
+      label: `Page chunk (${chunk.file})`,
+      limitKB: BUDGETS.otherChunkKB,
+      actualKB: chunk.gzipKB,
+      passed: chunk.gzipKB <= BUDGETS.otherChunkKB,
+    });
+  }
+
+  // Grand total across all JS chunks — catches incremental bundle creep
+  const totalAllKB = chunks.reduce((s, c) => s + c.gzipKB, 0);
+  results.push({
+    label: 'Total JS (all chunks)',
+    limitKB: BUDGETS.totalAllKB,
+    actualKB: totalAllKB,
+    passed: totalAllKB <= BUDGETS.totalAllKB,
   });
 
   return results;
