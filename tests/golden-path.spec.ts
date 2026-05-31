@@ -452,3 +452,41 @@ test.describe('Golden Path E: Investigation workspace export panel', () => {
     await expect(page.getByText(/zip archive/i)).toBeVisible({ timeout: 5000 });
   });
 });
+
+test.describe('Golden Path D2: DocumentModal PDF multi-page navigation', () => {
+  test('next/prev page buttons advance and retreat the page counter', async ({ page, request }) => {
+    const pdfDocumentId = await resolveFirstPdfDocumentId(request);
+    if (!pdfDocumentId) {
+      expect(true, 'No PDF documents available').toBeFalsy();
+      return;
+    }
+
+    await page.goto(`/documents/${encodeURIComponent(pdfDocumentId)}?modalTab=pdf`);
+    const modal = page.locator('#DocumentModal');
+    await expect(modal).toBeVisible({ timeout: 20000 });
+
+    // Wait for PDF to finish rendering (same check as Golden Path D)
+    await expect(modal.locator('canvas')).toHaveCount(1, { timeout: 30000 });
+
+    // If the Next button is disabled the fixture only has a single-page PDF — soft-skip.
+    const nextBtn = page.getByRole('button', { name: /next/i });
+    const isMultiPage = await nextBtn.isEnabled().catch(() => false);
+    if (!isMultiPage) {
+      expect(true, 'PDF fixture is single-page — skipping multi-page nav test').toBeFalsy();
+      return;
+    }
+
+    // Advance to page 2
+    await nextBtn.click();
+    // Page counter format: "{pageNumber} / {numPages}" (with possible whitespace from spans)
+    await expect(modal.getByText(/\b2\s*\/\s*\d+/)).toBeVisible({ timeout: 5000 });
+
+    // Retreat to page 1
+    const prevBtn = page.getByRole('button', { name: /previous/i });
+    await prevBtn.click();
+    await expect(modal.getByText(/\b1\s*\/\s*\d+/)).toBeVisible({ timeout: 5000 });
+
+    // Previous button is disabled at page 1
+    await expect(prevBtn).toBeDisabled();
+  });
+});
