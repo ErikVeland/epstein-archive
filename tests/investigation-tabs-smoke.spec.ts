@@ -30,7 +30,8 @@ const UNTESTED_TABS = [
 
 test.describe('Investigation workspace — tab smoke tests', () => {
   for (const tab of UNTESTED_TABS) {
-    test(`${tab} tab renders without crashing`, async ({ page, request }) => {
+    test(`${tab} tab renders without crashing`, async ({ page, request, isMobile }) => {
+      test.skip(isMobile, 'Desktop workspace smoke — mobile uses a different shell');
       const investigationId = await resolveFirstInvestigation(request);
       if (!investigationId) {
         expect(true, 'No investigations available — skipping smoke test').toBeFalsy();
