@@ -84,13 +84,8 @@ test.describe('Investigation Board', () => {
     });
     await expect(page.locator('text="Theories & Hypotheses"')).toBeVisible({ timeout: 10000 });
 
-    // The add-hypothesis button is the ghost Button with a Plus icon in the
-    // "Theories & Hypotheses" column header flex row.
-    // Traversing: text element → parent inner flex → parent outer flex → button sibling.
-    const addBtn = page
-      .locator('text="Theories & Hypotheses"')
-      .locator('xpath=../..')
-      .locator('button');
+    // The add-hypothesis button uses data-testid for robust selection
+    const addBtn = page.getByTestId('add-hypothesis-btn');
     await expect(addBtn).toBeVisible({ timeout: 5000 });
     await addBtn.click();
 
@@ -98,11 +93,20 @@ test.describe('Investigation Board', () => {
     const titleInput = page.getByPlaceholder('Theoretical Designation...');
     await expect(titleInput).toBeVisible({ timeout: 5000 });
 
-    const hypothesisTitle = `E2E Hypothesis ${Date.now()}`;
+    const hypothesisTitle = `E2E Hypothesis ${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     await titleInput.fill(hypothesisTitle);
+
+    // Intercept the POST before clicking so we can await it
+    const createRespPromise = page.waitForResponse(
+      (r) => r.url().includes('/hypotheses') && r.request().method() === 'POST',
+      { timeout: 10000 },
+    );
 
     // Submit via the "Initialize" button
     await page.locator('button').filter({ hasText: 'Initialize' }).first().click();
+
+    const createResp = await createRespPromise;
+    expect(createResp.ok(), `Hypothesis POST failed: ${createResp.status()}`).toBeTruthy();
 
     // New hypothesis title must appear in the board
     await expect(page.locator(`text="${hypothesisTitle}"`)).toBeVisible({ timeout: 10000 });

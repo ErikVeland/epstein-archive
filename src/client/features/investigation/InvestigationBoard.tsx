@@ -241,7 +241,12 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                   Theories & Hypotheses
                 </LqText>
               </Flex>
-              <Button variant="ghost" size="sm" onClick={() => setShowHypothesisModal(true)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHypothesisModal(true)}
+                data-testid="add-hypothesis-btn"
+              >
                 <Icon name="Plus" size="sm" />
               </Button>
             </Flex>
