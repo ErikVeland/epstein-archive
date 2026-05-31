@@ -323,7 +323,7 @@ test.describe('Golden Path D: DocumentModal PDF rendering', () => {
     const contentType = String(fileResponse.headers()['content-type'] || '').toLowerCase();
     expect(contentType).toContain('pdf');
 
-    await page.goto(`/documents/${encodeURIComponent(pdfDocumentId)}?modalTab=pdf`);
+    await page.goto(`/documents/${encodeURIComponent(pdfDocumentId)}?viewMode=pdf`);
     const modal = page.locator('#DocumentModal');
     await expect(modal).toBeVisible({ timeout: 20000 });
 
@@ -461,7 +461,10 @@ test.describe('Golden Path D2: DocumentModal PDF multi-page navigation', () => {
       return;
     }
 
-    await page.goto(`/documents/${encodeURIComponent(pdfDocumentId)}?modalTab=pdf`);
+    await page.addInitScript(() => {
+      window.localStorage.setItem('firstRunOnboardingCompleted', 'true');
+    });
+    await page.goto(`/documents/${encodeURIComponent(pdfDocumentId)}?viewMode=pdf`);
     const modal = page.locator('#DocumentModal');
     await expect(modal).toBeVisible({ timeout: 20000 });
 
@@ -469,7 +472,7 @@ test.describe('Golden Path D2: DocumentModal PDF multi-page navigation', () => {
     await expect(modal.locator('canvas')).toHaveCount(1, { timeout: 30000 });
 
     // If the Next button is disabled the fixture only has a single-page PDF — soft-skip.
-    const nextBtn = page.getByRole('button', { name: /next/i });
+    const nextBtn = modal.getByRole('button', { name: /next/i });
     const isMultiPage = await nextBtn.isEnabled().catch(() => false);
     if (!isMultiPage) {
       expect(true, 'PDF fixture is single-page — skipping multi-page nav test').toBeFalsy();
@@ -482,7 +485,7 @@ test.describe('Golden Path D2: DocumentModal PDF multi-page navigation', () => {
     await expect(modal.getByText(/\b2\s*\/\s*\d+/)).toBeVisible({ timeout: 5000 });
 
     // Retreat to page 1
-    const prevBtn = page.getByRole('button', { name: /previous/i });
+    const prevBtn = modal.getByRole('button', { name: /previous/i });
     await prevBtn.click();
     await expect(modal.getByText(/\b1\s*\/\s*\d+/)).toBeVisible({ timeout: 5000 });
 
