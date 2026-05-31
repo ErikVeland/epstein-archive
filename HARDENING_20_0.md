@@ -36,7 +36,9 @@ This document tracks reliability and DTO/data-integrity hardening work aimed at 
 - `tests/investigation-board.spec.ts` — terminal state check + hypothesis creation round-trip for the board tab. Also added `data-testid="add-hypothesis-btn"` to `src/client/features/investigation/InvestigationBoard.tsx`.
 - `tests/golden-path.spec.ts` (Golden Path D2) — PDF multi-page navigation (next/prev buttons, page counter). Also fixed pre-existing `?modalTab=pdf` bug in Golden Path D — correct param is `?viewMode=pdf`.
 
-## Next (recommended)
+### Performance budgets (completed)
 
-1. **Performance budgets**
-   - Enforce bundle size limits in CI via `rollup-plugin-visualizer` output.
+- Added `otherChunkKB: 200` (per-chunk ceiling for lazily-loaded page components) and `totalAllKB: 1200` (grand total all-JS) to `scripts/check_bundle_budget.ts`.
+- Previously unchecked `other`-classified chunks (`DocumentModal`, `InvestigationWorkspace`, `PieChart`, etc.) now each have a 200 KB gzip ceiling.
+- Grand total all-JS budget (1200 KB gzip) catches incremental bundle creep that per-chunk limits would miss.
+- Gate already ran in CI via `postbuild:prod` → `quality_gate.sh`; no CI wiring changes needed.
