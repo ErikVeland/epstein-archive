@@ -21,8 +21,8 @@ const API_BASE = useProductionBaseUrl
 // ── Shared helpers ─────────────────────────────────────────────────────────────
 
 /** Inject localStorage keys that bypass first-run onboarding flows. */
-function bypassOnboarding(page: Page): Promise<void> {
-  return page.addInitScript(() => {
+async function bypassOnboarding(page: Page): Promise<void> {
+  await page.addInitScript(() => {
     window.localStorage.setItem('firstRunOnboardingCompleted', 'true');
     window.localStorage.setItem('board_onboarding_seen', 'true');
   });
