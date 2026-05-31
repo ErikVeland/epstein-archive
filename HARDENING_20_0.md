@@ -30,10 +30,13 @@ This document tracks reliability and DTO/data-integrity hardening work aimed at 
 - Added 25+ missing icons to `Icon.tsx` mapping: `ArrowDownLeft`, `BadgeCheck`, `Bot`, `Briefcase`, `Circle`, `Clock3`, `FileSignature`, `FileType`, `GripVertical`, `History`, `MessageCircle`, `Package`, `ScanText`, `ScrollText`, `SearchCheck`, `SlidersHorizontal`, `Sparkles`, `Type`, `Video`, and others.
 - No runtime "missing icon" warnings should occur for UI icons.
 
+### E2E coverage (completed)
+
+- `tests/investigation-tabs-smoke.spec.ts` — smoke coverage for all 11 previously untested investigation workspace tabs (board, iceberg, intelligence, overview, activity, evidence, hypotheses, financial, team, analytics, forensic).
+- `tests/investigation-board.spec.ts` — terminal state check + hypothesis creation round-trip for the board tab. Also added `data-testid="add-hypothesis-btn"` to `src/client/features/investigation/InvestigationBoard.tsx`.
+- `tests/golden-path.spec.ts` (Golden Path D2) — PDF multi-page navigation (next/prev buttons, page counter). Also fixed pre-existing `?modalTab=pdf` bug in Golden Path D — correct param is `?viewMode=pdf`.
+
 ## Next (recommended)
 
-1. **E2E coverage**
-   - Add golden path tests for investigation workflows and document PDF rendering edge cases.
-
-2. **Performance budgets**
+1. **Performance budgets**
    - Enforce bundle size limits in CI via `rollup-plugin-visualizer` output.
