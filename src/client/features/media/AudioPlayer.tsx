@@ -466,46 +466,44 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 <Box grow className={styles.transcriptScroll} ref={transcriptRef}>
                   {transcript.length > 0 ? (
                     <Stack gap="none">
-                      {transcript.map((seg, i) =>
-                        (() => {
-                          const isMatch =
-                            !!normalizedTranscriptQuery && transcriptMatches.includes(i);
-                          const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === i;
-                          return (
-                            <Box
-                              key={i}
-                              className={cn(
-                                styles.segment,
-                                activeSegmentIndex === i && styles.segmentActive,
-                                isCurrent && styles.segmentCurrentMatch,
-                                !isCurrent && isMatch && styles.segmentMatch,
-                              )}
-                              onClick={() => seek(seg.start)}
-                            >
-                              <Flex align="center" justify="between" mb="xs">
-                                <LqText variant="xs" weight="bold" color="accent">
-                                  {formatTime(seg.start)}
-                                </LqText>
-                                {seg.speaker && (
-                                  <LqText
-                                    variant="xs"
-                                    color="muted"
-                                    style={css({ textTransform: 'uppercase' })}
-                                  >
-                                    {seg.speaker}
-                                  </LqText>
-                                )}
-                              </Flex>
-                              <LqText
-                                variant="xs"
-                                color={activeSegmentIndex === i ? 'foreground' : 'muted'}
-                              >
-                                {seg.text}
+                      {transcript.map((seg, i) => {
+                        const isMatch =
+                          !!normalizedTranscriptQuery && transcriptMatches.includes(i);
+                        const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === i;
+                        return (
+                          <Box
+                            key={i}
+                            className={cn(
+                              styles.segment,
+                              activeSegmentIndex === i && styles.segmentActive,
+                              isCurrent && styles.segmentCurrentMatch,
+                              !isCurrent && isMatch && styles.segmentMatch,
+                            )}
+                            onClick={() => seek(seg.start)}
+                          >
+                            <Flex align="center" justify="between" mb="xs">
+                              <LqText variant="xs" weight="bold" color="accent">
+                                {formatTime(seg.start)}
                               </LqText>
-                            </Box>
-                          );
-                        })(),
-                      )}
+                              {seg.speaker && (
+                                <LqText
+                                  variant="xs"
+                                  color="muted"
+                                  style={css({ textTransform: 'uppercase' })}
+                                >
+                                  {seg.speaker}
+                                </LqText>
+                              )}
+                            </Flex>
+                            <LqText
+                              variant="xs"
+                              color={activeSegmentIndex === i ? 'foreground' : 'muted'}
+                            >
+                              {seg.text}
+                            </LqText>
+                          </Box>
+                        );
+                      })}
                     </Stack>
                   ) : (
                     <Flex align="center" justify="center" fullHeight p="xl">

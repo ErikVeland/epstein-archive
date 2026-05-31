@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { Investigation, Investigator } from '@client/types/investigation';
 import { investigationsApi } from '../investigations.api';
 import { mapApiInvestigation } from '../investigations.model';
@@ -10,7 +10,9 @@ interface UseInvestigationListOptions {
 
 export const useInvestigationList = (options: UseInvestigationListOptions = {}) => {
   const onErrorRef = useRef(options.onError);
-  onErrorRef.current = options.onError;
+  useLayoutEffect(() => {
+    onErrorRef.current = options.onError;
+  });
   const currentUserId = options.currentUser?.id;
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [selectedInvestigation, setSelectedInvestigation] = useState<Investigation | null>(null);
