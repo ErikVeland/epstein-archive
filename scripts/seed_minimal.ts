@@ -4,6 +4,18 @@ import { getMaintenancePool } from '../src/server/db/connection.js';
 
 type Row<T extends string> = Record<T, unknown>;
 
+async function getColumnSet(table: string): Promise<Set<string>> {
+  const pool = getMaintenancePool();
+  const res = await pool.query<Row<'column_name'>>(
+    `SELECT column_name
+     FROM information_schema.columns
+     WHERE table_schema = current_schema()
+       AND table_name = $1`,
+    [table],
+  );
+  return new Set(res.rows.map((r) => String(r.column_name)));
+}
+
 async function upsertDocument(params: {
   filePath: string;
   fileName: string;
@@ -16,28 +28,95 @@ async function upsertDocument(params: {
   ]);
   if (existing.rows[0]?.id) return Number(existing.rows[0].id);
 
+  const columns = await getColumnSet('documents');
+  const insertColumns: string[] = [];
+  const insertValues: unknown[] = [];
+
+  if (columns.has('file_path')) {
+    insertColumns.push('file_path');
+    insertValues.push(params.filePath);
+  }
+  if (columns.has('file_name')) {
+    insertColumns.push('file_name');
+    insertValues.push(params.fileName);
+  }
+  if (columns.has('title')) {
+    insertColumns.push('title');
+    insertValues.push(params.title);
+  }
+  if (columns.has('content')) {
+    insertColumns.push('content');
+    insertValues.push(params.content);
+  }
+  if (columns.has('mime_type')) {
+    insertColumns.push('mime_type');
+    insertValues.push('text/plain');
+  } else if (columns.has('file_type')) {
+    insertColumns.push('file_type');
+    insertValues.push('text/plain');
+  }
+  if (columns.has('processing_status')) {
+    insertColumns.push('processing_status');
+    insertValues.push('seeded');
+  }
+  if (columns.has('source_collection')) {
+    insertColumns.push('source_collection');
+    insertValues.push('local-minimal');
+  }
+
+  const placeholders = insertColumns.map((_, idx) => `$${idx + 1}`).join(', ');
   const inserted = await pool.query<Row<'id'>>(
-    `INSERT INTO documents (file_path, file_name, title, content, file_type, processing_status, source_collection)
-     VALUES ($1, $2, $3, $4, 'text/plain', 'seeded', 'local-minimal')
+    `INSERT INTO documents (${insertColumns.join(', ')})
+     VALUES (${placeholders})
      RETURNING id`,
-    [params.filePath, params.fileName, params.title, params.content],
+    insertValues,
   );
   return Number(inserted.rows[0].id);
 }
 
 async function upsertEntity(params: { fullName: string; type?: string }): Promise<number> {
   const pool = getMaintenancePool();
+  const columns = await getColumnSet('entities');
+  const typeColumn = columns.has('entity_type') ? 'entity_type' : columns.has('type') ? 'type' : null;
+
   const existing = await pool.query<Row<'id'>>(
-    'SELECT id FROM entities WHERE full_name = $1 AND entity_type = $2 ORDER BY id ASC LIMIT 1',
-    [params.fullName, params.type ?? 'Person'],
+    typeColumn
+      ? `SELECT id FROM entities WHERE full_name = $1 AND ${typeColumn} = $2 ORDER BY id ASC LIMIT 1`
+      : 'SELECT id FROM entities WHERE full_name = $1 ORDER BY id ASC LIMIT 1',
+    typeColumn ? [params.fullName, params.type ?? 'Person'] : [params.fullName],
   );
   if (existing.rows[0]?.id) return Number(existing.rows[0].id);
 
+  const insertColumns: string[] = ['full_name'];
+  const insertValues: unknown[] = [params.fullName];
+
+  if (typeColumn) {
+    insertColumns.push(typeColumn);
+    insertValues.push(params.type ?? 'Person');
+  }
+  if (columns.has('entity_type') && typeColumn !== 'entity_type') {
+    insertColumns.push('entity_type');
+    insertValues.push(params.type ?? 'Person');
+  }
+  if (columns.has('entity_category')) {
+    insertColumns.push('entity_category');
+    insertValues.push('seed');
+  }
+  if (columns.has('risk_level')) {
+    insertColumns.push('risk_level');
+    insertValues.push('unknown');
+  }
+  if (columns.has('notes')) {
+    insertColumns.push('notes');
+    insertValues.push('local minimal seed');
+  }
+
+  const placeholders = insertColumns.map((_, idx) => `$${idx + 1}`).join(', ');
   const inserted = await pool.query<Row<'id'>>(
-    `INSERT INTO entities (full_name, entity_type, entity_category, risk_level, notes)
-     VALUES ($1, $2, 'seed', 'unknown', 'local minimal seed')
+    `INSERT INTO entities (${insertColumns.join(', ')})
+     VALUES (${placeholders})
      RETURNING id`,
-    [params.fullName, params.type ?? 'Person'],
+    insertValues,
   );
   return Number(inserted.rows[0].id);
 }
