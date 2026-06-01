@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
 import 'dotenv/config';
 import pg from 'pg';
 
@@ -26,6 +26,26 @@ function canUseDocker(): Promise<boolean> {
     const child = spawn('docker', ['info'], { stdio: 'ignore' });
     child.on('error', () => resolve(false));
     child.on('exit', (code) => resolve(code === 0));
+  });
+}
+
+async function stopProcess(child: ChildProcess) {
+  if (child.exitCode !== null) return;
+  await new Promise<void>((resolve) => {
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      resolve();
+    };
+
+    child.once('exit', finish);
+    child.kill('SIGTERM');
+
+    setTimeout(() => {
+      if (child.exitCode === null) child.kill('SIGKILL');
+      setTimeout(finish, 1000);
+    }, 5000);
   });
 }
 
@@ -60,7 +80,7 @@ async function waitForReady(baseUrl: string) {
         if (json?.status === 'ok') return;
       }
     } catch (_e) {
-      // Ignored: retry on next loop iteration
+      void _e;
     }
     await new Promise((r) => setTimeout(r, 1000));
   }
@@ -71,6 +91,8 @@ async function main() {
   const baseUrl = process.env.BASE_URL ?? 'http://127.0.0.1:3012';
   const databaseUrl =
     process.env.DATABASE_URL ?? 'postgresql://epstein:epstein@localhost:5432/epstein_archive';
+  const nodeEnv = process.env.NODE_ENV ?? 'development';
+  const rawCorpusBasePath = process.env.RAW_CORPUS_BASE_PATH ?? './data';
 
   const dockerMode = (process.env.LOCAL_SMOKE_DOCKER ?? 'auto').toLowerCase();
   const skipDocker = dockerMode === '0' || dockerMode === 'false';
@@ -95,16 +117,32 @@ async function main() {
     );
   }
 
-  await run('pnpm', ['db:migrate:pg'], { env: { ...process.env, DATABASE_URL: databaseUrl } });
-  await run('pnpm', ['seed:minimal'], { env: { ...process.env, DATABASE_URL: databaseUrl } });
+  await run('pnpm', ['db:migrate:pg'], {
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrl,
+      NODE_ENV: nodeEnv,
+      RAW_CORPUS_BASE_PATH: rawCorpusBasePath,
+    },
+  });
+  await run('pnpm', ['seed:minimal'], {
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrl,
+      NODE_ENV: nodeEnv,
+      RAW_CORPUS_BASE_PATH: rawCorpusBasePath,
+    },
+  });
 
   const server = spawn('pnpm', ['exec', 'tsx', 'src/server.ts'], {
     stdio: 'inherit',
     env: {
       ...process.env,
       DATABASE_URL: databaseUrl,
-      PORT: process.env.PORT ?? '3012',
-      API_PORT: process.env.PORT ?? '3012',
+      NODE_ENV: nodeEnv,
+      RAW_CORPUS_BASE_PATH: rawCorpusBasePath,
+      API_PORT: process.env.API_PORT ?? process.env.PORT ?? '3012',
+      PORT: process.env.API_PORT ?? process.env.PORT ?? '3012',
     },
   });
 
@@ -114,7 +152,7 @@ async function main() {
       env: { ...process.env, BASE_URL: baseUrl, DATABASE_URL: databaseUrl },
     });
   } finally {
-    server.kill('SIGTERM');
+    await stopProcess(server);
   }
 }
 
