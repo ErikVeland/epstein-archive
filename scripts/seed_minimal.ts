@@ -77,7 +77,11 @@ async function upsertDocument(params: {
 async function upsertEntity(params: { fullName: string; type?: string }): Promise<number> {
   const pool = getMaintenancePool();
   const columns = await getColumnSet('entities');
-  const typeColumn = columns.has('entity_type') ? 'entity_type' : columns.has('type') ? 'type' : null;
+  const typeColumn = columns.has('entity_type')
+    ? 'entity_type'
+    : columns.has('type')
+      ? 'type'
+      : null;
 
   const existing = await pool.query<Row<'id'>>(
     typeColumn
