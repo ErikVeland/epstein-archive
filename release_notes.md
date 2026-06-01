@@ -17,6 +17,7 @@
 
 - **TableViewer uses server-provided column headers.** When the enrichment pipeline has extracted column headers from a tabular document (stored as `evidence.metadata.columnHeaders`, pipe-separated), the TableViewer now uses those as column definitions instead of auto-detecting from the first text row. This is more reliable for OCR-extracted tables where the first line may contain noise. Falls back gracefully to the auto-detect logic for legacy evidence.
 - **Redundant triple cast removed in apiClient.ts.** `ents as unknown as Person[] as Person[]` → `ents as unknown as Person[]`. The final `as Person[]` was a no-op; the intermediate `unknown` cast is intentionally retained because the mapped search result objects are partial `Person` shapes (full hydration happens downstream).
+- **Local smoke is DB-present by default.** The `pnpm local:smoke` runner now forces `NODE_ENV=development` and `RAW_CORPUS_BASE_PATH=./data`, and terminates the spawned server cleanly after the endpoint probes complete.
 
 ---
 
