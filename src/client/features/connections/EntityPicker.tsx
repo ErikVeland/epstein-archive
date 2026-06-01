@@ -46,7 +46,7 @@ export function EntityPicker({
             const raw = e as unknown as Record<string, unknown>;
             return {
               id: String(e.id),
-              name: e.name || e.fullName || String(e.id),
+              name: e.name || String(e.id),
               type: typeof raw.entityType === 'string' ? raw.entityType : 'unknown',
             };
           });

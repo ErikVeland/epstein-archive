@@ -30,11 +30,11 @@ export interface InvestigationListApiResponse {
 
 export const investigationsApi = {
   list: async (): Promise<InvestigationListApiResponse> => {
-    return (await apiClient.getInvestigations()) as InvestigationListApiResponse;
+    return (await apiClient.getInvestigations()) as unknown as InvestigationListApiResponse;
   },
 
   getById: async (id: string): Promise<Record<string, unknown>> => {
-    return (await apiClient.getInvestigation(id)) as Record<string, unknown>;
+    return (await apiClient.getInvestigation(id)) as unknown as Record<string, unknown>;
   },
 
   create: async (payload: {
@@ -43,7 +43,7 @@ export const investigationsApi = {
     ownerId: string;
     scope?: string;
   }): Promise<Record<string, unknown>> => {
-    return (await apiClient.createInvestigation(payload)) as Record<string, unknown>;
+    return (await apiClient.createInvestigation(payload)) as unknown as Record<string, unknown>;
   },
 
   getBoard: async (id: string, params?: { evidenceLimit?: number; hypothesisLimit?: number }) => {
@@ -70,7 +70,7 @@ export const investigationsApi = {
   },
 
   getNotebook: async (id: string): Promise<InvestigationNotebookDto> => {
-    return apiClient.getInvestigationNotebook(id) as Promise<InvestigationNotebookDto>;
+    return apiClient.getInvestigationNotebook(id) as unknown as Promise<InvestigationNotebookDto>;
   },
 
   updateNotebook: async (

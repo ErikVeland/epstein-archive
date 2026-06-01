@@ -30,6 +30,7 @@
     "risk:recalculate": "tsx scripts/recalculate_entity_risk.ts",
     "db:analyze": "tsx scripts/pg_analyze_after_migrate.ts",
     "seed:structure": "tsx scripts/ensure_structure.ts",
+    "seed:minimal": "tsx scripts/seed_minimal.ts",
     "verify": "tsx scripts/verify_ops.ts && pnpm test:bundle-smoke",
     "verify:live-cutover": "tsx scripts/verify_live_cutover.ts",
     "verify:entity-quality": "tsx scripts/verify_entity_quality_gates.ts",
@@ -42,6 +43,10 @@
     "pipeline:full": "tsx scripts/unified_pipeline.ts --mode full",
     "pipeline:list-stages": "tsx scripts/unified_pipeline.ts --list-stages",
     "pipeline:backfill": "BATCH_SIZE=3 tsx scripts/unified_pipeline.ts --mode backfill",
+    "local:db:up": "docker compose up -d postgres",
+    "local:db:down": "docker compose down",
+    "local:setup": "pnpm local:db:up && pnpm db:migrate:pg && pnpm seed:minimal",
+    "local:smoke": "tsx scripts/local_smoke.ts",
     "pipeline:backfill:protected": "./scripts/run_protected.sh pipeline:backfill",
     "media:thumbnails:backfill:protected": "./scripts/run_protected.sh media:thumbnails:backfill",
     "media:sascha-tiktok:backfill": "tsx scripts/backfill_sascha_tiktok_video.ts",
@@ -252,7 +257,8 @@
       "picomatch": "^4.0.4",
       "yaml": "^2.8.3",
       "ip-address": "^10.1.1",
-      "ajv": "^6.14.0"
+      "ajv": "^6.14.0",
+      "zod": "^4.4.3"
     },
     "onlyBuiltDependencies": [
       "canvas",

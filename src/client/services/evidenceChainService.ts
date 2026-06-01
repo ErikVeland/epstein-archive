@@ -25,7 +25,10 @@ export class EvidenceChainService {
   async generateEvidenceChain(documentId: string): Promise<EvidenceChain> {
     try {
       // Get document metadata
-      const document = (await apiClient.getDocument(documentId)) as Record<string, unknown>;
+      const document = (await apiClient.getDocument(documentId)) as unknown as Record<
+        string,
+        unknown
+      >;
 
       // Trigger/Get Server-side Analysis
       // This moves the heavy lifting to the server
@@ -40,7 +43,7 @@ export class EvidenceChainService {
       const serverScore = (analysis.authenticityScore || 0) * 100;
 
       // Get Chain of Custody from Server
-      const custodyChain = (await apiClient.getChainOfCustody(documentId)) as Array<
+      const custodyChain = (await apiClient.getChainOfCustody(documentId)) as unknown as Array<
         Record<string, unknown>
       >;
 
@@ -196,7 +199,7 @@ export class EvidenceChainService {
   async verifyEvidenceChain(evidenceChain: EvidenceChain): Promise<boolean> {
     try {
       // Verify content hash
-      const document = (await apiClient.getDocument(evidenceChain.documentId)) as Record<
+      const document = (await apiClient.getDocument(evidenceChain.documentId)) as unknown as Record<
         string,
         unknown
       >;

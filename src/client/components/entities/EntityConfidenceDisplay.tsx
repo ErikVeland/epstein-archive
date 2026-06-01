@@ -31,7 +31,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
 
   const { data: confidence = null, isLoading: loading } = useQuery<EntityConfidence | null>({
     queryKey: ['entityConfidence', entityId],
-    queryFn: () => apiClient.getEntityConfidence(entityId) as Promise<EntityConfidence>,
+    queryFn: () => apiClient.getEntityConfidence(entityId) as unknown as Promise<EntityConfidence>,
     enabled: Boolean(entityId),
     staleTime: 30_000,
   });

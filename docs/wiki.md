@@ -4,7 +4,7 @@
 
 The Epstein Archive is an investigative research platform for analyzing documents,
 entities, and relationships from the Epstein Files corpus. It is a full-stack
-monolith: React 18 SPA frontend, Express.js API server, PostgreSQL 16+ database.
+monolith: React 19 SPA frontend, Express.js API server, PostgreSQL 16+ database.
 
 ## System Architecture
 
@@ -20,7 +20,7 @@ The `scripts/` directory contains the ETL logic.
 
 ### 2. Client Application
 
-- **Framework**: React 18 / Vite (no SSR).
+- **Framework**: React 19 / Vite (no SSR).
 - **Design System**: CSS Modules + governed design-system primitives in
   `src/client/design-system/`. Tailwind CSS is **not used**; do not add it.
 - **State**: React context (`AuthContext`, `FilterContext`,
@@ -68,6 +68,6 @@ and bookmarkable. The canonical URL shapes are:
 | Document modal          | `?docId=<id>&page=<n>`                                          |
 | Search                  | `/?q=<query>&type=<type>&sort=<sort>&order=<order>&risk=<risk>` |
 
-URL state is managed via React Router v6 `useSearchParams`. Direct access to
+URL state is managed via React Router `useSearchParams`. Direct access to
 `window.location.search` is **not allowed** in React components — use the
 `useSearchParam` hook from `src/client/hooks/useSearchParam.ts`.

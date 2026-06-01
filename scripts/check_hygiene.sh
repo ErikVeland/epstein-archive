@@ -11,6 +11,9 @@ forbidden_patterns=(
   '^\.playwright-mcp/'
   '^\.pnpm-store/'
   '^\.claude/'
+  '^scratch/'
+  '^src/server/scratch/'
+  '^src/client/hooks/scratch/'
   '^(build_output|build_output_lint|errors|full_lint|lint|lint_output|tsc_errors|tsc_output(_v[0-9]+)?|hashes_dump|redaction_dump)\.(txt|json|csv)$'
 )
 
@@ -50,6 +53,12 @@ retired_paths=(
   'src/server/utils/perfCache.ts'
   'src/client/services/OptimizedDataService.ts'
   'src/client/services/optimizedDataLoader.ts'
+  'src/server/pipeline/workerPool.ts'
+  'src/server/pipeline/workerConfig.ts'
+  'src/server/services/JobManager.ts'
+  'src/server/scratch'
+  'src/client/hooks/scratch'
+  'scratch'
 )
 
 retired_import_patterns=(
@@ -57,6 +66,9 @@ retired_import_patterns=(
   'utils/perfCache'
   'OptimizedDataService'
   'optimizedDataLoader'
+  'server/pipeline/workerPool'
+  'server/pipeline/workerConfig'
+  'services/JobManager'
 )
 
 architecture_violations=()
@@ -87,6 +99,8 @@ if (( ${#architecture_violations[@]} > 0 )); then
   echo "  - server cache: src/server/cache/cacheService.ts"
   echo "  - HTTP cache middleware: src/server/middleware/cache.ts"
   echo "  - client data access: src/client/services/apiClient.ts with React Query"
+  echo "  - queue/workers: src/server/queue/ (JobManager, WorkerPool, workerConfig)"
+  echo "  - scratch work: use /tmp or a gitignored local directory, never src/"
   exit 1
 fi
 

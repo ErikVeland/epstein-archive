@@ -4,7 +4,8 @@ import Icon from '@client/components/common/Icon';
 import { apiClient } from '@client/services/apiClient';
 import FormField from '../common/FormField';
 import { useToasts } from '../common/useToasts';
-import { Person } from '@client/types';
+import type { EntityDetailDto } from '@shared/dto/entities';
+import type { SearchEntityResultDto } from '@shared/dto/search';
 import { CloseButton } from '../common/CloseButton';
 import styles from './CreateRelationshipModal.module.css';
 
@@ -49,10 +50,14 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
   // Entity Search State
   const [sourceSearch, setSourceSearch] = useState('');
   const [targetSearch, setTargetSearch] = useState('');
-  const [sourceResults, setSourceResults] = useState<Person[]>([]);
-  const [targetResults, setTargetResults] = useState<Person[]>([]);
-  const [selectedSource, setSelectedSource] = useState<Person | null>(null);
-  const [selectedTarget, setSelectedTarget] = useState<Person | null>(null);
+  const [sourceResults, setSourceResults] = useState<SearchEntityResultDto[]>([]);
+  const [targetResults, setTargetResults] = useState<SearchEntityResultDto[]>([]);
+  const [selectedSource, setSelectedSource] = useState<
+    EntityDetailDto | SearchEntityResultDto | null
+  >(null);
+  const [selectedTarget, setSelectedTarget] = useState<
+    EntityDetailDto | SearchEntityResultDto | null
+  >(null);
 
   const [formData, setFormData] = useState({
     relationship_type: 'associated',
@@ -62,14 +67,14 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
   });
 
   // Load initial entities if IDs provided
-  const { data: initialSourceEntity } = useQuery<Person | null>({
+  const { data: initialSourceEntity } = useQuery<EntityDetailDto | null>({
     queryKey: ['entity', initialSourceId],
     queryFn: () => apiClient.getEntity(initialSourceId!),
     enabled: Boolean(initialSourceId),
     staleTime: 30_000,
   });
 
-  const { data: initialTargetEntity } = useQuery<Person | null>({
+  const { data: initialTargetEntity } = useQuery<EntityDetailDto | null>({
     queryKey: ['entity', initialTargetId],
     queryFn: () => apiClient.getEntity(initialTargetId!),
     enabled: Boolean(initialTargetId),

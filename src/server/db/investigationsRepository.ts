@@ -705,7 +705,7 @@ export const investigationsRepository = {
          d.evidence_type
        FROM hypothesis_evidence he
        LEFT JOIN documents d ON he.document_id = d.id
-       WHERE he.hypothesis_id = ANY($1::int[])`,
+       WHERE he.hypothesis_id = ANY($1::bigint[])`,
       [hypothesisIds],
     );
 

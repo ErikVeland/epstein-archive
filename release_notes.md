@@ -1,5 +1,25 @@
 # Release Notes
 
+## 21.7.0 - 2026-06-01 - Security & Database Hardening
+
+### Security
+
+- **CORS no longer allows localhost origins in production.** The localhost bypass in the CORS policy was unconditional — any `localhost:*` origin was accepted in all environments. It now only applies when `NODE_ENV !== 'production'`, so production deployments only accept the explicitly-listed origins (`epstein.academy`, `CORS_ORIGIN` env var).
+- **Duplicate POST /invite route removed.** An early draft of the invite handler at `src/server/auth/routes.ts` was shadowing the canonical admin-gated implementation. The duplicate used an ad-hoc inline role check instead of `requireRole('admin')`, and issued 7-day invite tokens instead of 24-hour ones. The duplicate is gone; only the correct handler remains.
+- **Presence heartbeat rate-limited for unauthenticated callers.** `POST /api/collaboration/heartbeat` accepts requests from guest users to power the co-presence indicator. It now applies the same `annotationWriteLimiter` (100 req/min per IP) used for annotation writes, preventing unauthenticated callers from spamming the in-memory presence store.
+
+### Database
+
+- **3 `int[]` → `bigint[]` cast fixes.** Three raw SQL queries were casting document/entity/hypothesis ID arrays to PostgreSQL `int[]` instead of `bigint[]`. These columns are all `bigint`; the wrong cast would silently overflow for IDs above 2,147,483,647 as the corpus grows. Fixed in `evidenceRepository`, `investigationsRepository`, and `documentsRepository`.
+- **`f.*` replaced with explicit column list in icebergRepository.** `getLeads()` was selecting all columns from `danger_motif_findings` via `f.*`. This is now an explicit list matching the `FindingRow` interface, making the query schema-stable across future migrations.
+
+### Code Quality
+
+- **TableViewer uses server-provided column headers.** When the enrichment pipeline has extracted column headers from a tabular document (stored as `evidence.metadata.columnHeaders`, pipe-separated), the TableViewer now uses those as column definitions instead of auto-detecting from the first text row. This is more reliable for OCR-extracted tables where the first line may contain noise. Falls back gracefully to the auto-detect logic for legacy evidence.
+- **Redundant triple cast removed in apiClient.ts.** `ents as unknown as Person[] as Person[]` → `ents as unknown as Person[]`. The final `as Person[]` was a no-op; the intermediate `unknown` cast is intentionally retained because the mapped search result objects are partial `Person` shapes (full hydration happens downstream).
+
+---
+
 ## 21.6.2 - 2026-05-28 - Server Logging Hardening
 
 ### Observability

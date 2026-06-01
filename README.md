@@ -19,7 +19,7 @@
 ### Prerequisites
 
 - Node.js v20+
-- PostgreSQL 15+
+- PostgreSQL 16+ (or Docker)
 - pnpm
 
 ### Installation
@@ -30,14 +30,13 @@ git clone <repo-url>
 cd epstein-archive
 pnpm install
 
-# Local development can boot without Postgres and will run in a degraded mode
-# so the frontend shell and API process still start for local UI work.
+# Option A (Recommended): start Postgres with Docker, migrate, and seed a minimal dataset
+pnpm local:setup
+
+# Option B: without Postgres (degraded mode)
 NODE_ENV=development pnpm dev
 
-# For full local backend data access, ensure PostgreSQL is running and DATABASE_URL is set
-pnpm db:migrate:pg
-
-# Start development server
+# Full local backend data access (DB-present)
 pnpm dev
 ```
 
@@ -47,7 +46,10 @@ pnpm dev
 # Unit Tests (Vitest)
 pnpm test:unit
 
-# Local frontend + backend smoke
+# One-command local stack smoke (DB + migrate + seed + API readiness + smoke endpoints)
+pnpm local:smoke
+
+# Local frontend + backend smoke (Playwright)
 pnpm exec playwright test tests/local-stack-smoke.spec.ts --project=chromium --workers=1
 
 # End-to-End Tests (Playwright)
@@ -106,11 +108,9 @@ ignored by git; `.env.deploy.example` is the tracked non-secret contract.
 ```
 epstein-archive/
 ├── src/
-│   ├── components/         # React UI components
-│   ├── pages/              # Application pages (AdminDashboard, etc.)
-│   ├── services/           # Frontend API services
-│   ├── server/             # Express backend & API routes
-│   └── scripts/            # Type-safe utility scripts
+│   ├── client/             # React SPA (Vite)
+│   ├── server/             # Express API + DB access
+│   └── shared/             # Shared DTOs/schemas/utilities
 ├── scripts/                # Shell and maintenance scripts
 ├── docs/                   # Documentation
 ├── data/                   # Raw media and OCR data (gitignored)

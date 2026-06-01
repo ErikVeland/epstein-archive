@@ -530,7 +530,7 @@ export const evidenceRepository = {
            FROM investigation_evidence ie
            INNER JOIN entity_mentions em ON em.document_id = ie.document_id
            INNER JOIN entities ent ON ent.id = em.entity_id
-           WHERE ie.document_id = ANY($1::int[])`,
+           WHERE ie.document_id = ANY($1::bigint[])`,
             [resultIds],
           )
           .then((r) => r.rows)

@@ -225,7 +225,13 @@ export class App {
           }
         })();
 
-        if (localhostOriginPattern.test(normalizedOrigin)) {
+        // Only allow localhost in non-production environments.
+        // In production all allowed origins must be explicitly listed in CORS_ORIGIN
+        // or match the hard-coded epstein.academy domains above.
+        if (
+          process.env.NODE_ENV !== 'production' &&
+          localhostOriginPattern.test(normalizedOrigin)
+        ) {
           return callback(null, true);
         }
 

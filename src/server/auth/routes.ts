@@ -170,27 +170,8 @@ router.post('/guest', async (_req, res) => {
   }
 });
 
-router.post('/invite', authenticateRequest, async (req: AuthenticatedRequest, res) => {
-  if (req.user?.role !== 'admin') {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const { email, username, role = 'investigator' } = req.body || {};
-  if (!email || !username) {
-    return res.status(400).json({ error: 'Email and username required' });
-  }
-
-  const token = jwt.sign({ email, username, role, type: 'invite' }, JWT_ACCESS_SECRET, {
-    expiresIn: '7d',
-    algorithm: 'HS256',
-  });
-
-  res.json({
-    success: true,
-    token,
-    inviteUrl: `/verify-invite?token=${encodeURIComponent(token)}`,
-  });
-});
+// NOTE: The canonical POST /invite route (admin-only, rate-limited, 24h TTL) is
+// defined below alongside the other authenticated admin routes.
 
 router.post('/verify-invite', async (req, res) => {
   const { token } = req.body || {};

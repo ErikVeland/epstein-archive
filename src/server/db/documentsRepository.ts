@@ -692,7 +692,7 @@ export const documentsRepository = {
         SELECT entity_id, mention_context
         FROM entity_mentions
         WHERE document_id = $1
-          AND entity_id = ANY($2::int[])
+          AND entity_id = ANY($2::bigint[])
           AND mention_context IS NOT NULL
           AND mention_context != ''
         ORDER BY entity_id, id

@@ -57,6 +57,8 @@ scripts/migrations/*.sql
 tmp/
 temp/
 scratch/
+src/server/scratch/
+src/client/hooks/scratch/
 mempalace.yaml
 entities.json
 

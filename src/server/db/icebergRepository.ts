@@ -419,7 +419,25 @@ export const icebergRepository = {
       const { rows } = await pool.query<FindingRow>(
         `
           SELECT
-            f.*,
+            f.id,
+            f.investigation_id,
+            f.lead_id,
+            f.motif_type,
+            f.harm_type,
+            f.title,
+            f.description,
+            f.source_summary,
+            f.confidence,
+            f.risk_score,
+            f.evidence_count,
+            f.path_length,
+            f.contradiction_count,
+            f.review_state,
+            f.status,
+            f.priority,
+            f.explainability_json,
+            f.created_at,
+            f.updated_at,
             COALESCE((
               SELECT json_agg(json_build_object(
                 'id', e.id,

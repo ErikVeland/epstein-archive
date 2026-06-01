@@ -12,25 +12,39 @@ import type {
   EmailThreadForMessageDto,
   EmailThreadsResponseDto,
 } from '@shared/dto/emails';
-import type { DocumentsListResponseDto } from '@shared/dto/documents';
+import type {
+  DocumentDetailDto,
+  DocumentListItemDto,
+  DocumentsListResponseDto,
+} from '@shared/dto/documents';
 import type { ConnectionDossierDto } from '@shared/dto/connections';
 import type {
+  EntityDetailDto,
   EntityListResponseDto,
   SubjectCardListItemDto,
   SubjectsListResponseDto,
 } from '@shared/dto/entities';
+import type { GraphResponseDto } from '@shared/dto/graph';
+import type { SearchDocumentResultDto, UnifiedSearchResponseDto } from '@shared/dto/search';
+import type { PublicDocumentAnnotation } from '@shared/dto/annotations';
 import type {
   InvestigationEvidenceListResponseDto,
   InvestigationTaskDto,
   InvestigationTaskSummaryDto,
 } from '@shared/dto/investigations';
 import {
+  documentDetailSchema,
   documentsListResponseSchema,
   emailThreadDetailsResponseSchema,
   emailThreadsResponseSchema,
+  entityDetailSchema,
+  entityAllResponseSchema,
+  investigationDetailResponseSchema,
   investigationEvidenceListResponseSchema,
+  investigationListResponseSchema,
   subjectsListResponseSchema,
 } from '@shared/contracts';
+import { graphGlobalResponseSchema } from '@shared/schemas/graph';
 import { Semaphore, isHeavyRoute } from '@client/utils/semaphore';
 import { singleFlight, stableStringify } from '@client/utils/singleFlight';
 import { GlobalStatsPayload, EntityConnectionsResponse } from '@client/types/api';
@@ -785,16 +799,10 @@ class ApiClient {
     }
   }
 
-  async getEntity(id: string): Promise<Person> {
+  async getEntity(id: string): Promise<EntityDetailDto> {
     const url = `${API_BASE_URL}/entities/${encodeURIComponent(id)}`;
-    const e = await this.fetchWithErrorHandling<Record<string, unknown>>(url);
-    return {
-      id: String(e.id || ''),
-      name: String(e.name || e.fullName || ''),
-      fullName: String(e.fullName || e.name || ''),
-      redFlagRating: Number(e.redFlagRating || 0),
-      blackBookEntry: (e.blackBookEntry as Record<string, unknown> | null) || null,
-    } as unknown as Person;
+    const raw = await this.fetchWithErrorHandling<unknown>(url);
+    return parseWithSchema<EntityDetailDto>(raw, entityDetailSchema, '/entities/:id');
   }
 
   async getEntityCommunications(
@@ -807,7 +815,7 @@ class ApiClient {
       end?: string;
       limit?: number;
     },
-  ): Promise<{ data: unknown[]; total: number }> {
+  ): Promise<{ data: Record<string, unknown>[]; total: number }> {
     const params = new URLSearchParams();
     if (options?.topic) params.append('topic', options.topic);
     if (options?.from) params.append('from', options.from);
@@ -818,16 +826,21 @@ class ApiClient {
 
     const query = params.toString();
     const url = `${API_BASE_URL}/entities/${encodeURIComponent(id)}/analytics/communications${query ? `?${query}` : ''}`;
-    return this.fetchWithErrorHandling<{ data: unknown[]; total: number }>(url, {
+    return this.fetchWithErrorHandling<{ data: Record<string, unknown>[]; total: number }>(url, {
       useCache: true,
     });
   }
 
-  async getDocumentThread(id: string): Promise<{ threadId: string; messages: unknown[] }> {
+  async getDocumentThread(
+    id: string,
+  ): Promise<{ threadId: string; messages: Record<string, unknown>[] }> {
     const url = `${API_BASE_URL}/documents/${encodeURIComponent(id)}/thread`;
-    return this.fetchWithErrorHandling<{ threadId: string; messages: unknown[] }>(url, {
-      useCache: true,
-    });
+    return this.fetchWithErrorHandling<{ threadId: string; messages: Record<string, unknown>[] }>(
+      url,
+      {
+        useCache: true,
+      },
+    );
   }
 
   async getEmailMailboxes(
@@ -900,10 +913,9 @@ class ApiClient {
 
   async getRandomEmailThread(): Promise<{ threadId: string }> {
     const url = `${API_BASE_URL}/emails/random`;
-    const raw = await this.fetchWithErrorHandling<unknown>(url, {
+    return this.fetchWithErrorHandling<{ threadId: string }>(url, {
       useCache: false,
     });
-    return raw as { threadId: string };
   }
 
   async getEmailMessageBody(
@@ -958,59 +970,54 @@ class ApiClient {
     query: string,
     limit: number = 20,
     options: { mode?: SearchMode } = {},
-  ): Promise<{
-    entities: Person[];
-    documents: unknown[];
-    investigations?: unknown[];
-    articles?: unknown[];
-    media?: unknown[];
-    semanticCapability?: Record<string, unknown>;
-  }> {
+  ): Promise<UnifiedSearchResponseDto> {
     const params = new URLSearchParams();
     params.append('q', query);
     if (limit !== 20) params.append('limit', limit.toString());
     if (options.mode) params.append('mode', options.mode);
 
     const url = `${API_BASE_URL}/search?${params.toString()}`;
-    const r = await this.fetchWithErrorHandling<unknown>(url);
-    const ents = Array.isArray((r as Record<string, unknown>).entities)
-      ? ((r as Record<string, unknown>).entities as unknown[]).map((e: unknown) => {
-          const _e = e as Record<string, unknown>;
-          return {
-            ...(_e as object),
-            name: _e.name ?? _e.fullName,
-            fullName: _e.fullName ?? _e.name,
-            redFlagRating: _e.redFlagRating ?? 0,
-            blackBookEntry: _e.blackBookEntry || null,
-          };
-        })
-      : [];
+    const raw = await this.fetchWithErrorHandling<unknown>(url);
+    const r = raw as Record<string, unknown>;
     return {
-      entities: ents as unknown as Person[] as Person[],
-      documents: ((r as Record<string, unknown>).documents || []) as unknown[],
-      investigations: ((r as Record<string, unknown>).investigations || []) as unknown[],
-      articles: ((r as Record<string, unknown>).articles || []) as unknown[],
-      media: ((r as Record<string, unknown>).media || []) as unknown[],
-      semanticCapability: ((r as Record<string, unknown>).semanticCapability || undefined) as
-        | Record<string, unknown>
+      entities: Array.isArray(r.entities)
+        ? (r.entities as Array<Record<string, unknown>>).map((e) => ({
+            id: String(e.id ?? ''),
+            name: String(e.name ?? e.fullName ?? ''),
+            mentions: Number(e.mentions ?? 0),
+            connectionCount: Number(e.connectionCount ?? 0),
+            riskScore: Number(e.riskScore ?? 0),
+            primaryRole: e.primaryRole as string | undefined,
+          }))
+        : [],
+      documents: (r.documents ?? []) as SearchDocumentResultDto[],
+      investigations: (r.investigations ?? []) as Record<string, unknown>[],
+      articles: (r.articles ?? []) as Record<string, unknown>[],
+      media: (r.media ?? []) as Record<string, unknown>[],
+      didYouMean: (r.didYouMean as string[]) ?? [],
+      semanticCapability: r.semanticCapability as
+        | UnifiedSearchResponseDto['semanticCapability']
         | undefined,
     };
   }
 
-  async searchEntities(query: string, limit: number = 20): Promise<Person[]> {
+  async searchEntities(
+    query: string,
+    limit: number = 20,
+  ): Promise<UnifiedSearchResponseDto['entities']> {
     const result = await this.search(query, limit);
     return result.entities || [];
   }
 
-  async createEntity(data: unknown): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/entities`, {
+  async createEntity(data: unknown): Promise<Record<string, unknown>> {
+    return this.fetchWithErrorHandling<Record<string, unknown>>(`${API_BASE_URL}/entities`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async createRelationship(data: unknown): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/relationships`, {
+  async createRelationship(data: unknown): Promise<Record<string, unknown>> {
+    return this.fetchWithErrorHandling<Record<string, unknown>>(`${API_BASE_URL}/relationships`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -1046,48 +1053,53 @@ class ApiClient {
     }
   }
 
-  async getEntityGraph(entityId: string, depth: number = 2): Promise<unknown> {
+  async getEntityGraph(entityId: string, depth: number = 2): Promise<GraphResponseDto> {
     const url = `${API_BASE_URL}/entities/${encodeURIComponent(entityId)}/analytics/graph?depth=${depth}`;
-    return this.fetchWithErrorHandling<unknown>(url);
+    const raw = await this.fetchWithErrorHandling<unknown>(url);
+    return parseWithSchema<GraphResponseDto>(
+      raw,
+      graphGlobalResponseSchema,
+      '/entities/:id/analytics/graph',
+    );
   }
 
-  async getEntityDocuments(entityId: string): Promise<unknown[]> {
+  async getEntityDocuments(entityId: string): Promise<DocumentListItemDto[]> {
     const url = `${API_BASE_URL}/entities/${encodeURIComponent(entityId)}/documents`;
     const response = await this.fetchWithErrorHandling<unknown>(url);
 
-    // Handle both array (dev/legacy) and paginated object (prod) formats
     if (Array.isArray(response)) {
-      return response;
+      return response as DocumentListItemDto[];
     } else if (response && Array.isArray((response as Record<string, unknown>).data)) {
-      return (response as Record<string, unknown>).data as unknown[];
+      return (response as Record<string, unknown>).data as DocumentListItemDto[];
     }
 
     return [];
   }
 
-  async analyzeDocument(documentId: string): Promise<unknown> {
+  async analyzeDocument(documentId: string): Promise<Record<string, unknown>> {
     const url = `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/analytics/analyze`;
-    return this.fetchWithErrorHandling<unknown>(url, { method: 'POST' });
+    return this.fetchWithErrorHandling<Record<string, unknown>>(url, { method: 'POST' });
   }
 
-  async getEvidence(evidenceId: string): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(
-      `${API_BASE_URL}/evidence/${encodeURIComponent(evidenceId as string)}`,
+  async getEvidence(evidenceId: string): Promise<DocumentDetailDto> {
+    const raw = await this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/evidence/${encodeURIComponent(evidenceId)}`,
       {
         useCache: true,
         cacheTtl: 30000,
       },
     );
+    return parseWithSchema<DocumentDetailDto>(raw, documentDetailSchema, '/evidence/:id');
   }
 
-  async getEvidenceMetrics(documentId: string): Promise<unknown> {
+  async getEvidenceMetrics(documentId: string): Promise<Record<string, unknown>> {
     const url = `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/analytics/metrics`;
-    return this.fetchWithErrorHandling<unknown>(url);
+    return this.fetchWithErrorHandling<Record<string, unknown>>(url);
   }
 
-  async getChainOfCustody(documentId: string): Promise<unknown> {
+  async getChainOfCustody(documentId: string): Promise<Record<string, unknown>> {
     const url = `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/analytics/custody`;
-    return this.fetchWithErrorHandling<unknown>(url);
+    return this.fetchWithErrorHandling<Record<string, unknown>>(url);
   }
 
   async removeEvidenceFromInvestigation(
@@ -1099,69 +1111,35 @@ class ApiClient {
     );
   }
 
-  async getInvestigationEvidenceSummary(investigationId: string): Promise<unknown> {
+  async getInvestigationEvidenceSummary(investigationId: string): Promise<Record<string, unknown>> {
     const url = `${API_BASE_URL}/investigations/${encodeURIComponent(investigationId)}/analytics/evidence-summary`;
-    return this.fetchWithErrorHandling<unknown>(url, { useCache: false });
+    return this.fetchWithErrorHandling<Record<string, unknown>>(url, { useCache: false });
   }
 
-  async getEntityConfidence(entityId: string | number): Promise<unknown> {
+  async getEntityConfidence(entityId: string | number): Promise<Record<string, unknown>> {
     const url = `${API_BASE_URL}/entities/${entityId}/analytics/confidence`;
-    return this.fetchWithErrorHandling<unknown>(url, { useCache: true });
+    return this.fetchWithErrorHandling<Record<string, unknown>>(url, { useCache: true });
   }
 
-  async getDocument(id: string): Promise<unknown> {
+  async getDocument(id: string): Promise<DocumentDetailDto> {
     const url = `${API_BASE_URL}/documents/${encodeURIComponent(id)}`;
-    const d = await this.fetchWithErrorHandling<Record<string, unknown>>(url);
-    return {
-      ...(d as object),
-      fileName: (d as Record<string, unknown>).fileName ?? (d as Record<string, unknown>).file_name,
-      fileType: (d as Record<string, unknown>).fileType ?? (d as Record<string, unknown>).file_type,
-      contentPreview:
-        (d as Record<string, unknown>).contentPreview ??
-        (d as Record<string, unknown>).content_preview,
-      redFlagRating: (d as Record<string, unknown>).redFlagRating ?? 0,
-      title: d.title ?? d.fileName,
-    };
+    const raw = await this.fetchWithErrorHandling<unknown>(url);
+    return parseWithSchema<DocumentDetailDto>(raw, documentDetailSchema, '/documents/:id');
   }
 
-  async getPublicDocumentAnnotations(documentId: string): Promise<
-    Array<{
-      id: string;
-      documentId: string;
-      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
-      selectedText: string;
-      note: string;
-      position: { start: number; end: number };
-      contextBefore?: string | null;
-      contextAfter?: string | null;
-      author?: string;
-      createdAt: string;
-      updatedAt: string;
-    }>
-  > {
-    const response = await this.fetchWithErrorHandling<{ annotations?: unknown[] }>(
-      `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/annotations`,
-      { useCache: false },
-    );
-    return (Array.isArray(response.annotations) ? response.annotations : []) as Array<{
-      id: string;
-      documentId: string;
-      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
-      selectedText: string;
-      note: string;
-      position: { start: number; end: number };
-      contextBefore?: string | null;
-      contextAfter?: string | null;
-      author?: string;
-      createdAt: string;
-      updatedAt: string;
-    }>;
+  async getPublicDocumentAnnotations(documentId: string): Promise<PublicDocumentAnnotation[]> {
+    const response = await this.fetchWithErrorHandling<{
+      annotations?: PublicDocumentAnnotation[];
+    }>(`${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/annotations`, {
+      useCache: false,
+    });
+    return Array.isArray(response.annotations) ? response.annotations : [];
   }
 
   async createDocumentAnnotation(
     documentId: string,
     payload: {
-      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
+      type: PublicDocumentAnnotation['type'];
       selectedText: string;
       note?: string;
       start: number;
@@ -1169,20 +1147,8 @@ class ApiClient {
       contextBefore?: string;
       contextAfter?: string;
     },
-  ): Promise<{
-    id: string;
-    documentId: string;
-    type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
-    selectedText: string;
-    note: string;
-    position: { start: number; end: number };
-    contextBefore?: string | null;
-    contextAfter?: string | null;
-    author?: string;
-    createdAt: string;
-    updatedAt: string;
-  }> {
-    const response = await this.fetchWithErrorHandling<{ annotation: unknown }>(
+  ): Promise<PublicDocumentAnnotation> {
+    const response = await this.fetchWithErrorHandling<{ annotation: PublicDocumentAnnotation }>(
       `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/annotations`,
       {
         method: 'POST',
@@ -1198,29 +1164,19 @@ class ApiClient {
         useCache: false,
       },
     );
-    return response.annotation as {
-      id: string;
-      documentId: string;
-      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
-      selectedText: string;
-      note: string;
-      position: { start: number; end: number };
-      contextBefore?: string | null;
-      contextAfter?: string | null;
-      author?: string;
-      createdAt: string;
-      updatedAt: string;
-    };
+    return response.annotation;
   }
 
-  async getRelatedDocuments(id: string, limit: number = 10): Promise<unknown[]> {
-    const url = `${API_BASE_URL}/documents/${encodeURIComponent(id)}/related?limit=${limit}`;
-    return this.fetchWithErrorHandling<unknown[]>(url);
+  async getRelatedDocuments(id: string, limit: number = 10): Promise<DocumentListItemDto[]> {
+    const raw = await this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/documents/${encodeURIComponent(id)}/related?limit=${limit}`,
+    );
+    return (Array.isArray(raw) ? raw : []) as DocumentListItemDto[];
   }
 
-  async getCollections(): Promise<unknown[]> {
+  async getCollections(): Promise<Record<string, unknown>[]> {
     try {
-      return await this.get<unknown[]>('/documents/collections');
+      return await this.get<Record<string, unknown>[]>('/documents/collections');
     } catch (error) {
       if (this.isNotFoundError(error) || this.isServiceUnavailableError(error)) {
         return [];
@@ -1229,9 +1185,11 @@ class ApiClient {
     }
   }
 
-  async getCollectionDocuments(collectionId: string): Promise<unknown[]> {
+  async getCollectionDocuments(collectionId: string): Promise<Record<string, unknown>[]> {
     try {
-      return await this.get<unknown[]>(`/documents/collections/${collectionId}/documents`);
+      return await this.get<Record<string, unknown>[]>(
+        `/documents/collections/${collectionId}/documents`,
+      );
     } catch (error) {
       if (this.isNotFoundError(error) || this.isServiceUnavailableError(error)) {
         return [];
@@ -1249,15 +1207,16 @@ class ApiClient {
 
   async getInvestigations(
     params: { status?: string; ownerId?: string; page?: number; limit?: number } = {},
-  ): Promise<unknown> {
+  ): Promise<z.infer<typeof investigationListResponseSchema>> {
     const usp = new URLSearchParams();
     if (params.status) usp.append('status', params.status);
     if (params.ownerId) usp.append('ownerId', params.ownerId);
     if (params.page) usp.append('page', String(params.page));
     if (params.limit) usp.append('limit', String(params.limit));
-    return this.fetchWithErrorHandling<unknown>(
+    const raw = await this.fetchWithErrorHandling<unknown>(
       `${API_BASE_URL}/investigations${usp.toString() ? `?${usp.toString()}` : ''}`,
     );
+    return parseWithSchema(raw, investigationListResponseSchema, '/investigations');
   }
 
   async getInvestigativeTasksByInvestigation(
@@ -1399,27 +1358,29 @@ class ApiClient {
     ownerId: string;
     scope?: string;
     collaboratorIds?: string[];
-  }): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations`, {
+  }): Promise<z.infer<typeof investigationDetailResponseSchema>> {
+    const raw = await this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations`, {
       method: 'POST',
       body: JSON.stringify(body),
     });
+    return parseWithSchema(raw, investigationDetailResponseSchema, '/investigations');
   }
 
-  async getInvestigation(id: string): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(
+  async getInvestigation(id: string): Promise<z.infer<typeof investigationDetailResponseSchema>> {
+    const raw = await this.fetchWithErrorHandling<unknown>(
       `${API_BASE_URL}/investigations/${encodeURIComponent(id)}`,
     );
+    return parseWithSchema(raw, investigationDetailResponseSchema, '/investigations/:id');
   }
 
   async getInvestigationBoard(
     id: string,
     params: { evidenceLimit?: number; hypothesisLimit?: number } = {},
-  ): Promise<unknown> {
+  ): Promise<Record<string, unknown>> {
     const usp = new URLSearchParams();
     if (params.evidenceLimit) usp.append('evidenceLimit', String(params.evidenceLimit));
     if (params.hypothesisLimit) usp.append('hypothesisLimit', String(params.hypothesisLimit));
-    return this.fetchWithErrorHandling<unknown>(
+    return this.fetchWithErrorHandling<Record<string, unknown>>(
       `${API_BASE_URL}/investigations/${encodeURIComponent(id)}/board${usp.toString() ? `?${usp.toString()}` : ''}`,
       { useCache: false },
     );
@@ -1444,8 +1405,8 @@ class ApiClient {
     );
   }
 
-  async getInvestigationNotebook(id: string): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(
+  async getInvestigationNotebook(id: string): Promise<Record<string, unknown>> {
+    return this.fetchWithErrorHandling<Record<string, unknown>>(
       `${API_BASE_URL}/investigations/${encodeURIComponent(id)}/notebook`,
       {
         useCache: false,
@@ -1456,8 +1417,8 @@ class ApiClient {
   async updateInvestigationNotebook(
     id: string,
     payload: { order?: number[]; annotations?: unknown[] },
-  ): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(
+  ): Promise<Record<string, unknown>> {
+    return this.fetchWithErrorHandling<Record<string, unknown>>(
       `${API_BASE_URL}/investigations/${encodeURIComponent(id)}/notebook`,
       {
         method: 'PUT',
@@ -1541,11 +1502,11 @@ class ApiClient {
    * @deprecated Performance risk: This method fetches the entire entity database (131k+ records).
    * Use document-specific entity mentions or paginated getEntities instead.
    */
-  async getAllEntities(limit: number = 0): Promise<unknown[]> {
+  async getAllEntities(limit: number = 0): Promise<z.infer<typeof entityAllResponseSchema>> {
     const url = `${API_BASE_URL}/entities/all${limit > 0 ? `?limit=${limit}` : ''}`;
     try {
-      const response = await this.fetchWithErrorHandling<unknown[]>(url);
-      return response;
+      const raw = await this.fetchWithErrorHandling<unknown>(url);
+      return parseWithSchema(raw, entityAllResponseSchema, '/entities/all');
     } catch (error) {
       console.error('Error fetching all entities:', error);
       return [];
@@ -1686,8 +1647,8 @@ class ApiClient {
     );
   }
 
-  async getShortestPath(sourceId: string, targetId: string): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(
+  async getShortestPath(sourceId: string, targetId: string): Promise<Record<string, unknown>> {
+    return this.fetchWithErrorHandling<Record<string, unknown>>(
       `${API_BASE_URL}/graph/paths?sourceId=${encodeURIComponent(sourceId)}&targetId=${encodeURIComponent(targetId)}`,
     );
   }

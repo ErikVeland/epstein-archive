@@ -6,19 +6,21 @@
   "types": "dist/index.d.cts",
   "scripts": {
     "build": "tsup src/index.ts --dts",
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "generate:types": "pgtyped -c pgtyped.config.json"
   },
   "dependencies": {
     "@pgtyped/runtime": "^2.4.2",
     "pg": "^8.20.0",
-    "zod": "^3.23.8"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@pgtyped/cli": "^2.4.2",
     "@types/node": "^22.10.2",
     "@types/pg": "^8.11.10",
     "tsup": "^8.3.5",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.7"
   }
 }

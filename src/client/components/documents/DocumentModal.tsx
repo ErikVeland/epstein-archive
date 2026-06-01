@@ -273,7 +273,7 @@ export const DocumentModal: React.FC<Props> = ({
     isFetching: isFetchingDoc,
   } = useQuery<DocRecord | null>({
     queryKey: ['document', id],
-    queryFn: () => apiClient.getDocument(id) as Promise<DocRecord>,
+    queryFn: () => apiClient.getDocument(id) as unknown as Promise<DocRecord>,
     placeholderData: (initialDoc ?? undefined) as DocRecord | undefined,
     staleTime: 30_000,
   });
@@ -287,7 +287,7 @@ export const DocumentModal: React.FC<Props> = ({
 
   const { data: relatedDocs = [], isLoading: isLoadingRelated } = useQuery<DocRecord[]>({
     queryKey: ['relatedDocuments', id],
-    queryFn: () => apiClient.getRelatedDocuments(id) as Promise<DocRecord[]>,
+    queryFn: () => apiClient.getRelatedDocuments(id) as unknown as Promise<DocRecord[]>,
     staleTime: 30_000,
   });
 

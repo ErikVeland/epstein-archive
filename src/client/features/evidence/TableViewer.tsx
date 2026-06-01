@@ -22,19 +22,29 @@ interface TableViewerProps {
 }
 
 export function TableViewer({ evidence }: TableViewerProps) {
-  // TODO: Use metadata for table formatting hints - see UNUSED_VARIABLES_RECOMMENDATIONS.md
-  const { extractedText, metadata: _metadata } = evidence;
+  const { extractedText, metadata } = evidence;
 
   const { headers, rows } = useMemo(() => {
     const lines = extractedText.split('\n').filter((line) => line.trim());
     if (lines.length === 0) return { headers: [], rows: [] };
 
     const delimiter = extractedText.includes('\t') ? '\t' : ',';
-    const headers = lines[0].split(delimiter);
-    const rows = lines.slice(1).map((line) => line.split(delimiter));
+
+    // Prefer server-provided column headers from enrichment metadata (pipe-separated).
+    // This is more reliable than parsing the first line, which may contain OCR noise.
+    const metaHeaders =
+      metadata?.columnHeaders
+        ?.split('|')
+        .map((h) => h.trim())
+        .filter(Boolean) ?? [];
+
+    const headers = metaHeaders.length > 0 ? metaHeaders : lines[0].split(delimiter);
+    // When metadata headers are used the first line is still a data row, not a header row.
+    const dataLines = metaHeaders.length > 0 ? lines : lines.slice(1);
+    const rows = dataLines.map((line) => line.split(delimiter));
 
     return { headers, rows };
-  }, [extractedText]);
+  }, [extractedText, metadata]);
 
   const downloadCSV = () => {
     const blob = new Blob([extractedText], { type: 'text/csv' });

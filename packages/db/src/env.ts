@@ -20,7 +20,9 @@ export function readEnvStrict(): Env {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    console.error('❌ Invalid environment variables for @epstein/db:', result.error.format());
+    console.error(
+      '❌ Invalid environment variables for @epstein/db:\n' + z.prettifyError(result.error),
+    );
     throw new Error('Invalid environment configuration');
   }
 
