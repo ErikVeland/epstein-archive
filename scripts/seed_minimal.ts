@@ -63,6 +63,10 @@ async function upsertDocument(params: {
     insertColumns.push('source_collection');
     insertValues.push('local-minimal');
   }
+  if (columns.has('evidence_type')) {
+    insertColumns.push('evidence_type');
+    insertValues.push('document');
+  }
 
   const placeholders = insertColumns.map((_, idx) => `$${idx + 1}`).join(', ');
   const inserted = await pool.query<Row<'id'>>(
