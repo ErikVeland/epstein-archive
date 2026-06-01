@@ -100,7 +100,12 @@ async function main() {
 
   const server = spawn('pnpm', ['exec', 'tsx', 'src/server.ts'], {
     stdio: 'inherit',
-    env: { ...process.env, DATABASE_URL: databaseUrl, API_PORT: process.env.API_PORT ?? '3012' },
+    env: {
+      ...process.env,
+      DATABASE_URL: databaseUrl,
+      PORT: process.env.PORT ?? '3012',
+      API_PORT: process.env.PORT ?? '3012',
+    },
   });
 
   try {
