@@ -63,6 +63,14 @@ export const documentsListResponseSchema = z.object({
       message: z.string().optional(),
     })
     .optional(),
+  meta: z
+    .object({
+      total: z.number(),
+      limit: z.number(),
+      hasMore: z.boolean(),
+      nextCursor: z.string().nullable(),
+    })
+    .optional(),
 });
 
 // Schema for GET /api/documents/:id and GET /api/evidence/:id — single document/evidence detail

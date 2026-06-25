@@ -39,6 +39,11 @@ interface PipelineStatus {
     total: number;
     percent: number;
   };
+  enrichment?: {
+    processed: number;
+    total: number;
+    percent: number;
+  };
   blocked?: boolean;
   blockedReason?: string | null;
   activeStage?: string | null;
@@ -341,18 +346,43 @@ export const AboutPage: React.FC = () => {
   }, [pipelineStatus]);
 
   const livePipelineStatus = useMemo(() => {
-    if (!pipelineStatus?.vlm && !pipelineStatus?.activeStage && !pipelineStatus?.blocked)
+    if (
+      !pipelineStatus?.vlm &&
+      !pipelineStatus?.enrichment &&
+      !pipelineStatus?.activeStage &&
+      !pipelineStatus?.blocked
+    )
       return null;
 
-    const vlm = pipelineStatus.vlm;
+    const activeStage = pipelineStatus?.activeStage ?? null;
+    let processed = 0;
+    let total = 0;
+    let percent = 0;
+    let stageTitle = 'VLM Vision Analysis (AI)';
+    let stageSubtext = 'Extracting text & descriptions from images via vision model';
+
+    if (activeStage === 'ai-enrichment' && pipelineStatus?.enrichment) {
+      processed = pipelineStatus.enrichment.processed;
+      total = pipelineStatus.enrichment.total;
+      percent = pipelineStatus.enrichment.percent;
+      stageTitle = 'AI Enrichment (AI)';
+      stageSubtext = 'AI OCR repair, summaries, document-level semantic artifacts';
+    } else if (pipelineStatus?.vlm) {
+      processed = pipelineStatus.vlm.processed;
+      total = pipelineStatus.vlm.total;
+      percent = pipelineStatus.vlm.percent;
+    }
+
     return {
       blocked: Boolean(pipelineStatus.blocked),
       blockedReason: pipelineStatus.blockedReason ?? null,
-      activeStage: pipelineStatus.activeStage ?? null,
+      activeStage,
       activeStageDescription: pipelineStatus.activeStageDescription ?? null,
-      processed: vlm?.processed ?? 0,
-      total: vlm?.total ?? 0,
-      percent: vlm?.percent ?? 0,
+      processed,
+      total,
+      percent,
+      stageTitle,
+      stageSubtext,
     };
   }, [pipelineStatus]);
 
@@ -775,10 +805,8 @@ export const AboutPage: React.FC = () => {
                   {livePipelineStatus.total > 0 && (
                     <div className={s.datasetRowMeta}>
                       <div className={s.mediaProgressHeader}>
-                        <span className={s.datasetName}>VLM Vision Analysis (AI)</span>
-                        <span className={s.mediaSubtext}>
-                          Extracting text & descriptions from images via vision model
-                        </span>
+                        <span className={s.datasetName}>{livePipelineStatus.stageTitle}</span>
+                        <span className={s.mediaSubtext}>{livePipelineStatus.stageSubtext}</span>
                       </div>
                       <div className={s.datasetNumbers}>
                         <span className={s.datasetIngestStat}>

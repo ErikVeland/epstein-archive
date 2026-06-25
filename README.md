@@ -14,6 +14,26 @@
 
 ---
 
+## Why This Exists
+
+The Epstein Files are public record — but raw document dumps are effectively inaccessible to most people. Tens of thousands of PDFs, flight logs, emails, and court filings exist as disconnected files with no way to ask questions across them.
+
+This platform makes the corpus usable. It processes, indexes, and links the documents so that a journalist can search for a name and immediately see every document, flight, and relationship associated with that person — with full source traceability back to the original filing.
+
+The goal is accountability through access. Every engineering decision here serves that purpose.
+
+---
+
+## New Here? Start with These
+
+- **[Getting Started](GETTING_STARTED.md)** — local setup in under 10 minutes
+- **[Investigation Guide](INVESTIGATION_GUIDE.md)** — how the core workspace feature works
+- **[Architecture Wiki](docs/wiki.md)** — system design and patterns
+- **[Coding Standards](CODING_STANDARDS.md)** — rules that apply to every contributor
+- **[My Onboarding Notes](docs/MY_ONBOARDING.md)** — a living doc for things that aren't obvious
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites

@@ -25,6 +25,13 @@ export interface DocumentListItemDto extends ProvenanceFieldsDto {
   unredactedTextGain: number | null;
 }
 
+export interface DocumentsListCursorMeta {
+  total: number;
+  limit: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
 export interface DocumentsListResponseDto {
   data: DocumentListItemDto[];
   total: number;
@@ -38,6 +45,7 @@ export interface DocumentsListResponseDto {
     semanticReason?: string;
     message?: string;
   };
+  meta?: DocumentsListCursorMeta;
 }
 
 export interface DocumentDetailDto extends ProvenanceFieldsDto {

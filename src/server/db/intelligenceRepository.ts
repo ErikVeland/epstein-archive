@@ -437,7 +437,22 @@ export const intelligenceRepository = {
       semanticAvailable = false;
     }
 
-    const provenanceCoveragePct: number | null = null;
+    let provenanceCoveragePct: number | null = null;
+    try {
+      const covResult = await pool.query(`
+        SELECT 
+          COALESCE(
+            ROUND(
+              COUNT(CASE WHEN provenance_status IN ('substantial', 'verified') THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0)
+            )::int,
+            0
+          ) AS pct
+        FROM documents
+      `);
+      provenanceCoveragePct = covResult.rows[0]?.pct ?? 0;
+    } catch (err) {
+      logger.warn({ err }, '[Intelligence] Failed to calculate provenance coverage percentage');
+    }
 
     const [pendingMentionReviews, pendingClaimReviews] = await Promise.all([
       safeCount('pendingMentions', async () => {

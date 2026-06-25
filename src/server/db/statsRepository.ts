@@ -569,6 +569,8 @@ export const statsRepository = {
     const cp = readLivePipelineStatus();
     const vlmTotal = Number(cp?.vlmTotal || 0);
     const vlmProcessed = Number(cp?.vlmProcessed || 0);
+    const enrichTotal = Number(cp?.enrichTotal || 0);
+    const enrichProcessed = Number(cp?.enrichProcessed || 0);
     const blockedReason = typeof cp?.blockedReason === 'string' ? cp.blockedReason : null;
     const currentFile = typeof cp?.currentFile === 'string' ? cp.currentFile : null;
 
@@ -596,6 +598,14 @@ export const statsRepository = {
               processed: vlmProcessed,
               total: vlmTotal,
               percent: Math.min(100, (vlmProcessed / vlmTotal) * 100),
+            }
+          : undefined,
+      enrichment:
+        enrichTotal > 0
+          ? {
+              processed: enrichProcessed,
+              total: enrichTotal,
+              percent: Math.min(100, (enrichProcessed / enrichTotal) * 100),
             }
           : undefined,
       blocked: Boolean(cp?.blocked || blockedReason),

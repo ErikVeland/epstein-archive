@@ -142,9 +142,7 @@ export function useDocumentBrowserData({
   );
 
   // Reset to page 1 when filters change
-  // This effect intentionally resets state based on prop changes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [queryKey]);
 

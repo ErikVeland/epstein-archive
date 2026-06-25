@@ -1447,9 +1447,14 @@ class ApiClient {
     } = {},
     page: number = 1,
     limit: number = 50,
+    cursor?: string | null,
   ): Promise<DocumentsListResponseDto> {
     const params = new URLSearchParams();
-    params.append('page', page.toString());
+    if (cursor) {
+      params.append('cursor', cursor);
+    } else {
+      params.append('page', page.toString());
+    }
     params.append('limit', limit.toString());
     if ((filters as Record<string, unknown>).search)
       params.append('search', (filters as Record<string, unknown>).search as string);

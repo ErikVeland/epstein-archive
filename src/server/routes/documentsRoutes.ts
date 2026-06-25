@@ -77,6 +77,7 @@ const documentsListQuerySchema = z.object({
       .default(false),
     excludedFileTypes: z.string().optional(),
     mode: z.enum(['lexical', 'semantic', 'hybrid']).default('lexical'),
+    cursor: z.string().optional(),
   }),
 });
 
@@ -156,14 +157,15 @@ router.get(
       const query = req.query;
       const page = Number(query.page || 1);
       const limit = Number(query.limit || 50);
-      const sortOrder =
+      const cursor = (query as Record<string, unknown>).cursor as string | undefined;
+      const sortOrder: 'asc' | 'desc' | undefined =
         query.sortOrder === 'asc' || query.sortOrder === 'desc' ? query.sortOrder : undefined;
       const searchMode =
         query.mode === 'semantic' || query.mode === 'hybrid' || query.mode === 'lexical'
           ? query.mode
           : 'lexical';
 
-      if (rejectDeepOffset(res, 'Document', page, limit)) return;
+      if (!cursor && rejectDeepOffset(res, 'Document', page, limit)) return;
 
       if (
         typeof query.search === 'string' &&
@@ -198,28 +200,48 @@ router.get(
         return res.json(response);
       }
 
-      const result = await withDocumentsListTimeout(
-        documentsRepository.getDocuments(page, limit, {
-          search: query.search as string | undefined,
-          fileType: query.fileType as string | undefined,
-          evidenceType: query.evidenceType as string | undefined,
-          source: query.source as string | undefined,
-          startDate: query.startDate as string | undefined,
-          endDate: query.endDate as string | undefined,
-          hasFailedRedactions:
-            typeof query.hasFailedRedactions === 'boolean' ? query.hasFailedRedactions : undefined,
-          minRedFlag: query.minRedFlag !== undefined ? Number(query.minRedFlag) : undefined,
-          maxRedFlag: query.maxRedFlag !== undefined ? Number(query.maxRedFlag) : undefined,
-          sortBy: query.sortBy as string | undefined,
-          sortOrder,
-          collectionId: query.collectionId as string | undefined,
-          includeMedia: (query.includeMedia as unknown as boolean) ?? false,
-          excludedFileTypes: query.excludedFileTypes
-            ? (query.excludedFileTypes as string).split(',').filter(Boolean)
-            : undefined,
-        }),
-        emptyDocumentsList(page, limit),
-      );
+      const filters = {
+        search: query.search as string | undefined,
+        fileType: query.fileType as string | undefined,
+        evidenceType: query.evidenceType as string | undefined,
+        source: query.source as string | undefined,
+        startDate: query.startDate as string | undefined,
+        endDate: query.endDate as string | undefined,
+        hasFailedRedactions:
+          typeof query.hasFailedRedactions === 'boolean' ? query.hasFailedRedactions : undefined,
+        minRedFlag: query.minRedFlag !== undefined ? Number(query.minRedFlag) : undefined,
+        maxRedFlag: query.maxRedFlag !== undefined ? Number(query.maxRedFlag) : undefined,
+        sortBy: query.sortBy as string | undefined,
+        sortOrder,
+        collectionId: query.collectionId as string | undefined,
+        includeMedia: (query.includeMedia as unknown as boolean) ?? false,
+        excludedFileTypes: query.excludedFileTypes
+          ? (query.excludedFileTypes as string).split(',').filter(Boolean)
+          : undefined,
+      };
+
+      const result = cursor
+        ? await withDocumentsListTimeout(
+            documentsRepository.getDocumentsCursor(cursor, limit, filters),
+            {
+              documents: [],
+              total: 0,
+              meta: { total: 0, limit, hasMore: false, nextCursor: null },
+            },
+          )
+        : await withDocumentsListTimeout(
+            documentsRepository.getDocuments(page, limit, filters),
+            emptyDocumentsList(page, limit),
+          );
+
+      if (cursor && 'meta' in result) {
+        const { meta } = result as {
+          meta: { total: number; limit: number; hasMore: boolean; nextCursor: string | null };
+        };
+        const mapped = mapDocumentsListResponseDto(result);
+        return res.json({ ...mapped, meta });
+      }
+
       return res.json(mapDocumentsListResponseDto(result));
     } catch (error) {
       next(error);

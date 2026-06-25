@@ -335,7 +335,27 @@ export const documentsRepository = {
         LIMIT $9::int OFFSET $10::int
       )
       SELECT
-        base.*,
+        base.id,
+        base."fileName",
+        base."fileType",
+        base."fileSize",
+        base."dateCreated",
+        base."extractedDate",
+        base."contentRefined",
+        base."contentPreview",
+        base."contentRaw",
+        base."evidenceType",
+        base."metadata",
+        base."wordCount",
+        base."redFlagRating",
+        base."title",
+        base."sourceCollection",
+        base."significanceScore",
+        base."unredactionAttempted",
+        base."unredactionSucceeded",
+        base."redactionCoverageBefore",
+        base."redactionCoverageAfter",
+        base."unredactedTextGain",
         ai.output_text as "aiSummary"
       FROM base
       LEFT JOIN LATERAL (
@@ -565,6 +585,328 @@ export const documentsRepository = {
       page,
       pageSize: limit,
       totalPages: Math.ceil(total / limit),
+    };
+  },
+
+  getDocumentsCursor: async (
+    cursor: string | null,
+    limit: number,
+    filters: {
+      search?: string;
+      fileType?: string;
+      evidenceType?: string;
+      source?: string;
+      startDate?: string;
+      endDate?: string;
+      hasFailedRedactions?: boolean;
+      minRedFlag?: number;
+      maxRedFlag?: number;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+      collectionId?: string;
+      includeMedia?: boolean;
+      excludedFileTypes?: string[];
+    } = {},
+  ) => {
+    const search = filters.search?.trim() || null;
+    const fileTypes =
+      filters.fileType && filters.fileType !== 'all' ? filters.fileType.split(',') : null;
+    const sources =
+      filters.source && filters.source !== 'all'
+        ? filters.source.split(',').map((s) => s.trim())
+        : null;
+    const evidenceType =
+      filters.evidenceType && filters.evidenceType !== 'all' ? filters.evidenceType : null;
+    const fullTextSearch = search || null;
+    const sortBy = filters.sortBy || 'red_flag';
+    const sortOrder = filters.sortOrder === 'asc' ? 'ASC' : 'DESC';
+    const isCursorSort = sortBy === 'red_flag';
+
+    let finalCursorClause = '';
+    const cursorValues: unknown[] = [];
+    if (cursor && isCursorSort) {
+      const { decodeCursor } = await import('../utils/cursorPagination.js');
+      const parsed = decodeCursor(cursor);
+      if (parsed && parsed.redFlagRating !== undefined && parsed.id !== undefined) {
+        const op = sortOrder === 'DESC' ? '<' : '>';
+        finalCursorClause = `AND (
+          red_flag_rating ${op} $15::int
+          OR (red_flag_rating = $15::int AND COALESCE(extracted_date, date_created) ${op} $16::timestamp)
+          OR (red_flag_rating = $15::int AND COALESCE(extracted_date, date_created) = $16::timestamp AND id ${op} $17::int)
+        )`;
+        cursorValues.push(
+          Number(parsed.redFlagRating),
+          parsed.sortDate || '1970-01-01',
+          Number(parsed.id),
+        );
+      }
+    }
+
+    const orderByClause =
+      sortBy === 'relevance' && fullTextSearch
+        ? `ts_rank_cd(fts_vector, websearch_to_tsquery('english', $11::text), 32) ${sortOrder}, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC`
+        : sortBy === 'date'
+          ? `COALESCE(extracted_date, date_created) ${sortOrder}, red_flag_rating DESC`
+          : sortBy === 'title'
+            ? `COALESCE(NULLIF(title, ''), file_name) ${sortOrder}, COALESCE(extracted_date, date_created) DESC`
+            : sortBy === 'fileType'
+              ? `file_type ${sortOrder} NULLS LAST, COALESCE(NULLIF(title, ''), file_name) ASC`
+              : sortBy === 'size'
+                ? `file_size ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC`
+                : sortBy === 'significance'
+                  ? `significance_score DESC NULLS LAST, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC`
+                  : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
+
+    const stableOrderSuffix =
+      sortBy === 'red_flag' || sortBy === 'relevance' || sortBy === 'significance'
+        ? ', id DESC'
+        : ', id ASC';
+    const stableOrderBy = `${orderByClause}${stableOrderSuffix}`;
+    const fetchLimit = limit + 1;
+
+    const docsSql = `
+      WITH base AS (
+        SELECT id, file_name as "fileName", file_type as "fileType",
+               file_size as "fileSize", date_created as "dateCreated",
+               extracted_date as "extractedDate", content_refined as "contentRefined",
+               content_preview as "contentPreview", LEFT(content, 600) as "contentRaw",
+               evidence_type as "evidenceType", metadata_json as "metadata",
+               word_count as "wordCount", red_flag_rating as "redFlagRating",
+               COALESCE(NULLIF(title, ''), file_name) as "title",
+               source_collection as "sourceCollection",
+               significance_score as "significanceScore",
+               unredaction_attempted as "unredactionAttempted",
+               unredaction_succeeded as "unredactionSucceeded",
+               redaction_coverage_before as "redactionCoverageBefore",
+               redaction_coverage_after as "redactionCoverageAfter",
+               unredacted_text_gain as "unredactedTextGain"
+        FROM documents
+        WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1
+               OR file_path ILIKE $1 OR fts_vector @@ websearch_to_tsquery('english', $11::text))
+          AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
+          AND (evidence_type = $3::text OR $3::text IS NULL)
+          AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
+          AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
+          AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
+          AND (red_flag_rating >= $7::int OR $7::int IS NULL)
+          AND (red_flag_rating <= $8::int OR $8::int IS NULL)
+          AND ($12::boolean = true OR (
+            COALESCE(evidence_type, '') != 'media' AND file_type NOT LIKE 'image/%'
+            AND file_type NOT LIKE 'video/%' AND file_type NOT LIKE 'audio/%'
+          ))
+          AND (file_type != ALL($13::text[]) OR $13::text[] IS NULL)
+          AND ($14::boolean IS NULL OR $14::boolean = false OR (
+            COALESCE(has_failed_redactions::int, 0) > 0 OR failed_redaction_count > 0
+            OR redaction_coverage_after IS NOT NULL
+            OR EXISTS (SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id)
+          ))
+          ${finalCursorClause}
+        ORDER BY ${stableOrderBy}
+        LIMIT $9::int
+      )
+      SELECT
+        base.id,
+        base."fileName",
+        base."fileType",
+        base."fileSize",
+        base."dateCreated",
+        base."extractedDate",
+        base."contentRefined",
+        base."contentPreview",
+        base."contentRaw",
+        base."evidenceType",
+        base."metadata",
+        base."wordCount",
+        base."redFlagRating",
+        base."title",
+        base."sourceCollection",
+        base."significanceScore",
+        base."unredactionAttempted",
+        base."unredactionSucceeded",
+        base."redactionCoverageBefore",
+        base."redactionCoverageAfter",
+        base."unredactedTextGain",
+        ai.output_text as "aiSummary"
+      FROM base
+      LEFT JOIN LATERAL (
+        SELECT output_text FROM document_ai_artifacts daa
+        WHERE daa.document_id = base.id AND daa.artifact_type = 'summary'
+          AND daa.output_text IS NOT NULL
+        ORDER BY daa.created_at DESC LIMIT 1
+      ) ai ON TRUE
+    `;
+
+    const pool = getApiPool();
+    const docsRes = await pool.query({
+      name: 'documents.getDocumentsCursor.list',
+      text: docsSql,
+      values: [
+        search ? `%${search}%` : null,
+        fileTypes,
+        evidenceType,
+        sources,
+        filters.startDate || null,
+        filters.endDate || null,
+        filters.minRedFlag ?? null,
+        filters.maxRedFlag ?? null,
+        fetchLimit,
+        null,
+        fullTextSearch,
+        !!filters.includeMedia,
+        filters.excludedFileTypes || null,
+        filters.hasFailedRedactions ?? null,
+        ...cursorValues,
+      ],
+    });
+    const docs = docsRes.rows as DocumentRow[];
+
+    const hasMore = docs.length > limit;
+    const pageRows = hasMore ? docs.slice(0, limit) : docs;
+
+    const lastRow = pageRows[pageRows.length - 1];
+    let nextCursor: string | null = null;
+    if (hasMore && lastRow && isCursorSort) {
+      const { encodeCursor } = await import('../utils/cursorPagination.js');
+      nextCursor = encodeCursor({
+        redFlagRating: Number(lastRow.redFlagRating ?? 0),
+        sortDate: String(
+          (lastRow as Record<string, unknown>).extractedDate ||
+            (lastRow as Record<string, unknown>).dateCreated ||
+            '1970-01-01',
+        ),
+        id: Number(lastRow.id ?? 0),
+      });
+    }
+
+    const countSql = `
+      SELECT COUNT(*) as total FROM documents
+      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1
+             OR file_path ILIKE $1 OR fts_vector @@ websearch_to_tsquery('english', $9::text))
+        AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
+        AND (evidence_type = $3::text OR $3::text IS NULL)
+        AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
+        AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
+        AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
+        AND (red_flag_rating >= $7::int OR $7::int IS NULL)
+        AND (red_flag_rating <= $8::int OR $8::int IS NULL)
+        AND ($10::boolean = true OR (
+          COALESCE(evidence_type, '') != 'media' AND file_type NOT LIKE 'image/%'
+          AND file_type NOT LIKE 'video/%' AND file_type NOT LIKE 'audio/%'
+        ))
+        AND (file_type != ALL($11::text[]) OR $11::text[] IS NULL)
+        AND ($12::boolean IS NULL OR $12::boolean = false OR (
+          COALESCE(has_failed_redactions::int, 0) > 0 OR failed_redaction_count > 0
+          OR redaction_coverage_after IS NOT NULL
+          OR EXISTS (SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id)
+        ))
+    `;
+
+    let total = 0;
+    try {
+      const countRes = await pool.query<{ total: string | number }>({
+        name: 'documents.getDocumentsCursor.count',
+        text: countSql,
+        values: [
+          search ? `%${search}%` : null,
+          fileTypes,
+          evidenceType,
+          sources,
+          filters.startDate || null,
+          filters.endDate || null,
+          filters.minRedFlag ?? null,
+          filters.maxRedFlag ?? null,
+          fullTextSearch,
+          !!filters.includeMedia,
+          filters.excludedFileTypes || null,
+          filters.hasFailedRedactions ?? null,
+        ],
+      });
+      total = Number(countRes.rows[0]?.total ?? 0);
+    } catch {
+      total = Math.max(pageRows.length, 0);
+    }
+
+    const docIds = pageRows.map((d) => Number(d.id));
+    const entityRowsByDocId = new Map<
+      number,
+      Array<{ id: string; name: string; mentions: number }>
+    >();
+    if (docIds.length > 0) {
+      const entityBatchRes = await pool.query(
+        `
+        SELECT em.document_id as "documentId", e.id, e.full_name as "name", COUNT(*) as "mentions"
+        FROM entity_mentions em JOIN entities e ON e.id = em.entity_id
+        WHERE em.document_id = ANY($1::bigint[])
+        GROUP BY em.document_id, e.id, e.full_name ORDER BY "mentions" DESC
+      `,
+        [docIds],
+      );
+      for (const row of entityBatchRes.rows) {
+        const docId = Number(row.documentId);
+        if (!entityRowsByDocId.has(docId)) entityRowsByDocId.set(docId, []);
+        entityRowsByDocId.get(docId)!.push({
+          id: String(row.id),
+          name: row.name || 'Unknown',
+          mentions: Number(row.mentions),
+        });
+      }
+    }
+
+    const transformedDocs = pageRows.map((doc) => {
+      const title = typeof doc.title === 'string' ? doc.title : undefined;
+      const fileName = typeof doc.fileName === 'string' ? doc.fileName : undefined;
+      const evType = typeof doc.evidenceType === 'string' ? doc.evidenceType : 'document';
+      const fType = typeof doc.fileType === 'string' ? doc.fileType : undefined;
+      const metadata =
+        typeof doc.metadata === 'object' && doc.metadata
+          ? (doc.metadata as Record<string, unknown>)
+          : {};
+      if ('ai_summary' in metadata) delete (metadata as Record<string, unknown>).ai_summary;
+      const aiSummary = typeof doc.aiSummary === 'string' ? doc.aiSummary.trim() : '';
+      const sourceType = fType?.startsWith('image/')
+        ? 'image'
+        : fType?.startsWith('video/')
+          ? 'video'
+          : fType?.startsWith('audio/')
+            ? 'audio'
+            : evType || 'document';
+      const entities = entityRowsByDocId.get(Number(doc.id)) || [];
+      const entityCount = entities.reduce((acc, e) => acc + e.mentions, 0);
+      return {
+        id: String(doc.id),
+        fileName,
+        title: title || fileName || 'Untitled',
+        fileType: fType,
+        fileSize: Number(doc.fileSize || 0),
+        dateCreated: doc.dateCreated,
+        evidenceType: evType,
+        metadata,
+        aiSummary: aiSummary || null,
+        redFlagRating: Number(doc.redFlagRating || 0),
+        wordCount: Number(doc.wordCount || 0),
+        entitiesCount: entityCount,
+        keyEntities: entities.slice(0, 3).map((e) => ({ id: e.id, name: e.name })),
+        sourceType,
+        previewText: typeof doc.contentPreview === 'string' ? doc.contentPreview : '',
+        previewKind: 'fallback' as const,
+        whyFlagged:
+          entityCount >= 8
+            ? `High significance from dense entity mentions (${entityCount}).`
+            : 'High significance due to risk scoring.',
+        unredactionAttempted: Boolean(doc.unredactionAttempted),
+        unredactionSucceeded: Boolean(doc.unredactionSucceeded),
+        redactionCoverageBefore:
+          doc.redactionCoverageBefore != null ? Number(doc.redactionCoverageBefore) : null,
+        redactionCoverageAfter:
+          doc.redactionCoverageAfter != null ? Number(doc.redactionCoverageAfter) : null,
+        unredactedTextGain: doc.unredactedTextGain != null ? Number(doc.unredactedTextGain) : null,
+      };
+    });
+
+    return {
+      documents: transformedDocs,
+      total,
+      meta: { total, limit, hasMore, nextCursor },
     };
   },
 
