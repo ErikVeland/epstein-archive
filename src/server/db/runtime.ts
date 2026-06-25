@@ -66,10 +66,15 @@ function wrapPool(pool: pg.Pool, label: string): pg.Pool {
 }
 
 // Pool sizing — matches connection budget in runbook §3:
-// apiPool=18, ingestPool=8, maintenancePool=2
-// + PG internals (~5) + headroom (~10) = ~45 / max_connections=80
+// apiPool=25 (×2 PM2 workers = 50), ingestPool=8, maintenancePool=2
+// + PG internals (~5) + headroom (~15) = ~80 / max_connections=100+
+//
+// Previously 18 per worker (36 total). Raised to 25 (50 total) to absorb
+// parallel page-load bursts without triggering pgSaturationShed 503s.
+// Verify max_connections on your Postgres instance before increasing further.
+// Override at runtime via API_POOL_MAX env var.
 const POOL_SIZES = {
-  api: parseInt(process.env.API_POOL_MAX ?? '18'),
+  api: parseInt(process.env.API_POOL_MAX ?? '25'),
   maintenance: 2,
   ingress: parseInt(process.env.INGEST_POOL_MAX ?? '8'),
 } as const;

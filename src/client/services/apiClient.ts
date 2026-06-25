@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { Person } from '@client/types';
 import type { MediaImage, MediaTag } from '@client/types/media.types';
 import { mapEntityListItemToPerson } from '@client/mappers/entityMapper';
+import { signRequestPayload } from '../utils/cryptoIdentity';
 import type {
   EmailMailboxesResponseDto,
   EmailMessageBodyDto,
@@ -397,7 +398,6 @@ class ApiClient {
             path = parsed.pathname + parsed.search;
           }
           const bodyStr = typeof fetchOptions?.body === 'string' ? fetchOptions.body : '';
-          const { signRequestPayload } = await import('../utils/cryptoIdentity');
           const { signature, publicKey, timestamp, nonce } = await signRequestPayload(
             method,
             path,

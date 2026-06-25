@@ -1,145 +1,49 @@
 import { getApiPool } from './runtime.js';
 import { logger } from '../services/Logger.js';
-import { cacheService } from '../cache/cacheService.js';
 
-type TopConnectedCacheEntry = {
-  value: TopConnectedPerson[];
-  freshUntil: number;
-};
-
-const TOP_CONNECTED_CACHE_KEY = 'analytics:topConnectedPeople';
-const TOP_CONNECTED_REFRESH_KEY = 'analytics:topConnectedPeople:refresh';
-const TOP_CONNECTED_FRESH_TTL_MS = 30 * 60 * 1000;
-const TOP_CONNECTED_STORE_TTL_SECONDS = 24 * 60 * 60;
-
-async function _runTopConnectedQuery(): Promise<TopConnectedPerson[]> {
-  const client = await getApiPool().connect();
-  try {
-    await client.query('BEGIN');
-    await client.query("SET LOCAL statement_timeout = '60000ms'");
-    const result = await client.query<TopConnectedPerson>(`
-      WITH rel_counts AS (
-        SELECT entity_id, SUM(cnt)::bigint AS cnt
-        FROM (
-          SELECT source_entity_id AS entity_id, COUNT(*)::bigint AS cnt
-          FROM entity_relationships
-          GROUP BY source_entity_id
-          UNION ALL
-          SELECT target_entity_id AS entity_id, COUNT(*)::bigint AS cnt
-          FROM entity_relationships
-          GROUP BY target_entity_id
-        ) t
-        GROUP BY entity_id
-      ),
-      filtered AS (
-        SELECT
-          e.id,
-          e.full_name,
-          e.primary_role,
-          COALESCE(e.mentions, 0)::bigint AS mentions,
-          COALESCE(e.red_flag_rating, 0)::int AS red_flag_rating,
-          COALESCE(rc.cnt, 0)::bigint AS connection_count
-        FROM entities e
-        LEFT JOIN rel_counts rc ON rc.entity_id = e.id
-        WHERE e.entity_type = 'Person'
-          AND COALESCE(e.junk_tier, 'clean') = 'clean'
-          AND COALESCE(e.quarantine_status, 0) = 0
-          AND e.full_name IS NOT NULL
-          AND length(trim(e.full_name)) >= 4
-          AND e.full_name !~ '[0-9]'
-          AND e.full_name !~ '\\n'
-          AND e.full_name NOT ILIKE 'the %'
-          AND e.full_name NOT ILIKE '% group'
-          AND e.full_name NOT ILIKE '% inc'
-          AND e.full_name NOT ILIKE '% llc'
-          AND e.full_name NOT ILIKE '% corp'
-          AND e.full_name NOT ILIKE '% ltd'
-          AND e.full_name NOT ILIKE '% demolition'
-          AND e.full_name NOT ILIKE '% bracket'
-          AND e.full_name NOT ILIKE '% column%'
-          AND e.full_name NOT ILIKE '% haul%'
-          AND e.full_name NOT ILIKE '%provided'
-          AND e.full_name NOT ILIKE '%direction'
-          AND e.full_name NOT ILIKE '% name'
-          AND e.full_name NOT ILIKE '% name%'
-          AND e.full_name NOT ILIKE '% data%'
-          AND e.full_name NOT ILIKE '% regular'
-          AND e.full_name NOT ILIKE '% stock %'
-          AND e.full_name NOT ILIKE '% market %'
-          AND e.full_name NOT ILIKE '% newsletter%'
-          AND e.full_name NOT ILIKE '% search %'
-          AND e.full_name NOT ILIKE '% click %'
-          AND e.full_name NOT ILIKE '% privacy %'
-          AND array_length(regexp_split_to_array(trim(e.full_name), '\\s+'), 1) <= 3
-      ),
-      canonical_people AS (
-        SELECT
-          MIN(id)::bigint AS id,
-          CASE
-            WHEN full_name IN ('Donald Trump', 'President Trump', 'Mr Trump', 'Trump', 'Donald J Trump', 'Donald J. Trump') THEN 'Donald Trump'
-            WHEN full_name IN ('Jeffrey Epstein', 'Epstein', 'Jeffrey', 'Jeff Epstein', 'Mr Epstein') THEN 'Jeffrey Epstein'
-            WHEN full_name IN ('Ghislaine Maxwell', 'Maxwell', 'Ghislaine', 'Ms Maxwell', 'Miss Maxwell') THEN 'Ghislaine Maxwell'
-            WHEN full_name IN ('Bill Clinton', 'President Clinton', 'Mr Clinton', 'Clinton', 'William Clinton')
-              AND lower(full_name) NOT LIKE '%hillary%' AND lower(full_name) NOT LIKE '%chelsea%' THEN 'Bill Clinton'
-            WHEN full_name IN ('Prince Andrew', 'Duke of York', 'Andrew') OR lower(full_name) LIKE '%prince andrew%' THEN 'Prince Andrew'
-            WHEN full_name IN ('Alan Dershowitz', 'Dershowitz', 'Mr Dershowitz') THEN 'Alan Dershowitz'
-            ELSE regexp_replace(trim(full_name), '\\s+', ' ', 'g')
-          END AS canonical_name,
-          SUM(mentions)::bigint AS mentions,
-          MAX(red_flag_rating)::int AS red_flag_rating,
-          MAX(primary_role) AS primary_role,
-          SUM(connection_count)::bigint AS connection_count
-        FROM filtered
-        GROUP BY 2
-      )
-      SELECT
-        id,
-        canonical_name AS name,
-        primary_role AS role,
-        'Person'::text AS type,
-        red_flag_rating AS "riskLevel",
-        connection_count AS "connectionCount",
-        mentions
-      FROM canonical_people
-      WHERE mentions > 0
-      ORDER BY "connectionCount" DESC, mentions DESC, name ASC
-      LIMIT 100
-    `);
-    await client.query('ROLLBACK');
-    return result.rows;
-  } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
-    throw err;
-  } finally {
-    client.release();
-  }
+/**
+ * getTopConnectedPeople reads directly from the mv_top_connected materialized
+ * view, which is maintained by matViewRefresh.ts on a 10-minute cycle.
+ *
+ * The previous implementation ran a complex live CTE query that consistently
+ * hit the 60-second statement_timeout on large datasets. The mat view
+ * (rebuilt in migration 1756900000000) contains the same canonical
+ * deduplication and name-quality filters, so the live query is no longer
+ * needed. This makes the call sub-millisecond.
+ *
+ * Column aliases match the pgtyped analytics.sql query exactly:
+ *   id, name, role, type, risk_level, connection_count, mentions
+ */
+async function _queryTopConnectedFromMatView(): Promise<TopConnectedPerson[]> {
+  const result = await getApiPool().query<{
+    id: number;
+    name: string;
+    role: string | null;
+    type: string;
+    risk_level: number;
+    connection_count: number;
+    mentions: number;
+  }>(`
+    SELECT id, name, role, type, risk_level, connection_count, mentions
+    FROM mv_top_connected
+    ORDER BY connection_count DESC, mentions DESC, name ASC
+    LIMIT 100
+  `);
+  return result.rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    type: row.type,
+    riskLevel: row.risk_level,
+    connectionCount: Number(row.connection_count),
+    mentions: Number(row.mentions),
+  }));
 }
 
-function _scheduleTopConnectedRefresh(): void {
-  void cacheService
-    .getOrCompute(
-      'query',
-      TOP_CONNECTED_REFRESH_KEY,
-      async () => {
-        const rows = await _runTopConnectedQuery();
-        const entry: TopConnectedCacheEntry = {
-          value: rows,
-          freshUntil: Date.now() + TOP_CONNECTED_FRESH_TTL_MS,
-        };
-        cacheService.set('query', TOP_CONNECTED_CACHE_KEY, entry, TOP_CONNECTED_STORE_TTL_SECONDS);
-        logger.info(`[Analytics] top-connected cache refreshed (${rows.length} rows)`);
-        return true;
-      },
-      90,
-    )
-    .catch((err) => {
-      logger.error({ err }, '[Analytics] getTopConnectedPeople background refresh failed');
-    });
-}
-
-/** Kick off the background warm before the first request arrives. */
+/** Kept for backwards compatibility — no-op now that the mat view is canonical. */
 export function warmTopConnectedCache(): void {
-  _scheduleTopConnectedRefresh();
+  // The mat view is populated on first REFRESH MATERIALIZED VIEW by the scheduler.
+  // No background warm needed.
 }
 
 export interface TopConnectedPerson {
@@ -253,27 +157,16 @@ export const analyticsRepository = {
   },
 
   getTopConnectedPeople: async (): Promise<TopConnectedPerson[]> => {
-    const now = Date.now();
-    const cached = cacheService.get<TopConnectedCacheEntry>('query', TOP_CONNECTED_CACHE_KEY);
-
-    // Cache hit — return immediately, pro-actively refresh if near expiry
-    if (cached && now < cached.freshUntil) {
-      if (cached.freshUntil - now < 5 * 60 * 1000) {
-        _scheduleTopConnectedRefresh();
-      }
-      return cached.value;
+    // Reads directly from mv_top_connected which is maintained by the 10-minute
+    // periodic mat-view refresh scheduler (matViewRefresh.ts). This replaces the
+    // previous approach of running a live 60-second+ CTE query in the background
+    // with a cache layer — the mat view itself IS the cache, kept fresh server-side.
+    try {
+      return await _queryTopConnectedFromMatView();
+    } catch (err) {
+      logger.error({ err }, '[Analytics] getTopConnectedPeople mat view query failed');
+      return [];
     }
-
-    // Cache expired but we have stale data — serve stale, refresh in background
-    if (cached) {
-      _scheduleTopConnectedRefresh();
-      return cached.value;
-    }
-
-    // Cold start — trigger background refresh, return empty array immediately
-    // so the rest of Promise.all([...]) in the route can still respond
-    _scheduleTopConnectedRefresh();
-    return [];
   },
 
   getTopEntityByMentions: async (): Promise<TopEntitySummaryRow | null> => {

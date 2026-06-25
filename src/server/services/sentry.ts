@@ -14,7 +14,18 @@ export function initSentry(): void {
   const dsn =
     rawDsn && rawDsn !== 'your-sentry-dsn-here' && rawDsn !== 'YOUR_SENTRY_DSN' ? rawDsn : null;
   if (!dsn) {
-    logger.info('SENTRY_DSN not configured — error reporting disabled');
+    const isProd = process.env.NODE_ENV === 'production';
+    if (isProd) {
+      // In production, missing Sentry means uncaught exceptions and unhandled
+      // rejections are logged locally only — no alerting, no stack traces in the
+      // error dashboard. This is a production ops gap, not a dev convenience.
+      logger.warn(
+        'SENTRY_DSN not configured in production — error reporting is DISABLED. ' +
+          'Set SENTRY_DSN in the server .env to enable error alerting.',
+      );
+    } else {
+      logger.info('SENTRY_DSN not configured — error reporting disabled');
+    }
     return;
   }
 

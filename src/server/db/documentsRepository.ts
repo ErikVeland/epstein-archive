@@ -619,49 +619,67 @@ export const documentsRepository = {
       filters.evidenceType && filters.evidenceType !== 'all' ? filters.evidenceType : null;
     const fullTextSearch = search || null;
     const sortBy = filters.sortBy || 'red_flag';
-    const sortOrder = filters.sortOrder === 'asc' ? 'ASC' : 'DESC';
-    const isCursorSort = sortBy === 'red_flag';
+    const sortDir = filters.sortOrder === 'asc' ? 'ASC' : 'DESC';
 
-    let finalCursorClause = '';
-    const cursorValues: unknown[] = [];
-    if (cursor && isCursorSort) {
-      const { decodeCursor } = await import('../utils/cursorPagination.js');
-      const parsed = decodeCursor(cursor);
-      if (parsed && parsed.redFlagRating !== undefined && parsed.id !== undefined) {
-        const op = sortOrder === 'DESC' ? '<' : '>';
-        finalCursorClause = `AND (
-          red_flag_rating ${op} $15::int
-          OR (red_flag_rating = $15::int AND COALESCE(extracted_date, date_created) ${op} $16::timestamp)
-          OR (red_flag_rating = $15::int AND COALESCE(extracted_date, date_created) = $16::timestamp AND id ${op} $17::int)
-        )`;
-        cursorValues.push(
-          Number(parsed.redFlagRating),
-          parsed.sortDate || '1970-01-01',
-          Number(parsed.id),
-        );
-      }
-    }
+    const { getCursorSortConfig, buildCursorWhereClause, encodeCursor } =
+      await import('../utils/cursorPagination.js');
+
+    const sortConfig = getCursorSortConfig(sortBy);
 
     const orderByClause =
       sortBy === 'relevance' && fullTextSearch
-        ? `ts_rank_cd(fts_vector, websearch_to_tsquery('english', $11::text), 32) ${sortOrder}, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC`
+        ? `ts_rank_cd(fts_vector, websearch_to_tsquery('english', $11::text), 32) ${sortDir}, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC, id DESC`
         : sortBy === 'date'
-          ? `COALESCE(extracted_date, date_created) ${sortOrder}, red_flag_rating DESC`
+          ? `COALESCE(extracted_date, date_created) ${sortDir}, red_flag_rating DESC, id ASC`
           : sortBy === 'title'
-            ? `COALESCE(NULLIF(title, ''), file_name) ${sortOrder}, COALESCE(extracted_date, date_created) DESC`
+            ? `COALESCE(NULLIF(title, ''), file_name) ${sortDir}, COALESCE(extracted_date, date_created) DESC, id ASC`
             : sortBy === 'fileType'
-              ? `file_type ${sortOrder} NULLS LAST, COALESCE(NULLIF(title, ''), file_name) ASC`
+              ? `file_type ${sortDir} NULLS LAST, COALESCE(NULLIF(title, ''), file_name) ASC, id ASC`
               : sortBy === 'size'
-                ? `file_size ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC`
+                ? `file_size ${sortDir} NULLS LAST, COALESCE(extracted_date, date_created) DESC, id ASC`
                 : sortBy === 'significance'
-                  ? `significance_score DESC NULLS LAST, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC`
-                  : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
+                  ? `significance_score DESC NULLS LAST, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC, id DESC`
+                  : `red_flag_rating ${sortDir}, COALESCE(extracted_date, date_created) DESC, id DESC`;
 
-    const stableOrderSuffix =
-      sortBy === 'red_flag' || sortBy === 'relevance' || sortBy === 'significance'
-        ? ', id DESC'
-        : ', id ASC';
-    const stableOrderBy = `${orderByClause}${stableOrderSuffix}`;
+    const sortExpressions: string[] =
+      sortBy === 'relevance' && fullTextSearch
+        ? [
+            "ts_rank_cd(fts_vector, websearch_to_tsquery('english', $11::text), 32)",
+            'red_flag_rating',
+            'COALESCE(extracted_date, date_created)',
+            'id',
+          ]
+        : sortBy === 'date'
+          ? ['COALESCE(extracted_date, date_created)', 'red_flag_rating', 'id']
+          : sortBy === 'title'
+            ? [
+                "COALESCE(NULLIF(title, ''), file_name)",
+                'COALESCE(extracted_date, date_created)',
+                'id',
+              ]
+            : sortBy === 'fileType'
+              ? ['file_type', "COALESCE(NULLIF(title, ''), file_name)", 'id']
+              : sortBy === 'size'
+                ? ['file_size', 'COALESCE(extracted_date, date_created)', 'id']
+                : sortBy === 'significance'
+                  ? [
+                      'significance_score',
+                      'red_flag_rating',
+                      'COALESCE(extracted_date, date_created)',
+                      'id',
+                    ]
+                  : ['red_flag_rating', 'COALESCE(extracted_date, date_created)', 'id'];
+
+    let cursorClause = '';
+    const cursorValues: unknown[] = [];
+    if (cursor && sortConfig) {
+      const cursorRes = buildCursorWhereClause(cursor, sortConfig, sortDir, 15, sortExpressions);
+      if (cursorRes) {
+        cursorClause = `AND (${cursorRes.clause})`;
+        cursorValues.push(...cursorRes.values);
+      }
+    }
+
     const fetchLimit = limit + 1;
 
     const docsSql = `
@@ -700,8 +718,8 @@ export const documentsRepository = {
             OR redaction_coverage_after IS NOT NULL
             OR EXISTS (SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id)
           ))
-          ${finalCursorClause}
-        ORDER BY ${stableOrderBy}
+          ${cursorClause}
+        ORDER BY ${orderByClause}
         LIMIT $9::int
       )
       SELECT
@@ -765,65 +783,62 @@ export const documentsRepository = {
 
     const lastRow = pageRows[pageRows.length - 1];
     let nextCursor: string | null = null;
-    if (hasMore && lastRow && isCursorSort) {
-      const { encodeCursor } = await import('../utils/cursorPagination.js');
-      nextCursor = encodeCursor({
-        redFlagRating: Number(lastRow.redFlagRating ?? 0),
-        sortDate: String(
-          (lastRow as Record<string, unknown>).extractedDate ||
-            (lastRow as Record<string, unknown>).dateCreated ||
-            '1970-01-01',
-        ),
-        id: Number(lastRow.id ?? 0),
-      });
+    if (hasMore && lastRow && sortConfig) {
+      const cursorPayload: Record<string, string | number | null> = {};
+      for (const col of sortConfig.columns) {
+        const val = (lastRow as Record<string, unknown>)[col.alias];
+        cursorPayload[col.alias] = val != null ? String(val) : '';
+      }
+      nextCursor = encodeCursor(cursorPayload);
     }
 
-    const countSql = `
-      SELECT COUNT(*) as total FROM documents
-      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1
-             OR file_path ILIKE $1 OR fts_vector @@ websearch_to_tsquery('english', $9::text))
-        AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
-        AND (evidence_type = $3::text OR $3::text IS NULL)
-        AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
-        AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
-        AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
-        AND (red_flag_rating >= $7::int OR $7::int IS NULL)
-        AND (red_flag_rating <= $8::int OR $8::int IS NULL)
-        AND ($10::boolean = true OR (
-          COALESCE(evidence_type, '') != 'media' AND file_type NOT LIKE 'image/%'
-          AND file_type NOT LIKE 'video/%' AND file_type NOT LIKE 'audio/%'
-        ))
-        AND (file_type != ALL($11::text[]) OR $11::text[] IS NULL)
-        AND ($12::boolean IS NULL OR $12::boolean = false OR (
-          COALESCE(has_failed_redactions::int, 0) > 0 OR failed_redaction_count > 0
-          OR redaction_coverage_after IS NOT NULL
-          OR EXISTS (SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id)
-        ))
-    `;
-
     let total = 0;
-    try {
-      const countRes = await pool.query<{ total: string | number }>({
-        name: 'documents.getDocumentsCursor.count',
-        text: countSql,
-        values: [
-          search ? `%${search}%` : null,
-          fileTypes,
-          evidenceType,
-          sources,
-          filters.startDate || null,
-          filters.endDate || null,
-          filters.minRedFlag ?? null,
-          filters.maxRedFlag ?? null,
-          fullTextSearch,
-          !!filters.includeMedia,
-          filters.excludedFileTypes || null,
-          filters.hasFailedRedactions ?? null,
-        ],
-      });
-      total = Number(countRes.rows[0]?.total ?? 0);
-    } catch {
-      total = Math.max(pageRows.length, 0);
+    if (!cursor) {
+      const countSql = `
+        SELECT COUNT(*) as total FROM documents
+        WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1
+               OR file_path ILIKE $1 OR fts_vector @@ websearch_to_tsquery('english', $9::text))
+          AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
+          AND (evidence_type = $3::text OR $3::text IS NULL)
+          AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
+          AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
+          AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
+          AND (red_flag_rating >= $7::int OR $7::int IS NULL)
+          AND (red_flag_rating <= $8::int OR $8::int IS NULL)
+          AND ($10::boolean = true OR (
+            COALESCE(evidence_type, '') != 'media' AND file_type NOT LIKE 'image/%'
+            AND file_type NOT LIKE 'video/%' AND file_type NOT LIKE 'audio/%'
+          ))
+          AND (file_type != ALL($11::text[]) OR $11::text[] IS NULL)
+          AND ($12::boolean IS NULL OR $12::boolean = false OR (
+            COALESCE(has_failed_redactions::int, 0) > 0 OR failed_redaction_count > 0
+            OR redaction_coverage_after IS NOT NULL
+            OR EXISTS (SELECT 1 FROM redaction_spans rs WHERE rs.document_id = documents.id)
+          ))
+      `;
+      try {
+        const countRes = await pool.query<{ total: string | number }>({
+          name: 'documents.getDocumentsCursor.count',
+          text: countSql,
+          values: [
+            search ? `%${search}%` : null,
+            fileTypes,
+            evidenceType,
+            sources,
+            filters.startDate || null,
+            filters.endDate || null,
+            filters.minRedFlag ?? null,
+            filters.maxRedFlag ?? null,
+            fullTextSearch,
+            !!filters.includeMedia,
+            filters.excludedFileTypes || null,
+            filters.hasFailedRedactions ?? null,
+          ],
+        });
+        total = Number(countRes.rows[0]?.total ?? 0);
+      } catch {
+        total = Math.max(pageRows.length, 0);
+      }
     }
 
     const docIds = pageRows.map((d) => Number(d.id));
