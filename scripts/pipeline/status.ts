@@ -93,6 +93,7 @@ export function updateHeartbeat(fields: Record<string, unknown> = {}) {
   }
 
   writeLiveStatus({
+    running: !shuttingDown,
     heartbeatAt: new Date(pipelineRuntime.lastHeartbeatAt).toISOString(),
     blocked: false,
     blockedReason: null,

@@ -17,6 +17,23 @@ npx tsx scripts/unified_pipeline.ts --list-stages   # Inspect every registered s
 npx tsx scripts/unified_pipeline.ts --mode backfill --stage semantic-embeddings
 ```
 
+Backfill is intentionally **text-first**: provenance and image OCR run before
+`ai-enrichment`, and slow VLM visual parsing runs afterward. For high-value
+summary/cleanup catch-up, use one of these targeted runs:
+
+```bash
+pnpm pipeline:backfill:enrichment    # summaries + OCR cleanup artifacts only
+pnpm pipeline:backfill:text-first    # all non-VLM backfill stages
+pnpm pipeline:backfill:vlm-slice     # capped risk-first VLM slice
+```
+
+You can also compose controls directly:
+
+```bash
+PIPELINE_SKIP_STAGES=vlm-visuals pnpm pipeline:backfill
+VLM_BACKFILL_MAX_DOCS=200 pnpm pipeline:backfill -- --stage vlm-visuals
+```
+
 The orchestrator registers every stage in `pipeline_steps`, records aggregate
 and document-level stage attempts in `document_stage_runs`, and stores AI
 outputs in `document_ai_artifacts` with model, prompt version, provenance,

@@ -1,11 +1,44 @@
 import express from 'express';
 import { statsRepository } from '../db/statsRepository.js';
 import { archiveStatusSchema } from '../../shared/schemas/stats.js';
+import { execFileSync } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import { getApiPool } from '../db/connection.js';
 
 const router = express.Router();
+
+const asDateMs = (value: unknown): number | null => {
+  if (typeof value !== 'string' || value.trim().length === 0) return null;
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? ms : null;
+};
+
+const asPid = (value: unknown): number | null => {
+  const pid = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  return Number.isInteger(pid) && pid > 0 ? pid : null;
+};
+
+const isPidAlive = (pid: number | null): boolean => {
+  if (!pid) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const hasUnifiedPipelineProcess = (): boolean => {
+  try {
+    execFileSync('pgrep', ['-f', 'tsx.*scripts/unified_pipeline\\.ts|unified_pipeline\\.ts'], {
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 router.get('/archive', async (_req, res, next) => {
   try {
@@ -23,6 +56,16 @@ router.get('/backfill', async (_req, res, next) => {
       string,
       unknown
     >;
+    const checkpointPid = asPid(checkpoint.pid);
+    const pidAlive = isPidAlive(checkpointPid);
+    const processRunning = pidAlive || hasUnifiedPipelineProcess();
+    const heartbeatAt = typeof checkpoint.heartbeatAt === 'string' ? checkpoint.heartbeatAt : null;
+    const heartbeatMs = asDateMs(heartbeatAt);
+    const heartbeatAgeSeconds =
+      heartbeatMs === null ? null : Math.max(0, Math.round((Date.now() - heartbeatMs) / 1000));
+    const heartbeatFresh = heartbeatAgeSeconds !== null && heartbeatAgeSeconds <= 120;
+    const effectiveStatus =
+      processRunning && heartbeatFresh ? 'running' : processRunning ? 'stale' : 'stopped';
     const pool = getApiPool();
     const counts = await pool.query<{
       claim_triples: string;
@@ -140,6 +183,23 @@ router.get('/backfill', async (_req, res, next) => {
 
     res.json({
       ...checkpoint,
+      running: effectiveStatus === 'running',
+      runtime: {
+        status: effectiveStatus,
+        processRunning,
+        checkpointRunning: checkpoint.running === true,
+        pid: checkpointPid,
+        pidAlive,
+        heartbeatAt,
+        heartbeatAgeSeconds,
+        heartbeatFresh,
+        lastProgressAt:
+          typeof checkpoint.lastProgressAt === 'string' ? checkpoint.lastProgressAt : null,
+        currentFile: typeof checkpoint.currentFile === 'string' ? checkpoint.currentFile : null,
+        currentDocId: typeof checkpoint.currentDocId === 'number' ? checkpoint.currentDocId : null,
+        phase: typeof checkpoint.phase === 'string' ? checkpoint.phase : null,
+        exitReason: typeof checkpoint.exitReason === 'string' ? checkpoint.exitReason : null,
+      },
       counts: {
         claimTriples: Number(row?.claim_triples || 0),
         financialTransactions: Number(row?.financial_transactions || 0),

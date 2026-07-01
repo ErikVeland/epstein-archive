@@ -17,6 +17,8 @@ if (!process.env.AI_PROVIDER) process.env.AI_PROVIDER = 'exo_cluster';
 
 const PIPELINE_VERSION = 'reducto-vlm-1.0';
 const RUN_ID = `vlm-backfill-${Date.now()}`;
+const VLM_BATCH_SIZE = Math.max(1, parseInt(process.env.VLM_BACKFILL_BATCH_SIZE || '20', 10) || 20);
+const VLM_MAX_DOCS = Math.max(0, parseInt(process.env.VLM_BACKFILL_MAX_DOCS || '0', 10) || 0);
 
 function writeLiveStatus(
   processed: number,
@@ -114,12 +116,14 @@ async function backfillVlm() {
   let successCount = 0;
   let failCount = 0;
   let skippedCount = 0;
+  let processedThisRun = 0;
 
   // Target images that have not yet been parsed by VLM
   const targetQuery = `
     FROM documents 
     WHERE file_type ILIKE 'image/%' 
-    AND (metadata_json IS NULL OR NOT metadata_json ? 'vlm_parsed')
+    AND COALESCE((metadata_json->>'vlm_parsed')::boolean, false) = false
+    AND COALESCE((metadata_json->>'vlm_failed_permanently')::boolean, false) = false
   `;
 
   const countRes = await pool.query(`SELECT COUNT(*) as total ${targetQuery}`);
@@ -131,19 +135,29 @@ async function backfillVlm() {
     await pool.end();
     return;
   }
+  if (VLM_MAX_DOCS > 0) {
+    console.log(`   ⏱️  This run is capped at ${VLM_MAX_DOCS} VLM documents.`);
+  }
 
   let hasMore = true;
   while (hasMore) {
+    if (VLM_MAX_DOCS > 0 && processedThisRun >= VLM_MAX_DOCS) {
+      console.log(`\n⏸️  VLM run cap reached (${processedThisRun}/${VLM_MAX_DOCS}).`);
+      break;
+    }
+
     await ensureVisionModelReady(successCount + failCount + skippedCount, totalDocs);
 
     const query = `
-      SELECT id, file_name, file_path, source_collection, metadata_json 
+      SELECT id, file_name, file_path, source_collection, metadata_json
       ${targetQuery}
-      ORDER BY id ASC
-      LIMIT 20
+      ORDER BY COALESCE(red_flag_rating, 0) DESC, id ASC
+      LIMIT $1
     `;
 
-    const res = await pool.query(query);
+    const remainingCap =
+      VLM_MAX_DOCS > 0 ? Math.max(0, VLM_MAX_DOCS - processedThisRun) : VLM_BATCH_SIZE;
+    const res = await pool.query(query, [Math.min(VLM_BATCH_SIZE, remainingCap)]);
     const docs = res.rows;
     if (docs.length === 0) {
       hasMore = false;
@@ -153,6 +167,22 @@ async function backfillVlm() {
     for (const doc of docs) {
       writeLiveStatus(successCount + failCount + skippedCount, totalDocs, doc.file_name);
       const filePath = doc.file_path;
+      if (!filePath) {
+        console.warn(`  ⚠️  Missing file path (id: ${doc.id})`);
+        const meta = doc.metadata_json || {};
+        meta.vlm_error = 'Missing file path';
+        meta.vlm_parsed = true;
+        meta.vlm_failed_permanently = true;
+        meta.vlm_run_id = RUN_ID;
+        meta.vlm_version = PIPELINE_VERSION;
+        await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [
+          JSON.stringify(meta),
+          doc.id,
+        ]);
+        skippedCount++;
+        processedThisRun++;
+        continue;
+      }
       // Try relative or absolute paths
       let fullPath = filePath;
       if (!existsSync(fullPath)) {
@@ -165,7 +195,18 @@ async function backfillVlm() {
 
       if (!existsSync(fullPath)) {
         console.warn(`  ⚠️  File not found: ${filePath} (id: ${doc.id})`);
+        const meta = doc.metadata_json || {};
+        meta.vlm_error = 'File not found';
+        meta.vlm_parsed = true;
+        meta.vlm_failed_permanently = true;
+        meta.vlm_run_id = RUN_ID;
+        meta.vlm_version = PIPELINE_VERSION;
+        await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [
+          JSON.stringify(meta),
+          doc.id,
+        ]);
         skippedCount++;
+        processedThisRun++;
         continue;
       }
 
@@ -221,6 +262,7 @@ async function backfillVlm() {
 
         console.log(`    ✅ Extracted ${enrichedText.length} chars via VLM.`);
         successCount++;
+        processedThisRun++;
       } catch (e) {
         console.error(`    ❌ Failed to process ${doc.file_name}:`, (e as Error).message);
         // Mark as failed but mark vlm_parsed=true to avoid loop, or log error
@@ -238,6 +280,7 @@ async function backfillVlm() {
           doc.id,
         ]);
         failCount++;
+        processedThisRun++;
       }
 
       // Short sleep to yield to the Exo API cluster

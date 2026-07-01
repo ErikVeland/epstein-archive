@@ -301,7 +301,7 @@ export async function runEnrichPhase(
       SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name
       FROM documents
       WHERE ${whereClause} ${failedDocIds.size > 0 ? `AND id NOT IN (${Array.from(failedDocIds).join(',')})` : ''}
-      ORDER BY id ASC
+      ORDER BY COALESCE(red_flag_rating, 0) DESC, id ASC
       LIMIT $1
     `,
         [BATCH_SIZE],

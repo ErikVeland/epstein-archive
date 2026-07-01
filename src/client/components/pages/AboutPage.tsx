@@ -48,6 +48,21 @@ interface PipelineStatus {
   blockedReason?: string | null;
   activeStage?: string | null;
   activeStageDescription?: string | null;
+  runtime?: {
+    status: 'running' | 'stale' | 'paused' | 'stopped' | string;
+    processRunning: boolean;
+    checkpointRunning: boolean;
+    pid: number | null;
+    pidAlive: boolean;
+    heartbeatAt: string | null;
+    heartbeatAgeSeconds: number | null;
+    heartbeatFresh: boolean;
+    lastProgressAt: string | null;
+    currentFile: string | null;
+    currentDocId: number | null;
+    phase: string | null;
+    exitReason: string | null;
+  };
   stage_status?: Record<string, Record<string, number | string | null>>;
   ai_artifacts?: {
     total: number;
@@ -57,6 +72,7 @@ interface PipelineStatus {
     id: number;
     status: string;
     control_signal: string | null;
+    effective_status?: string;
   } | null;
   exo?: {
     host: string;
@@ -325,6 +341,10 @@ export const AboutPage: React.FC = () => {
 
   const pipelineStages = useMemo(() => {
     const stageStatus = pipelineStatus?.stage_status || {};
+    const activeStage = pipelineStatus?.activeStage ?? null;
+    const runtimeStatus = pipelineStatus?.runtime?.status ?? null;
+    const liveStageActive =
+      runtimeStatus === 'running' || runtimeStatus === 'stale' || runtimeStatus === 'paused';
     return Object.entries(STAGE_LABELS)
       .map(([name, label]) => {
         const stage = stageStatus[name] || {};
@@ -332,6 +352,7 @@ export const AboutPage: React.FC = () => {
         const failed = asNumber(stage.failed);
         const running = asNumber(stage.running);
         const total = succeeded + failed + running;
+        const isActive = activeStage === name && liveStageActive;
         return {
           name,
           label,
@@ -339,7 +360,14 @@ export const AboutPage: React.FC = () => {
           failed,
           running,
           total,
-          state: running > 0 ? 'running' : failed > 0 ? 'failed' : succeeded > 0 ? 'done' : 'idle',
+          state:
+            running > 0 || isActive
+              ? 'running'
+              : failed > 0
+                ? 'failed'
+                : succeeded > 0
+                  ? 'done'
+                  : 'idle',
         };
       })
       .filter((stage) => stage.total > 0);
@@ -355,6 +383,7 @@ export const AboutPage: React.FC = () => {
       return null;
 
     const activeStage = pipelineStatus?.activeStage ?? null;
+    const runtime = pipelineStatus?.runtime;
     let processed = 0;
     let total = 0;
     let percent = 0;
@@ -378,6 +407,10 @@ export const AboutPage: React.FC = () => {
       blockedReason: pipelineStatus.blockedReason ?? null,
       activeStage,
       activeStageDescription: pipelineStatus.activeStageDescription ?? null,
+      runtimeStatus: runtime?.status ?? null,
+      heartbeatAgeSeconds: runtime?.heartbeatAgeSeconds ?? null,
+      currentFile: runtime?.currentFile ?? null,
+      pid: runtime?.pid ?? null,
       processed,
       total,
       percent,
@@ -794,12 +827,38 @@ export const AboutPage: React.FC = () => {
                   )}
                   {livePipelineStatus.activeStage && (
                     <div className={s.activeStageRow}>
-                      <span className={s.activeStageName}>{livePipelineStatus.activeStage}</span>
+                      <div className={s.activeStageHeader}>
+                        <span className={s.activeStageName}>{livePipelineStatus.activeStage}</span>
+                        {livePipelineStatus.runtimeStatus && (
+                          <span
+                            className={`${s.runtimePill} ${
+                              livePipelineStatus.runtimeStatus === 'running'
+                                ? s.runtimePillRunning
+                                : livePipelineStatus.runtimeStatus === 'stale'
+                                  ? s.runtimePillStale
+                                  : s.runtimePillStopped
+                            }`}
+                          >
+                            {livePipelineStatus.runtimeStatus}
+                          </span>
+                        )}
+                      </div>
                       {livePipelineStatus.activeStageDescription && (
                         <span className={s.activeStageDesc}>
                           {livePipelineStatus.activeStageDescription}
                         </span>
                       )}
+                      <div className={s.runtimeMeta}>
+                        {livePipelineStatus.pid && <span>PID {livePipelineStatus.pid}</span>}
+                        {livePipelineStatus.heartbeatAgeSeconds !== null && (
+                          <span>Heartbeat {livePipelineStatus.heartbeatAgeSeconds}s ago</span>
+                        )}
+                        {livePipelineStatus.currentFile && (
+                          <span title={livePipelineStatus.currentFile}>
+                            {livePipelineStatus.currentFile}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
                   {livePipelineStatus.total > 0 && (

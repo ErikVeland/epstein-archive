@@ -50,6 +50,22 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     modes: ['backfill'],
   },
   {
+    name: 'image-ocr',
+    description: 'Backfill OCR text for image documents before AI summarization',
+    script: 'scripts/backfill_image_ocr.ts',
+    phase: 'Image OCR Backfill',
+    version: 'image-ocr-v1',
+    modes: ['backfill'],
+  },
+  {
+    name: 'ai-enrichment',
+    description: 'AI OCR repair, summaries, document-level semantic artifacts',
+    phase: 'Enrichment',
+    version: 'ai-enrich-v2',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
     name: 'vlm-visuals',
     description: 'Reducto-style visual document parsing for image-heavy evidence',
     script: 'scripts/backfill_vlm_visuals.ts',
@@ -57,14 +73,6 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     version: 'reducto-vlm-1',
     modes: ['backfill'],
     requiresAi: true,
-  },
-  {
-    name: 'image-ocr',
-    description: 'Backfill OCR text for image documents before AI summarization',
-    script: 'scripts/backfill_image_ocr.ts',
-    phase: 'Image OCR Backfill',
-    version: 'image-ocr-v1',
-    modes: ['backfill'],
   },
   {
     name: 'image-media',
@@ -97,14 +105,6 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     phase: 'Embedded Media Extraction',
     version: 'media-extract-v1',
     modes: ['backfill'],
-  },
-  {
-    name: 'ai-enrichment',
-    description: 'AI OCR repair, summaries, document-level semantic artifacts',
-    phase: 'Enrichment',
-    version: 'ai-enrich-v2',
-    modes: ['full', 'ingest', 'backfill'],
-    requiresAi: true,
   },
   {
     name: 'face-ingest',
@@ -204,8 +204,22 @@ export function stagesForMode(mode: 'full' | 'ingest' | 'backfill'): UnifiedStag
   const requestedStage =
     requestedStageIndex >= 0 ? process.argv[requestedStageIndex + 1]?.trim() : '';
 
-  const stages = UNIFIED_STAGES.filter((stage) => stage.modes.includes(mode));
+  const skippedStages = new Set(
+    (process.env.PIPELINE_SKIP_STAGES || '')
+      .split(',')
+      .map((stage) => stage.trim())
+      .filter(Boolean),
+  );
+  const stages = UNIFIED_STAGES.filter(
+    (stage) => stage.modes.includes(mode) && !skippedStages.has(stage.name),
+  );
   if (!requestedStage) return stages;
+
+  if (skippedStages.has(requestedStage)) {
+    throw new Error(
+      `Stage "${requestedStage}" was requested but is disabled by PIPELINE_SKIP_STAGES`,
+    );
+  }
 
   const matched = stages.filter((stage) => stage.name === requestedStage);
   if (matched.length === 0) {

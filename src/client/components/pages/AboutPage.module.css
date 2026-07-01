@@ -1820,6 +1820,13 @@
   padding: var(--space-2) 0;
 }
 
+.activeStageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
 .activeStageName {
   font-size: 0.72rem;
   font-weight: 700;
@@ -1831,6 +1838,52 @@
 .activeStageDesc {
   font-size: 0.7rem;
   color: var(--text-muted);
+}
+
+.runtimePill {
+  flex: 0 0 auto;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.runtimePillRunning {
+  border-color: color-mix(in srgb, var(--accent-success) 60%, transparent);
+  color: var(--accent-success);
+  background: color-mix(in srgb, var(--accent-success) 12%, transparent);
+}
+
+.runtimePillStale {
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.runtimePillStopped {
+  border-color: color-mix(in srgb, var(--accent-danger) 55%, transparent);
+  color: var(--accent-danger);
+  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+}
+
+.runtimeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.62rem;
+}
+
+.runtimeMeta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .exoMeta {

@@ -1,4 +1,5 @@
 import { statsQueries } from '@epstein/db';
+import { execFileSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { getApiPool } from './connection.js';
@@ -29,6 +30,38 @@ const readLivePipelineStatus = () => {
   } catch (e) {
     logger.warn({ detail: e }, 'Failed to read live pipeline status checkpoint');
     return null;
+  }
+};
+
+const asDateMs = (value: unknown): number | null => {
+  if (typeof value !== 'string' || value.trim().length === 0) return null;
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? ms : null;
+};
+
+const asPid = (value: unknown): number | null => {
+  const pid = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  return Number.isInteger(pid) && pid > 0 ? pid : null;
+};
+
+const isPidAlive = (pid: number | null): boolean => {
+  if (!pid) return false;
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const hasUnifiedPipelineProcess = (): boolean => {
+  try {
+    execFileSync('pgrep', ['-f', 'tsx.*scripts/unified_pipeline\\.ts|unified_pipeline\\.ts'], {
+      stdio: 'ignore',
+    });
+    return true;
+  } catch {
+    return false;
   }
 };
 
@@ -567,17 +600,73 @@ export const statsRepository = {
       throughput_docs_sec > 0 ? Math.ceil(remaining / throughput_docs_sec / 60) : 0;
 
     const cp = readLivePipelineStatus();
+    const checkpointPid = asPid(cp?.pid);
+    const pidAlive = isPidAlive(checkpointPid);
+    const processRunning = pidAlive || hasUnifiedPipelineProcess();
+    const heartbeatAt = typeof cp?.heartbeatAt === 'string' ? cp.heartbeatAt : null;
+    const lastProgressAt = typeof cp?.lastProgressAt === 'string' ? cp.lastProgressAt : null;
+    const heartbeatMs = asDateMs(heartbeatAt);
+    const heartbeatAgeSeconds =
+      heartbeatMs === null ? null : Math.max(0, Math.round((Date.now() - heartbeatMs) / 1000));
+    const heartbeatFresh = heartbeatAgeSeconds !== null && heartbeatAgeSeconds <= 120;
+    const checkpointRunning = cp?.running === true;
+    const dbRunStatus =
+      typeof currentRun?.status === 'string' ? (currentRun.status as string) : null;
+    const effectiveStatus =
+      dbRunStatus === 'paused'
+        ? 'paused'
+        : processRunning && heartbeatFresh
+          ? 'running'
+          : processRunning
+            ? 'stale'
+            : dbRunStatus === 'running'
+              ? 'stale'
+              : 'stopped';
     const vlmTotal = Number(cp?.vlmTotal || 0);
     const vlmProcessed = Number(cp?.vlmProcessed || 0);
     const enrichTotal = Number(cp?.enrichTotal || 0);
     const enrichProcessed = Number(cp?.enrichProcessed || 0);
     const blockedReason = typeof cp?.blockedReason === 'string' ? cp.blockedReason : null;
     const currentFile = typeof cp?.currentFile === 'string' ? cp.currentFile : null;
+    const activeStage =
+      typeof cp?.activeStage === 'string'
+        ? cp.activeStage
+        : typeof cp?.phase === 'string' && cp.phase !== 'Idle'
+          ? cp.phase
+          : currentFile
+            ? 'VLM Visual Analysis'
+            : null;
+    const activeStageDescription =
+      typeof cp?.activeStageDescription === 'string'
+        ? cp.activeStageDescription
+        : currentFile
+          ? `Analyzing ${currentFile}`
+          : null;
 
     return {
       datasets: results,
       media,
-      current_run: currentRun,
+      current_run: currentRun
+        ? {
+            ...currentRun,
+            effective_status: effectiveStatus,
+          }
+        : null,
+      runtime: {
+        status: effectiveStatus,
+        processRunning,
+        checkpointRunning,
+        pid: checkpointPid,
+        pidAlive,
+        heartbeatAt,
+        heartbeatAgeSeconds,
+        heartbeatFresh,
+        lastProgressAt,
+        currentFile,
+        currentDocId: typeof cp?.currentDocId === 'number' ? cp.currentDocId : null,
+        phase: typeof cp?.phase === 'string' ? cp.phase : null,
+        exitReason: typeof cp?.exitReason === 'string' ? cp.exitReason : null,
+      },
       stage_status,
       ai_artifacts: {
         total: Number(artifactStats?.total || 0),
@@ -610,18 +699,8 @@ export const statsRepository = {
           : undefined,
       blocked: Boolean(cp?.blocked || blockedReason),
       blockedReason,
-      activeStage:
-        typeof cp?.activeStage === 'string'
-          ? cp.activeStage
-          : currentFile
-            ? 'VLM Visual Analysis'
-            : null,
-      activeStageDescription:
-        typeof cp?.activeStageDescription === 'string'
-          ? cp.activeStageDescription
-          : currentFile
-            ? `Analyzing ${currentFile}`
-            : null,
+      activeStage,
+      activeStageDescription,
     };
   },
 
