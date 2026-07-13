@@ -15,7 +15,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 import { getDbMetaPayload } from '../services/dbMetaService.js';
-import { withTimeoutFallback, withTimeoutReject } from '../utils/asyncTimeout.js';
+import { withTimeoutReject } from '../utils/asyncTimeout.js';
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
@@ -24,12 +24,6 @@ const READINESS_TIMEOUT_MS = Math.max(
   100,
   Number.parseInt(process.env.READINESS_TIMEOUT_MS ?? '250', 10) || 250,
 );
-
-const withStatsTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
-  withTimeoutFallback(promise, fallback, {
-    timeoutMs: STATS_TIMEOUT_MS,
-    onTimeout: () => logger.warn('[Stats] aggregate stats timed out; returning degraded fallback'),
-  });
 
 // ── /meta/db ─── Canary endpoint: database dialect, version, timeouts, pool stats
 router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
@@ -44,11 +38,25 @@ router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
 // Cache for 5 minutes (300 seconds)
 router.get('/', cacheMiddleware(300), async (_req, res, next) => {
   try {
-    const stats = await withStatsTimeout<RawStatsRow>(
-      statsRepository.getStatistics() as unknown as Promise<RawStatsRow>,
-      { collectionStats: { degraded: true, data: [] } },
-    );
-    res.json(mapStatsDto(stats));
+    let stats: RawStatsRow;
+    try {
+      stats = await withTimeoutReject(
+        statsRepository.getStatistics() as unknown as Promise<RawStatsRow>,
+        {
+          timeoutMs: STATS_TIMEOUT_MS,
+          timeoutMessage: 'Aggregate statistics query timed out',
+        },
+      );
+    } catch (error) {
+      logger.warn({ err: error }, '[Stats] aggregate stats unavailable; returning minimum totals');
+      stats = (await statsRepository.getMinimumStatistics()) as RawStatsRow;
+    }
+
+    const payload = mapStatsDto(stats);
+    if (payload._meta?.degraded) {
+      res.setHeader('X-Skip-Cache', 'true');
+    }
+    res.json(payload);
   } catch (e) {
     next(e);
   }

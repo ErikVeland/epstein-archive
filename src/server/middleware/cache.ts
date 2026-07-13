@@ -55,7 +55,8 @@ export const cacheResponse = (ttlSeconds: number) => {
 
     const originalSend = res.send.bind(res);
     res.send = function (body: unknown) {
-      if (res.statusCode >= 200 && res.statusCode < 300) {
+      const skipCache = res.getHeader('X-Skip-Cache') === 'true';
+      if (res.statusCode >= 200 && res.statusCode < 300 && !skipCache) {
         apiCache.set(cacheKey, body, ttlSeconds);
       }
       return originalSend(body);

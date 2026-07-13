@@ -1497,7 +1497,7 @@ class ApiClient {
   }
 
   async readinessCheck(): Promise<ReadinessResponse> {
-    const url = `${API_BASE_URL}/health/ready`;
+    const url = `${API_BASE_URL}/health/ready?soft=1`;
     return this.fetchWithErrorHandling<ReadinessResponse>(url, {
       useCache: false,
     });
