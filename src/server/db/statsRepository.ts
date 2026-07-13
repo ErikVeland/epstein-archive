@@ -304,6 +304,8 @@ const getMinimumStatisticsFallback = async () => {
 };
 
 export const statsRepository = {
+  getMinimumStatistics: getMinimumStatisticsFallback,
+
   getStatistics: async () => {
     let pipelineProgress,
       globalStatsRows,
