@@ -1,5 +1,6 @@
 import { getApiPool } from '../db/connection.js';
 import { createHash } from 'crypto';
+import { logger } from '../services/Logger.js';
 
 type AuditLogMode = 'modern' | 'legacy_user' | 'legacy_operation' | 'none';
 let auditLogModeCache: AuditLogMode | null = null;
@@ -8,6 +9,24 @@ type AuditV2Mode = 'present' | 'absent';
 let auditV2ModeCache: AuditV2Mode | null = null;
 
 const auditFailuresAreFatal = (): boolean => process.env.NODE_ENV === 'production';
+
+// Warn once at startup if running in production without explicit AUDIT_FAIL_CLOSED.
+// This makes the implicit fail-closed behaviour visible in the boot log.
+let _auditStartupWarned = false;
+if (process.env.NODE_ENV === 'production' && !_auditStartupWarned) {
+  _auditStartupWarned = true;
+  const explicit =
+    process.env.AUDIT_FAIL_CLOSED === '1' || process.env.AUDIT_FAIL_CLOSED === 'true';
+  if (!explicit) {
+    // Use a microtask so the logger is guaranteed to be initialised first
+    void Promise.resolve().then(() =>
+      logger.info(
+        '[Audit] Running in production — fail-closed is ACTIVE (implicit). ' +
+          'Set AUDIT_FAIL_CLOSED=1 in .env to make this explicit.',
+      ),
+    );
+  }
+}
 
 const stableJson = (value: unknown): string => {
   if (value == null) return 'null';

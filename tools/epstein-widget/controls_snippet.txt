@@ -1,23 +1,29 @@
-      <div className="controls">
-        <button className="ctl ctl--green" onClick={() => run(CONTROL_SCRIPT + ' start')}>
-          Start
-        </button>
-        <button className="ctl ctl--red" onClick={() => run(CONTROL_SCRIPT + ' stop')}>
-          Stop
-        </button>
-        <button
-          className="ctl"
-          disabled={!runId || runStatus !== 'running' || runSignal === 'pause'}
-          onClick={() => run(CONTROL_SCRIPT + ' pause')}
-        >
-          Pause
-        </button>
-        <button
-          className="ctl"
-          disabled={!runId || runStatus !== 'paused'}
-          onClick={() => run(CONTROL_SCRIPT + ' resume')}
-        >
-          Resume
-        </button>
-      </div>
+      <details className="widget-panel widget-panel--controls">
+        <summary className="widget-panel-summary">
+          <span>Controls</span>
+          <span className="widget-panel-aside">{runStatus || 'idle'}</span>
+        </summary>
 
+        <div className="controls">
+          <button className="ctl ctl--green" onClick={() => run(CONTROL_SCRIPT + ' start')}>
+            Start
+          </button>
+          <button className="ctl ctl--red" onClick={() => run(CONTROL_SCRIPT + ' stop')}>
+            Stop
+          </button>
+          <button
+            className="ctl"
+            disabled={!runId || runStatus !== 'running' || runSignal === 'pause'}
+            onClick={() => run(CONTROL_SCRIPT + ' pause')}
+          >
+            Pause
+          </button>
+          <button
+            className="ctl"
+            disabled={!runId || runStatus !== 'paused'}
+            onClick={() => run(CONTROL_SCRIPT + ' resume')}
+          >
+            Resume
+          </button>
+        </div>
+      </details>

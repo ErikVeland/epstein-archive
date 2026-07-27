@@ -55,6 +55,12 @@
       }
     },
     {
+      "files": ["src/types/**/*.d.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
       "files": ["packages/db/src/queries/__generated__/**/*.{ts,tsx}"],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off"
@@ -105,9 +111,13 @@
     "prettier/prettier": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    "react-hooks/set-state-in-effect": "warn",
-    "react-hooks/preserve-manual-memoization": "warn",
-    "react-hooks/purity": "warn",
-    "react-hooks/immutability": "warn"
+    // React Compiler (Forget) experimental rules — disabled until the project
+    // adopts React Compiler. These rules fire on valid React 18 patterns and
+    // produce noise rather than signal without the compiler runtime present.
+    // Re-enable as "warn" when upgrading to React 19 + React Compiler.
+    "react-hooks/set-state-in-effect": "off",
+    "react-hooks/preserve-manual-memoization": "off",
+    "react-hooks/purity": "off",
+    "react-hooks/immutability": "off"
   }
 }

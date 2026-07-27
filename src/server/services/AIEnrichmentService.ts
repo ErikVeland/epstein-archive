@@ -23,6 +23,13 @@ export interface EnrichmentOutput {
   isSensitive: boolean;
 }
 
+export class ExoModelUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ExoModelUnavailableError';
+  }
+}
+
 export class AIEnrichmentService {
   // Ollama (single-machine) configuration
   private static OLLAMA_HOST = process.env.OLLAMA_HOST || 'http://localhost:11434';
@@ -306,6 +313,7 @@ export class AIEnrichmentService {
       retryCount?: number;
       task?: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph' | 'vision';
       images?: Buffer[];
+      modelId?: string;
     } = {},
   ): Promise<string> {
     const provider = process.env.AI_PROVIDER || 'local_ollama';
@@ -317,7 +325,7 @@ export class AIEnrichmentService {
     const MAX_MODEL_SWITCHES = 4;
     while (attempt <= retryCount) {
       try {
-        const modelId = await this.getModelId(task);
+        const modelId = options.modelId || (await this.getModelId(task));
         if (provider === 'exo_cluster') {
           // OpenAI-compatible API (Exo)
           const url = `${this.EXO_HOST}/v1/chat/completions`;
@@ -377,10 +385,9 @@ export class AIEnrichmentService {
               }
               modelSwitches++;
               if (modelSwitches >= MAX_MODEL_SWITCHES) {
-                logger.error(
-                  `❌ No Exo model found after ${modelSwitches} switches. Ensure a model is running in EXO.`,
-                );
-                return '';
+                const message = `No callable Exo model instance found after ${modelSwitches} attempts. The model catalog is reachable, but completion requests return 404.`;
+                logger.error(`❌ ${message}`);
+                throw new ExoModelUnavailableError(message);
               }
               logger.warn(
                 `⚠️ Exo model ${modelId} not running (404). Switching model (${modelSwitches}/${MAX_MODEL_SWITCHES})...`,
@@ -941,7 +948,7 @@ ${entityNames.join(', ')}
    */
   static async summarizeDocument(
     content: string,
-    metadata: { fileName?: string; subject?: string },
+    metadata: { fileName?: string; subject?: string; modelId?: string },
   ): Promise<string | null> {
     const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled || !content || content.length < 100) return null;
@@ -961,7 +968,12 @@ Content: "${content.slice(0, 2000)}"
 
 ### SUMMARY`;
 
-      const result = await this.callLLM(prompt, { maxTokens: 150, temperature: 0.3 });
+      const result = await this.callLLM(prompt, {
+        maxTokens: 150,
+        temperature: 0.1,
+        task: 'summarize',
+        modelId: metadata.modelId,
+      });
 
       // Basic sanity check
       if (result && result.length > 20 && result.length < 1000) {

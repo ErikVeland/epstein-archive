@@ -64,8 +64,33 @@ router.get('/backfill', async (_req, res, next) => {
     const heartbeatAgeSeconds =
       heartbeatMs === null ? null : Math.max(0, Math.round((Date.now() - heartbeatMs) / 1000));
     const heartbeatFresh = heartbeatAgeSeconds !== null && heartbeatAgeSeconds <= 120;
-    const effectiveStatus =
-      processRunning && heartbeatFresh ? 'running' : processRunning ? 'stale' : 'stopped';
+    const lastProgressAt =
+      typeof checkpoint.lastProgressAt === 'string' ? checkpoint.lastProgressAt : null;
+    const lastProgressMs = asDateMs(lastProgressAt);
+    const progressAgeSeconds =
+      lastProgressMs === null
+        ? null
+        : Math.max(0, Math.round((Date.now() - lastProgressMs) / 1000));
+    const startedAt = asDateMs(checkpoint.enrichStartedAt);
+    const startingGrace = startedAt !== null && Date.now() - startedAt <= 5 * 60 * 1000;
+    const progressFresh = progressAgeSeconds !== null && progressAgeSeconds <= 10 * 60;
+    const blockedReason =
+      typeof checkpoint.blockedReason === 'string'
+        ? checkpoint.blockedReason
+        : typeof checkpoint.lastError === 'string'
+          ? checkpoint.lastError
+          : null;
+    const effectiveStatus = blockedReason
+      ? 'blocked'
+      : processRunning && !heartbeatFresh
+        ? 'stale'
+        : processRunning && progressFresh
+          ? 'running'
+          : processRunning && startingGrace
+            ? 'starting'
+            : processRunning
+              ? 'stalled'
+              : 'stopped';
     const pool = getApiPool();
     const counts = await pool.query<{
       claim_triples: string;
@@ -193,8 +218,10 @@ router.get('/backfill', async (_req, res, next) => {
         heartbeatAt,
         heartbeatAgeSeconds,
         heartbeatFresh,
-        lastProgressAt:
-          typeof checkpoint.lastProgressAt === 'string' ? checkpoint.lastProgressAt : null,
+        lastProgressAt,
+        progressAgeSeconds,
+        progressFresh,
+        blockedReason,
         currentFile: typeof checkpoint.currentFile === 'string' ? checkpoint.currentFile : null,
         currentDocId: typeof checkpoint.currentDocId === 'number' ? checkpoint.currentDocId : null,
         phase: typeof checkpoint.phase === 'string' ? checkpoint.phase : null,

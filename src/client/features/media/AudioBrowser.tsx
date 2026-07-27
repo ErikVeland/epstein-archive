@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FixedSizeList as List, ListChildComponentProps, areEqual } from 'react-window';
@@ -134,7 +134,15 @@ const AudioRow = React.memo(({ index, style, data }: ListChildComponentProps<Aud
                 <Box className={styles.cardHeader}>
                   <SensitiveContent isSensitive={item.isSensitive} className={styles.mediaArea}>
                     {displayImage ? (
-                      <img src={displayImage} alt="" className={styles.cardImage} />
+                      <img
+                        src={displayImage}
+                        alt=""
+                        className={styles.cardImage}
+                        onError={(e) => {
+                          // Hide broken image element — the Music icon fallback below takes over
+                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
                     ) : (
                       <Flex align="center" justify="center" className={styles.fallbackIcon}>
                         <Icon name="Music" size="xl" className={styles.iconMuted} />
@@ -415,13 +423,15 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
   const [prevTargetId, setPrevTargetId] = useState<number | undefined>(undefined);
 
-  // Sync direct link item to selection during render to avoid cascading effects
-  if (targetAudioId !== prevTargetId) {
+  // Sync direct-link item to selection when the target audio ID changes.
+  // Using useEffect avoids calling setState synchronously during render.
+  useEffect(() => {
+    if (targetAudioId === prevTargetId) return;
     setPrevTargetId(targetAudioId);
     if (directLinkItem && !selectedItem) {
       setSelectedItem(directLinkItem);
     }
-  }
+  }, [targetAudioId, prevTargetId, directLinkItem, selectedItem]);
 
   const handleClosePlayer = useCallback(() => {
     setSelectedItem(null);

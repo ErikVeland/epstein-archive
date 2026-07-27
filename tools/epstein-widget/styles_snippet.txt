@@ -27,7 +27,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 6px;
-    margin: 8px 0 12px;
+    margin: 8px 0 2px;
   }
 
   .ctl {
@@ -72,7 +72,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: -6px 0 14px;
+    margin: 8px 0 2px;
   }
 
   .exo-pill {
@@ -111,7 +111,7 @@
     z-index: 2;
     display: grid;
     gap: 5px;
-    margin: 6px 0 10px;
+    margin: 8px 0 8px;
   }
 
   .stage-row {
@@ -170,7 +170,79 @@
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    margin: -2px 0 10px;
+    margin: 0 0 2px;
     font-size: 10px;
     color: rgba(255,255,255,0.44);
+  }
+
+  .widget-panel {
+    position: relative;
+    z-index: 2;
+    margin: 5px 0;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    background: rgba(2, 22, 43, 0.38);
+    overflow: hidden;
+  }
+
+  .widget-panel[open] {
+    background: rgba(2, 22, 43, 0.52);
+  }
+
+  .widget-panel-summary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) 10px;
+    align-items: center;
+    gap: 8px;
+    min-height: 24px;
+    padding: 4px 8px;
+    color: rgba(255,255,255,0.72);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .widget-panel-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .widget-panel-summary::after {
+    content: '▾';
+    color: rgba(255,255,255,0.35);
+    font-size: 10px;
+    transform: rotate(-90deg);
+    transition: transform 140ms ease;
+  }
+
+  .widget-panel[open] > .widget-panel-summary::after {
+    transform: rotate(0deg);
+  }
+
+  .widget-panel-summary > span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .widget-panel-aside {
+    min-width: 0;
+    max-width: 145px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    justify-self: end;
+    color: rgba(255,255,255,0.42);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .widget-panel[open] > .widget-panel-summary {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }

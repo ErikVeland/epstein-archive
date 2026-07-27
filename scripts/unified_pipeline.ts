@@ -18,6 +18,7 @@ import { CHECKPOINT_DIR, PIPELINE_VERSION } from './pipeline/config.js';
 import {
   pipelineRuntime,
   isShuttingDown,
+  PipelineBlockedError,
   updateHeartbeat,
   sleep,
   installSignalHandlers,
@@ -186,6 +187,7 @@ async function main() {
       await runCycle(mode, sourceDir, currentPipelineRun);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
+      const blocked = error instanceof PipelineBlockedError;
       console.error('\n❌ Cycle error (will retry in 60s):', error);
       pipelineRuntime.currentDocId = null;
       pipelineRuntime.currentFile = null;
@@ -193,13 +195,19 @@ async function main() {
       updateHeartbeat({
         phase: 'Error',
         lastError: msg,
+        lastErrorAt: new Date().toISOString(),
+        blocked,
         blockedReason: msg,
         currentFile: null,
         currentDocId: null,
         currentDocStartedAt: null,
       });
       if (currentPipelineRun) {
-        await PipelineService.updateRunStatus(currentPipelineRun.id, 'running', msg);
+        await PipelineService.updateRunStatus(
+          currentPipelineRun.id,
+          blocked ? 'failed' : 'running',
+          msg,
+        );
       }
       if (!isShuttingDown()) {
         for (let i = 0; i < 60; i++) {

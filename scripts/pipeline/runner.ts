@@ -6,7 +6,10 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import { spawn } from 'child_process';
 import crypto from 'crypto';
-import { AIEnrichmentService } from '../../src/server/services/AIEnrichmentService.js';
+import {
+  AIEnrichmentService,
+  ExoModelUnavailableError,
+} from '../../src/server/services/AIEnrichmentService.js';
 import { getIngestPool } from '../../src/server/db/connection.js';
 import { withTimeoutReject } from '../../src/server/utils/asyncTimeout.js';
 import { PipelineService, type PipelineRun } from '../../src/server/services/pipelineService.js';
@@ -16,12 +19,13 @@ import {
   isShuttingDown,
   setShuttingDown,
   PipelineBlockedError,
+  writeLiveStatus,
   updateHeartbeat,
   markProgress,
   sleep,
 } from './status.js';
 import { stageByName, type UnifiedStage } from './stages.js';
-import { ensureServiceHealthyOrRecover, attemptRecovery } from './recovery.js';
+import { ensureServiceHealthyOrRecover } from './recovery.js';
 
 /**
  * Run a subprocess and stream its output. A heartbeat keepalive timer fires
@@ -232,6 +236,21 @@ export async function runEnrichPhase(
   console.log(`   Provider: ${process.env.AI_PROVIDER}`);
   console.log(`   Mode: ${mode}`);
 
+  const modelPool = (process.env.EXO_MODEL_POOL || process.env.EXO_MODEL || '')
+    .split(',')
+    .map((model) => model.trim())
+    .filter(Boolean);
+  const defaultModel = process.env.EXO_MODEL || modelPool[0] || process.env.AI_PROVIDER || 'auto';
+  const fastModels = modelPool.filter((model) => !model.toLowerCase().includes('qwen3-vl'));
+  const qualityModel =
+    modelPool.find((model) => model.toLowerCase().includes('qwen3-vl')) || defaultModel;
+  // Benchmark-derived 40/40/20 routine split: the two text models are faster,
+  // while retaining a steady Qwen-VL quality sample for drift detection.
+  const weightedModels = [...fastModels, ...fastModels, qualityModel];
+  let routingIndex = 0;
+  const modelUsage: Record<string, number> = {};
+  console.log(`   Model pool: ${modelPool.join(' | ') || defaultModel}`);
+
   if ((process.env.AI_PROVIDER || 'local_ollama') === 'exo_cluster') {
     await ensureServiceHealthyOrRecover(
       'exo',
@@ -246,20 +265,19 @@ export async function runEnrichPhase(
     runId: currentPipelineRun?.id,
     stageName: stage.name,
     stageVersion: stage.version,
-    modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
-    metrics: { mode },
+    modelId: modelPool.join(',') || defaultModel,
+    metrics: { mode, modelPool },
   });
 
   let whereClause =
     "content IS NOT NULL AND length(content) > 50 AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
   const summaryArtifactPredicate =
-    "NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'summary' AND daa.artifact_version = 'summary-v2' AND daa.prompt_version = 'forensic-summary-v1')";
-  const ocrArtifactPredicate =
-    "NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'ocr_clean_text' AND daa.artifact_version = 'ocr-clean-v1' AND daa.prompt_version = 'forensic-ocr-clean-v1')";
+    "NOT (metadata_json ? 'ai_summary') AND NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'summary' AND daa.artifact_version = 'summary-v2' AND daa.prompt_version = 'forensic-summary-v1')";
   if (mode === 'backfill') {
-    // Backfill documents lacking durable AI artifacts. LLM outputs are intentionally not used as
-    // metadata markers or canonical text updates unless explicitly enabled by environment.
-    whereClause += ` AND (${summaryArtifactPredicate} OR ((content LIKE '%=%' OR coalesce((metadata_json->>'ocr_confidence')::float, 1.0) < 0.6) AND ${ocrArtifactPredicate}))`;
+    // Backfill summaries only. OCR cleanup has its own ingest/queue stage; mixing the two here
+    // caused documents with an existing summary but no useful OCR-clean output to be selected
+    // forever and their summary to be regenerated thousands of times.
+    whereClause += ` AND ${summaryArtifactPredicate}`;
   } else if (mode === 'new') {
     whereClause += " AND created_at > now() - interval '1 day'";
   }
@@ -277,7 +295,7 @@ export async function runEnrichPhase(
   const startTime = Date.now();
 
   // Record when this enrichment run began so the widget can compute throughput/ETA
-  markProgress({
+  updateHeartbeat({
     phase: 'Enrichment',
     enrichStartedAt: new Date().toISOString(),
     enrichProcessed: 0,
@@ -298,7 +316,7 @@ export async function runEnrichPhase(
     const docs = (
       await pool.query(
         `
-      SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name
+      SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name, red_flag_rating
       FROM documents
       WHERE ${whereClause} ${failedDocIds.size > 0 ? `AND id NOT IN (${Array.from(failedDocIds).join(',')})` : ''}
       ORDER BY COALESCE(red_flag_rating, 0) DESC, id ASC
@@ -311,6 +329,7 @@ export async function runEnrichPhase(
       content: string | null;
       metadata_json: Record<string, unknown> | null;
       file_name: string | null;
+      red_flag_rating: number | null;
     }[];
 
     if (docs.length === 0) break;
@@ -322,6 +341,8 @@ export async function runEnrichPhase(
       enrichTotal,
       currentFile: docs[0]?.file_name ?? null,
       currentDocId: docs[0]?.id ?? null,
+      exoModelPool: modelPool,
+      modelUsage,
     });
 
     // Process sequentially: EXO is local so parallel requests queue up on its side
@@ -330,6 +351,16 @@ export async function runEnrichPhase(
       if (isShuttingDown()) break;
       let documentStageRun: { id: number } | null = null;
       try {
+        // High-risk evidence gets the strongest model. Routine documents are
+        // deterministically balanced across the two faster text models.
+        const primaryModel =
+          Number(doc.red_flag_rating || 0) >= 4 || weightedModels.length === 0
+            ? qualityModel
+            : weightedModels[routingIndex++ % weightedModels.length];
+        const fallbackModels = [primaryModel, qualityModel, ...modelPool].filter(
+          (model, index, all) => Boolean(model) && all.indexOf(model) === index,
+        );
+        let selectedModel = primaryModel;
         pipelineRuntime.currentDocId = Number(doc.id);
         pipelineRuntime.currentFile = doc.file_name || null;
         pipelineRuntime.currentDocStartedAt = Date.now();
@@ -373,15 +404,16 @@ export async function runEnrichPhase(
           stageName: stage.name,
           stageVersion: stage.version,
           inputHash,
-          modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
-          metrics: { mode, fileName: doc.file_name },
+          modelId: primaryModel,
+          metrics: { mode, fileName: doc.file_name, fallbackModels },
         });
 
         // LLM OCR Re-Correction Pipeline Phase:
         // Reconstruct highly garbled text (ocr_confidence < 0.6 or containing equals signs) into readable sentences using Ollama or Exo.
         const ocrConf = meta.ocr_confidence;
         const isLowLegibility =
-          (typeof ocrConf === 'number' && ocrConf < 0.6) || (doc.content || '').includes('=');
+          mode !== 'backfill' &&
+          ((typeof ocrConf === 'number' && ocrConf < 0.6) || (doc.content || '').includes('='));
         if (isLowLegibility && process.env.ENABLE_AI_ENRICHMENT === 'true') {
           const cleanedText = await AIEnrichmentService.cleanOCRText(refinedText, subject);
           if (cleanedText && cleanedText.length > 50) {
@@ -396,22 +428,29 @@ export async function runEnrichPhase(
         // Release raw content from row object — refinedText is the only copy we need
         doc.content = null;
 
-        let summary = await withTimeoutReject(
-          AIEnrichmentService.summarizeDocument(analysisText, {
-            fileName: doc.file_name || undefined,
-            subject,
-          }),
-          {
-            timeoutMs: DOC_PROCESSING_TIMEOUT_MS,
-            timeoutMessage: `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,
-            onTimeout: async () => {
-              await attemptRecovery(
-                'exo',
-                `AI enrichment timed out after ${Math.round(DOC_PROCESSING_TIMEOUT_MS / 1000)}s on ${doc.file_name || 'unknown'}`,
-              );
-            },
-          },
-        );
+        let summary: string | null = null;
+        let lastModelError: unknown = null;
+        for (const candidateModel of fallbackModels) {
+          selectedModel = candidateModel;
+          try {
+            summary = await withTimeoutReject(
+              AIEnrichmentService.summarizeDocument(analysisText, {
+                fileName: doc.file_name || undefined,
+                subject,
+                modelId: candidateModel,
+              }),
+              {
+                timeoutMs: DOC_PROCESSING_TIMEOUT_MS,
+                timeoutMessage: `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,
+              },
+            );
+            if (summary && summary.length >= 20) break;
+          } catch (error) {
+            lastModelError = error;
+            console.warn(`   ⚠️ ${candidateModel} failed for ${doc.id}; trying fallback`);
+          }
+        }
+        if (!summary && lastModelError) throw lastModelError;
 
         if (!summary || summary.length < 10) {
           const preview = analysisText
@@ -444,7 +483,7 @@ export async function runEnrichPhase(
             documentId: Number(doc.id),
             artifactType: 'ocr_clean_text',
             artifactVersion: 'ocr-clean-v1',
-            modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+            modelId: selectedModel,
             promptVersion: 'forensic-ocr-clean-v1',
             sourceExcerpt: refinedText.slice(0, 2000),
             outputText: cleanedTextForArtifact,
@@ -464,13 +503,15 @@ export async function runEnrichPhase(
           documentId: Number(doc.id),
           artifactType: 'summary',
           artifactVersion: 'summary-v2',
-          modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
+          modelId: selectedModel,
           promptVersion: 'forensic-summary-v1',
           sourceExcerpt: analysisText.slice(0, 2000),
           outputText: summary,
           confidence: summary.startsWith('Document "') ? 0.35 : 0.75,
           provenance: {
             provider: process.env.AI_PROVIDER,
+            routedModel: selectedModel,
+            attemptedModels: fallbackModels.slice(0, fallbackModels.indexOf(selectedModel) + 1),
             mode,
             inputHash,
             outputHash,
@@ -485,12 +526,16 @@ export async function runEnrichPhase(
         });
         summariesGenerated++;
         documentsEnriched++;
+        modelUsage[selectedModel] = (modelUsage[selectedModel] || 0) + 1;
         markProgress({
           phase: 'Enrichment',
           enrichProcessed: documentsEnriched,
           enrichTotal,
           currentFile: doc.file_name,
           currentDocId: doc.id,
+          activeModel: selectedModel,
+          exoModelPool: modelPool,
+          modelUsage,
         });
       } catch (error) {
         console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
@@ -499,6 +544,19 @@ export async function runEnrichPhase(
           status: 'failed',
           errorMessage: String((error as Error)?.message || error),
         });
+
+        if (error instanceof ExoModelUnavailableError) {
+          const message = error.message;
+          writeLiveStatus({
+            blocked: true,
+            blockedReason: message,
+            lastError: message,
+            lastErrorAt: new Date().toISOString(),
+            currentFile: doc.file_name,
+            currentDocId: doc.id,
+          });
+          throw new PipelineBlockedError(message, 'exo');
+        }
 
         if (
           error instanceof PipelineBlockedError ||
@@ -529,7 +587,7 @@ export async function runEnrichPhase(
   pipelineRuntime.currentDocStartedAt = 0;
   await PipelineService.finishStageRun(aggregateStageRun?.id, {
     status: 'succeeded',
-    metrics: { documentsEnriched, summariesGenerated, mode },
+    metrics: { documentsEnriched, summariesGenerated, mode, modelPool, modelUsage },
   });
   return { documentsEnriched, summariesGenerated };
 }

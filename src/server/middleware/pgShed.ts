@@ -40,8 +40,8 @@ export function pgSaturationShed(req: Request, res: Response, next: NextFunction
   const occupied = pool.totalCount - pool.idleCount;
   const configuredMax =
     Number((pool as unknown as { options?: { max?: number } }).options?.max) ||
-    Number(process.env.API_POOL_MAX || 18) ||
-    18;
+    Number(process.env.API_POOL_MAX || 25) ||
+    25;
   const ratio = configuredMax > 0 ? occupied / configuredMax : 0;
 
   if (

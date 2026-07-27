@@ -30,6 +30,11 @@ export function defaultRecoveryCommands(service: RecoveryService): string[] {
     return ['brew services restart postgresql@16'];
   }
 
+  // A missing/mismatched model is not evidence that EXO itself is unhealthy.
+  // Killing the desktop app can destroy a perfectly healthy, user-launched
+  // instance, so EXO restarts must be an explicit operator choice.
+  if (process.env.PIPELINE_ALLOW_EXO_RESTART !== 'true') return [];
+
   return [
     'osascript -e \'tell application "EXO" to quit\' || true',
     'pkill -f "/Applications/EXO.app" || true',
@@ -75,11 +80,37 @@ export async function isPostgresHealthy(): Promise<boolean> {
 
 export async function isExoHealthy(): Promise<boolean> {
   const exoHost = process.env.EXO_HOST || 'http://127.0.0.1:52415';
+  const model = process.env.EXO_MODEL;
   try {
-    const res = await fetch(`${exoHost}/v1/models`, {
+    const modelsResponse = await fetch(`${exoHost}/v1/models`, {
       signal: AbortSignal.timeout(EXO_HEALTHCHECK_TIMEOUT_MS),
     });
-    return res.ok;
+    if (!modelsResponse.ok || !model) return false;
+
+    const completionResponse = await fetch(`${exoHost}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: 'Reply OK' }],
+        max_tokens: 1,
+        temperature: 0,
+        enable_thinking: false,
+      }),
+      signal: AbortSignal.timeout(EXO_HEALTHCHECK_TIMEOUT_MS),
+    });
+    if (!completionResponse.ok) {
+      const detail = (await completionResponse.text()).slice(0, 300);
+      writeLiveStatus({
+        blocked: true,
+        blockedReason: `EXO model ${model} is listed but cannot serve completions (${completionResponse.status}): ${detail}`,
+        lastErrorAt: new Date().toISOString(),
+        exoModel: model,
+        exoCompletionStatus: completionResponse.status,
+      });
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }
@@ -127,6 +158,21 @@ export async function ensureServiceHealthyOrRecover(
   fatalMessage: string,
 ): Promise<void> {
   if (await isServiceHealthy(service)) return;
+
+  if (service === 'exo' && process.env.PIPELINE_ALLOW_EXO_RESTART !== 'true') {
+    writeLiveStatus({
+      blocked: true,
+      blockedReason: fatalMessage,
+      recoveryInFlight: false,
+      recoveryService: service,
+    });
+    sendMacNotification(
+      'Epstein Pipeline Needs Attention',
+      fatalMessage,
+      'EXO was left running; check the configured model',
+    );
+    throw new PipelineBlockedError(fatalMessage, service);
+  }
 
   await attemptRecovery(service, reason);
   if (await isServiceHealthy(service)) return;

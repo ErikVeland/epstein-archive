@@ -612,23 +612,42 @@ export const statsRepository = {
       heartbeatMs === null ? null : Math.max(0, Math.round((Date.now() - heartbeatMs) / 1000));
     const heartbeatFresh = heartbeatAgeSeconds !== null && heartbeatAgeSeconds <= 120;
     const checkpointRunning = cp?.running === true;
+    const lastProgressMs = asDateMs(lastProgressAt);
+    const progressAgeSeconds =
+      lastProgressMs === null
+        ? null
+        : Math.max(0, Math.round((Date.now() - lastProgressMs) / 1000));
+    const progressFresh = progressAgeSeconds !== null && progressAgeSeconds <= 10 * 60;
+    const startedAt = asDateMs(cp?.enrichStartedAt);
+    const startingGrace = startedAt !== null && Date.now() - startedAt <= 5 * 60 * 1000;
+    const blockedReason =
+      typeof cp?.blockedReason === 'string'
+        ? cp.blockedReason
+        : typeof cp?.lastError === 'string'
+          ? cp.lastError
+          : null;
     const dbRunStatus =
       typeof currentRun?.status === 'string' ? (currentRun.status as string) : null;
     const effectiveStatus =
       dbRunStatus === 'paused'
         ? 'paused'
-        : processRunning && heartbeatFresh
-          ? 'running'
-          : processRunning
+        : blockedReason
+          ? 'blocked'
+          : processRunning && !heartbeatFresh
             ? 'stale'
-            : dbRunStatus === 'running'
-              ? 'stale'
-              : 'stopped';
+            : processRunning && progressFresh
+              ? 'running'
+              : processRunning && startingGrace
+                ? 'starting'
+                : processRunning
+                  ? 'stalled'
+                  : dbRunStatus === 'running'
+                    ? 'stale'
+                    : 'stopped';
     const vlmTotal = Number(cp?.vlmTotal || 0);
     const vlmProcessed = Number(cp?.vlmProcessed || 0);
     const enrichTotal = Number(cp?.enrichTotal || 0);
     const enrichProcessed = Number(cp?.enrichProcessed || 0);
-    const blockedReason = typeof cp?.blockedReason === 'string' ? cp.blockedReason : null;
     const currentFile = typeof cp?.currentFile === 'string' ? cp.currentFile : null;
     const activeStage =
       typeof cp?.activeStage === 'string'
@@ -664,6 +683,9 @@ export const statsRepository = {
         heartbeatAgeSeconds,
         heartbeatFresh,
         lastProgressAt,
+        progressAgeSeconds,
+        progressFresh,
+        blockedReason,
         currentFile,
         currentDocId: typeof cp?.currentDocId === 'number' ? cp.currentDocId : null,
         phase: typeof cp?.phase === 'string' ? cp.phase : null,
@@ -699,7 +721,7 @@ export const statsRepository = {
               percent: Math.min(100, (enrichProcessed / enrichTotal) * 100),
             }
           : undefined,
-      blocked: Boolean(cp?.blocked || blockedReason),
+      blocked: effectiveStatus === 'blocked' || effectiveStatus === 'stalled',
       blockedReason,
       activeStage,
       activeStageDescription,

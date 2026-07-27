@@ -343,8 +343,7 @@ export const AboutPage: React.FC = () => {
     const stageStatus = pipelineStatus?.stage_status || {};
     const activeStage = pipelineStatus?.activeStage ?? null;
     const runtimeStatus = pipelineStatus?.runtime?.status ?? null;
-    const liveStageActive =
-      runtimeStatus === 'running' || runtimeStatus === 'stale' || runtimeStatus === 'paused';
+    const liveStageActive = runtimeStatus === 'running' || runtimeStatus === 'paused';
     return Object.entries(STAGE_LABELS)
       .map(([name, label]) => {
         const stage = stageStatus[name] || {};

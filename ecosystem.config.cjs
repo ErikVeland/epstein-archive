@@ -62,6 +62,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3012,
+        API_POOL_MAX: 25,
         RAW_CORPUS_BASE_PATH: './data',
         CORS_ORIGIN:
           'https://epstein.academy,https://www.epstein.academy,https://glasscode.academy,https://www.glasscode.academy',
@@ -70,6 +71,7 @@ module.exports = {
       env_production: {
         NODE_ENV: 'production',
         PORT: 3012,
+        API_POOL_MAX: 25,
         RAW_CORPUS_BASE_PATH: './data',
         CORS_ORIGIN:
           'https://epstein.academy,https://www.epstein.academy,https://glasscode.academy,https://www.glasscode.academy',
