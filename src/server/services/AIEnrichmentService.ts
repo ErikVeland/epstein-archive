@@ -37,7 +37,7 @@ export class AIEnrichmentService {
 
   // Exo (distributed cluster) configuration
   private static EXO_HOST = process.env.EXO_HOST || 'http://127.0.0.1:52415';
-  private static discoveredExoModel: string | null = process.env.EXO_MODEL || null;
+  private static discoveredExoModel: string | null = null;
   private static discoveredExoGraphModel: string | null =
     process.env.GRAPH_EXTRACTION_MODEL || null;
   private static discoveredExoVisionModel: string | null = process.env.VISION_MODEL || null;
@@ -51,70 +51,114 @@ export class AIEnrichmentService {
     1000,
     parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '120000', 10) || 120000,
   );
+  private static callableExoModels: string[] = [];
+  private static callableExoModelsCheckedAt = 0;
+  private static EXO_CALLABLE_CACHE_MS = Math.max(
+    1000,
+    parseInt(process.env.EXO_CALLABLE_CACHE_MS || '60000', 10) || 60000,
+  );
 
   private static get aiEnabled(): boolean {
     return process.env.ENABLE_AI_ENRICHMENT === 'true';
   }
 
   /**
+   * Return model IDs that are backed by a live Exo instance.
+   *
+   * Exo's /v1/models endpoint is a hub catalog, not a list of running
+   * instances. A one-token completion probe is therefore the authoritative
+   * availability check. Preferred IDs are tested first, but every catalog
+   * model can be selected when its instance is callable.
+   */
+  static async discoverCallableExoModels(preferredModels: string[] = []): Promise<string[]> {
+    const now = Date.now();
+    if (
+      this.callableExoModels.length > 0 &&
+      now - this.callableExoModelsCheckedAt < this.EXO_CALLABLE_CACHE_MS
+    ) {
+      return [...this.callableExoModels];
+    }
+
+    const modelsResponse = await fetch(`${this.EXO_HOST}/v1/models`, {
+      signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+    });
+    if (!modelsResponse.ok) {
+      throw new Error(`Exo discovery failed: ${modelsResponse.status}`);
+    }
+
+    const payload = (await modelsResponse.json()) as {
+      data?: Array<{ id?: string }>;
+    };
+    const catalog = (payload.data || [])
+      .map((entry) => entry.id?.trim())
+      .filter((id): id is string => Boolean(id));
+    const catalogSet = new Set(catalog);
+    const orderedCandidates = [
+      ...preferredModels.filter((id) => catalogSet.has(id)),
+      ...catalog,
+    ].filter((id, index, all) => all.indexOf(id) === index);
+
+    const callable = new Set<string>();
+    let nextIndex = 0;
+    const worker = async () => {
+      while (nextIndex < orderedCandidates.length) {
+        const model = orderedCandidates[nextIndex++];
+        try {
+          const response = await fetch(`${this.EXO_HOST}/v1/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model,
+              messages: [{ role: 'user', content: 'Reply OK' }],
+              max_tokens: 1,
+              temperature: 0,
+              enable_thinking: false,
+            }),
+            signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+          });
+          if (response.ok) {
+            callable.add(model);
+            this.exoUnavailableModels.delete(model);
+          } else {
+            const detail = await response.text();
+            if (response.status === 404 && detail.includes('No instance found')) {
+              this.exoUnavailableModels.add(model);
+            }
+          }
+        } catch {
+          // A failed probe does not make the complete Exo cluster unavailable.
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(6, orderedCandidates.length) }, worker));
+    this.callableExoModels = orderedCandidates.filter((model) => callable.has(model));
+    this.callableExoModelsCheckedAt = Date.now();
+    logger.info({ models: this.callableExoModels }, '🤖 Discovered callable Exo model instances');
+    return [...this.callableExoModels];
+  }
+
+  /**
    * Automatically discovers the active model on the Exo cluster
    */
   private static async autoDiscoverExoModel(): Promise<string> {
-    // 1. If explicitly set via env var, use it (highest priority)
-    if (process.env.EXO_MODEL && !this.exoUnavailableModels.has(process.env.EXO_MODEL)) {
-      logger.info(`🤖 Using EXO_MODEL from environment: ${process.env.EXO_MODEL}`);
-      return process.env.EXO_MODEL;
-    }
-    if (process.env.EXO_MODEL) {
-      logger.warn(
-        `⚠️ EXO_MODEL ${process.env.EXO_MODEL} is unavailable; discovering another model`,
-      );
-    }
-
-    // 2. If already discovered, use cached
     if (this.discoveredExoModel) return this.discoveredExoModel;
 
     try {
-      logger.info(`🔍 Attempting Exo model discovery via: ${this.EXO_HOST}/v1/models`);
-      const response = await fetch(`${this.EXO_HOST}/v1/models`, {
-        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
-      });
-      if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
-
-      interface ExoModel {
-        id: string;
-      }
-      interface ExoModelsResponse {
-        data?: ExoModel[];
-      }
-
-      const data = (await response.json()) as ExoModelsResponse;
-      if (data.data && data.data.length > 0) {
-        const availableModels = data.data.map((m) => m.id).join(', ');
-        logger.info(`📋 Available Exo models: ${availableModels}`);
-
-        const id = (m: ExoModel) => m.id.toLowerCase();
-        const available = (m: ExoModel) => !this.exoUnavailableModels.has(m.id);
-
-        // Prefer a fast, small text model for Phase 1–3 enrichment (repair/classify/summarize)
-        // Priority: Qwen3.5-2B > Qwen3-0.6B > any Llama-3.2 instruct > any instruct > first
-        const qwen2b = data.data.find(
-          (m) => available(m) && (id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b')),
-        );
-        const qwen06b = data.data.find(
-          (m) => available(m) && (id(m).includes('qwen3-0.6b') || id(m).includes('qwen3_0.6b')),
-        );
-        const llama32 = data.data.find(
-          (m) => available(m) && id(m).includes('llama-3.2') && id(m).includes('instruct'),
-        );
-        const anyInstruct = data.data.find((m) => available(m) && id(m).includes('instruct'));
-        const anyAvailable = data.data.find((m) => available(m));
-
+      const preferred = [
+        process.env.EXO_MODEL,
+        ...String(process.env.EXO_MODEL_POOL || '').split(','),
+      ].filter((model): model is string => Boolean(model?.trim()));
+      const callable = await this.discoverCallableExoModels(preferred);
+      if (callable.length > 0) {
         const selected =
-          qwen2b || qwen06b || llama32 || anyInstruct || anyAvailable || data.data[0];
-        this.discoveredExoModel = selected.id;
+          callable.find((model) => model.toLowerCase().includes('qwen3.5-2b')) ||
+          callable.find((model) => model.toLowerCase().includes('qwen3-0.6b')) ||
+          callable.find((model) => model.toLowerCase().includes('llama-3.2')) ||
+          callable[0];
+        this.discoveredExoModel = selected;
         logger.info(`🤖 Auto-discovered Exo model (Phase 1–3): ${this.discoveredExoModel}`);
-        return this.discoveredExoModel!;
+        return selected;
       }
     } catch (err: unknown) {
       logger.warn({ err }, '⚠️ Failed to discover Exo model');
@@ -131,68 +175,24 @@ export class AIEnrichmentService {
    * Preference order: GRAPH_EXTRACTION_MODEL env var → any 14B model → fallback to standard model.
    */
   private static async autoDiscoverExoGraphModel(): Promise<string> {
-    // 1. Explicit env override takes highest priority
-    if (
-      process.env.GRAPH_EXTRACTION_MODEL &&
-      !this.exoUnavailableModels.has(process.env.GRAPH_EXTRACTION_MODEL)
-    ) {
-      logger.info(
-        `🤖 Using GRAPH_EXTRACTION_MODEL from environment: ${process.env.GRAPH_EXTRACTION_MODEL}`,
-      );
-      return process.env.GRAPH_EXTRACTION_MODEL;
-    }
-    if (process.env.GRAPH_EXTRACTION_MODEL) {
-      logger.warn(
-        `⚠️ GRAPH_EXTRACTION_MODEL ${process.env.GRAPH_EXTRACTION_MODEL} is unavailable; discovering another model`,
-      );
-    }
-
-    // 2. Return cached discovery result
     if (this.discoveredExoGraphModel) return this.discoveredExoGraphModel;
 
     try {
-      const response = await fetch(`${this.EXO_HOST}/v1/models`, {
-        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
-      });
-      if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
-
-      interface ExoModel {
-        id: string;
-        capabilities?: string[];
-      }
-      interface ExoModelsResponse {
-        data?: ExoModel[];
-      }
-
-      const data = (await response.json()) as ExoModelsResponse;
-      if (data.data && data.data.length > 0) {
-        const availableModels = data.data.map((m) => m.id).join(', ');
-        logger.info(`📋 Available Exo models (graph selection): ${availableModels}`);
-
-        const id = (m: ExoModel) => m.id.toLowerCase();
-        const available = (m: ExoModel) => !this.exoUnavailableModels.has(m.id);
-
-        // For structured JSON extraction, prefer the largest model that fits in VRAM.
-        // On a 24GB cluster the sweet spot is Qwen3.5-9B (5.5GB) > Qwen3-VL-4B (3.1GB) > Qwen3.5-2B.
-        // Models that returned 404 are skipped — they're in the hub catalog but not currently running.
-        const qwen9b = data.data.find(
-          (m) => available(m) && (id(m).includes('qwen3.5-9b') || id(m).includes('qwen3.5_9b')),
-        );
-        const qwenVL4b = data.data.find(
-          (m) => available(m) && (id(m).includes('qwen3-vl-4b') || id(m).includes('qwen3_vl_4b')),
-        );
-        const qwen2b = data.data.find(
-          (m) => available(m) && (id(m).includes('qwen3.5-2b') || id(m).includes('qwen3.5_2b')),
-        );
-
-        const graphModel = qwen9b || qwenVL4b || qwen2b;
-        if (graphModel) {
-          this.discoveredExoGraphModel = graphModel.id;
-          logger.info(
-            `🤖 Auto-discovered Exo graph extraction model: ${this.discoveredExoGraphModel}`,
-          );
-          return this.discoveredExoGraphModel;
-        }
+      const preferred = [
+        process.env.GRAPH_EXTRACTION_MODEL,
+        process.env.EXO_MODEL,
+        ...String(process.env.EXO_MODEL_POOL || '').split(','),
+      ].filter((model): model is string => Boolean(model?.trim()));
+      const callable = await this.discoverCallableExoModels(preferred);
+      const graphModel =
+        callable.find((model) => model.toLowerCase().includes('qwen3.5-9b')) ||
+        callable.find((model) => model.toLowerCase().includes('qwen3-vl-4b')) ||
+        callable.find((model) => model.toLowerCase().includes('qwen3.5-2b')) ||
+        callable[0];
+      if (graphModel) {
+        this.discoveredExoGraphModel = graphModel;
+        logger.info(`🤖 Auto-discovered Exo graph extraction model: ${graphModel}`);
+        return graphModel;
       }
     } catch (err: unknown) {
       logger.warn({ err }, '⚠️ Failed to discover Exo graph model — falling back to standard');
@@ -211,56 +211,21 @@ export class AIEnrichmentService {
    * Checks both model IDs (VL suffix) and explicit "vision" capability tag.
    */
   private static async autoDiscoverExoVisionModel(): Promise<string> {
-    // 1. Explicit env override takes highest priority
-    if (process.env.VISION_MODEL && !this.exoUnavailableModels.has(process.env.VISION_MODEL)) {
-      logger.info(`🤖 Using VISION_MODEL from environment: ${process.env.VISION_MODEL}`);
-      return process.env.VISION_MODEL;
-    }
-
-    // 2. Return cached discovery result
     if (this.discoveredExoVisionModel) return this.discoveredExoVisionModel;
 
     try {
-      const response = await fetch(`${this.EXO_HOST}/v1/models`, {
-        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
-      });
-      if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
-
-      interface ExoModel {
-        id: string;
-        capabilities?: string[];
-      }
-      interface ExoModelsResponse {
-        data?: ExoModel[];
-      }
-
-      const data = (await response.json()) as ExoModelsResponse;
-      if (data.data && data.data.length > 0) {
-        const available = (m: ExoModel) => !this.exoUnavailableModels.has(m.id);
-        const id = (m: ExoModel) => m.id.toLowerCase();
-
-        // 1st Priority: Explicit "vision" capability
-        const hasVisionCap = data.data.filter(
-          (m) => available(m) && m.capabilities?.includes('vision'),
-        );
-
-        // Within vision models, prefer manageable sizes first for cluster efficiency (4B-35B)
-        const midVision = hasVisionCap.find(
-          (m) => !id(m).includes('397b') && !id(m).includes('122b'),
-        );
-
-        // 2nd Priority: "vl" suffix in the name
-        const hasVlName = data.data.find(
-          (m) => available(m) && (id(m).includes('-vl-') || id(m).endsWith('-vl')),
-        );
-
-        const selected = midVision || hasVisionCap[0] || hasVlName;
-
-        if (selected) {
-          this.discoveredExoVisionModel = selected.id;
-          logger.info(`👁️ Auto-discovered Exo Vision model: ${this.discoveredExoVisionModel}`);
-          return this.discoveredExoVisionModel;
-        }
+      const preferred = [
+        process.env.VISION_MODEL,
+        process.env.EXO_MODEL,
+        ...String(process.env.EXO_MODEL_POOL || '').split(','),
+      ].filter((model): model is string => Boolean(model?.trim()));
+      const callable = await this.discoverCallableExoModels(preferred);
+      const selected =
+        callable.find((model) => model.toLowerCase().includes('-vl-')) || callable[0];
+      if (selected) {
+        this.discoveredExoVisionModel = selected;
+        logger.info(`👁️ Auto-discovered Exo Vision model: ${selected}`);
+        return selected;
       }
     } catch (err: unknown) {
       logger.warn({ err }, '⚠️ Failed to discover Exo vision model — falling back to standard');
@@ -375,6 +340,8 @@ export class AIEnrichmentService {
             // retries are for transient network errors, not for missing models.
             if (response.status === 404 && errorText.includes('No instance found')) {
               this.exoUnavailableModels.add(modelId);
+              this.callableExoModels = this.callableExoModels.filter((model) => model !== modelId);
+              this.callableExoModelsCheckedAt = 0;
               // Invalidate caches so we re-discover a DIFFERENT available model
               if (task === 'graph') {
                 this.discoveredExoGraphModel = null;
@@ -382,6 +349,11 @@ export class AIEnrichmentService {
                 this.discoveredExoVisionModel = null;
               } else {
                 this.discoveredExoModel = null;
+              }
+              if (options.modelId) {
+                throw new ExoModelUnavailableError(
+                  `Exo model ${modelId} has no callable instance.`,
+                );
               }
               modelSwitches++;
               if (modelSwitches >= MAX_MODEL_SWITCHES) {

@@ -174,7 +174,13 @@
 
 .documentRow {
   display: block;
+  flex: 0 0 auto;
+  align-items: stretch;
+  justify-content: flex-start;
   width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
   padding: 0;
   border: 0;
   border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 55%, transparent);
@@ -182,14 +188,18 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .documentRowInner {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
-  min-height: 6.75rem;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  row-gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+  min-height: 7.25rem;
+  box-sizing: border-box;
   padding: var(--space-4) var(--space-5);
 }
 
@@ -199,13 +209,18 @@
 }
 
 .documentTitle {
+  display: block;
+  min-width: 0;
   color: var(--text-primary);
   font-size: 0.9375rem;
   font-weight: var(--weight-semibold);
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .documentPreview {
+  min-width: 0;
+  min-height: calc(1.4em * 2);
   color: var(--text-muted);
   font-size: 0.8125rem;
   line-height: 1.4;
@@ -217,6 +232,8 @@
 
 .documentMeta {
   display: flex;
+  min-width: 0;
+  min-height: 1.5rem;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
@@ -226,6 +243,7 @@
 .coveragePill,
 .attemptPill {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   min-height: 1.5rem;
   padding: 0 var(--space-2);
@@ -233,6 +251,7 @@
   font-size: 0.75rem;
   font-weight: var(--weight-semibold);
   line-height: 1;
+  white-space: nowrap;
 }
 
 .coverageCritical {

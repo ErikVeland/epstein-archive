@@ -108,9 +108,20 @@ export function findFirstExistingPath(
   for (const dbPath of paths) {
     if (!dbPath) continue;
 
-    const resolved = resolveMediaPath(dbPath, fallbackDir);
-    if (resolved && fs.existsSync(resolved)) {
-      return resolved;
+    const decodedPath = (() => {
+      try {
+        return decodeURIComponent(dbPath);
+      } catch {
+        return dbPath;
+      }
+    })();
+    const variants = Array.from(new Set([dbPath, decodedPath]));
+
+    for (const variant of variants) {
+      const resolved = resolveMediaPath(variant, fallbackDir);
+      if (resolved && fs.existsSync(resolved)) {
+        return resolved;
+      }
     }
   }
   return null;

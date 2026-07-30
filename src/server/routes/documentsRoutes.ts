@@ -582,10 +582,13 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
 
       const cleaned = normalized.replace(/\\/g, '/');
       const match = cleaned.match(
-        /(epstein\.academy|www\.justice\.gov|justice\.gov)(\/epstein\/files\/.+)/i,
+        /(epstein\.academy|www\.justice(?:-\d+)?\.gov|justice\.gov)(\/epstein\/files\/.+)/i,
       );
       if (!match) return '';
-      const host = match[1].toLowerCase();
+      const matchedHost = match[1].toLowerCase();
+      // DOJ corpus mirrors are stored locally under hostnames such as
+      // `www.justice-7.gov`. Those are directory labels, not public hosts.
+      const host = /^www\.justice-\d+\.gov$/i.test(matchedHost) ? 'www.justice.gov' : matchedHost;
       const pathname = match[2];
       return `https://${host}${pathname}`;
     };
@@ -700,6 +703,14 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
       const attemptedPaths: string[] = [];
       const normalizedCandidate = candidatePath.replace(/^\/+/, '');
       const normalizedNoDataPrefix = normalizedCandidate.replace(/^(?:\.\/)?data\//, '');
+      const decodedCandidate = (() => {
+        try {
+          return decodeURIComponent(normalizedCandidate);
+        } catch {
+          return normalizedCandidate;
+        }
+      })();
+      const decodedNoDataPrefix = decodedCandidate.replace(/^(?:\.\/)?data\//, '');
 
       // Build list of potential absolute paths to check
       const potentialPaths: string[] = [];
@@ -708,16 +719,21 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
       } else {
         // Try project root
         potentialPaths.push(path.resolve(process.cwd(), normalizedCandidate));
+        potentialPaths.push(path.resolve(process.cwd(), decodedCandidate));
         // Try relative to each allowed root
         for (const root of allowedRoots) {
           potentialPaths.push(path.resolve(root, normalizedCandidate));
+          potentialPaths.push(path.resolve(root, decodedCandidate));
           if (normalizedNoDataPrefix !== normalizedCandidate) {
             potentialPaths.push(path.resolve(root, normalizedNoDataPrefix));
+          }
+          if (decodedNoDataPrefix !== decodedCandidate) {
+            potentialPaths.push(path.resolve(root, decodedNoDataPrefix));
           }
         }
       }
 
-      for (const absPath of potentialPaths) {
+      for (const absPath of Array.from(new Set(potentialPaths))) {
         attemptedPaths.push(absPath);
         if (fs.existsSync(absPath)) {
           try {
@@ -767,8 +783,7 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
     }
 
     if (!finalFileResult) {
-      const remoteFallbackEnabled =
-        process.env.PUBLIC_REMOTE_FILE_FALLBACK === 'true' && process.env.NODE_ENV !== 'production';
+      const remoteFallbackEnabled = process.env.PUBLIC_REMOTE_FILE_FALLBACK !== 'false';
       const isEmailRecord = String(docAny.evidenceType || docAny.evidence_type || '')
         .toLowerCase()
         .includes('email');
@@ -813,6 +828,13 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
         const candidateUrl = variantUrls[v] || deriveRemoteUrlFromPath(variants[v] || '');
         if (!candidateUrl) continue;
         if (!isAllowedRemoteUrl(candidateUrl)) continue;
+        // In production, only DOJ is a valid upstream fallback. Proxying this
+        // application's own public URL would recurse when a local corpus file
+        // is absent.
+        if (process.env.NODE_ENV === 'production') {
+          const candidateHost = new URL(candidateUrl).hostname.toLowerCase();
+          if (candidateHost !== 'justice.gov' && !candidateHost.endsWith('.justice.gov')) continue;
+        }
 
         const rangeHeader = req.header('range') || undefined;
         const controller = new AbortController();

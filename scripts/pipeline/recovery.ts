@@ -5,7 +5,6 @@
 import { spawnSync } from 'child_process';
 import { Client } from 'pg';
 import {
-  EXO_HEALTHCHECK_TIMEOUT_MS,
   PIPELINE_STALL_TIMEOUT_MS,
   DOC_PROCESSING_TIMEOUT_MS,
   RECOVERY_COMMAND_TIMEOUT_MS,
@@ -24,6 +23,7 @@ import {
   sleep,
 } from './status.js';
 import { sendMacNotification } from './notifications.js';
+import { AIEnrichmentService } from '../../src/server/services/AIEnrichmentService.js';
 
 export function defaultRecoveryCommands(service: RecoveryService): string[] {
   if (service === 'postgres') {
@@ -79,37 +79,20 @@ export async function isPostgresHealthy(): Promise<boolean> {
 }
 
 export async function isExoHealthy(): Promise<boolean> {
-  const exoHost = process.env.EXO_HOST || 'http://127.0.0.1:52415';
-  const model = process.env.EXO_MODEL;
   try {
-    const modelsResponse = await fetch(`${exoHost}/v1/models`, {
-      signal: AbortSignal.timeout(EXO_HEALTHCHECK_TIMEOUT_MS),
+    const preferredModels = [
+      process.env.EXO_MODEL,
+      ...String(process.env.EXO_MODEL_POOL || '').split(','),
+    ]
+      .map((model) => model?.trim())
+      .filter((model): model is string => Boolean(model));
+    const callableModels = await AIEnrichmentService.discoverCallableExoModels(preferredModels);
+    if (callableModels.length === 0) return false;
+    writeLiveStatus({
+      exoModel: callableModels[0],
+      exoCallableModels: callableModels,
+      exoCompletionStatus: 200,
     });
-    if (!modelsResponse.ok || !model) return false;
-
-    const completionResponse = await fetch(`${exoHost}/v1/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: 'Reply OK' }],
-        max_tokens: 1,
-        temperature: 0,
-        enable_thinking: false,
-      }),
-      signal: AbortSignal.timeout(EXO_HEALTHCHECK_TIMEOUT_MS),
-    });
-    if (!completionResponse.ok) {
-      const detail = (await completionResponse.text()).slice(0, 300);
-      writeLiveStatus({
-        blocked: true,
-        blockedReason: `EXO model ${model} is listed but cannot serve completions (${completionResponse.status}): ${detail}`,
-        lastErrorAt: new Date().toISOString(),
-        exoModel: model,
-        exoCompletionStatus: completionResponse.status,
-      });
-      return false;
-    }
     return true;
   } catch {
     return false;

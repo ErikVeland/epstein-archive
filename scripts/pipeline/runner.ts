@@ -236,28 +236,31 @@ export async function runEnrichPhase(
   console.log(`   Provider: ${process.env.AI_PROVIDER}`);
   console.log(`   Mode: ${mode}`);
 
-  const modelPool = (process.env.EXO_MODEL_POOL || process.env.EXO_MODEL || '')
+  let modelPool = (process.env.EXO_MODEL_POOL || process.env.EXO_MODEL || '')
     .split(',')
     .map((model) => model.trim())
     .filter(Boolean);
-  const defaultModel = process.env.EXO_MODEL || modelPool[0] || process.env.AI_PROVIDER || 'auto';
-  const fastModels = modelPool.filter((model) => !model.toLowerCase().includes('qwen3-vl'));
-  const qualityModel =
-    modelPool.find((model) => model.toLowerCase().includes('qwen3-vl')) || defaultModel;
-  // Benchmark-derived 40/40/20 routine split: the two text models are faster,
-  // while retaining a steady Qwen-VL quality sample for drift detection.
-  const weightedModels = [...fastModels, ...fastModels, qualityModel];
-  let routingIndex = 0;
-  const modelUsage: Record<string, number> = {};
-  console.log(`   Model pool: ${modelPool.join(' | ') || defaultModel}`);
 
   if ((process.env.AI_PROVIDER || 'local_ollama') === 'exo_cluster') {
+    modelPool = await AIEnrichmentService.discoverCallableExoModels(modelPool);
     await ensureServiceHealthyOrRecover(
       'exo',
       'Exo health check failed before enrichment',
       'Exo stayed unhealthy after automatic recovery. Backfill cycle aborted.',
     );
   }
+  const defaultModel = modelPool[0] || process.env.AI_PROVIDER || 'auto';
+  const fastModels = modelPool.filter((model) => !model.toLowerCase().includes('qwen3-vl'));
+  const qualityModel =
+    modelPool.find(
+      (model) =>
+        model.toLowerCase().includes('qwen3.5-9b') || model.toLowerCase().includes('qwen3-vl'),
+    ) || defaultModel;
+  // Give fast text models more routine work while retaining a quality sample.
+  const weightedModels = [...fastModels, ...fastModels, qualityModel];
+  let routingIndex = 0;
+  const modelUsage: Record<string, number> = {};
+  console.log(`   Callable model pool: ${modelPool.join(' | ') || defaultModel}`);
 
   const pool = getIngestPool();
   const stage = stageByName('ai-enrichment');
