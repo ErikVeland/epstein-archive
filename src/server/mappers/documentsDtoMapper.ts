@@ -4,7 +4,7 @@ import type {
   DocumentsListResponseDto,
 } from '@shared/dto/documents';
 import { mapProvenanceFieldsDto } from './provenanceDtoMapper.js';
-import { deriveDocumentTitle } from '@shared/documentTitle';
+import { deriveDocumentTitle } from '../../shared/documentTitle.js';
 
 const mappedTitle = (doc: Record<string, unknown>): string =>
   deriveDocumentTitle({
