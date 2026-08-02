@@ -104,7 +104,7 @@ const faqs = [
   {
     question: "What are the 'DOJ Datasets'?",
     answer:
-      'These are large volumes of evidence released by the Department of Justice, which we have processed and ingested. They include financial records, multimedia, and investigative referrals.',
+      'These are large volumes of evidence released by the Department of Justice. Epstein Archive now hosts the acquired source corpus directly. Search indexing and AI enrichment continue in the background.',
   },
   {
     question: "Why are there so many recent documents (past Epstein's death)?",
@@ -759,11 +759,12 @@ export const AboutPage: React.FC = () => {
           <h4 className={s.articleH4}>DOJ Data Sets 9-12 (2026)</h4>
           <p className={s.articleP}>
             The latest release comprises over 1.3 million documents from the post-Maxwell trial era.
-            This massive tranche includes "Data Set 12" (DOJ VOL00012).{' '}
-            <strong>Ingestion for Data Sets 9-12 is now 100% complete.</strong> The system has
-            transitioned to the intelligence analysis and quality reruns phase through our{' '}
-            <strong>Semantic Repair Pipeline</strong> and <strong>Hardened Entity Engine</strong> to
-            improve OCR quality, purge junk data, and strengthen entity-role extraction.
+            This massive tranche includes "Data Set 12" (DOJ VOL00012). The acquired source files
+            are now hosted directly by Epstein Archive and available through their original-document
+            routes. Search indexing remains in progress, followed by intelligence analysis and
+            quality reruns through our <strong>Semantic Repair Pipeline</strong> and{' '}
+            <strong>Hardened Entity Engine</strong> to improve OCR quality, purge junk data, and
+            strengthen entity-role extraction.
             {pipelineOverview && (
               <>
                 {' '}
@@ -1349,17 +1350,17 @@ export const AboutPage: React.FC = () => {
       <Surface as="section" variant="panel" className={s.whatsNextSection}>
         <div className={s.sectionHeader}>
           <Icon name="Image" size="xl" className={s.iconAccent} />
-          <h2 className={s.sectionTitle}>Fully Ingested, Intelligence Ongoing</h2>
+          <h2 className={s.sectionTitle}>Full Source Corpus Hosted</h2>
         </div>
         <p className={s.bodyText}>
-          The archive has now reached full ingestion coverage for the currently tracked DOJ and
-          media collections. The next stage focuses on intelligence quality: relationship expansion,
-          high-confidence entity resolution, and improved provenance linking.
+          Epstein Archive now hosts all acquired source files for the currently tracked DOJ and
+          media collections. Original PDFs and images resolve from the archive without depending on
+          the source agency remaining online. Search indexing and AI enrichment are still running.
         </p>
         <p className={s.bodyText}>
           As new documents are released through legal proceedings, FOIA requests, and court
-          unsealing orders, this platform remains ready for rapid ingestion while preserving the
-          current fully indexed corpus.
+          unsealing orders, this platform remains ready for rapid acquisition and ingestion while
+          preserving direct access to the source corpus.
         </p>
         <div className={s.statusInfoBox}>
           <p className={s.statusInfoText}>

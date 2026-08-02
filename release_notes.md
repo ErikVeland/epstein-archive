@@ -1,5 +1,25 @@
 # Release Notes
 
+## 22.0.0 - 2026-08-02 - Full Corpus Hosting
+
+### Source Preservation
+
+- **The acquired source corpus is now hosted directly by Epstein Archive.** Every original file referenced by the production database is present on the production server. A complete manifest audit verified 80,115 referenced originals with zero missing files.
+- **Original PDF and image routes are restored.** File resolution now handles URL-encoded corpus paths, and production checks confirm original PDFs and images return their native content types instead of 404 responses.
+- **Source agency availability is no longer required for document viewing.** Researchers can open preserved originals through Epstein Archive even if an upstream Justice Department URL changes or becomes unavailable.
+
+### Operational Clarity
+
+- **Hosting and indexing are reported separately.** The About page now states that source-file hosting is complete while search indexing and AI enrichment continue in the background.
+- **The dashboard snapshot now reflects production.** Release data was regenerated from the live PostgreSQL database on August 2, 2026.
+- **Corpus storage was made sustainable.** Obsolete builds, legacy databases, old backups, and redundant transfer containers were removed only after off-server checksum verification, preserving operational headroom without recompressing evidentiary files.
+
+### Current Processing State
+
+- Dataset 10 indexing remains in progress. All acquired files are hosted, but the release does not claim that search indexing or AI enrichment is complete.
+
+---
+
 ## 21.7.0 - 2026-06-01 - Security & Database Hardening
 
 ### Security
