@@ -4,12 +4,37 @@ import type {
   DocumentsListResponseDto,
 } from '@shared/dto/documents';
 import { mapProvenanceFieldsDto } from './provenanceDtoMapper.js';
+import { deriveDocumentTitle } from '@shared/documentTitle';
+
+const mappedTitle = (doc: Record<string, unknown>): string =>
+  deriveDocumentTitle({
+    id: String(doc.id || 'source'),
+    title: typeof doc.title === 'string' ? doc.title : null,
+    fileName:
+      typeof doc.fileName === 'string'
+        ? doc.fileName
+        : typeof doc.file_name === 'string'
+          ? doc.file_name
+          : null,
+    aiSummary:
+      typeof doc.aiSummary === 'string'
+        ? doc.aiSummary
+        : typeof doc.ai_summary === 'string'
+          ? doc.ai_summary
+          : null,
+    ocrText:
+      typeof doc.contentRefined === 'string'
+        ? doc.contentRefined
+        : typeof doc.content === 'string'
+          ? doc.content
+          : null,
+  }).title;
 
 export const mapDocumentListItemDto = (doc: Record<string, unknown>): DocumentListItemDto => ({
   ...mapProvenanceFieldsDto(doc),
   id: String(doc.id || ''),
   fileName: String(doc.fileName || ''),
-  title: String(doc.title || doc.fileName || 'Untitled'),
+  title: mappedTitle(doc),
   fileType: String(doc.fileType || 'unknown'),
   fileSize: Number(doc.fileSize || 0),
   dateCreated: typeof doc.dateCreated === 'string' ? doc.dateCreated : null,
@@ -88,7 +113,7 @@ export const mapDocumentDetailDto = (doc: Record<string, unknown>): DocumentDeta
   fileType: String(doc.fileType || doc.file_type || 'unknown'),
   fileSize: Number(doc.fileSize || doc.file_size || 0),
   dateCreated: typeof doc.dateCreated === 'string' ? doc.dateCreated : null,
-  title: String(doc.title || doc.fileName || doc.file_name || 'Untitled'),
+  title: mappedTitle(doc),
   content: String(doc.content || ''),
   contentRefined: typeof doc.contentRefined === 'string' ? doc.contentRefined : null,
   contentPreview: typeof doc.contentPreview === 'string' ? doc.contentPreview : null,

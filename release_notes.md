@@ -1,5 +1,20 @@
 # Release Notes
 
+## 22.0.1 - 2026-08-02 - Document Titles and Mobile Menus
+
+### Document Titles
+
+- Every document now has a useful title. The title policy uses the stored title, AI summary, clean OCR text, document number, and database ID in that order.
+- The enriched database title backfill removed all remaining “Untitled” records.
+- New documents receive a document-number fallback during insertion. AI enrichment replaces fallback titles when better source text becomes available.
+- Title-only updates now preserve the existing OCR search vector instead of processing up to 100,000 source characters again.
+
+### Mobile Media
+
+- Album and publication dropdowns now render above page content on the mobile photo, audio, video, and article views.
+
+---
+
 ## 22.0.0 - 2026-08-02 - Full Corpus Hosting
 
 ### Source Preservation

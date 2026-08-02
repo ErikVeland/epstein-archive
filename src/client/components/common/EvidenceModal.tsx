@@ -766,7 +766,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             item.filename ||
             item.sourcePath ||
             item.source_path ||
-            'Untitled source') as string,
+            `Document ${String(item.documentId || item.document_id || 'source')}`) as string,
           passage: (item.contentPreview ||
             item.contextSnippet ||
             item.context_snippet ||

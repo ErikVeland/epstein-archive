@@ -2,6 +2,7 @@ import { documentsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { CacheKeys, queryCache } from '../cache/cacheService.js';
 import type { SharedDocumentDto } from '@shared/dto/connections';
+import { deriveDocumentTitle } from '@shared/documentTitle';
 
 const PREVIEW_MAX_CHARS = 320;
 
@@ -12,30 +13,6 @@ const OCR_NOISE_PATTERNS = [
   /\b[A-Z]{2,}\d{4,}\b/g,
   /[_]{2,}/g,
 ];
-
-const deriveHumanTitle = (rawTitle: string): string => {
-  const stripped = rawTitle
-    .replace(/\.[a-z0-9]{2,5}$/i, '')
-    .replace(/^thumb\s+/i, '')
-    .replace(/textify-ocr/gi, ' ')
-    .replace(/temp[-_]/gi, ' ')
-    .replace(/[_-]+/g, ' ')
-    .replace(/\b\d{6,}\b/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  if (!stripped) return 'Untitled document';
-
-  const lower = stripped.toLowerCase();
-  if (/^ai\s*\d*$/i.test(stripped)) return 'Unlabeled generated image';
-  if (lower.startsWith('img ') && /\d/.test(lower)) return 'Unlabeled image capture';
-  if (lower.includes('deposition')) return 'Deposition transcript';
-  if (lower.includes('flight') && lower.includes('log')) return 'Flight log';
-  if (lower.includes('black') && lower.includes('book')) return 'Black book page';
-  if (lower.includes('email') || lower.includes('message')) return 'Email correspondence';
-  if (lower.includes('doj') || lower.includes('justice')) return 'DOJ filing';
-  return stripped.slice(0, 96);
-};
 
 const looksLikeJunk = (text: string): boolean => {
   if (!text) return true;
@@ -158,6 +135,7 @@ const normalizeSourceType = (evidenceType?: string | null, fileType?: string | n
 };
 
 const buildPreview = (doc: {
+  id: string | number;
   title?: string | null;
   fileName?: string | null;
   contentRefined?: string | null;
@@ -166,12 +144,6 @@ const buildPreview = (doc: {
   metadata?: DocumentMetadata;
   aiSummary?: string | null;
 }) => {
-  const curatedTitle =
-    typeof doc.title === 'string' && doc.title.trim() && doc.title !== doc.fileName
-      ? doc.title.trim()
-      : '';
-  const title = curatedTitle || deriveHumanTitle(doc.fileName || 'Untitled document');
-
   const refined = (doc.contentRefined || '').trim();
   const preview = (doc.contentPreview || '').trim();
   const raw = (doc.contentRaw || '').trim();
@@ -180,6 +152,13 @@ const buildPreview = (doc: {
     (typeof doc.metadata?.extracted_text === 'string' && doc.metadata.extracted_text.trim()) ||
     (typeof doc.metadata?.body_clean_text === 'string' && doc.metadata.body_clean_text.trim()) ||
     '';
+  const title = deriveDocumentTitle({
+    id: doc.id,
+    title: doc.title,
+    fileName: doc.fileName,
+    aiSummary,
+    ocrText: refined || preview || raw || metaText,
+  }).title;
 
   // Best-quality first: refined → aiSummary → preview → raw → metadata text
   if (refined && !looksLikeJunk(refined)) {
@@ -528,6 +507,7 @@ export const documentsRepository = {
       if ('ai_summary' in metadata) delete (metadata as Record<string, unknown>).ai_summary;
       const aiSummary = typeof doc.aiSummary === 'string' ? doc.aiSummary.trim() : '';
       const preview = buildPreview({
+        id: String(doc.id),
         title,
         fileName,
         contentRefined,
@@ -1211,6 +1191,13 @@ export const documentsRepository = {
       evidenceType: document.evidenceType || 'document',
       content: derivedContent,
       contentRefined: refinedContent || derivedContent,
+      title: deriveDocumentTitle({
+        id: String(document.id),
+        title: document.title,
+        fileName: document.fileName,
+        aiSummary,
+        ocrText: refinedContent || derivedContent,
+      }).title,
       metadata,
       aiSummary,
       redFlagRating: Number(document.redFlagRating || 0),

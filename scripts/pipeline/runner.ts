@@ -26,6 +26,7 @@ import {
 } from './status.js';
 import { stageByName, type UnifiedStage } from './stages.js';
 import { ensureServiceHealthyOrRecover } from './recovery.js';
+import { deriveDocumentTitle, isFallbackDocumentTitle } from '../../src/shared/documentTitle.js';
 
 /**
  * Run a subprocess and stream its output. A heartbeat keepalive timer fires
@@ -319,7 +320,7 @@ export async function runEnrichPhase(
     const docs = (
       await pool.query(
         `
-      SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name, red_flag_rating
+      SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name, title, red_flag_rating
       FROM documents
       WHERE ${whereClause} ${failedDocIds.size > 0 ? `AND id NOT IN (${Array.from(failedDocIds).join(',')})` : ''}
       ORDER BY COALESCE(red_flag_rating, 0) DESC, id ASC
@@ -332,6 +333,7 @@ export async function runEnrichPhase(
       content: string | null;
       metadata_json: Record<string, unknown> | null;
       file_name: string | null;
+      title: string | null;
       red_flag_rating: number | null;
     }[];
 
@@ -462,6 +464,34 @@ export async function runEnrichPhase(
             .trim()
             .slice(0, 200);
           summary = `Document "${doc.file_name}" summary preview: ${preview}...`;
+        }
+
+        if (isFallbackDocumentTitle({ id: doc.id, title: doc.title, fileName: doc.file_name })) {
+          const derivedTitle = deriveDocumentTitle({
+            id: doc.id,
+            title: doc.title,
+            fileName: doc.file_name,
+            aiSummary: summary,
+            ocrText: analysisText,
+          });
+          await pool.query(
+            `UPDATE documents
+             SET title = $1
+             WHERE id = $2
+               AND (
+                 title IS NULL
+                 OR BTRIM(title) = ''
+                 OR LOWER(BTRIM(title)) LIKE 'untitled%'
+                 OR title = $3
+                 OR title = $4
+               )`,
+            [
+              derivedTitle.title,
+              doc.id,
+              deriveDocumentTitle({ id: doc.id, fileName: doc.file_name }).title,
+              `Document ${doc.id}`,
+            ],
+          );
         }
 
         if (allowAiContentRewrite && cleanedTextForArtifact) {

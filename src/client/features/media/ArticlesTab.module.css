@@ -18,7 +18,8 @@
 
 .header {
   position: relative;
-  z-index: var(--z-raised);
+  z-index: var(--z-dropdown);
+  overflow: visible;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
