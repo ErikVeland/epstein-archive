@@ -1,5 +1,15 @@
 # Release Notes
 
+## 22.0.2 - 2026-08-02 - Media Evidence Scope
+
+### Evidence Integrity
+
+- Confirmed fake media and unverified claims no longer appear in normal media browsing, search, statistics, entity photos, evidence views, or forensic co-presence signals.
+- The source files remain available for debunking and claim review. New ingestion marks each item as `debunking`, `claim_review`, or `evidence`.
+- Legacy items are excluded through their album, source metadata, or file path.
+
+---
+
 ## 22.0.1 - 2026-08-02 - Document Titles and Mobile Menus
 
 ### Document Titles

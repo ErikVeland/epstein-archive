@@ -11,6 +11,7 @@ import {
   isJunkEntityName,
 } from './entityQuality.js';
 import { isPgTimeout, isPgConnectionFailure } from '../utils/dbErrorClassifier.js';
+import { normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
 
 export interface EntityRepositoryResult {
   entities: Record<string, unknown>[];
@@ -204,6 +205,7 @@ async function loadTopPhotosByEntity(
         LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
         WHERE (mip.entity_id::bigint = ANY($1::bigint[]) OR m.entity_id = ANY($1::bigint[]))
           AND m.file_type ILIKE 'image/%'
+          AND ${normalMediaEvidenceWhereSql('m')}
       ) t WHERE rn = 1
     `,
     values: [entityIds],
@@ -274,6 +276,7 @@ async function getSubjectCardsFallback(
                 LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id::text
                 WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)
                   AND mi.file_type ILIKE 'image/%'
+                  AND ${normalMediaEvidenceWhereSql('mi')}
                 ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC
                 LIMIT 1
               ) as "topPhotoId"

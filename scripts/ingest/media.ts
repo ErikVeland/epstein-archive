@@ -3,6 +3,7 @@
 // ============================================================================
 
 import type { Pool } from 'pg';
+import { evidenceRoleForCollection } from '../../src/server/db/mediaEvidenceScope.js';
 
 export async function getOrCreateMediaAlbumId(
   name: string,
@@ -106,6 +107,7 @@ export async function syncMediaItemFromDocument(
     ...metadata,
     documentId,
     sourceCollection: collectionName,
+    evidenceRole: evidenceRoleForCollection(collectionName),
   });
 
   if (existing) {

@@ -15,6 +15,7 @@ import archiver from 'archiver';
 import type { Pool, QueryResultRow } from 'pg';
 import { getApiPool } from '../db/runtime.js';
 import { logger } from './Logger.js';
+import { normalMediaEvidenceWhereSql } from '../db/mediaEvidenceScope.js';
 
 type UploadFile = {
   path: string;
@@ -157,6 +158,7 @@ export class MediaService {
       LEFT JOIN media_items i
         ON a.id = i.album_id
        AND i.file_type LIKE 'image/%'
+       AND ${normalMediaEvidenceWhereSql('i')}
        AND ${this.nonTextExtractPredicate('i')}
       LEFT JOIN media_items ci ON a.cover_image_id = ci.id::text
       GROUP BY a.id, ci.file_path
@@ -178,6 +180,7 @@ export class MediaService {
       LEFT JOIN media_items i
         ON a.id = i.album_id
        AND i.file_type LIKE 'image/%'
+       AND ${normalMediaEvidenceWhereSql('i')}
        AND ${this.nonTextExtractPredicate('i')}
       LEFT JOIN media_items ci ON a.cover_image_id = ci.id::text
       WHERE a.id = $1
@@ -288,6 +291,7 @@ export class MediaService {
       FROM media_items i
       LEFT JOIN media_albums a ON i.album_id = a.id
       WHERE i.file_type LIKE 'image/%'
+        AND ${normalMediaEvidenceWhereSql('i')}
     `;
 
     const conditions: string[] = [];
@@ -357,8 +361,10 @@ export class MediaService {
   }
 
   async getImageCount(filter?: ImageFilter): Promise<number> {
-    let query =
-      "SELECT COUNT(DISTINCT i.id) as count FROM media_items i WHERE i.file_type LIKE 'image/%'";
+    let query = `SELECT COUNT(DISTINCT i.id) as count
+       FROM media_items i
+       WHERE i.file_type LIKE 'image/%'
+         AND ${normalMediaEvidenceWhereSql('i')}`;
     const conditions: string[] = [];
     const params: unknown[] = [];
     const bind = (value: unknown) => {
@@ -776,24 +782,24 @@ export class MediaService {
   async getMediaStats(): Promise<MediaStats> {
     const nonText = this.nonTextExtractPredicate('i');
     const totalImagesRes = (await this.pgRow<{ count: string | number }>(
-      `SELECT COUNT(*) as count FROM media_items i WHERE i.file_type LIKE 'image/%' AND ${nonText}`,
+      `SELECT COUNT(*) as count FROM media_items i WHERE i.file_type LIKE 'image/%' AND ${normalMediaEvidenceWhereSql('i')} AND ${nonText}`,
     )) || { count: 0 };
     const totalAlbumsRes = (await this.pgRow<{ count: string | number }>(
       `SELECT COUNT(DISTINCT a.id) as count
        FROM media_albums a
        JOIN media_items i ON a.id = i.album_id
-       WHERE i.file_type LIKE 'image/%' AND ${nonText}`,
+       WHERE i.file_type LIKE 'image/%' AND ${normalMediaEvidenceWhereSql('i')} AND ${nonText}`,
     )) || { count: 0 };
     const totalSizeRes = (await this.pgRow<{ size: string | number | null }>(
       `SELECT COALESCE(SUM(i.file_size), 0) as size
        FROM media_items i
-       WHERE i.file_type LIKE 'image/%' AND ${nonText}`,
+       WHERE i.file_type LIKE 'image/%' AND ${normalMediaEvidenceWhereSql('i')} AND ${nonText}`,
     )) || { size: 0 };
 
     const formatBreakdown = await this.pgRows<{ format: string; count: string | number }>(`
         SELECT i.file_type as format, COUNT(*) as count
         FROM media_items i
-        WHERE i.file_type LIKE 'image/%' AND ${nonText}
+        WHERE i.file_type LIKE 'image/%' AND ${normalMediaEvidenceWhereSql('i')} AND ${nonText}
         GROUP BY i.file_type
       `);
 
@@ -803,6 +809,7 @@ export class MediaService {
         LEFT JOIN media_items i
           ON a.id = i.album_id
          AND i.file_type LIKE 'image/%'
+         AND ${normalMediaEvidenceWhereSql('i')}
          AND ${nonText}
         GROUP BY a.id, a.name
         HAVING COUNT(i.id) > 0

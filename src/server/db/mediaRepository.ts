@@ -2,6 +2,7 @@ import { mediaQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import { resolveCanonicalEntityId } from '../utils/id_utils.js';
+import { normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
 
 export interface MediaItem {
   id: number;
@@ -182,6 +183,7 @@ export const mediaRepository = {
           )
         )
           AND m.file_type LIKE 'image/%'
+          AND ${normalMediaEvidenceWhereSql('m')}
         ORDER BY m.red_flag_rating DESC, m.created_at DESC
         LIMIT 1
       `,
@@ -367,6 +369,7 @@ export const mediaRepository = {
                OR m.title ILIKE '%' || ce.full_name || '%'
           )
         )
+          AND ${normalMediaEvidenceWhereSql('m')}
         ORDER BY m.red_flag_rating DESC, m.created_at DESC
       `,
       [canonicalId],
@@ -514,7 +517,7 @@ export const mediaRepository = {
       }
     }
 
-    const whereParts: string[] = [];
+    const whereParts: string[] = [normalMediaEvidenceWhereSql('m')];
     const queryParams: Array<string | number | bigint | null> = [];
     const addParam = (value: string | number | bigint | null) => {
       queryParams.push(value);

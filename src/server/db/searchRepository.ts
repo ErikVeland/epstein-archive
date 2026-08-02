@@ -5,6 +5,7 @@ import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolve
 import { getSemanticCapability, SemanticCapability } from '../semantic/capability.js';
 import { searchDocumentsSemantic, searchEntitiesSemantic } from '../semantic/search.js';
 import { entityQualityWhereSql, isJunkEntityName } from './entityQuality.js';
+import { normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
 
 const normalizeAliasValue = (value: string): string =>
   value
@@ -300,8 +301,9 @@ async function searchMediaRows(searchTerm: string, limit: number) {
           'MaxWords=25,MinWords=8'
         ) AS snippet,
         ts_rank_cd(fts_vector, websearch_to_tsquery('english', $1), 32) AS rank
-      FROM media_items
-      WHERE fts_vector @@ websearch_to_tsquery('english', $1)
+      FROM media_items m
+      WHERE m.fts_vector @@ websearch_to_tsquery('english', $1)
+        AND ${normalMediaEvidenceWhereSql('m')}
       ORDER BY rank DESC
       LIMIT $2
     `,

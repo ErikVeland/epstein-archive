@@ -1,5 +1,6 @@
 import { getApiPool } from '../db/connection.js';
 import { logger } from './Logger.js';
+import { normalMediaEvidenceWhereSql } from '../db/mediaEvidenceScope.js';
 
 export interface ForensicSignal {
   id?: string;
@@ -80,6 +81,7 @@ export class ForensicSignalService {
         JOIN media_item_people m2 ON m1.media_item_id = m2.media_item_id AND m1.entity_id < m2.entity_id
         JOIN media_items mi ON m1.media_item_id::text = mi.id
         WHERE m1.entity_id IS NOT NULL AND m2.entity_id IS NOT NULL
+          AND ${normalMediaEvidenceWhereSql('mi')}
       )
       INSERT INTO forensic_signals (
         signal_type, confidence, risk_score, source_type, source_ref_id, entity_ids, metadata_json
