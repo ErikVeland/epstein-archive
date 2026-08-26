@@ -102,6 +102,27 @@ const discoveryLinks = [
   { href: '/epstein-flights', label: 'Epstein Flight Logs' },
 ];
 
+const evidenceSpotlights = [
+  {
+    href: '/documents?id=1236014',
+    label: 'Estate trust subpoena response',
+    description:
+      'A November 2019 response records production of three Epstein trust instruments and explains why investigators restricted circulation of the sensitive material.',
+  },
+  {
+    href: '/documents?id=1236034',
+    label: 'Maxwell border encounter history',
+    description:
+      'A five-page CBP encounter list provides a source record for repeated international travel and can be compared with the archive’s flight evidence.',
+  },
+  {
+    href: '/documents?id=1235956',
+    label: 'Maxwell discovery production index',
+    description:
+      'An August 2020 SDNY letter documents a 12,841-file discovery production, its protective-order controls, and the government’s disclosure obligations.',
+  },
+];
+
 export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ variant }) => {
   const copy = copyByVariant[variant];
 
@@ -157,6 +178,32 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
             ))}
           </Grid>
         </Surface>
+
+        {variant === 'overview' ? (
+          <Surface variant="glass" className={styles.section}>
+            <LqText as="h2" variant="h3" color="primary" className={styles.sectionTitle}>
+              Newly Searchable Evidence
+            </LqText>
+            <LqText as="p" variant="body" color="secondary" className={styles.description}>
+              Selected source records surfaced by the completed text and summary backfill. AI
+              summaries are research aids; open each record to review the underlying evidence.
+            </LqText>
+            <Grid cols={{ base: 1, sm: 3 }} gap={3}>
+              {evidenceSpotlights.map((item) => (
+                <Surface key={item.href} variant="glass" className={styles.discoveryCard}>
+                  <Flex direction="column" gap={2}>
+                    <Link to={item.href} className={styles.discoveryLink}>
+                      {item.label}
+                    </Link>
+                    <LqText as="p" variant="body" color="secondary">
+                      {item.description}
+                    </LqText>
+                  </Flex>
+                </Surface>
+              ))}
+            </Grid>
+          </Surface>
+        ) : null}
 
         <Box className={styles.ctaWrap}>
           <Link to={copy.ctaHref} className={styles.ctaLink}>

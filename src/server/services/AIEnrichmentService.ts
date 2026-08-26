@@ -10,6 +10,7 @@
  */
 
 import { logger } from './Logger.js';
+import { throttleExoForUserActivity } from './exoActivityGovernor.js';
 
 declare const process: NodeJS.Process;
 
@@ -78,6 +79,8 @@ export class AIEnrichmentService {
     ) {
       return [...this.callableExoModels];
     }
+
+    await throttleExoForUserActivity();
 
     const modelsResponse = await fetch(`${this.EXO_HOST}/v1/models`, {
       signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
@@ -292,6 +295,7 @@ export class AIEnrichmentService {
       try {
         const modelId = options.modelId || (await this.getModelId(task));
         if (provider === 'exo_cluster') {
+          await throttleExoForUserActivity();
           // OpenAI-compatible API (Exo)
           const url = `${this.EXO_HOST}/v1/chat/completions`;
           logger.info(`[AIEnrichment] Calling Exo LLM: ${modelId} at ${url}`);

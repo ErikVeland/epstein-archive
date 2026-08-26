@@ -108,6 +108,11 @@ module.exports = {
         VISION_MODEL: 'mlx-community/Qwen3-VL-4B-Instruct-4bit',
         ENABLE_AI_ENRICHMENT: 'true',
         AI_PROVIDER: 'exo_cluster',
+        // Yield local Exo capacity while someone is using the Mac. Full-speed
+        // pipeline inference resumes after two minutes without HID activity.
+        EXO_THROTTLE_ON_USER_ACTIVITY: 'true',
+        EXO_USER_IDLE_THRESHOLD_MS: '120000',
+        EXO_ACTIVE_REQUEST_DELAY_MS: '30000',
       },
     },
   ],

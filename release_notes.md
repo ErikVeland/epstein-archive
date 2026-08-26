@@ -1,5 +1,20 @@
 # Release Notes
 
+## 22.1.0 - 2026-08-26 - Searchable Text Milestone
+
+### Text Intelligence
+
+- **The archive-wide text cleanup and summary backfill is complete.** More than 464,000 documents now have separately stored, provenance-bearing summary artifacts, with only non-enrichable or explicitly failed records outside the completed set.
+- **AI output remains distinct from source evidence.** Summary artifacts retain their model and pipeline provenance, remain unreviewed until a researcher verifies them, and never replace preserved original files.
+- **New evidence spotlights connect readers directly to source records.** The overview now features an Epstein estate trust subpoena response, Ghislaine Maxwell's CBP encounter history, and the indexed 12,841-file SDNY discovery production.
+
+### Workstation Responsiveness
+
+- **Pipeline Exo traffic now yields during interactive Mac use.** Recent keyboard or pointer activity adds a configurable quiet interval before pipeline-owned Exo requests; full throughput returns after the Mac has been idle for two minutes.
+- The governor is enabled only for the background pipeline. User-initiated archive requests are not delayed, and operators can tune or disable the behavior with `EXO_THROTTLE_ON_USER_ACTIVITY`, `EXO_USER_IDLE_THRESHOLD_MS`, and `EXO_ACTIVE_REQUEST_DELAY_MS`.
+
+---
+
 ## 22.0.2 - 2026-08-02 - Media Evidence Scope
 
 ### Evidence Integrity
