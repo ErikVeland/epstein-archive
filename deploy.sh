@@ -764,8 +764,15 @@ if [ "$DB_ONLY" = false ]; then
       git worktree add --detach \"\$RELEASE_STAGE\" \"\$TARGET_SHA\"
 
       cleanup_stage() {
+        local exit_code=\$?
+        if [ \"\$exit_code\" -ne 0 ]; then
+          echo 'Canary/deploy failure diagnostics:'
+          pm2 describe epstein-archive-canary 2>/dev/null || true
+          pm2 logs epstein-archive-canary --lines 120 --nostream 2>/dev/null || true
+        fi
         pm2 delete epstein-archive-canary 2>/dev/null || true
         git worktree remove --force \"\$RELEASE_STAGE\" 2>/dev/null || rm -rf \"\$RELEASE_STAGE\"
+        return \"\$exit_code\"
       }
       trap cleanup_stage EXIT
 

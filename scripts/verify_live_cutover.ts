@@ -134,30 +134,41 @@ async function eventually<T>(deadlineMs: number, fn: () => Promise<T>): Promise<
 }
 
 async function main() {
-  const checks = await Promise.all([
+  // PM2 can return from `start --wait-ready` before a newly spawned process has
+  // bound its port. Gate every contract probe behind the retrying readiness
+  // check so a normal cold start does not produce a burst of connection errors.
+  const readinessCheck = await check('readiness live data', async () => {
+    return eventually(readinessRetryMs, async () => {
+      const { status, body } = await getJson('/api/health/ready');
+      assertObject(body.checks, 'readiness.checks');
+      assertObject(body.checks.data, 'readiness.checks.data');
+      const entities = asNumber(body.checks.data.entities);
+      const documents = asNumber(body.checks.data.documents);
+      if (status !== 200 || body.status !== 'ok') {
+        throw new Error(`status=${status} readiness=${String(body.status)}`);
+      }
+      if (entities <= 0 || documents <= 0) {
+        throw new Error(`core data unavailable: entities=${entities} documents=${documents}`);
+      }
+      return `entities=${entities} documents=${documents}`;
+    });
+  });
+
+  if (!readinessCheck.ok) {
+    console.log(`== LIVE CUTOVER VERIFICATION: ${baseUrl} ==`);
+    console.log(`[FAIL] ${readinessCheck.name}`);
+    console.log(`  ${readinessCheck.detail}`);
+    console.error('\n[SUMMARY] failed=1 passed=0');
+    process.exit(1);
+  }
+
+  const contractChecks = await Promise.all([
     check('basic health', async () => {
       const { status, body } = await getJson('/api/health');
       if (status !== 200 || body.status !== 'ok') {
         throw new Error(`status=${status} body.status=${String(body.status)}`);
       }
       return 'status=ok';
-    }),
-
-    check('readiness live data', async () => {
-      return eventually(readinessRetryMs, async () => {
-        const { status, body } = await getJson('/api/health/ready');
-        assertObject(body.checks, 'readiness.checks');
-        assertObject(body.checks.data, 'readiness.checks.data');
-        const entities = asNumber(body.checks.data.entities);
-        const documents = asNumber(body.checks.data.documents);
-        if (status !== 200 || body.status !== 'ok') {
-          throw new Error(`status=${status} readiness=${String(body.status)}`);
-        }
-        if (entities <= 0 || documents <= 0) {
-          throw new Error(`core data unavailable: entities=${entities} documents=${documents}`);
-        }
-        return `entities=${entities} documents=${documents}`;
-      });
     }),
 
     check('postgres metadata', async () => {
@@ -235,6 +246,7 @@ async function main() {
       return 'Jeffrey Epstein=#1 Donald Trump=#2; no junk entity leakage';
     }),
   ]);
+  const checks = [readinessCheck, ...contractChecks];
 
   console.log(`== LIVE CUTOVER VERIFICATION: ${baseUrl} ==`);
   for (const result of checks) {
