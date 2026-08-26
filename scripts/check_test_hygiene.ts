@@ -126,9 +126,10 @@ function main() {
     throw new Error('No test files matched the hygiene guard');
   }
 
+  const declarationFiles = globSync(['src/**/*.d.ts'], { cwd: rootDir, absolute: true });
   const compilerOptions = loadCompilerOptions();
   const program = ts.createProgram({
-    rootNames: testFiles,
+    rootNames: [...testFiles, ...declarationFiles],
     options: compilerOptions,
   });
 
