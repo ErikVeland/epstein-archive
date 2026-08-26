@@ -5,6 +5,9 @@
 
 ## Immediate Triage
 
+For a citation-addressed scan, keep the `assetSha256` query parameter from the citation URL. A
+pinned request never falls back to a different local variant or remote file.
+
 1. **Verify asset metadata**
 
    ```sql
@@ -22,6 +25,19 @@
    tsx -e "const { resolveMediaPath } = require('./src/server/utils/pathResolver'); console.log(resolveMediaPath('<file_path>'));"
    ls -la <resolved_path>
    ```
+
+   If the path is a symlink, its resolved target must be inside `data/` or the configured
+   `RAW_CORPUS_BASE_PATH`. Configure the raw evidence volume explicitly; do not broaden the allowed
+   root beyond the corpus storage boundary.
+
+   Verify pinned bytes before changing any path:
+
+   ```bash
+   shasum -a 256 <resolved_path>
+   ```
+
+   A pinned endpoint returns `409` when the bytes do not match the requested SHA-256. It returns
+   `404` when the asset is not linked to that document or is outside an approved local root.
 
 3. **Check data directory structure**
    ```bash
@@ -45,7 +61,8 @@
    find "$RAW_CORPUS_BASE_PATH" -name "<file_name>" 2>/dev/null
    ```
 
-   - Copy from backup: `cp <backup_path> data/public/<dataset>/`
+   - Restore the exact hash-matching asset from backup. Do not replace bytes behind a published
+     citation with a different scan.
 
 3. **Asset never ingested (document record without file)**
    - Re-run ingestion for this document:

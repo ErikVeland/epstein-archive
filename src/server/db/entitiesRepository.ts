@@ -11,7 +11,10 @@ import {
   isJunkEntityName,
 } from './entityQuality.js';
 import { isPgTimeout, isPgConnectionFailure } from '../utils/dbErrorClassifier.js';
-import { normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
+import {
+  normalDocumentEvidenceWhereSql,
+  normalMediaEvidenceWhereSql,
+} from './mediaEvidenceScope.js';
 
 export interface EntityRepositoryResult {
   entities: Record<string, unknown>[];
@@ -930,10 +933,26 @@ export const entitiesRepository = {
 
     if (!entity) return null;
 
-    const mentions = await runQuery<{ entityId: number; limit: number }, Record<string, unknown>>(
-      entitiesQueries.getEntityMentions,
-      { entityId, limit: 100 },
-      getApiPool(),
+    const mentionCandidates = await runQuery<
+      { entityId: number; limit: number },
+      Record<string, unknown>
+    >(entitiesQueries.getEntityMentions, { entityId, limit: 100 }, getApiPool());
+    const mentionDocumentIds = mentionCandidates.map((mention) => String(mention.document_id));
+    const allowedMentionDocuments =
+      mentionDocumentIds.length === 0
+        ? { rows: [] as Array<{ id: string }> }
+        : await getApiPool().query<{ id: string }>(
+            `SELECT d.id::text AS id
+             FROM documents d
+             WHERE d.id = ANY($1::bigint[])
+               AND ${normalDocumentEvidenceWhereSql('d')}`,
+            [mentionDocumentIds],
+          );
+    const allowedMentionDocumentIds = new Set(
+      allowedMentionDocuments.rows.map((document) => document.id),
+    );
+    const mentions = mentionCandidates.filter((mention) =>
+      allowedMentionDocumentIds.has(String(mention.document_id)),
     );
     const relationships = await runQuery<{ entityId: number }, Record<string, unknown>>(
       entitiesQueries.getEntityRelationships,

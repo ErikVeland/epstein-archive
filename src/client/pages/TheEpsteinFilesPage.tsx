@@ -104,22 +104,54 @@ const discoveryLinks = [
 
 const evidenceSpotlights = [
   {
-    href: '/documents?id=1236014',
+    searchHref: '/search?q=trust%20instruments',
+    sourceHref: '/documents?id=1236014',
     label: 'Estate trust subpoena response',
     description:
       'A November 2019 response records production of three Epstein trust instruments and explains why investigators restricted circulation of the sensitive material.',
   },
   {
-    href: '/documents?id=1236034',
+    searchHref: '/search?q=CBP%20encounter',
+    sourceHref: '/documents?id=1236034',
     label: 'Maxwell border encounter history',
     description:
       'A five-page CBP encounter list provides a source record for repeated international travel and can be compared with the archive’s flight evidence.',
   },
   {
-    href: '/documents?id=1235956',
+    searchHref: '/search?q=12%2C841%20files',
+    sourceHref: '/documents?id=1235956',
     label: 'Maxwell discovery production index',
     description:
       'An August 2020 SDNY letter documents a 12,841-file discovery production, its protective-order controls, and the government’s disclosure obligations.',
+  },
+];
+
+const evidenceHypertextFeatures = [
+  {
+    label: 'Search exact passages',
+    description: 'Results lead with quoted source sentences instead of generated summaries.',
+  },
+  {
+    label: 'Open text and scan',
+    description: 'Move between the exact text address and the preserved original source file.',
+  },
+  {
+    label: 'Copy durable citations',
+    description:
+      'Carry the page, sentence, release, citation ID, and source hashes with the quote.',
+  },
+  {
+    label: 'Trace source families',
+    description: 'Recognize repeated copies without counting duplicates as independent support.',
+  },
+  {
+    label: 'Collate investigations',
+    description:
+      'Save the exact quotation, provenance, hashes, and source links as one evidence item.',
+  },
+  {
+    label: 'Share the evidence',
+    description: 'Send a textual citation, permanent evidence link, or original scan.',
   },
 ];
 
@@ -159,6 +191,61 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
           </Box>
         </Surface>
 
+        {variant === 'overview' ? (
+          <Surface variant="glass" className={`${styles.section} ${styles.evidenceShowcase}`}>
+            <Flex direction="column" gap={5}>
+              <Flex justify="between" align="start" gap={5} className={styles.showcaseHeader}>
+                <Box>
+                  <LqText as="p" variant="small" color="accent" className={styles.releaseEyebrow}>
+                    New in v{__APP_VERSION__}
+                  </LqText>
+                  <LqText as="h2" variant="h2" color="primary" className={styles.showcaseTitle}>
+                    Evidence Hypertext
+                  </LqText>
+                  <LqText as="p" variant="body" color="secondary" className={styles.description}>
+                    Search the corpus as linked evidence. Start with exact language, verify it
+                    against the original scan, copy a reproducible citation, and preserve the
+                    complete source context in an investigation.
+                  </LqText>
+                </Box>
+                <Link to="/search?q=protective%20order" className={styles.ctaLink}>
+                  Open Evidence Search
+                </Link>
+              </Flex>
+
+              <Grid cols={{ base: 1, sm: 2, lg: 3 }} gap={3}>
+                {evidenceHypertextFeatures.map((feature, index) => (
+                  <Surface key={feature.label} variant="glass" className={styles.featureCard}>
+                    <span className={styles.featureNumber} aria-hidden="true">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <LqText as="h3" variant="body" color="primary" className={styles.featureTitle}>
+                      {feature.label}
+                    </LqText>
+                    <LqText as="p" variant="small" color="secondary">
+                      {feature.description}
+                    </LqText>
+                  </Surface>
+                ))}
+              </Grid>
+
+              <Box as="ol" className={styles.evidenceFlow} aria-label="Evidence research workflow">
+                {[
+                  'Search text',
+                  'Open passage',
+                  'Verify scan',
+                  'Copy citation',
+                  'Build a case',
+                ].map((step) => (
+                  <LqText as="li" variant="small" color="primary" key={step}>
+                    {step}
+                  </LqText>
+                ))}
+              </Box>
+            </Flex>
+          </Surface>
+        ) : null}
+
         <Surface variant="glass" className={styles.section}>
           <LqText as="h2" variant="h3" color="primary" className={styles.sectionTitle}>
             Explore Archive Sections
@@ -190,14 +277,18 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
             </LqText>
             <Grid cols={{ base: 1, sm: 3 }} gap={3}>
               {evidenceSpotlights.map((item) => (
-                <Surface key={item.href} variant="glass" className={styles.discoveryCard}>
+                <Surface key={item.sourceHref} variant="glass" className={styles.spotlightCard}>
                   <Flex direction="column" gap={2}>
-                    <Link to={item.href} className={styles.discoveryLink}>
+                    <Link to={item.searchHref} className={styles.spotlightTitleLink}>
                       {item.label}
                     </Link>
                     <LqText as="p" variant="body" color="secondary">
                       {item.description}
                     </LqText>
+                    <Flex gap={3} className={styles.spotlightActions}>
+                      <Link to={item.searchHref}>Search exact text</Link>
+                      <Link to={item.sourceHref}>Open source record</Link>
+                    </Flex>
                   </Flex>
                 </Surface>
               ))}

@@ -29,6 +29,7 @@ The goal is accountability through access. Every engineering decision here serve
 - **[Getting Started](GETTING_STARTED.md)** — local setup in under 10 minutes
 - **[Investigation Guide](INVESTIGATION_GUIDE.md)** — how the core workspace feature works
 - **[Architecture Wiki](docs/wiki.md)** — system design and patterns
+- **[Evidence Hypertext Architecture](docs/evidence-hypertext-architecture.md)** — passage-level evidence, citations, correlations, and casebooks
 - **[Coding Standards](CODING_STANDARDS.md)** — rules that apply to every contributor
 - **[My Onboarding Notes](docs/MY_ONBOARDING.md)** — a living doc for things that aren't obvious
 

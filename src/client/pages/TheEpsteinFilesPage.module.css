@@ -13,6 +13,87 @@
   padding: var(--space-6);
 }
 
+.evidenceShowcase {
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--glass-border));
+  background:
+    radial-gradient(
+      circle at 90% 5%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 34%
+    ),
+    var(--glass-bg);
+}
+
+.showcaseHeader {
+  flex-wrap: wrap;
+}
+
+.showcaseHeader > :first-child {
+  flex: 1 1 34rem;
+}
+
+.releaseEyebrow {
+  margin: 0 0 var(--space-2);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.showcaseTitle {
+  margin: 0 0 var(--space-3);
+}
+
+.featureCard {
+  position: relative;
+  min-height: 10rem;
+  padding: var(--space-5);
+}
+
+.featureNumber {
+  display: block;
+  margin-bottom: var(--space-5);
+  color: color-mix(in srgb, var(--accent) 72%, white);
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+}
+
+.featureTitle {
+  margin: 0 0 var(--space-2);
+  font-weight: var(--weight-bold);
+}
+
+.evidenceFlow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: evidence-flow;
+}
+
+.evidenceFlow li {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--glass-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  text-align: center;
+}
+
+.evidenceFlow li:not(:last-child)::after {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: calc(var(--space-2) * -1);
+  content: '→';
+  color: color-mix(in srgb, var(--accent) 64%, white);
+  transform: translate(50%, -50%);
+}
+
 .sectionTitle,
 .sectionTitleAccent {
   margin-bottom: var(--space-4);
@@ -42,6 +123,41 @@
 
 .discoveryCard:hover {
   border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.spotlightCard {
+  padding: var(--space-5);
+  transition: border-color var(--duration-fast, 150ms);
+}
+
+.spotlightCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.spotlightTitleLink {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  transition: color var(--duration-fast, 150ms);
+}
+
+.spotlightTitleLink:hover {
+  color: color-mix(in srgb, var(--accent) 55%, white);
+}
+
+.spotlightActions {
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: var(--space-3);
+}
+
+.spotlightActions a {
+  color: color-mix(in srgb, var(--accent) 66%, white);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.spotlightActions a:hover {
+  text-decoration: underline;
 }
 
 .discoveryLink {
@@ -74,4 +190,21 @@
 
 .ctaLink:hover {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+@media (max-width: 800px) {
+  .evidenceFlow {
+    grid-template-columns: 1fr;
+  }
+
+  .evidenceFlow li {
+    text-align: left;
+  }
+
+  .evidenceFlow li:not(:last-child)::after {
+    top: auto;
+    right: 50%;
+    bottom: calc(var(--space-2) * -1);
+    transform: translate(50%, 50%) rotate(90deg);
+  }
 }

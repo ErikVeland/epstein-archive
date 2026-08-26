@@ -26,6 +26,36 @@ export function normalMediaEvidenceWhereSql(alias: string): string {
   )`;
 }
 
+/**
+ * Excludes document rows that are themselves marked as non-evidence or are backed by a media
+ * item in a rebuttal collection. Media imports create both rows, so filtering only media_items
+ * leaves the document mention available to entity evidence ranking.
+ */
+export function normalDocumentEvidenceWhereSql(alias: string): string {
+  return `NOT (
+    COALESCE(${alias}.metadata_json->>'evidenceRole', '') IN ('debunking', 'claim_review')
+    OR COALESCE(${alias}.metadata_json->>'sourceCollection', '') IN ('Confirmed Fake', 'Unconfirmed Claims')
+    OR COALESCE(${alias}.metadata_json->>'source_collection', '') IN ('Confirmed Fake', 'Unconfirmed Claims')
+    OR COALESCE(${alias}.file_path, '') ILIKE '%Confirmed Fake%'
+    OR COALESCE(${alias}.file_path, '') ILIKE '%Unconfirmed Claims%'
+    OR EXISTS (
+      SELECT 1
+      FROM media_items evidence_scope_media
+      LEFT JOIN media_albums evidence_scope_document_album
+        ON evidence_scope_document_album.id = evidence_scope_media.album_id
+      WHERE (evidence_scope_media.document_id = ${alias}.id OR evidence_scope_media.file_path = ${alias}.file_path)
+        AND (
+          COALESCE(evidence_scope_media.metadata_json->>'evidenceRole', '') IN ('debunking', 'claim_review')
+          OR COALESCE(evidence_scope_media.metadata_json->>'sourceCollection', '') IN ('Confirmed Fake', 'Unconfirmed Claims')
+          OR COALESCE(evidence_scope_media.metadata_json->>'source_collection', '') IN ('Confirmed Fake', 'Unconfirmed Claims')
+          OR COALESCE(evidence_scope_media.file_path, '') ILIKE '%Confirmed Fake%'
+          OR COALESCE(evidence_scope_media.file_path, '') ILIKE '%Unconfirmed Claims%'
+          OR evidence_scope_document_album.name IN ('Confirmed Fake', 'Unconfirmed Claims')
+        )
+    )
+  )`;
+}
+
 export function evidenceRoleForCollection(
   collectionName: string,
 ): 'evidence' | 'debunking' | 'claim_review' {

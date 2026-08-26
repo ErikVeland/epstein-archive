@@ -104,6 +104,21 @@ Run the full suite to verify repository health and database performance.
 - `pg_analyze_after_migrate.ts`: Refreshes query planner statistics.
 - `pg_fix_mentions.ts`: Corrects overlapping entity mention spans.
 
+### Evidence passage backfill
+
+`pnpm passages:backfill` materializes at most 250 passages by default. Use the returned
+`resumeAfterId` value with `--after-id` for the next bounded run. A bounded run reports
+`complete: true` only when an exhaustion check finds no later eligible sentence.
+
+```bash
+pnpm passages:backfill -- --dry-run --limit 250
+pnpm passages:backfill -- --limit 1000 --after-id 123456
+pnpm passages:backfill -- --all
+```
+
+Only the explicit `--all` form removes the row limit. The passage table keeps source SHA-256
+values separate from the deterministic document revision hash used to build citations.
+
 ---
 
 ## ⚠️ Deprecated (Purged)

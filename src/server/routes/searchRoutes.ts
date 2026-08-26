@@ -29,6 +29,23 @@ router.get('/capability', async (_req, res, next) => {
   }
 });
 
+// GET /api/search/passages/:citationId
+router.get('/passages/:citationId', apiRateLimiter, async (req, res, next) => {
+  try {
+    const citationId = String(req.params.citationId || '').trim();
+    const q = String(req.query.q || '')
+      .trim()
+      .slice(0, 500);
+    const passage = await searchRepository.getPassageByCitationId(citationId, q);
+    if (!passage) {
+      return res.status(404).json({ error: 'Evidence passage not found' });
+    }
+    return res.json(passage);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 // GET /api/search
 // Rate limited to prevent abuse and protect search infrastructure
 router.get('/', apiRateLimiter, validate(searchSchema), async (req, res, next) => {
@@ -43,6 +60,8 @@ router.get('/', apiRateLimiter, validate(searchSchema), async (req, res, next) =
       entityType: req.query.entityType ? String(req.query.entityType) : undefined,
       reviewState: req.query.reviewState ? String(req.query.reviewState) : undefined,
       redFlagBand: req.query.redFlagBand as 'low' | 'medium' | 'high' | undefined,
+      redFlagMin: req.query.redFlagMin == null ? undefined : Number(req.query.redFlagMin),
+      redFlagMax: req.query.redFlagMax == null ? undefined : Number(req.query.redFlagMax),
       confidenceMin: req.query.confidenceMin == null ? undefined : Number(req.query.confidenceMin),
       confidenceMax: req.query.confidenceMax == null ? undefined : Number(req.query.confidenceMax),
       dateFrom: req.query.dateFrom ? String(req.query.dateFrom) : undefined,
@@ -53,6 +72,7 @@ router.get('/', apiRateLimiter, validate(searchSchema), async (req, res, next) =
       return res.json({
         entities: [],
         documents: [],
+        passages: [],
         investigations: [],
         articles: [],
         media: [],

@@ -26,7 +26,11 @@ import type {
   SubjectsListResponseDto,
 } from '@shared/dto/entities';
 import type { GraphResponseDto } from '@shared/dto/graph';
-import type { SearchDocumentResultDto, UnifiedSearchResponseDto } from '@shared/dto/search';
+import type {
+  SearchDocumentResultDto,
+  SearchPassageResultDto,
+  UnifiedSearchResponseDto,
+} from '@shared/dto/search';
 import type { PublicDocumentAnnotation } from '@shared/dto/annotations';
 import type {
   InvestigationEvidenceListResponseDto,
@@ -991,6 +995,7 @@ class ApiClient {
           }))
         : [],
       documents: (r.documents ?? []) as SearchDocumentResultDto[],
+      passages: (r.passages ?? []) as SearchPassageResultDto[],
       investigations: (r.investigations ?? []) as Record<string, unknown>[],
       articles: (r.articles ?? []) as Record<string, unknown>[],
       media: (r.media ?? []) as Record<string, unknown>[],

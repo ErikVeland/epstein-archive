@@ -16,6 +16,8 @@ import { AnnotationPolicyService } from '../services/AnnotationPolicyService.js'
 import { logger } from '../services/Logger.js';
 import fs from 'fs';
 import path from 'path';
+import type { Stats } from 'node:fs';
+import type { FileHandle } from 'node:fs/promises';
 import {
   annotationWriteLimiter,
   documentFileLimiter,
@@ -23,6 +25,7 @@ import {
 } from '../middleware/rateLimit.js';
 import { createHash } from 'crypto';
 import { Readable } from 'stream';
+import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
 import { withTimeoutFallback } from '../utils/asyncTimeout.js';
 import {
@@ -32,9 +35,101 @@ import {
   type AuthRequest,
 } from '../auth/middleware.js';
 import { rejectDeepOffset, RELATED_LIST_LIMIT_CAP } from '../utils/paginationGuards.js';
+import { getApiPool } from '../db/connection.js';
 
 const router = express.Router();
 const ASSET_PROXY_TIMEOUT_MS = 30_000;
+const verifiedAssetCache = new Map<string, string>();
+const VERIFIED_ASSET_CACHE_LIMIT = 1_024;
+
+interface ByteRange {
+  end: number;
+  start: number;
+}
+
+interface VerifiedPinnedAsset {
+  stats: Stats;
+}
+
+const fileIdentityKey = (filePath: string, stats: Stats): string =>
+  [filePath, stats.dev, stats.ino, stats.size, stats.mtimeMs, stats.ctimeMs].join('\u001f');
+
+export async function verifyPinnedAssetFile(
+  fileHandle: FileHandle,
+  filePath: string,
+  expectedSha256: string,
+): Promise<VerifiedPinnedAsset | null> {
+  const initialStats = await fileHandle.stat();
+  if (!initialStats.isFile()) return null;
+
+  const initialIdentity = fileIdentityKey(filePath, initialStats);
+  if (verifiedAssetCache.get(initialIdentity) === expectedSha256) {
+    return { stats: initialStats };
+  }
+
+  const digest = await new Promise<string>((resolve, reject) => {
+    const hash = createHash('sha256');
+    const stream = fileHandle.createReadStream({ autoClose: false, start: 0 });
+    stream.on('data', (chunk) => hash.update(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(hash.digest('hex')));
+  });
+  if (digest !== expectedSha256) return null;
+
+  const verifiedStats = await fileHandle.stat();
+  const verifiedIdentity = fileIdentityKey(filePath, verifiedStats);
+  if (verifiedIdentity !== initialIdentity) return null;
+
+  if (verifiedAssetCache.size >= VERIFIED_ASSET_CACHE_LIMIT) {
+    const oldestKey = verifiedAssetCache.keys().next().value as string | undefined;
+    if (oldestKey) verifiedAssetCache.delete(oldestKey);
+  }
+  verifiedAssetCache.set(verifiedIdentity, digest);
+  return { stats: verifiedStats };
+}
+
+function parseSingleByteRange(rangeHeader: string, size: number): ByteRange | null {
+  if (size <= 0 || rangeHeader.includes(',')) return null;
+  const match = rangeHeader.trim().match(/^bytes=(\d*)-(\d*)$/i);
+  if (!match || (!match[1] && !match[2])) return null;
+
+  if (!match[1]) {
+    const suffixLength = Number(match[2]);
+    if (!Number.isSafeInteger(suffixLength) || suffixLength <= 0) return null;
+    return { start: Math.max(0, size - suffixLength), end: size - 1 };
+  }
+
+  const start = Number(match[1]);
+  const requestedEnd = match[2] ? Number(match[2]) : size - 1;
+  if (
+    !Number.isSafeInteger(start) ||
+    !Number.isSafeInteger(requestedEnd) ||
+    start < 0 ||
+    requestedEnd < start ||
+    start >= size
+  ) {
+    return null;
+  }
+  return { start, end: Math.min(requestedEnd, size - 1) };
+}
+
+function requestEtagMatches(rawHeader: string | undefined, etag: string): boolean {
+  if (!rawHeader) return false;
+  return rawHeader.split(',').some((candidate) => {
+    const normalized = candidate.trim();
+    return normalized === '*' || normalized === etag || normalized.replace(/^W\//, '') === etag;
+  });
+}
+
+function ifRangeAllowsRange(rawHeader: string | undefined, etag: string, stats: Stats): boolean {
+  if (!rawHeader) return true;
+  const normalized = rawHeader.trim();
+  if (normalized.startsWith('"') || normalized.startsWith('W/')) return normalized === etag;
+
+  const requestedDate = Date.parse(normalized);
+  if (!Number.isFinite(requestedDate)) return false;
+  return Math.floor(stats.mtimeMs / 1_000) * 1_000 <= requestedDate;
+}
 
 const documentsListQuerySchema = z.object({
   query: z.object({
@@ -553,6 +648,59 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
+    const requestedAssetSha256 = String(req.query.assetSha256 || '')
+      .trim()
+      .toLowerCase()
+      .replace(/^sha256:/, '');
+    if (requestedAssetSha256 && !/^[a-f0-9]{64}$/.test(requestedAssetSha256)) {
+      return res.status(400).json({ error: 'assetSha256 must be a SHA-256 hex digest' });
+    }
+
+    const pinnedAsset = requestedAssetSha256
+      ? (
+          await getApiPool().query<{
+            id: string;
+            storage_path: string;
+            file_name: string | null;
+            mime_type: string | null;
+            sha256: string;
+          }>(
+            `
+              SELECT
+                pinned.id::text AS id,
+                pinned.storage_path,
+                pinned.file_name,
+                pinned.mime_type,
+                LOWER(REGEXP_REPLACE(pinned.sha256, '^sha256:', '')) AS sha256
+              FROM file_assets pinned
+              WHERE LOWER(REGEXP_REPLACE(pinned.sha256, '^sha256:', '')) = $2
+                AND (
+                  EXISTS (
+                    SELECT 1
+                    FROM document_assets da
+                    JOIN file_assets linked ON linked.id = da.asset_id
+                    WHERE da.document_id = $1
+                      AND COALESCE(linked.original_asset_id, linked.id) = pinned.id
+                  )
+                  OR EXISTS (
+                    SELECT 1
+                    FROM evidence_passages ep
+                    WHERE ep.document_id = $1
+                      AND ep.asset_id = pinned.id
+                      AND ep.asset_sha256 = $2
+                  )
+                )
+              ORDER BY pinned.id ASC
+              LIMIT 1
+            `,
+            [id, requestedAssetSha256],
+          )
+        ).rows[0] || null
+      : null;
+    if (requestedAssetSha256 && !pinnedAsset) {
+      return res.status(404).json({ error: 'Pinned evidence asset not found for document' });
+    }
+
     const docAny = doc as unknown as Record<string, unknown>;
     const metadata = (docAny.metadata || {}) as Record<string, unknown>;
     const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value);
@@ -630,38 +778,50 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
       }
     };
 
-    const dirtyPath = firstNonUrl([
-      doc.filePath,
-      docAny.file_path,
-      metadata.filePath,
-      metadata.file_path,
-      metadata.originalPath,
-      metadata.original_path,
-    ]);
-    const originalPath = firstNonUrl([metadata.source_path]);
-    const cleanedPath = firstNonUrl([
-      docAny.cleanedPath,
-      docAny.cleaned_path,
-      metadata.cleanedPath,
-      metadata.cleaned_path,
-      metadata.cleaned_path_refined,
-    ]);
-    const dirtyUrl = firstHttpUrl([
-      doc.filePath,
-      docAny.file_path,
-      metadata.filePath,
-      metadata.file_path,
-      metadata.originalPath,
-      metadata.original_path,
-    ]);
-    const originalUrl = firstHttpUrl([metadata.source_path]);
-    const cleanedUrl = firstHttpUrl([
-      docAny.cleanedPath,
-      docAny.cleaned_path,
-      metadata.cleanedPath,
-      metadata.cleaned_path,
-      metadata.cleaned_path_refined,
-    ]);
+    const dirtyPath = pinnedAsset
+      ? firstNonUrl([pinnedAsset.storage_path])
+      : firstNonUrl([
+          doc.filePath,
+          docAny.file_path,
+          metadata.filePath,
+          metadata.file_path,
+          metadata.originalPath,
+          metadata.original_path,
+        ]);
+    const originalPath = pinnedAsset
+      ? firstNonUrl([pinnedAsset.storage_path])
+      : firstNonUrl([metadata.source_path]);
+    const cleanedPath = pinnedAsset
+      ? firstNonUrl([pinnedAsset.storage_path])
+      : firstNonUrl([
+          docAny.cleanedPath,
+          docAny.cleaned_path,
+          metadata.cleanedPath,
+          metadata.cleaned_path,
+          metadata.cleaned_path_refined,
+        ]);
+    const dirtyUrl = pinnedAsset
+      ? firstHttpUrl([pinnedAsset.storage_path])
+      : firstHttpUrl([
+          doc.filePath,
+          docAny.file_path,
+          metadata.filePath,
+          metadata.file_path,
+          metadata.originalPath,
+          metadata.original_path,
+        ]);
+    const originalUrl = pinnedAsset
+      ? firstHttpUrl([pinnedAsset.storage_path])
+      : firstHttpUrl([metadata.source_path]);
+    const cleanedUrl = pinnedAsset
+      ? firstHttpUrl([pinnedAsset.storage_path])
+      : firstHttpUrl([
+          docAny.cleanedPath,
+          docAny.cleaned_path,
+          metadata.cleanedPath,
+          metadata.cleaned_path,
+          metadata.cleaned_path_refined,
+        ]);
 
     const variants = {
       dirty: dirtyPath,
@@ -763,10 +923,10 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
 
     // Attempt resolution with fallback
     const primaryVariant = variant as keyof typeof variants;
-    const variantOrder: (keyof typeof variants)[] = [primaryVariant];
-    if (primaryVariant === 'original') variantOrder.push('dirty', 'cleaned');
-    else if (primaryVariant === 'cleaned') variantOrder.push('dirty', 'original');
-    else variantOrder.push('original', 'cleaned');
+    const variantOrder: (keyof typeof variants)[] = pinnedAsset ? ['original'] : [primaryVariant];
+    if (!pinnedAsset && primaryVariant === 'original') variantOrder.push('dirty', 'cleaned');
+    else if (!pinnedAsset && primaryVariant === 'cleaned') variantOrder.push('dirty', 'original');
+    else if (!pinnedAsset) variantOrder.push('original', 'cleaned');
 
     let finalFileResult: ReturnType<typeof checkFile> | null = null;
     let fallbackUsed = false;
@@ -783,6 +943,14 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
     }
 
     if (!finalFileResult) {
+      if (pinnedAsset) {
+        return res.status(404).json({
+          error: 'Pinned evidence asset is not available from an approved local corpus path',
+          id,
+          assetSha256: requestedAssetSha256,
+          attemptedPaths: allAttempted,
+        });
+      }
       const remoteFallbackEnabled = process.env.PUBLIC_REMOTE_FILE_FALLBACK !== 'false';
       const isEmailRecord = String(docAny.evidenceType || docAny.evidence_type || '')
         .toLowerCase()
@@ -895,6 +1063,100 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
     }
 
     res.setHeader('Content-Disposition', 'inline');
+    if (pinnedAsset) {
+      let fileHandle: FileHandle | null = null;
+      const closeFileHandle = async (): Promise<void> => {
+        const activeHandle = fileHandle;
+        fileHandle = null;
+        if (activeHandle) await activeHandle.close();
+      };
+
+      try {
+        fileHandle = await fs.promises.open(
+          finalFileResult.absolutePath,
+          fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW,
+        );
+        const verified = await verifyPinnedAssetFile(
+          fileHandle,
+          finalFileResult.absolutePath,
+          requestedAssetSha256,
+        );
+        if (!verified) {
+          await closeFileHandle();
+          return res.status(409).json({
+            error: 'Pinned evidence asset failed SHA-256 verification',
+            id,
+            assetSha256: requestedAssetSha256,
+          });
+        }
+
+        const { stats } = verified;
+        const etag = `"sha256-${requestedAssetSha256}"`;
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('ETag', etag);
+        res.setHeader('Last-Modified', stats.mtime.toUTCString());
+        res.setHeader('X-Evidence-Asset-ID', pinnedAsset.id);
+        res.setHeader('X-Evidence-Asset-SHA256', requestedAssetSha256);
+        res.type(pinnedAsset.mime_type || pinnedAsset.file_name || finalFileResult.absolutePath);
+        if (fallbackUsed) res.setHeader('X-Asset-Fallback', 'true');
+
+        if (requestEtagMatches(req.header('if-none-match'), etag)) {
+          await closeFileHandle();
+          return res.status(304).end();
+        }
+
+        const rawRange = req.method === 'HEAD' ? undefined : req.header('range');
+        const rangeAllowed = ifRangeAllowsRange(req.header('if-range'), etag, stats);
+        const requestedRange =
+          rawRange && rangeAllowed ? parseSingleByteRange(rawRange, stats.size) : null;
+        if (rawRange && rangeAllowed && !requestedRange) {
+          res.setHeader('Content-Range', `bytes */${stats.size}`);
+          await closeFileHandle();
+          return res.status(416).end();
+        }
+
+        const start = requestedRange?.start ?? 0;
+        const end = requestedRange?.end ?? Math.max(0, stats.size - 1);
+        const contentLength = requestedRange ? end - start + 1 : stats.size;
+        if (requestedRange) {
+          res.status(206);
+          res.setHeader('Content-Range', `bytes ${start}-${end}/${stats.size}`);
+        } else {
+          res.status(200);
+        }
+        res.setHeader('Content-Length', String(contentLength));
+
+        if (req.method === 'HEAD' || stats.size === 0) {
+          await closeFileHandle();
+          return res.end();
+        }
+
+        const stream = fileHandle.createReadStream({
+          autoClose: false,
+          start,
+          end,
+        });
+        try {
+          await pipeline(stream, res);
+        } catch (error) {
+          if (!res.headersSent) throw error;
+          if (!req.aborted) {
+            logger.warn(
+              { err: error, documentId: id, assetSha256: requestedAssetSha256 },
+              'Pinned evidence asset stream failed',
+            );
+          }
+          res.destroy(error instanceof Error ? error : undefined);
+        } finally {
+          await closeFileHandle();
+        }
+        return;
+      } catch (error) {
+        await closeFileHandle().catch(() => undefined);
+        throw error;
+      }
+    }
     if (fallbackUsed) {
       res.setHeader('X-Asset-Fallback', 'true');
     }

@@ -1,4 +1,4 @@
-import { investigationsQueries } from '@epstein/db';
+import { evidenceQueries, investigationsQueries } from '@epstein/db';
 
 type IGetInvestigationsResult = Awaited<
   ReturnType<typeof investigationsQueries.getInvestigations.run>
@@ -221,27 +221,21 @@ export const investigationsRepository = {
     try {
       await client.query('BEGIN');
 
-      // 1. Check if evidence exists by sourcePath
-      const existing = await investigationsQueries.getEvidenceBySourcePath.run(
-        { sourcePath },
+      // Upsert the grouped evidence item and merge its full citation/provenance metadata.
+      const evidenceResult = await evidenceQueries.createEvidenceFull.run(
+        {
+          title,
+          description,
+          evidenceType: type,
+          sourcePath,
+          originalFilename: title,
+          extractedText: description,
+          redFlagRating: Number(evidenceData.red_flag_rating ?? 0),
+          metadata: JSON.stringify(evidenceData.metadata ?? {}),
+        },
         client,
       );
-      let evidenceId = existing[0]?.id ? Number(existing[0].id) : null;
-
-      if (!evidenceId) {
-        const result = await investigationsQueries.createEvidence.run(
-          {
-            title,
-            description,
-            evidenceType: type,
-            sourcePath,
-            originalFilename: title,
-            redFlagRating: Number(evidenceData.red_flag_rating ?? 0),
-          },
-          client,
-        );
-        evidenceId = Number(result[0]?.id);
-      }
+      const evidenceId = evidenceResult[0]?.id ? Number(evidenceResult[0].id) : null;
 
       if (!evidenceId) throw new Error('Failed to create evidence');
 

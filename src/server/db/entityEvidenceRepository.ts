@@ -5,6 +5,7 @@ import {
   mapEntityEvidenceResponseDto,
   mapEntityRelationEvidenceDto,
 } from '../mappers/entityEvidenceDtoMapper.js';
+import { normalDocumentEvidenceWhereSql } from './mediaEvidenceScope.js';
 
 interface RelationEvidenceRow {
   relation_id: string;
@@ -46,9 +47,24 @@ export const entityEvidenceRepository = {
     }
 
     // Core mention-derived evidence items
-    const evidenceRows = await entityEvidenceQueries.getMentionDerivedEvidence.run(
+    const candidateRows = await entityEvidenceQueries.getMentionDerivedEvidence.run(
       { entityId: eid, limit: 200 },
       getApiPool(),
+    );
+    const candidateDocumentIds = candidateRows.map((row) => String(row.document_id));
+    const allowedResult =
+      candidateDocumentIds.length === 0
+        ? { rows: [] as Array<{ id: string }> }
+        : await getApiPool().query<{ id: string }>(
+            `SELECT d.id::text AS id
+             FROM documents d
+             WHERE d.id = ANY($1::bigint[])
+               AND ${normalDocumentEvidenceWhereSql('d')}`,
+            [candidateDocumentIds],
+          );
+    const allowedDocumentIds = new Set(allowedResult.rows.map((row) => row.id));
+    const evidenceRows = candidateRows.filter((row) =>
+      allowedDocumentIds.has(String(row.document_id)),
     );
 
     type MentionEvidenceRowInput = Parameters<typeof mapEntityMentionEvidenceDto>[0];

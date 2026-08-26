@@ -37,6 +37,7 @@ import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '@client/utils/evidenceUtils';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import type { ProvenanceDocument } from './ProvenancePanel';
+import type { SearchPassageResultDto } from '@shared/dto/search';
 
 import { Button, NativeSelect, cn } from '@client/design-system/lib';
 
@@ -83,6 +84,37 @@ type TextSubview = 'clean' | 'ocr' | 'diff';
 
 const VALID_VIEWER_TABS = new Set<ViewerTab>(['viewer', 'provenance', 'assets', 'claims']);
 const VALID_TEXT_SUBVIEWS = new Set<TextSubview>(['clean', 'ocr', 'diff']);
+const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
+
+function verifyResolvedPassage(
+  passage: SearchPassageResultDto,
+  requestedCitationId: string,
+): SearchPassageResultDto {
+  const citationId = String(passage.citationId || '').trim();
+  const documentId = String(passage.documentId || '').trim();
+  const { pageNumber } = passage;
+  const rawAssetSha256 = passage.assetSha256;
+
+  if (citationId !== requestedCitationId || !documentId || documentId.length > 200) {
+    throw new Error('The passage citation response is invalid.');
+  }
+  if (pageNumber !== null && (!Number.isInteger(pageNumber) || pageNumber < 1)) {
+    throw new Error('The passage page number is invalid.');
+  }
+  if (!Number.isInteger(passage.sentenceIndex) || passage.sentenceIndex < 0) {
+    throw new Error('The passage sentence index is invalid.');
+  }
+  if (rawAssetSha256 !== null && !SHA256_PATTERN.test(rawAssetSha256)) {
+    throw new Error('The passage asset hash is invalid.');
+  }
+
+  return {
+    ...passage,
+    citationId,
+    documentId,
+    assetSha256: rawAssetSha256?.toLowerCase() ?? null,
+  };
+}
 
 const BASE_VIEWER_TABS: Array<{
   key: ViewerTab;
@@ -229,7 +261,76 @@ export const DocumentModal: React.FC<Props> = ({
     navigate(`${location.pathname}?${params.toString()}`, { replace: true, state: location.state });
   };
 
-  const [localSearchTerm, setLocalSearchTerm] = useState(initialSearchTerm || '');
+  const passageId = urlParams.get('passage');
+  const { data: addressedPassage, isError: passageResolutionFailed } =
+    useQuery<SearchPassageResultDto>({
+      queryKey: ['evidencePassage', passageId],
+      queryFn: async () => {
+        if (!passageId) throw new Error('A passage citation is required.');
+        const passage = await apiClient.get<SearchPassageResultDto>(
+          `/search/passages/${encodeURIComponent(passageId)}`,
+          { useCache: false },
+        );
+        return verifyResolvedPassage(passage, passageId);
+      },
+      enabled: Boolean(passageId),
+      retry: 1,
+      staleTime: 5 * 60_000,
+    });
+
+  useEffect(() => {
+    if (!passageId || !addressedPassage) return;
+
+    const params = new URLSearchParams(location.search);
+    const resolvedDocumentId = addressedPassage.documentId;
+    let canonicalPath = location.pathname;
+    let changed = false;
+    const documentPathMatch = location.pathname.match(/^\/(documents|evidence)\/[^/]+$/);
+
+    if (documentPathMatch) {
+      const nextPath = `/${documentPathMatch[1]}/${encodeURIComponent(resolvedDocumentId)}`;
+      if (nextPath !== location.pathname) {
+        canonicalPath = nextPath;
+        changed = true;
+      }
+    }
+
+    if (params.get('documentId') !== resolvedDocumentId) {
+      params.set('documentId', resolvedDocumentId);
+      changed = true;
+    }
+
+    if (addressedPassage.pageNumber === null) {
+      if (params.has('page')) {
+        params.delete('page');
+        changed = true;
+      }
+    } else if (params.get('page') !== String(addressedPassage.pageNumber)) {
+      params.set('page', String(addressedPassage.pageNumber));
+      changed = true;
+    }
+
+    if (addressedPassage.assetSha256 === null) {
+      if (params.has('assetSha256')) {
+        params.delete('assetSha256');
+        changed = true;
+      }
+    } else if (params.get('assetSha256') !== addressedPassage.assetSha256) {
+      params.set('assetSha256', addressedPassage.assetSha256);
+      changed = true;
+    }
+
+    if (!changed) return;
+    navigate(`${canonicalPath}?${params.toString()}`, {
+      replace: true,
+      state: location.state,
+    });
+  }, [addressedPassage, location.pathname, location.search, location.state, navigate, passageId]);
+
+  const passageSearchTerm =
+    addressedPassage?.quote || urlParams.get('q') || initialSearchTerm || '';
+  const [localSearchTerm, setLocalSearchTerm] = useState(passageSearchTerm);
+  const [blockedCitationDownloadId, setBlockedCitationDownloadId] = useState<string | null>(null);
   const [isReadingMode, setIsReadingMode] = useState(false);
   const [activeRailSection, setActiveRailSection] = useState<
     'metadata' | 'entities' | 'case' | 'timeline'
@@ -237,6 +338,10 @@ export const DocumentModal: React.FC<Props> = ({
   const rightPaneScrollRef = useRef<HTMLDivElement | null>(null);
   const mobileScrollAreaRef = useRef<HTMLDivElement | null>(null);
   const hasAutoSwitchedNoOcrRef = useRef(false);
+
+  useEffect(() => {
+    setLocalSearchTerm(passageSearchTerm);
+  }, [passageSearchTerm]);
   const { scrollDirection } = useScrollDirection(
     mobileScrollAreaRef as React.RefObject<HTMLElement>,
   );
@@ -378,12 +483,19 @@ export const DocumentModal: React.FC<Props> = ({
   useEffect(() => {
     if (!localSearchTerm || activeTab !== 'viewer') return;
     const timeout = setTimeout(() => {
-      const firstMark = getScrollContainer(isMobile)?.querySelector('mark');
-      if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const marks = getScrollContainer(isMobile)?.querySelectorAll('mark');
+      if (!marks || marks.length === 0) return;
+      const requestedOccurrence = addressedPassage?.quoteOccurrence;
+      const targetIndex =
+        requestedOccurrence !== null && requestedOccurrence !== undefined
+          ? Math.min(Math.max(0, requestedOccurrence), marks.length - 1)
+          : 0;
+      marks[targetIndex]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 120);
     return () => clearTimeout(timeout);
   }, [
     activeTab,
+    addressedPassage?.quoteOccurrence,
     doc?.content,
     doc?.contentRefined,
     getScrollContainer,
@@ -512,14 +624,17 @@ export const DocumentModal: React.FC<Props> = ({
   }
 
   if (!doc) {
+    const citationFailed = Boolean(passageId && passageResolutionFailed);
     return createPortal(
       <Box className={styles.errorOverlay}>
         <Surface variant="glass-strong" className={styles.errorCard}>
           <LqText variant="h3" weight="bold">
-            Unable to load document
+            {citationFailed ? 'Unable to verify passage citation' : 'Unable to load document'}
           </LqText>
           <LqText variant="body" color="muted">
-            Please try again or open in the Document Browser.
+            {citationFailed
+              ? 'The citation did not resolve to a valid evidence location.'
+              : 'Please try again or open in the Document Browser.'}
           </LqText>
           <Button unstyled onClick={onClose} className={styles.errorCloseButton}>
             Close
@@ -530,12 +645,28 @@ export const DocumentModal: React.FC<Props> = ({
     );
   }
 
-  const getOriginalDocumentUrl = () =>
-    `/api/documents/${encodeURIComponent(String(id))}/file?variant=original`;
+  const getOriginalDocumentUrl = (): string | null => {
+    const targetDocumentId = addressedPassage?.documentId || id;
+    const params = new URLSearchParams({ variant: 'original' });
+
+    if (passageId) {
+      if (!addressedPassage?.assetSha256) return null;
+      params.set('assetSha256', addressedPassage.assetSha256);
+    }
+
+    return `/api/documents/${encodeURIComponent(String(targetDocumentId))}/file?${params.toString()}`;
+  };
 
   const downloadOriginalDocument = () => {
+    const sourceUrl = getOriginalDocumentUrl();
+    if (!sourceUrl) {
+      setBlockedCitationDownloadId(passageId);
+      return;
+    }
+
+    setBlockedCitationDownloadId(null);
     const link = document.createElement('a');
-    link.href = getOriginalDocumentUrl();
+    link.href = sourceUrl;
     link.download = `${doc.fileName || 'original-document'}`;
     document.body.appendChild(link);
     link.click();
@@ -543,7 +674,14 @@ export const DocumentModal: React.FC<Props> = ({
   };
 
   const openOriginalDocument = () => {
-    window.open(getOriginalDocumentUrl(), '_blank', 'noopener,noreferrer');
+    const sourceUrl = getOriginalDocumentUrl();
+    if (!sourceUrl) {
+      setBlockedCitationDownloadId(passageId);
+      return;
+    }
+
+    setBlockedCitationDownloadId(null);
+    window.open(sourceUrl, '_blank', 'noopener,noreferrer');
   };
 
   const cleanText = String(doc.contentRefined || doc.content || '');
@@ -551,8 +689,20 @@ export const DocumentModal: React.FC<Props> = ({
 
   const renderTabContent = () => {
     const isEmail = String(doc.evidenceType || '').toLowerCase() === 'email';
+    const citationDownloadBlocked = Boolean(
+      passageId && blockedCitationDownloadId === passageId && !addressedPassage?.assetSha256,
+    );
     return (
       <>
+        {passageId && (passageResolutionFailed || citationDownloadBlocked) && (
+          <Box p="md" role="alert" className={styles.emailViewerBanner}>
+            <LqText variant="small" weight="semibold">
+              {passageResolutionFailed
+                ? 'This passage citation could not be verified. The document is open without a pinned passage.'
+                : 'Original download stopped. This citation does not resolve to a pinned source asset.'}
+            </LqText>
+          </Box>
+        )}
         {isEmail && (
           <Box p="md" className={styles.emailViewerBanner}>
             <Flex align="center" justify="between" gap="sm">

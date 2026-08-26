@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "22.1.0",
+  "version": "22.2.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -27,6 +27,7 @@
     "db:backfill:pg": "tsx scripts/pg_backfill.ts",
     "semantic:backfill": "tsx scripts/backfill_semantic_embeddings.ts",
     "provenance:backfill": "tsx scripts/backfill_document_provenance.ts",
+    "passages:backfill": "tsx scripts/backfill_evidence_passages.ts",
     "titles:backfill": "tsx scripts/backfill_document_titles.ts",
     "risk:recalculate": "tsx scripts/recalculate_entity_risk.ts",
     "db:analyze": "tsx scripts/pg_analyze_after_migrate.ts",

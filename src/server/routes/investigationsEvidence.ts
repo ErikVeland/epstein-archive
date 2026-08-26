@@ -34,7 +34,7 @@ const evidenceParamsSchema = z.object({
   }),
 });
 
-const addEvidenceSchema = z.object({
+export const addEvidenceSchema = z.object({
   params: z.object({
     id: z.coerce.number().int(),
   }),

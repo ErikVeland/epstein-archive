@@ -74,6 +74,8 @@ export const searchSchema = z.object({
     entityType: z.string().max(100).optional(),
     reviewState: z.string().max(100).optional(),
     redFlagBand: z.enum(['low', 'medium', 'high']).optional(),
+    redFlagMin: z.coerce.number().min(0).max(5).optional(),
+    redFlagMax: z.coerce.number().min(0).max(5).optional(),
     confidenceMin: z.coerce.number().min(0).max(1).optional(),
     confidenceMax: z.coerce.number().min(0).max(1).optional(),
     dateFrom: z.string().max(40).optional(),

@@ -10,6 +10,10 @@ import React, {
 import { Investigation } from '@client/types/investigation';
 import { useAuth } from './AuthContext';
 import { useApiStatus } from './ApiStatusContext';
+import {
+  buildInvestigationEvidencePayload,
+  type InvestigationEvidenceItem as InvestigationItem,
+} from './investigationEvidencePayload';
 
 interface InvestigationsContextType {
   investigations: Investigation[];
@@ -26,16 +30,6 @@ interface InvestigationsContextType {
     item: InvestigationItem,
     relevance: 'high' | 'medium' | 'low',
   ) => Promise<void>;
-}
-
-interface InvestigationItem {
-  id?: string | number;
-  type?: string;
-  title?: string;
-  description?: string;
-  sourceId?: string | number;
-  source?: string;
-  metadata?: Record<string, unknown>;
 }
 
 const InvestigationsContext = createContext<InvestigationsContextType | undefined>(undefined);
@@ -207,58 +201,13 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
     ) => {
       setError(null);
       try {
-        // Map the item to evidence format based on type
-        const evidencePayload: Record<string, unknown> = {
-          relevance,
-          notes: item.description || '',
-        };
-
-        // Handle different item types
-        if (item.type === 'entity') {
-          evidencePayload.type = 'entity';
-          evidencePayload.title = item.title || 'Entity';
-          evidencePayload.description = item.description || '';
-          evidencePayload.source_path = `entity:${item.sourceId || item.id}`;
-          evidencePayload.entity_id = item.sourceId || item.id;
-        } else if (item.type === 'document') {
-          evidencePayload.type = 'document';
-          evidencePayload.title = item.title || 'Document';
-          evidencePayload.description = item.description || '';
-          evidencePayload.source_path = `document:${item.sourceId || item.id}`;
-          evidencePayload.document_id = item.sourceId || item.id;
-        } else if (item.type === 'flight') {
-          evidencePayload.type = 'flight_log';
-          evidencePayload.title = item.title || 'Flight Record';
-          evidencePayload.description = item.description || '';
-          evidencePayload.source_path = `flight:${item.sourceId || item.id}`;
-        } else if (item.type === 'property') {
-          evidencePayload.type = 'property_record';
-          evidencePayload.title = item.title || 'Property Record';
-          evidencePayload.description = item.description || '';
-          evidencePayload.source_path = `property:${item.sourceId || item.id}`;
-        } else if (item.type === 'email') {
-          evidencePayload.type = 'email';
-          evidencePayload.title = item.title || 'Email';
-          evidencePayload.description = item.description || '';
-          evidencePayload.source_path = `email:${item.sourceId || item.id}`;
-        } else {
-          // Generic evidence
-          evidencePayload.type = item.type || 'evidence';
-          evidencePayload.title = item.title || 'Evidence';
-          evidencePayload.description = item.description || '';
-          evidencePayload.source_path = item.source || `evidence:${item.id || Date.now()}`;
-        }
-
-        // Include any additional metadata
-        if (item.metadata) {
-          evidencePayload.metadata = item.metadata;
-        }
+        const evidencePayload = buildInvestigationEvidencePayload(item, relevance);
 
         // Call the API to persist
         const response = await fetch(`/api/investigations/${investigationId}/evidence`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ evidence: evidencePayload, relevance }),
+          body: JSON.stringify(evidencePayload),
         });
 
         if (!response.ok) {

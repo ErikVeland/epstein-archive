@@ -1,4 +1,5 @@
 import { searchQueries } from '@epstein/db';
+import { createHash } from 'node:crypto';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
@@ -6,6 +7,8 @@ import { getSemanticCapability, SemanticCapability } from '../semantic/capabilit
 import { searchDocumentsSemantic, searchEntitiesSemantic } from '../semantic/search.js';
 import { entityQualityWhereSql, isJunkEntityName } from './entityQuality.js';
 import { normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
+import { buildEvidenceCitation, verifyEvidenceCitation } from '../../shared/evidence/citation.js';
+import type { SearchPassageResultDto } from '../../shared/dto/search.js';
 
 const normalizeAliasValue = (value: string): string =>
   value
@@ -14,6 +17,9 @@ const normalizeAliasValue = (value: string): string =>
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+
+export const canUseEntityFuzzyFallback = (value: string): boolean =>
+  value.length <= 80 && /^[\p{L}\p{M}'’., -]+$/u.test(value);
 
 const parseEntityAliases = (aliases: string | null | undefined): string[] => {
   if (!aliases) return [];
@@ -63,7 +69,6 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
 
   const partialPattern = `%${searchTerm}%`;
   const normalizedSearchTerm = searchTerm.toLowerCase();
-  const similarityThreshold = 0.24;
   return getApiPool().query<{
     id: number | string;
     fullName: string | null;
@@ -80,8 +85,8 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
         e.aliases,
         e.red_flag_rating AS "redFlagRating",
         GREATEST(
-          similarity(LOWER(COALESCE(e.full_name, '')), $2),
-          similarity(LOWER(COALESCE(e.aliases, '')), $2)
+          similarity(COALESCE(e.full_name, ''), $2),
+          similarity(COALESCE(e.aliases, ''), $2)
         ) AS "similarityScore"
       FROM entities e
       WHERE COALESCE(e.junk_tier, 'clean') = 'clean'
@@ -89,9 +94,9 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
         AND ${entityQualityWhereSql('e')}
         AND (
           e.full_name ILIKE $1
-          OR COALESCE(e.aliases, '') ILIKE $1
-          OR similarity(LOWER(COALESCE(e.full_name, '')), $2) >= $4
-          OR similarity(LOWER(COALESCE(e.aliases, '')), $2) >= $4
+          OR e.aliases ILIKE $1
+          OR e.full_name % $2
+          OR e.aliases % $2
         )
       ORDER BY
         CASE
@@ -99,9 +104,9 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
           WHEN LOWER(COALESCE(e.aliases, '')) LIKE '%' || LOWER($2) || '%' THEN 1
           WHEN LOWER(e.full_name) LIKE LOWER($2) || '%' THEN 2
           WHEN GREATEST(
-            similarity(LOWER(COALESCE(e.full_name, '')), $2),
-            similarity(LOWER(COALESCE(e.aliases, '')), $2)
-          ) >= $4 THEN 3
+            similarity(COALESCE(e.full_name, ''), $2),
+            similarity(COALESCE(e.aliases, ''), $2)
+          ) >= 0.3 THEN 3
           ELSE 4
         END,
         "similarityScore" DESC,
@@ -110,7 +115,7 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
         e.id DESC
       LIMIT $3
     `,
-    [partialPattern, normalizedSearchTerm, limit, similarityThreshold],
+    [partialPattern, normalizedSearchTerm, limit],
   );
 }
 
@@ -196,11 +201,57 @@ interface ISearchSentencesResult {
   id: string;
   document_id: string | number;
   page_id: string | number | null;
+  sentence_index: number | string;
   sentence_text: string;
   signal_score: number | string | null;
   file_name: string | null;
+  document_title: string | null;
   page_number: number | string | null;
   snippet: string | null;
+  source_collection: string | null;
+  source_release: string | null;
+  source_family: string | null;
+  asset_id: string | number | null;
+  asset_sha256: string | null;
+  document_sha256: string | null;
+  document_version_hash: string;
+  page_text: string | null;
+  page_quote_occurrence: number | string | null;
+  quote_occurrence: number | string | null;
+  ocr_confidence: number | string | null;
+  provenance_status: string | null;
+  evidence_type: string | null;
+  red_flag_rating: number | string | null;
+  rank: number | string | null;
+}
+
+interface IMaterializedPassageResult {
+  citation_id: string;
+  citation_schema: string;
+  document_id: string | number;
+  source_sentence_id: string | number;
+  sentence_index: number | string;
+  page_id: string | number | null;
+  page_number: number | string | null;
+  passage_text: string;
+  text_sha256: string;
+  document_title: string | null;
+  file_name: string | null;
+  source_collection: string | null;
+  source_release: string | null;
+  source_family: string;
+  asset_id: string | number | null;
+  asset_sha256: string | null;
+  document_revision_hash: string;
+  document_sha256: string | null;
+  text_start: number | string | null;
+  text_end: number | string | null;
+  quote_occurrence: number | string | null;
+  scan_bbox: Record<string, unknown> | number[] | null;
+  ocr_confidence: number | string | null;
+  provenance_status: string | null;
+  evidence_type: string | null;
+  red_flag_rating: number | string | null;
 }
 
 interface EntitySearchRow {
@@ -233,6 +284,270 @@ type SearchMediaDto = {
   snippet: string | null;
   rank: number | null;
 };
+
+const buildPassageUrl = (
+  documentId: string,
+  pageNumber: number | null,
+  citationId: string,
+  searchTerm: string,
+  viewMode: 'sidebyside' | 'pdf',
+  assetSha256: string | null,
+): string => {
+  const params = new URLSearchParams({ documentId });
+  if (pageNumber !== null) params.set('page', String(pageNumber));
+  params.set('passage', citationId);
+  params.set('viewMode', viewMode);
+  if (assetSha256) params.set('assetSha256', assetSha256);
+  params.set('q', searchTerm);
+  return `/documents/${encodeURIComponent(documentId)}?${params.toString()}`;
+};
+
+const nullablePositiveInteger = (value: number | string | null): number | null => {
+  if (value === null || value === '') return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed >= 1 ? parsed : null;
+};
+
+const resolveDocumentVersionHash = (value: string): string => {
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/^sha256:/, '');
+  if (/^[a-f0-9]{64}$/.test(normalized)) return normalized;
+  return createHash('sha256').update(value, 'utf8').digest('hex');
+};
+
+const normalizeSha256OrNull = (value: string | null): string | null => {
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^sha256:/, '');
+  return /^[a-f0-9]{64}$/.test(normalized) ? normalized : null;
+};
+
+const locateTextOccurrence = (
+  pageText: string | null,
+  quote: string,
+  occurrence: number | string | null,
+): { textStart: number | null; textEnd: number | null } => {
+  if (!pageText || !quote) return { textStart: null, textEnd: null };
+  const targetOccurrence = Math.max(0, Number(occurrence) || 0);
+  let fromIndex = 0;
+  let textStart = -1;
+  for (let index = 0; index <= targetOccurrence; index += 1) {
+    textStart = pageText.indexOf(quote, fromIndex);
+    if (textStart < 0) return { textStart: null, textEnd: null };
+    fromIndex = textStart + quote.length;
+  }
+  return { textStart, textEnd: textStart + quote.length };
+};
+
+const mapSentenceRowToPassage = (
+  row: ISearchSentencesResult,
+  searchTerm: string,
+): SearchPassageResultDto => {
+  const documentId = String(row.document_id);
+  const sentenceId = String(row.id);
+  const pageNumber = nullablePositiveInteger(row.page_number);
+  const sentenceIndex = Math.max(0, Number(row.sentence_index) || 0);
+  const quote = String(row.sentence_text || '');
+  const documentVersionHash = resolveDocumentVersionHash(row.document_version_hash);
+  const assetSha256 = normalizeSha256OrNull(row.asset_sha256);
+  const { textStart, textEnd } = locateTextOccurrence(
+    row.page_text,
+    quote,
+    row.page_quote_occurrence,
+  );
+  const { citationId, citationSchema, textSha256 } = buildEvidenceCitation({
+    documentId,
+    documentVersionHash,
+    pageNumber,
+    sentenceIndex,
+    text: quote,
+  });
+
+  return {
+    citationId,
+    citationSchema,
+    documentId,
+    sentenceId,
+    sentenceIndex,
+    pageId: row.page_id == null ? null : String(row.page_id),
+    pageNumber,
+    quote,
+    snippet: row.snippet == null ? quote : String(row.snippet),
+    documentTitle: String(row.document_title || row.file_name || `Document ${documentId}`),
+    fileName: String(row.file_name || row.document_title || `Document ${documentId}`),
+    sourceCollection: row.source_collection == null ? null : String(row.source_collection),
+    sourceRelease: row.source_release == null ? null : String(row.source_release),
+    sourceFamily: String(row.source_family || `document-id:${documentId}`),
+    assetId: row.asset_id == null ? null : String(row.asset_id),
+    assetSha256,
+    documentRevisionHash: documentVersionHash,
+    documentSha256: normalizeSha256OrNull(row.document_sha256),
+    textSha256,
+    textStart,
+    textEnd,
+    quoteOccurrence: row.quote_occurrence == null ? null : Number(row.quote_occurrence),
+    scanBbox: null,
+    ocrConfidence: row.ocr_confidence == null ? null : Number(row.ocr_confidence),
+    provenanceStatus: row.provenance_status == null ? null : String(row.provenance_status),
+    evidenceType: row.evidence_type == null ? null : String(row.evidence_type),
+    redFlagRating: row.red_flag_rating == null ? null : Number(row.red_flag_rating),
+    textUrl: buildPassageUrl(
+      documentId,
+      pageNumber,
+      citationId,
+      searchTerm,
+      'sidebyside',
+      assetSha256,
+    ),
+    scanUrl: assetSha256
+      ? buildPassageUrl(documentId, pageNumber, citationId, searchTerm, 'pdf', assetSha256)
+      : '',
+    matchReason: 'passage-text',
+  };
+};
+
+const mapMaterializedRowToPassage = (
+  row: IMaterializedPassageResult,
+  searchTerm: string,
+): SearchPassageResultDto => {
+  const documentId = String(row.document_id);
+  const citationId = String(row.citation_id);
+  const pageNumber = nullablePositiveInteger(row.page_number);
+  const sentenceIndex = Math.max(0, Number(row.sentence_index) || 0);
+  const quote = String(row.passage_text || '');
+  const assetSha256 = normalizeSha256OrNull(row.asset_sha256);
+  const citationIsValid = verifyEvidenceCitation(
+    {
+      documentId,
+      documentVersionHash: String(row.document_revision_hash),
+      pageNumber,
+      sentenceIndex,
+      text: quote,
+    },
+    {
+      citationId,
+      citationSchema: String(row.citation_schema),
+      textSha256: String(row.text_sha256),
+    },
+  );
+  if (!citationIsValid) {
+    throw new Error(`Evidence passage ${citationId} failed canonical citation verification`);
+  }
+
+  return {
+    citationId,
+    citationSchema: String(row.citation_schema),
+    documentId,
+    sentenceId: String(row.source_sentence_id),
+    sentenceIndex,
+    pageId: row.page_id == null ? null : String(row.page_id),
+    pageNumber,
+    quote,
+    snippet: quote,
+    documentTitle: String(row.document_title || row.file_name || `Document ${documentId}`),
+    fileName: String(row.file_name || row.document_title || `Document ${documentId}`),
+    sourceCollection: row.source_collection == null ? null : String(row.source_collection),
+    sourceRelease: row.source_release == null ? null : String(row.source_release),
+    sourceFamily: String(row.source_family || `document-id:${documentId}`),
+    assetId: row.asset_id == null ? null : String(row.asset_id),
+    assetSha256,
+    documentRevisionHash: String(row.document_revision_hash),
+    documentSha256: row.document_sha256 == null ? null : String(row.document_sha256),
+    textSha256: String(row.text_sha256),
+    textStart: row.text_start == null ? null : Number(row.text_start),
+    textEnd: row.text_end == null ? null : Number(row.text_end),
+    quoteOccurrence: row.quote_occurrence == null ? null : Number(row.quote_occurrence),
+    scanBbox: row.scan_bbox,
+    ocrConfidence: row.ocr_confidence == null ? null : Number(row.ocr_confidence),
+    provenanceStatus: row.provenance_status == null ? null : String(row.provenance_status),
+    evidenceType: row.evidence_type == null ? null : String(row.evidence_type),
+    redFlagRating: row.red_flag_rating == null ? null : Number(row.red_flag_rating),
+    textUrl: buildPassageUrl(
+      documentId,
+      pageNumber,
+      citationId,
+      searchTerm,
+      'sidebyside',
+      assetSha256,
+    ),
+    scanUrl: assetSha256
+      ? buildPassageUrl(documentId, pageNumber, citationId, searchTerm, 'pdf', assetSha256)
+      : '',
+    matchReason: 'citation-id',
+  };
+};
+
+async function materializePassageRows(
+  rows: ISearchSentencesResult[],
+  passages: SearchPassageResultDto[],
+): Promise<void> {
+  if (rows.length === 0) return;
+
+  const values: unknown[] = [];
+  const tuples = rows.map((row, rowIndex) => {
+    const passage = passages[rowIndex];
+    const offset = rowIndex * 22;
+    values.push(
+      passage.citationId,
+      passage.citationSchema,
+      passage.documentId,
+      passage.documentRevisionHash,
+      passage.documentSha256,
+      passage.assetId,
+      passage.assetSha256,
+      passage.pageId,
+      passage.pageNumber,
+      passage.sentenceId,
+      Math.max(0, Number(row.sentence_index) || 0),
+      passage.quote,
+      passage.textSha256,
+      passage.textStart,
+      passage.textEnd,
+      passage.quoteOccurrence,
+      passage.scanBbox,
+      passage.ocrConfidence,
+      passage.sourceCollection,
+      passage.sourceRelease,
+      passage.sourceFamily,
+      passage.provenanceStatus || 'missing',
+    );
+    return `(${Array.from({ length: 22 }, (_, index) => `$${offset + index + 1}`).join(', ')})`;
+  });
+
+  await getApiPool().query(
+    `
+      INSERT INTO evidence_passages (
+        citation_id,
+        citation_schema,
+        document_id,
+        document_revision_hash,
+        document_sha256,
+        asset_id,
+        asset_sha256,
+        page_id,
+        page_number,
+        source_sentence_id,
+        sentence_index,
+        passage_text,
+        text_sha256,
+        text_start,
+        text_end,
+        quote_occurrence,
+        scan_bbox,
+        ocr_confidence,
+        source_collection,
+        source_release,
+        source_family,
+        provenance_status
+      ) VALUES ${tuples.join(', ')}
+      ON CONFLICT (citation_id) DO NOTHING
+    `,
+    values,
+  );
+}
 
 async function searchInvestigationRows(searchTerm: string, limit: number) {
   return getApiPool().query<ISearchInvestigationsResult>(
@@ -311,37 +626,178 @@ async function searchMediaRows(searchTerm: string, limit: number) {
   );
 }
 
-async function searchSentenceRows(searchTerm: string, limit: number) {
+async function searchSentenceRows(
+  searchTerm: string,
+  limit: number,
+  isPrefix = false,
+  filters: SearchFilters = {},
+) {
+  const queryFn = isPrefix ? 'to_tsquery' : 'websearch_to_tsquery';
   return getApiPool().query<ISearchSentencesResult>(
     `
-      SELECT
-        s.id::text,
-        s.document_id,
-        s.page_id,
-        s.sentence_text,
-        s.signal_score,
-        d.file_name,
-        COALESCE(p.page_number, 1) AS page_number,
-        ts_headline(
-          'english',
+      WITH sentence_matches AS MATERIALIZED (
+        SELECT
+          s.id,
+          s.document_id,
+          s.page_id,
+          s.sentence_index,
           s.sentence_text,
-          websearch_to_tsquery('english', $1),
-          'MaxWords=15,MinWords=5'
-        ) AS snippet
-      FROM document_sentences s
-      JOIN documents d ON d.id = s.document_id
-      LEFT JOIN document_pages p ON p.id = s.page_id
-      WHERE s.fts_vector @@ websearch_to_tsquery('english', $1)
-      ORDER BY ts_rank_cd(s.fts_vector, websearch_to_tsquery('english', $1), 32) DESC
-      LIMIT $2
+          s.signal_score,
+          ts_headline(
+            'english',
+            s.sentence_text,
+            ${queryFn}('english', $1),
+            'MaxWords=24,MinWords=8'
+          ) AS snippet,
+          ts_rank_cd(s.fts_vector, ${queryFn}('english', $1), 32) AS rank
+        FROM document_sentences s
+        JOIN documents source_doc ON source_doc.id = s.document_id
+        WHERE s.fts_vector @@ ${queryFn}('english', $1)
+          AND (
+            $3::text IS NULL
+            OR LOWER(COALESCE(source_doc.evidence_type, '')) = LOWER($3)
+          )
+          AND ($4::numeric IS NULL OR COALESCE(source_doc.red_flag_rating, 0) >= $4)
+          AND ($5::numeric IS NULL OR COALESCE(source_doc.red_flag_rating, 0) <= $5)
+        ORDER BY rank DESC, s.id ASC
+        LIMIT $2
+      )
+      SELECT
+        sm.id::text,
+        sm.document_id,
+        sm.page_id,
+        sm.sentence_index,
+        sm.sentence_text,
+        sm.signal_score,
+        d.file_name,
+        COALESCE(NULLIF(d.title, ''), NULLIF(d.file_name, ''), 'Document ' || d.id::text)
+          AS document_title,
+        p.page_number,
+        sm.snippet,
+        COALESCE(d.source_collection, asset.source_collection) AS source_collection,
+        d.source_release,
+        COALESCE(
+          CASE
+            WHEN LOWER(REGEXP_REPLACE(COALESCE(asset.sha256, ''), '^sha256:', ''))
+              ~ '^[a-f0-9]{64}$'
+              THEN 'asset-sha256:'
+                || LOWER(REGEXP_REPLACE(asset.sha256, '^sha256:', ''))
+          END,
+          CASE
+            WHEN LOWER(REGEXP_REPLACE(COALESCE(d.content_sha256, ''), '^sha256:', ''))
+              ~ '^[a-f0-9]{64}$'
+              THEN 'document-sha256:'
+                || LOWER(REGEXP_REPLACE(d.content_sha256, '^sha256:', ''))
+          END,
+          'document-id:' || COALESCE(d.original_file_id, d.id)::text
+        ) AS source_family,
+        asset.id AS asset_id,
+        asset.sha256 AS asset_sha256,
+        NULLIF(d.content_sha256, '') AS document_sha256,
+        COALESCE(
+          NULLIF(d.normalized_text_sha256, ''),
+          NULLIF(d.content_sha256, ''),
+          NULLIF(asset.sha256, ''),
+          NULLIF(d.content_hash, ''),
+          'document-id:' || d.id::text
+        ) AS document_version_hash,
+        p.extracted_text AS page_text,
+        occurrence.page_quote_occurrence,
+        occurrence.quote_occurrence,
+        p.ocr_confidence_avg AS ocr_confidence,
+        d.provenance_status,
+        d.evidence_type,
+        d.red_flag_rating,
+        sm.rank
+      FROM sentence_matches sm
+      JOIN documents d ON d.id = sm.document_id
+      LEFT JOIN document_pages p ON p.id = sm.page_id
+      LEFT JOIN LATERAL (
+        SELECT
+          COALESCE(original.id, fa.id) AS id,
+          COALESCE(original.sha256, fa.sha256) AS sha256,
+          COALESCE(original.source_collection, fa.source_collection) AS source_collection
+        FROM document_assets da
+        JOIN file_assets fa ON fa.id = da.asset_id
+        LEFT JOIN file_assets original ON original.id = fa.original_asset_id
+        WHERE da.document_id = sm.document_id
+        ORDER BY
+          CASE da.role WHEN 'original' THEN 0 WHEN 'primary' THEN 1 ELSE 2 END,
+          fa.is_original DESC,
+          fa.id ASC
+        LIMIT 1
+      ) asset ON TRUE
+      LEFT JOIN LATERAL (
+        SELECT
+          COUNT(*) FILTER (WHERE prior.page_id = sm.page_id)::INTEGER
+            AS page_quote_occurrence,
+          COUNT(*)::INTEGER AS quote_occurrence
+        FROM document_sentences prior
+        WHERE prior.document_id = sm.document_id
+          AND prior.sentence_text = sm.sentence_text
+          AND (
+            prior.sentence_index < sm.sentence_index
+            OR (prior.sentence_index = sm.sentence_index AND prior.id < sm.id)
+          )
+      ) occurrence ON TRUE
+      ORDER BY sm.rank DESC, sm.id ASC
     `,
-    [searchTerm, limit],
+    [
+      searchTerm,
+      limit,
+      filters.evidenceType && filters.evidenceType !== 'ALL' ? filters.evidenceType : null,
+      filters.redFlagMin ?? null,
+      filters.redFlagMax ?? null,
+    ],
+  );
+}
+
+async function getMaterializedPassageRow(citationId: string) {
+  return getApiPool().query<IMaterializedPassageResult>(
+    `
+      SELECT
+        ep.citation_id,
+        ep.citation_schema,
+        ep.document_id,
+        ep.source_sentence_id,
+        ep.sentence_index,
+        ep.page_id,
+        ep.page_number,
+        ep.passage_text,
+        ep.text_sha256,
+        ep.text_start,
+        ep.text_end,
+        ep.quote_occurrence,
+        ep.scan_bbox,
+        COALESCE(NULLIF(d.title, ''), NULLIF(d.file_name, ''), 'Document ' || d.id::text)
+          AS document_title,
+        d.file_name,
+        COALESCE(ep.source_collection, d.source_collection, pinned_asset.source_collection)
+          AS source_collection,
+        COALESCE(ep.source_release, d.source_release) AS source_release,
+        ep.source_family,
+        ep.asset_id,
+        ep.asset_sha256,
+        ep.document_revision_hash,
+        ep.document_sha256,
+        ep.ocr_confidence,
+        COALESCE(ep.provenance_status, d.provenance_status) AS provenance_status,
+        d.evidence_type,
+        d.red_flag_rating
+      FROM evidence_passages ep
+      JOIN documents d ON d.id = ep.document_id
+      LEFT JOIN file_assets pinned_asset ON pinned_asset.id = ep.asset_id
+      WHERE ep.citation_id = $1
+      LIMIT 1
+    `,
+    [citationId],
   );
 }
 
 export interface UnifiedSearchResult {
   entities: Record<string, unknown>[];
   documents: Record<string, unknown>[];
+  passages?: SearchPassageResultDto[];
   investigations: Record<string, unknown>[];
   articles: Record<string, unknown>[];
   media: Record<string, unknown>[];
@@ -354,6 +810,8 @@ export interface UnifiedSearchResult {
 interface SearchFilters {
   evidenceType?: string;
   redFlagBand?: string;
+  redFlagMin?: number;
+  redFlagMax?: number;
   mode?: 'web' | 'prefix' | 'lexical' | 'semantic' | 'hybrid';
   sourceType?: string;
   mediaType?: string;
@@ -391,6 +849,7 @@ export const searchRepository = {
       return {
         entities: [],
         documents: [],
+        passages: [],
         investigations: [],
         articles: [],
         media: [],
@@ -423,6 +882,7 @@ export const searchRepository = {
       return {
         entities: [],
         documents: [],
+        passages: [],
         investigations: [],
         articles: [],
         media: [],
@@ -536,6 +996,7 @@ export const searchRepository = {
 
     if (
       shouldSearchEntities &&
+      canUseEntityFuzzyFallback(searchTerm) &&
       !isPrefix &&
       mergedEntityRows.length < safeLimit &&
       effectiveMode !== 'semantic'
@@ -561,8 +1022,8 @@ export const searchRepository = {
     }
 
     // ── Documents ─────────────────────────────────────────────────────────────
-    let minRedFlag: number | null = null;
-    let maxRedFlag: number | null = null;
+    let minRedFlag: number | null = filters.redFlagMin ?? null;
+    let maxRedFlag: number | null = filters.redFlagMax ?? null;
 
     if (filters.redFlagBand === 'high') {
       minRedFlag = 4;
@@ -710,14 +1171,25 @@ export const searchRepository = {
       }
     }
 
-    // ── Investigations ───────────────────────────────────────────────────────
-    const investigationRows = (await searchInvestigationRows(tsArg, safeLimit)).rows;
+    const passageLimit = Math.min(50, safeLimit);
+    const passageRowsPromise = searchSentenceRows(tsArg, passageLimit, isPrefix, filters).catch(
+      (error) => {
+        logger.warn({ err: error }, '[searchRepository] passage search failed');
+        return null;
+      },
+    );
 
-    // ── Articles ─────────────────────────────────────────────────────────────
-    const articleRows = (await searchArticleRows(tsArg, safeLimit)).rows;
-
-    // ── Media ────────────────────────────────────────────────────────────────
-    const mediaRows = (await searchMediaRows(tsArg, safeLimit)).rows;
+    // These independent result types can load in parallel.
+    const [passageResult, investigationResult, articleResult, mediaResult] = await Promise.all([
+      passageRowsPromise,
+      searchInvestigationRows(tsArg, safeLimit),
+      searchArticleRows(tsArg, safeLimit),
+      searchMediaRows(tsArg, safeLimit),
+    ]);
+    const passageRows = passageResult?.rows ?? [];
+    const investigationRows = investigationResult.rows;
+    const articleRows = articleResult.rows;
+    const mediaRows = mediaResult.rows;
 
     const entityIds = mergedEntityRows
       .map((row: { id: string | number }) => Number(row.id))
@@ -850,6 +1322,19 @@ export const searchRepository = {
       .filter((doc) => matchesTextFilter(doc.evidenceType || doc.fileType, filters.sourceType))
       .filter((doc) => matchesDateRange(doc.dateCreated, filters.dateFrom, filters.dateTo));
 
+    let passages = passageRows.map((row) => mapSentenceRowToPassage(row, searchTerm));
+    if (passages.length > 0) {
+      try {
+        await materializePassageRows(passageRows, passages);
+      } catch (error) {
+        logger.warn(
+          { err: error },
+          '[searchRepository] passage materialization failed; suppressing unstable passage links',
+        );
+        passages = [];
+      }
+    }
+
     const investigations = investigationRows.map((row: ISearchInvestigationsResult) => ({
       id: String(row.id),
       uuid: row.uuid,
@@ -890,6 +1375,7 @@ export const searchRepository = {
     return {
       entities,
       documents,
+      passages,
       investigations,
       articles,
       media,
@@ -912,6 +1398,16 @@ export const searchRepository = {
       logger.error({ err: error }, '[searchRepository] searchSentences error');
       return [];
     }
+  },
+
+  getPassageByCitationId: async (
+    citationId: string,
+    searchTerm: string = '',
+  ): Promise<SearchPassageResultDto | null> => {
+    if (!/^EA-P-[a-f0-9]{40}$/.test(citationId)) return null;
+    const result = await getMaterializedPassageRow(citationId);
+    const row = result.rows[0];
+    return row ? mapMaterializedRowToPassage(row, searchTerm.trim()) : null;
   },
 
   getDatabaseStats: async () => {

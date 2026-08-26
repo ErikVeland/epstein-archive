@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Document, Page } from 'react-pdf';
 import Icon from '@client/components/common/Icon';
@@ -11,6 +12,16 @@ import type { PublicDocumentAnnotation } from '@shared/dto/annotations';
 import { PDFAnnotationOverlay } from './PDFAnnotationOverlay';
 
 ensurePdfWorker();
+
+const SHA256_PATTERN = /^[a-f0-9]{64}$/i;
+const PASSAGE_LOCATION_PARAMS = [
+  'passage',
+  'assetSha256',
+  'pageId',
+  'sentenceId',
+  'textSha256',
+  'q',
+] as const;
 
 interface PDFVariantViewerProps {
   documentId: string;
@@ -29,13 +40,26 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   annotations = [],
   showAnnotations = false,
 }) => {
+  const [urlSearchParams, setUrlSearchParams] = useSearchParams();
+  const requestedPage = useMemo(() => {
+    const parsed = Number(urlSearchParams.get('page'));
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  }, [urlSearchParams]);
+  const requestedAssetSha256 = useMemo(() => {
+    const value = urlSearchParams.get('assetSha256');
+    return value && SHA256_PATTERN.test(value) ? value.toLowerCase() : null;
+  }, [urlSearchParams]);
   const [numPages, setNumPages] = useState<number>(0);
-  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [pageNumber, setPageNumber] = useState<number>(requestedPage);
   const [scale, setScale] = useState<number>(1.0);
   const [rotation, setRotation] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [viewerWidth, setViewerWidth] = useState<number>(0);
   const viewerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setPageNumber(numPages > 0 ? Math.min(requestedPage, numPages) : requestedPage);
+  }, [documentId, numPages, requestedPage]);
 
   useEffect(() => {
     const el = viewerRef.current;
@@ -83,11 +107,28 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
-    setPageNumber(1);
+    setPageNumber(Math.min(requestedPage, numPages));
   };
 
-  const goToPrevPage = () => setPageNumber((prev) => Math.max(1, prev - 1));
-  const goToNextPage = () => setPageNumber((prev) => Math.min(numPages, prev + 1));
+  const selectPage = useCallback(
+    (nextPage: number) => {
+      const boundedPage = Math.max(1, numPages > 0 ? Math.min(numPages, nextPage) : nextPage);
+      setPageNumber(boundedPage);
+      setUrlSearchParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          next.set('page', String(boundedPage));
+          PASSAGE_LOCATION_PARAMS.forEach((param) => next.delete(param));
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [numPages, setUrlSearchParams],
+  );
+
+  const goToPrevPage = () => selectPage(pageNumber - 1);
+  const goToNextPage = () => selectPage(pageNumber + 1);
   const zoomIn = () => setScale((prev) => Math.min(3.0, prev + 0.2));
   const zoomOut = () => setScale((prev) => Math.max(0.5, prev - 0.2));
   const rotateClockwise = () => setRotation((prev) => (prev + 90) % 360);
@@ -119,7 +160,9 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   const getCurrentUrl = () => {
     if (!docMeta) return '';
     // Single-file mode: always load the canonical/original asset.
-    return `/api/documents/${encodeURIComponent(String(documentId))}/file?variant=original`;
+    const params = new URLSearchParams({ variant: 'original' });
+    if (requestedAssetSha256) params.set('assetSha256', requestedAssetSha256);
+    return `/api/documents/${encodeURIComponent(String(documentId))}/file?${params.toString()}`;
   };
 
   const currentUrl = getCurrentUrl();

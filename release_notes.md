@@ -1,5 +1,27 @@
 # Release Notes
 
+## 22.2.0 - 2026-08-27 - Evidence Hypertext Library
+
+### Evidence Search
+
+- **Search now leads with exact source passages.** Matching source sentences appear with the document, page, release, provenance state, OCR confidence, and the reason for the match. AI summaries remain separate research aids.
+- **Every surfaced passage has a durable evidence address.** Versioned citations pin the exact quotation, sentence index, document revision, text hash, and original asset hash so a later extraction change cannot silently move an existing reference.
+- **Text and original scans stay connected.** Researchers can open the exact text address, open the hash-pinned source scan, copy either link, or move from the citation into the synchronized document reader.
+
+### Correlation and Case Building
+
+- **Duplicate records expose their source family.** Matching assets and repeated release occurrences can be compared without treating duplicate copies as independent corroboration.
+- **Evidence can be collated without losing context.** Adding a passage to an investigation preserves the exact quote, page, source release, citation schema, hashes, provenance, and both text and scan links as one evidence item.
+- **The release includes an in-app evidence showcase.** The Epstein Files overview demonstrates the passage-to-source workflow and provides direct searches for the estate trust response, Maxwell border encounter history, and the 12,841-file SDNY discovery production.
+
+### Evidence Integrity
+
+- **Published passage citations are append-only.** Corrections create new citation records; stored citations cannot be edited or deleted in place.
+- **Corpus materialization is bounded and resumable.** Passage backfill runs in controlled batches while live searches can materialize verified passage records on demand.
+- **This is the evidence-addressable foundation, not a false completeness claim.** The assertion graph, public corpus ledger, reviewed research threads, and immutable offline casebook exports remain later delivery slices.
+
+---
+
 ## 22.1.0 - 2026-08-26 - Searchable Text Milestone
 
 ### Text Intelligence
@@ -7,11 +29,6 @@
 - **The archive-wide text cleanup and summary backfill is complete.** More than 464,000 documents now have separately stored, provenance-bearing summary artifacts, with only non-enrichable or explicitly failed records outside the completed set.
 - **AI output remains distinct from source evidence.** Summary artifacts retain their model and pipeline provenance, remain unreviewed until a researcher verifies them, and never replace preserved original files.
 - **New evidence spotlights connect readers directly to source records.** The overview now features an Epstein estate trust subpoena response, Ghislaine Maxwell's CBP encounter history, and the indexed 12,841-file SDNY discovery production.
-
-### Workstation Responsiveness
-
-- **Pipeline Exo traffic now yields during interactive Mac use.** Recent keyboard or pointer activity adds a configurable quiet interval before pipeline-owned Exo requests; full throughput returns after the Mac has been idle for two minutes.
-- The governor is enabled only for the background pipeline. User-initiated archive requests are not delayed, and operators can tune or disable the behavior with `EXO_THROTTLE_ON_USER_ACTIVITY`, `EXO_USER_IDLE_THRESHOLD_MS`, and `EXO_ACTIVE_REQUEST_DELAY_MS`.
 
 ---
 

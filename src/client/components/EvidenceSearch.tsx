@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, type SearchFilters } from '@client/services/apiClient';
@@ -9,6 +9,10 @@ import { useUndo } from './useUndo';
 import { EvidenceFilters } from '@client/features/evidence/EvidenceFilters';
 import { EvidenceResultCard } from '@client/features/evidence/EvidenceResultCard';
 import { EvidenceDocSnippets } from '@client/features/evidence/EvidenceDocSnippets';
+import {
+  PassageSearchResults,
+  type PassageSearchResult,
+} from '@client/features/evidence/PassageSearchResults';
 import { Surface, Flex, Stack, LqText, Grid } from '@client/design-system/lib';
 import styles from './EvidenceSearch.module.css';
 
@@ -18,6 +22,89 @@ interface EvidenceSearchProps {
 }
 
 type EvidenceSortBy = 'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name';
+
+interface DocSnippet {
+  id: number;
+  title: string;
+  redFlagRating: number;
+  snippet?: string;
+}
+
+interface TextSearchMatches {
+  passages: PassageSearchResult[];
+  documents: DocSnippet[];
+}
+
+const EMPTY_TEXT_SEARCH_MATCHES: TextSearchMatches = { passages: [], documents: [] };
+
+const readString = (record: Record<string, unknown>, key: string): string => {
+  const value = record[key];
+  return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+};
+
+const readNullableNumber = (record: Record<string, unknown>, key: string): number | null => {
+  const value = record[key];
+  if (value === null || value === undefined || value === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+const normalizePassage = (value: unknown): PassageSearchResult | null => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const record = value as Record<string, unknown>;
+  const citationId = readString(record, 'citationId');
+  const documentId = readString(record, 'documentId');
+  const quote = readString(record, 'quote');
+  const snippet = readString(record, 'snippet');
+  const sentenceIndex = readNullableNumber(record, 'sentenceIndex');
+
+  if (
+    !citationId ||
+    !documentId ||
+    (!quote && !snippet) ||
+    sentenceIndex === null ||
+    !Number.isSafeInteger(sentenceIndex) ||
+    sentenceIndex < 0
+  )
+    return null;
+
+  return {
+    citationId,
+    citationSchema: readString(record, 'citationSchema'),
+    documentId,
+    sentenceId: readString(record, 'sentenceId') || null,
+    sentenceIndex,
+    pageId: readString(record, 'pageId') || null,
+    pageNumber: readNullableNumber(record, 'pageNumber'),
+    quote,
+    snippet,
+    documentTitle: readString(record, 'documentTitle'),
+    fileName: readString(record, 'fileName'),
+    sourceCollection: readString(record, 'sourceCollection'),
+    sourceRelease: readString(record, 'sourceRelease'),
+    sourceFamily: readString(record, 'sourceFamily'),
+    assetId: readString(record, 'assetId') || null,
+    assetSha256: readString(record, 'assetSha256') || null,
+    documentRevisionHash: readString(record, 'documentRevisionHash'),
+    documentSha256: readString(record, 'documentSha256') || null,
+    textSha256: readString(record, 'textSha256'),
+    textStart: readNullableNumber(record, 'textStart'),
+    textEnd: readNullableNumber(record, 'textEnd'),
+    quoteOccurrence: readNullableNumber(record, 'quoteOccurrence'),
+    scanBbox:
+      record.scanBbox && typeof record.scanBbox === 'object'
+        ? (record.scanBbox as Record<string, unknown> | number[])
+        : null,
+    ocrConfidence: readNullableNumber(record, 'ocrConfidence'),
+    provenanceStatus: readString(record, 'provenanceStatus') || null,
+    evidenceType: readString(record, 'evidenceType') || null,
+    redFlagRating: readNullableNumber(record, 'redFlagRating'),
+    textUrl: readString(record, 'textUrl'),
+    scanUrl: readString(record, 'scanUrl'),
+    matchReason: readString(record, 'matchReason'),
+  };
+};
+
 const VALID_SORTS = new Set<string>([
   'relevance',
   'mentions',
@@ -30,7 +117,6 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
   onPersonClick,
   onDocumentClick,
 }) => {
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showFilters, setShowFilters] = useState(false);
 
@@ -69,14 +155,18 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
   const { searchTerm, setSearchTerm } = navigation;
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-  const urlParams = new URLSearchParams(location.search);
-  const queryParam = urlParams.get('q') || '';
+  const queryParam = searchParams.get('q') || '';
 
   useEffect(() => {
-    if (queryParam && queryParam !== searchTerm) {
+    if (queryParam !== searchTerm) {
       setSearchTerm(queryParam);
     }
   }, [queryParam, setSearchTerm, searchTerm]);
+
+  const setEvidenceSearchTerm = (value: string) => {
+    setSearchTerm(value);
+    setParam('q', value, '');
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -89,6 +179,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
     data: people = [],
     isLoading,
     isFetching,
+    isPlaceholderData: isPeoplePlaceholderData,
   } = useQuery<Person[]>({
     queryKey: [
       'evidence-search-people',
@@ -133,7 +224,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
     placeholderData: (previousData) => previousData,
   });
 
-  const loading = isLoading || isFetching;
+  const peopleLoading = isLoading || isFetching;
 
   const allEvidenceTypes = useMemo(() => {
     const types = new Set<string>();
@@ -147,40 +238,62 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
     if (onPersonClick) onPersonClick(person, searchTerm);
   };
 
-  const { data: docSnippets = [] } = useQuery<
-    Array<{ id: number; title: string; redFlagRating: number; snippet?: string }>
-  >({
-    queryKey: ['evidence-search-doc-snippets', debouncedSearchTerm],
+  const {
+    data: textSearchMatches = EMPTY_TEXT_SEARCH_MATCHES,
+    isLoading: isTextSearchLoading,
+    isFetching: isTextSearchFetching,
+  } = useQuery<TextSearchMatches>({
+    queryKey: [
+      'evidence-search-passages-and-documents',
+      debouncedSearchTerm,
+      selectedEvidenceType,
+      minRedFlagRating,
+      maxRedFlagRating,
+      showRedFlagOnly,
+    ],
     queryFn: async () => {
       const q = (debouncedSearchTerm || '').trim();
-      if (!q) return [];
-      const json = await apiClient.get<Record<string, unknown>>(
-        `/search?q=${encodeURIComponent(q)}&limit=8&snippets=true`,
+      if (!q) return EMPTY_TEXT_SEARCH_MATCHES;
+      const params = new URLSearchParams({ q, limit: '8', snippets: 'true' });
+      if (selectedEvidenceType !== 'ALL') params.set('evidenceType', selectedEvidenceType);
+      params.set(
+        'redFlagMin',
+        String(showRedFlagOnly ? Math.max(1, minRedFlagRating) : minRedFlagRating),
       );
+      params.set('redFlagMax', String(maxRedFlagRating));
+      const json = await apiClient.get<Record<string, unknown>>(`/search?${params.toString()}`);
       const documents = Array.isArray(json.documents) ? json.documents : [];
-      return documents.map((d) => {
-        const doc = d as Record<string, unknown>;
-        return {
-          id: Number(doc.id),
-          title: String(doc.title),
-          redFlagRating: Number(doc.redFlagRating),
-          snippet: String(doc.snippet || doc.contentPreview || ''),
-        };
-      });
+      const passages = Array.isArray(json.passages) ? json.passages : [];
+      return {
+        passages: passages
+          .map((passage) => normalizePassage(passage))
+          .filter((passage): passage is PassageSearchResult => passage !== null),
+        documents: documents.map((d) => {
+          const doc = d as Record<string, unknown>;
+          return {
+            id: Number(doc.id),
+            title: String(doc.title),
+            redFlagRating: Number(doc.redFlagRating),
+            snippet: String(doc.snippet || doc.contentPreview || ''),
+          };
+        }),
+      };
     },
     enabled: Boolean(debouncedSearchTerm.trim()),
-    placeholderData: (previousData) => previousData,
   });
 
+  const { passages, documents: docSnippets } = textSearchMatches;
+  const loading = peopleLoading || isTextSearchLoading || isTextSearchFetching;
+
   const searchResults = useMemo(() => {
-    if (loading && people.length === 0) return [];
+    if (isPeoplePlaceholderData || (peopleLoading && people.length === 0)) return [];
     return people.map((person) => ({
       person,
       matchingContexts: person.contexts.slice(0, 3),
       matchingPassages: person.significantPassages?.slice(0, 3) || [],
       score: person.redFlagScore || person.mentions,
     }));
-  }, [people, loading]);
+  }, [isPeoplePlaceholderData, people, peopleLoading]);
 
   const filterOptions = useMemo(
     () => ({
@@ -213,7 +326,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
     <Stack gap="xl" className={styles.root}>
       <EvidenceFilters
         searchTerm={searchTerm}
-        onSearchTermChange={setSearchTerm}
+        onSearchTermChange={setEvidenceSearchTerm}
         selectedRiskLevel={selectedRiskLevel}
         onRiskLevelChange={setSelectedRiskLevel}
         selectedEvidenceType={selectedEvidenceType}
@@ -229,15 +342,18 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
         showFilters={showFilters}
         onShowFiltersToggle={() => setShowFilters(!showFilters)}
         loading={loading}
-        loadingProgress={loading ? 'Scanning Archive...' : 'Complete'}
+        loadingProgress={loading ? 'Searching archive...' : 'Complete'}
         loadingProgressValue={loading ? 70 : 100}
         allEvidenceTypes={allEvidenceTypes}
         filterOptions={filterOptions}
-        resultCount={searchResults.length}
+        resultCount={passages.length + searchResults.length + docSnippets.length}
       />
 
       <Stack gap="lg" className={styles.resultsStack}>
-        {loading && people.length === 0 ? (
+        {loading &&
+        searchResults.length === 0 &&
+        passages.length === 0 &&
+        docSnippets.length === 0 ? (
           <Grid cols={{ base: 1, md: 2 }} gap="lg">
             {[...Array(6)].map((_, i) => (
               <Surface key={i} variant="glass" p="md">
@@ -267,21 +383,24 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
           </Grid>
         ) : (
           <>
-            {searchResults.length === 0 && docSnippets.length === 0 && searchTerm.trim() && (
-              <Surface variant="glass" className={styles.emptyState} p="xl">
-                <Flex direction="column" align="center" gap="md">
-                  <Icon name="Search" size="xl" className={styles.emptyIcon} />
-                  <Stack align="center" gap="xs">
-                    <LqText variant="h3" color="muted">
-                      No signals found for &quot;{searchTerm}&quot;
-                    </LqText>
-                    <LqText variant="small" color="muted">
-                      Try adjusting your forensic filters or search terms.
-                    </LqText>
-                  </Stack>
-                </Flex>
-              </Surface>
-            )}
+            {searchResults.length === 0 &&
+              passages.length === 0 &&
+              docSnippets.length === 0 &&
+              searchTerm.trim() && (
+                <Surface variant="glass" className={styles.emptyState} p="xl">
+                  <Flex direction="column" align="center" gap="md">
+                    <Icon name="Search" size="xl" className={styles.emptyIcon} />
+                    <Stack align="center" gap="xs">
+                      <LqText variant="h3" color="muted">
+                        No evidence matches found for &quot;{searchTerm}&quot;
+                      </LqText>
+                      <LqText variant="small" color="muted">
+                        Try a different search term or adjust the filters.
+                      </LqText>
+                    </Stack>
+                  </Flex>
+                </Surface>
+              )}
 
             {!loading && searchResults.length === 0 && !searchTerm.trim() && !showRedFlagOnly && (
               <Surface variant="glass" className={styles.emptyState} p="xl">
@@ -289,15 +408,21 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({
                   <Icon name="Search" size="xl" className={styles.emptyIcon} />
                   <Stack align="center" gap="xs">
                     <LqText variant="h3" color="muted">
-                      Initialize Forensic Search
+                      Start an evidence search
                     </LqText>
                     <LqText variant="small" color="muted">
-                      Enter keywords or use the filters to begin analysis.
+                      Enter keywords or use the filters to search the archive.
                     </LqText>
                   </Stack>
                 </Flex>
               </Surface>
             )}
+
+            <PassageSearchResults
+              passages={passages}
+              searchTerm={debouncedSearchTerm}
+              onDocumentClick={onDocumentClick}
+            />
 
             <Grid cols={{ base: 1, md: 2 }} gap="lg">
               {searchResults.map((result, index) => (
