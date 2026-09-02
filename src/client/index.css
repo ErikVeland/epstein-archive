@@ -299,6 +299,7 @@ html,
 body {
   overflow-x: hidden;
   width: 100%;
+  min-height: 100%;
   position: relative;
   background-color: var(--bg-dark);
   background-image: var(--app-backdrop);
@@ -307,6 +308,21 @@ body {
   color: var(--text-default);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-x: none;
+}
+
+@media (max-width: 767px) {
+  html,
+  body {
+    touch-action: pan-x pan-y;
+    background-attachment: scroll;
+  }
+
+  select,
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  textarea {
+    font-size: 16px;
+  }
 }
 
 button,

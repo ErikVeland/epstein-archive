@@ -291,10 +291,23 @@
 }
 
 /* Mobile Overhaul Styles */
+.mobileSheet {
+  background: var(--bg-surface);
+}
+
+.mobileSheetContent {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
 .mobileLayout {
   height: 100%;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .viewerWrapper {
@@ -305,35 +318,11 @@
   position: relative;
 }
 
-/* Immersive Reading Mode Transitions */
 .mobileHeaderChrome {
   flex-shrink: 0;
-  transition:
-    transform 0.4s var(--easing-liquid),
-    opacity 0.4s var(--easing-liquid);
-  transform: translateY(0);
-  opacity: 1;
   z-index: 10;
-  background: var(--bg-surface);
-}
-
-.chromeHiddenTop {
-  transform: translateY(-100%);
-  opacity: 0;
-  position: absolute;
-  width: 100%;
-  pointer-events: none;
-}
-
-.chromeHiddenBottom {
-  transform: translateY(100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Make sure mobile sheet doesn't cut off when immersive */
-.immersiveReading .mobileScrollArea {
-  padding-top: env(safe-area-inset-top);
+  background: color-mix(in srgb, var(--bg-surface) 96%, transparent);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .mobileTabsDropdownContainer {
@@ -350,10 +339,10 @@
     align-items: center;
     gap: var(--space-2);
     width: 100%;
-    margin-top: var(--space-1);
-    background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
+    background: transparent;
+    border: 0;
+    border-top: 1px solid color-mix(in srgb, var(--glass-border) 60%, transparent);
+    border-radius: 0;
     padding: var(--space-2) var(--space-3);
     box-sizing: border-box;
   }
@@ -371,7 +360,8 @@
     background: transparent;
     border: none;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    min-height: 2.5rem;
+    font-size: 1rem;
     font-weight: 600;
     padding: var(--space-1) 0;
     outline: none;
@@ -405,21 +395,19 @@
   padding: 0; /* Let content handle internal padding if needed, or set base here */
   position: relative;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .mobileBottomBar {
-  height: 64px;
+  min-height: calc(60px + env(safe-area-inset-bottom));
   display: flex;
   justify-content: space-around;
   align-items: center;
   background: var(--glass-bg-strong);
   border-top: 1px solid var(--glass-border);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: var(--space-1) var(--space-1) calc(var(--space-1) + env(safe-area-inset-bottom));
   flex-shrink: 0;
-  transition:
-    transform 0.4s var(--easing-liquid),
-    opacity 0.4s var(--easing-liquid);
-  transform: translateY(0);
 }
 
 .bottomBarItem {
@@ -428,6 +416,13 @@
   align-items: center;
   gap: var(--space-1);
   color: var(--text-muted);
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 3.25rem;
+  border-radius: var(--radius-md);
+  transition:
+    color var(--duration-fast) var(--easing-swift),
+    background-color var(--duration-fast) var(--easing-swift);
 }
 
 .bottomBarItem span {
@@ -438,6 +433,7 @@
 
 .bottomBarItemActive {
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .mobileMetadataOverlay {
@@ -464,7 +460,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-5) var(--space-6);
+  min-height: 4rem;
+  padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--glass-border);
   background: var(--glass-bg-strong);
 }

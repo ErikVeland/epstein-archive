@@ -406,41 +406,6 @@ export function AppShellLayout(props: {
                     >
                       <RedactedLogo text="THE EPSTEIN FILES" />
                     </Link>
-                    <Button
-                      unstyled
-                      onClick={() => setIsMobileMenuOpen((v) => !v)}
-                      className={styles.mobileMenuButton}
-                      aria-label={
-                        isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'
-                      }
-                    >
-                      {isMobileMenuOpen ? (
-                        <Icon name="X" size="sm" />
-                      ) : (
-                        <Icon name="Menu" size="sm" />
-                      )}
-                    </Button>
-                  </div>
-
-                  <div className={styles.mobileHeaderControls}>
-                    <Button
-                      unstyled
-                      onClick={() => setIsMobileSearchOpen(true)}
-                      className={cn(
-                        styles.mobileControlButton,
-                        (searchTerm.trim() || dateFilterActive) && styles.mobileHeaderButtonActive,
-                      )}
-                      aria-label="Open search and filters"
-                    >
-                      <span className={styles.mobileControlLead}>
-                        <Icon name="Search" size="sm" />
-                        <span className={styles.mobileControlLabel}>Search & Filters</span>
-                      </span>
-                      <span className={styles.mobileControlValue}>
-                        {searchTerm.trim() ? `"${searchTerm}"` : 'People, evidence, documents'}
-                        {dateFilterActive && ` • ${dateFilterLabel}`}
-                      </span>
-                    </Button>
                   </div>
                 </div>
               )}

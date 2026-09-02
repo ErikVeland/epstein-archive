@@ -11,7 +11,10 @@ interface LiquidSheetProps {
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
+  ariaLabel?: string;
   className?: string;
+  contentClassName?: string;
+  showHandle?: boolean;
 }
 
 export const LiquidSheet: React.FC<LiquidSheetProps> = ({
@@ -19,7 +22,10 @@ export const LiquidSheet: React.FC<LiquidSheetProps> = ({
   onClose,
   children,
   title,
+  ariaLabel,
   className,
+  contentClassName,
+  showHandle = true,
 }) => {
   const controls = useAnimation();
   const dragControls = useDragControls();
@@ -71,16 +77,21 @@ export const LiquidSheet: React.FC<LiquidSheetProps> = ({
             dragElastic={{ top: 0.05, bottom: 0.5 }}
             onDragEnd={handleDragEnd}
             className={cn(s.sheet, className)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={ariaLabel || title || 'Dialog'}
           >
-            <div className={s.handleContainer} onPointerDown={(e) => dragControls.start(e)}>
-              <div className={s.handle} />
-            </div>
+            {showHandle && (
+              <div className={s.handleContainer} onPointerDown={(e) => dragControls.start(e)}>
+                <div className={s.handle} />
+              </div>
+            )}
             {title && (
               <div className={s.header}>
                 <h2 className={s.title}>{title}</h2>
               </div>
             )}
-            <div className={s.content}>{children}</div>
+            <div className={cn(s.content, contentClassName)}>{children}</div>
           </motion.div>
         </>
       )}

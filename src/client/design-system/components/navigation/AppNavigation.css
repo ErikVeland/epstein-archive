@@ -258,9 +258,9 @@
   display: none;
   align-items: center;
   justify-content: space-around;
-  height: 64px;
-  padding: var(--space-1) var(--space-2);
-  padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  min-height: 64px;
+  padding: var(--space-1) var(--space-1);
+  padding-bottom: calc(var(--space-1) + var(--safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--glass-border);
   background: var(--glass-bg-strong, rgba(15, 23, 42, 0.88));
   -webkit-backdrop-filter: blur(20px);
@@ -272,9 +272,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 64px;
+  flex: 1 1 0;
+  min-width: 0;
   min-height: var(--touch-target-min, 44px);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-1);
   gap: var(--space-1);
   border: 0;
   border-radius: var(--radius-md);
@@ -298,6 +299,7 @@
 
 .ds-bottomNav__item.is-active {
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .ds-bottomNav__icon {
@@ -309,7 +311,7 @@
 }
 
 .ds-bottomNav__label {
-  font-size: var(--font-size-xs, 0.75rem);
+  font-size: 0.6875rem;
   font-weight: var(--weight-medium, 500);
   white-space: nowrap;
 }

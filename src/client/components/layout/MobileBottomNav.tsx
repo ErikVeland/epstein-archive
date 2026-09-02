@@ -6,6 +6,7 @@ interface MobileBottomNavProps {
 }
 
 const NAV_ITEMS: BottomNavItem[] = [
+  { id: 'documents', label: 'Docs', icon: 'FileText', path: '/documents' },
   { id: 'people', label: 'People', icon: 'Users', path: '/people' },
   { id: 'search', label: 'Search', icon: 'Search', path: '' },
   { id: 'investigations', label: 'Investigate', icon: 'Target', path: '/investigations' },
@@ -14,6 +15,18 @@ const NAV_ITEMS: BottomNavItem[] = [
 
 export function MobileBottomNav({ className }: MobileBottomNavProps) {
   const location = useLocation();
+  const activeId = location.pathname.startsWith('/documents')
+    ? 'documents'
+    : location.pathname.startsWith('/evidence')
+      ? 'documents'
+      : location.pathname.startsWith('/people') || location.pathname.startsWith('/entity')
+        ? 'people'
+        : location.pathname.startsWith('/search')
+          ? 'search'
+          : location.pathname.startsWith('/investigations') ||
+              location.pathname.startsWith('/investigate')
+            ? 'investigations'
+            : 'more';
 
   const handleNav = (item: BottomNavItem) => {
     if (item.id === 'more') {
@@ -26,12 +39,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
   };
 
   return (
-    <BottomNav
-      items={NAV_ITEMS}
-      activeId={location.pathname === '/search' ? 'search' : undefined}
-      onAction={handleNav}
-      className={className}
-    />
+    <BottomNav items={NAV_ITEMS} activeId={activeId} onAction={handleNav} className={className} />
   );
 }
 

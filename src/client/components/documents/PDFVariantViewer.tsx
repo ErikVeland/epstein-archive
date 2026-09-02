@@ -6,6 +6,7 @@ import Icon from '@client/components/common/Icon';
 import styles from './PDFVariantViewer.module.css';
 
 import { Button, SearchField } from '@client/design-system/lib';
+import { useIsMobile } from '@client/hooks/useIsMobile';
 import { ensurePdfWorker } from '@client/utils/ensurePdfWorker';
 import { LqText } from '@client/design-system/components/typography/Text';
 import type { PublicDocumentAnnotation } from '@shared/dto/annotations';
@@ -40,6 +41,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   annotations = [],
   showAnnotations = false,
 }) => {
+  const isMobile = useIsMobile();
   const [urlSearchParams, setUrlSearchParams] = useSearchParams();
   const requestedPage = useMemo(() => {
     const parsed = Number(urlSearchParams.get('page'));
@@ -167,39 +169,74 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
 
   const currentUrl = getCurrentUrl();
   const assetType = inferAssetType();
+  const effectiveScale = isMobile ? 1 : scale;
+  const pageGutter = isMobile ? 16 : 64;
+  const pageWidth = viewerWidth
+    ? Math.max(0, Math.floor((viewerWidth - pageGutter) * effectiveScale))
+    : undefined;
 
   return (
     <div className={`${styles.root} ${className}`}>
       {showToolbar && (
         <div className={styles.toolbar}>
-          <div className={styles.toolGroup}>
-            <SearchField
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Find in page..."
-              density="compact"
-              rootClassName={styles.searchFieldRoot}
-            />
-          </div>
+          {!isMobile && (
+            <div className={styles.toolGroup}>
+              <SearchField
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Find in page..."
+                density="compact"
+                rootClassName={styles.searchFieldRoot}
+              />
+            </div>
+          )}
 
           <div className={styles.toolGroup}>
-            <div className={styles.zoomControls}>
-              <Button unstyled onClick={zoomOut} className={styles.toolButton} title="Zoom Out">
-                <Icon name="ZoomOut" size="sm" />
-              </Button>
-              <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
-              <Button unstyled onClick={zoomIn} className={styles.toolButton} title="Zoom In">
-                <Icon name="ZoomIn" size="sm" />
-              </Button>
-            </div>
-            <Button unstyled onClick={rotateClockwise} className={styles.toolButton} title="Rotate">
+            {isMobile ? (
+              <span className={styles.fitLabel}>Fit to width</span>
+            ) : (
+              <div className={styles.zoomControls}>
+                <Button
+                  unstyled
+                  onClick={zoomOut}
+                  className={styles.toolButton}
+                  title="Zoom Out"
+                  aria-label="Zoom out"
+                >
+                  <Icon name="ZoomOut" size="sm" />
+                </Button>
+                <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
+                <Button
+                  unstyled
+                  onClick={zoomIn}
+                  className={styles.toolButton}
+                  title="Zoom In"
+                  aria-label="Zoom in"
+                >
+                  <Icon name="ZoomIn" size="sm" />
+                </Button>
+              </div>
+            )}
+            <Button
+              unstyled
+              onClick={rotateClockwise}
+              className={styles.toolButton}
+              title="Rotate"
+              aria-label="Rotate page"
+            >
               <Icon name="RotateCw" size="sm" />
             </Button>
           </div>
         </div>
       )}
 
-      <div ref={viewerRef} className={styles.viewerPane}>
+      <div
+        ref={viewerRef}
+        className={styles.viewerPane}
+        onWheel={(event) => {
+          if (isMobile && event.ctrlKey) event.preventDefault();
+        }}
+      >
         {isLoading ? (
           <div className={styles.statusOverlay}>
             <div className={styles.spinner} />
@@ -311,7 +348,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
               <div className={styles.pageWrapper}>
                 <Page
                   pageNumber={pageNumber}
-                  width={viewerWidth ? Math.floor((viewerWidth - 64) * scale) : undefined}
+                  width={pageWidth}
                   rotate={rotation}
                   loading={<div className={`${styles.pdfPage} ${styles.animatePulse}`} />}
                   className={styles.pdfPage}
@@ -338,6 +375,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
             className={styles.navButton}
+            aria-label="Previous page"
           >
             <Icon name="ChevronLeft" size="sm" />
             Previous
@@ -361,6 +399,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             onClick={goToNextPage}
             disabled={pageNumber >= numPages}
             className={styles.navButton}
+            aria-label="Next page"
           >
             Next
             <Icon name="ChevronRight" size="sm" />

@@ -13,8 +13,6 @@ import { ViewerShell } from '../viewer/ViewerShell';
 import { ProvenancePanel } from './ProvenancePanel';
 import { LiquidSheet } from '../common/LiquidSheet';
 import { Tabs } from '../common/Tabs';
-import { FloatingReadingControls } from './subcomponents/FloatingReadingControls';
-import { useScrollDirection } from '@client/hooks/useScrollDirection';
 import styles from './DocumentModal.module.css';
 
 // Design System
@@ -342,10 +340,6 @@ export const DocumentModal: React.FC<Props> = ({
   useEffect(() => {
     setLocalSearchTerm(passageSearchTerm);
   }, [passageSearchTerm]);
-  const { scrollDirection } = useScrollDirection(
-    mobileScrollAreaRef as React.RefObject<HTMLElement>,
-  );
-
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     let changed = false;
@@ -780,23 +774,18 @@ export const DocumentModal: React.FC<Props> = ({
   };
 
   if (isMobile) {
-    const isImmersive = scrollDirection === 'down' && rightPaneCollapsed;
-    const floatingMode: 'clean' | 'ocr' | 'pdf' =
-      viewMode === 'pdf' || viewMode === 'sidebyside'
-        ? 'pdf'
-        : viewMode === 'ocr'
-          ? 'ocr'
-          : 'clean';
-
     return (
       <LiquidSheet
         isOpen={id !== undefined}
         onClose={onClose}
-        className={cn(styles.mobileSheet, isImmersive && styles.immersiveReading)}
+        ariaLabel={`Document: ${doc.title || doc.fileName || 'Untitled'}`}
+        className={styles.mobileSheet}
+        contentClassName={styles.mobileSheetContent}
+        showHandle={false}
       >
         <div className={styles.mobileLayout}>
           <div className={styles.viewerWrapper}>
-            <div className={cn(styles.mobileHeaderChrome, isImmersive && styles.chromeHiddenTop)}>
+            <div className={styles.mobileHeaderChrome}>
               <DocumentHeader
                 doc={doc}
                 localSearchTerm={localSearchTerm}
@@ -850,20 +839,9 @@ export const DocumentModal: React.FC<Props> = ({
             <div className={styles.mobileScrollArea} ref={mobileScrollAreaRef}>
               {renderTabContent()}
             </div>
-
-            <FloatingReadingControls
-              activeMode={floatingMode}
-              onChange={(mode) => {
-                if (mode === 'pdf') setViewMode('pdf');
-                else if (mode === 'ocr') setViewMode('ocr');
-                else setViewMode('clean');
-              }}
-              isVisible={activeTab === 'viewer'}
-              hasText={!!(doc.content || doc.contentRefined)}
-            />
           </div>
 
-          <div className={cn(styles.mobileBottomBar, isImmersive && styles.chromeHiddenBottom)}>
+          <div className={styles.mobileBottomBar} aria-label="Document details">
             <Button
               unstyled
               onClick={() => {
@@ -872,8 +850,11 @@ export const DocumentModal: React.FC<Props> = ({
               }}
               className={cn(
                 styles.bottomBarItem,
-                activeRailSection === 'metadata' && styles.bottomBarItemActive,
+                !rightPaneCollapsed &&
+                  activeRailSection === 'metadata' &&
+                  styles.bottomBarItemActive,
               )}
+              aria-label="Open document metadata"
             >
               <Icon name="Sparkles" size="md" />
               <span>Metadata</span>
@@ -886,8 +867,11 @@ export const DocumentModal: React.FC<Props> = ({
               }}
               className={cn(
                 styles.bottomBarItem,
-                activeRailSection === 'entities' && styles.bottomBarItemActive,
+                !rightPaneCollapsed &&
+                  activeRailSection === 'entities' &&
+                  styles.bottomBarItemActive,
               )}
+              aria-label="Open document entities"
             >
               <Icon name="Users" size="md" />
               <span>Entities</span>
@@ -900,8 +884,9 @@ export const DocumentModal: React.FC<Props> = ({
               }}
               className={cn(
                 styles.bottomBarItem,
-                activeRailSection === 'case' && styles.bottomBarItemActive,
+                !rightPaneCollapsed && activeRailSection === 'case' && styles.bottomBarItemActive,
               )}
+              aria-label="Open case references"
             >
               <Icon name="Link2" size="md" />
               <span>Case</span>
@@ -914,8 +899,11 @@ export const DocumentModal: React.FC<Props> = ({
               }}
               className={cn(
                 styles.bottomBarItem,
-                activeRailSection === 'timeline' && styles.bottomBarItemActive,
+                !rightPaneCollapsed &&
+                  activeRailSection === 'timeline' &&
+                  styles.bottomBarItemActive,
               )}
+              aria-label="Open timeline references"
             >
               <Icon name="Calendar" size="md" />
               <span>Timeline</span>
@@ -939,6 +927,7 @@ export const DocumentModal: React.FC<Props> = ({
                   unstyled
                   onClick={() => setRightPaneCollapsed(true)}
                   className={styles.overlayClose}
+                  aria-label="Close document details"
                 >
                   <Icon name="X" size="md" />
                 </Button>

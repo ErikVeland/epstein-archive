@@ -80,11 +80,18 @@
   text-align: center;
 }
 
+.fitLabel {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+}
+
 .viewerPane {
   flex: 1;
   overflow: auto;
   background-color: var(--glass-bg-strong);
   position: relative;
+  overscroll-behavior: contain;
 }
 
 .statusOverlay {
@@ -214,6 +221,77 @@
 .navButton:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .root {
+    min-width: 0;
+  }
+
+  .toolbar {
+    min-height: 3rem;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .toolGroup {
+    width: 100%;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .toolButton {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border-radius: var(--radius-md);
+  }
+
+  .viewerPane {
+    overflow-x: hidden;
+    overflow-y: auto;
+    touch-action: pan-y;
+  }
+
+  .pdfDocument {
+    padding: var(--space-2);
+  }
+
+  .pageWrapper,
+  .pdfPage {
+    max-width: 100%;
+  }
+
+  .imageContainer {
+    padding: var(--space-2);
+  }
+
+  .previewImage {
+    max-height: calc(100dvh - 18rem);
+    border-radius: var(--radius-md);
+  }
+
+  .pagination {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .navButton {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0 var(--space-2);
+    font-size: 0;
+  }
+
+  .navButton svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .progressBar {
+    width: min(7rem, 32vw);
+  }
 }
 .opacityLow {
   opacity: 0.2;

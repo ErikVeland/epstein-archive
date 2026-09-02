@@ -208,9 +208,21 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
   const hasText = Boolean((cleanText || ocrText).trim());
 
   const viewModeOptions = [
-    { value: 'clean' as ViewMode, label: 'Clean Text', icon: 'Type' as IconName },
-    { value: 'ocr' as ViewMode, label: 'Raw OCR', icon: 'ScanText' as IconName },
-    { value: 'pdf' as ViewMode, label: 'Original PDF', icon: 'FileText' as IconName },
+    {
+      value: 'clean' as ViewMode,
+      label: isMobile ? 'Text' : 'Clean Text',
+      icon: 'Type' as IconName,
+    },
+    {
+      value: 'ocr' as ViewMode,
+      label: isMobile ? 'OCR' : 'Raw OCR',
+      icon: 'ScanText' as IconName,
+    },
+    {
+      value: 'pdf' as ViewMode,
+      label: isMobile ? 'PDF' : 'Original PDF',
+      icon: 'FileText' as IconName,
+    },
     ...(!isMobile
       ? [
           {
@@ -230,7 +242,8 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
           options={viewModeOptions}
           value={effectiveMode}
           onChange={setViewMode}
-          minItemWidth="8.75rem"
+          minItemWidth={isMobile ? '0' : '8.75rem'}
+          fullWidth={isMobile}
           compact
           className={styles.modeControl}
         />
