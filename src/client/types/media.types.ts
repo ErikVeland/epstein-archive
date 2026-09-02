@@ -57,6 +57,7 @@ export interface MediaImage {
   redFlagRating?: number;
   isSensitive?: boolean;
   documentId?: string | number;
+  verificationStatus?: string;
 }
 
 export interface Album {

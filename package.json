@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "22.2.0",
+  "version": "22.3.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -57,6 +57,7 @@
     "media:sascha-tiktok:backfill": "tsx scripts/backfill_sascha_tiktok_video.ts",
     "black-book:enrich": "tsx scripts/enrich_black_book.ts",
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
+    "media:provenance:backfill": "tsx scripts/backfill_extracted_media_provenance.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "precheck": "bash scripts/strict_prechecks.sh --full",
     "precheck:staged": "bash scripts/strict_prechecks.sh --staged",
@@ -106,7 +107,8 @@
     "test:bundle-smoke": "pnpm build:prod && playwright test --config playwright.config.bundle.ts",
     "test:bundle-smoke:only": "node --import tsx/esm scripts/run_bundle_smoke.ts",
     "test:ci-budgets": "CI=true playwright test tests/ci-budgets.spec.ts --project=chromium",
-    "check:release-trust": "node --import tsx/esm scripts/release_trust_gate.ts"
+    "check:release-trust": "node --import tsx/esm scripts/release_trust_gate.ts",
+    "check:release-metadata": "node --import tsx/esm scripts/release_metadata_guard.ts"
   },
   "dependencies": {
     "@epstein/db": "workspace:*",

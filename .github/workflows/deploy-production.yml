@@ -35,6 +35,8 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
 
       - uses: pnpm/action-setup@v6
 
@@ -45,6 +47,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify new release version and notes
+        run: pnpm check:release-metadata -- --base HEAD^
 
       - name: Run database migrations
         run: pnpm db:migrate:pg

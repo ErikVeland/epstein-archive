@@ -243,6 +243,23 @@ async function backfillVlm() {
           [enrichedText, cleanedText, preview, JSON.stringify(meta), PIPELINE_VERSION, doc.id],
         );
 
+        await pool.query(
+          `UPDATE media_items
+           SET description = COALESCE(NULLIF(description, ''), $1),
+               metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object(
+                 'ai_visual',
+                 jsonb_build_object(
+                   'indexed', true,
+                   'source', 'document_vlm',
+                   'description', $1::text,
+                   'pipelineVersion', $2::text,
+                   'reviewState', 'unreviewed'
+                 )
+               )
+           WHERE document_id = $3::bigint`,
+          [cleanedText.slice(0, 4000), PIPELINE_VERSION, doc.id],
+        );
+
         // Ensure page 1 maps correctly
         const pageCheck = await pool.query(
           'SELECT id FROM document_pages WHERE document_id = $1 AND page_number = 1',

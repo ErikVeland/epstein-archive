@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import {
   Box,
+  Badge,
   Button,
   Flex,
   Input,
@@ -241,6 +242,40 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   }, [currentImage, navigate]);
 
   if (!currentImage) return null;
+
+  const metadata = currentImage.metadata || {};
+  const aiVisualValue = metadata['ai_visual'];
+  const aiVisual =
+    aiVisualValue && typeof aiVisualValue === 'object' && !Array.isArray(aiVisualValue)
+      ? (aiVisualValue as Record<string, unknown>)
+      : null;
+  const provenanceValue = metadata['provenance'];
+  const provenance =
+    provenanceValue && typeof provenanceValue === 'object' && !Array.isArray(provenanceValue)
+      ? (provenanceValue as Record<string, unknown>)
+      : null;
+  const sourcePageValue = Number(metadata['source_page']);
+  const sourcePage =
+    Number.isInteger(sourcePageValue) && sourcePageValue > 0 ? sourcePageValue : null;
+  const sourceObject = metadata['source_pdf_object_number'];
+  const sourceDocumentHash =
+    typeof metadata['source_document_sha256'] === 'string'
+      ? metadata['source_document_sha256']
+      : null;
+  const sourceVerified =
+    currentImage.verificationStatus === 'source_verified' &&
+    provenance?.['status'] === 'exact_source_object';
+  const visualClassification =
+    typeof metadata['visual_classification'] === 'string'
+      ? metadata['visual_classification'].replaceAll('_', ' ')
+      : null;
+  const aiDescription =
+    typeof aiVisual?.['description'] === 'string' ? aiVisual['description'] : null;
+  const aiSummary = typeof aiVisual?.['summary'] === 'string' ? aiVisual['summary'] : null;
+  const aiReviewState =
+    typeof aiVisual?.['reviewState'] === 'string' ? aiVisual['reviewState'] : 'unreviewed';
+  const aiModel =
+    typeof aiVisual?.['model'] === 'string' ? aiVisual['model'] : 'visual analysis pipeline';
 
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) return 'Unknown';
@@ -514,17 +549,26 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               <Surface variant="glass-highlight" p="md">
                 <Stack gap="sm">
                   <LqText variant="xs" color="muted">
-                    This asset was extracted from:
+                    {sourceVerified
+                      ? 'This file was matched to an embedded object in the preserved source PDF.'
+                      : 'This asset is linked to a source document, but its exact byte-level position is not verified.'}
                   </LqText>
+                  <Flex gap="xs" align="center" wrap="wrap">
+                    <Badge
+                      tone={sourceVerified ? 'success' : 'warning'}
+                      label={sourceVerified ? 'SOURCE VERIFIED' : 'LOCATION INCOMPLETE'}
+                    />
+                    {visualClassification ? (
+                      <Badge tone="neutral" label={visualClassification.toUpperCase()} />
+                    ) : null}
+                  </Flex>
                   <Button
                     variant="glass-highlight"
                     size="sm"
                     onClick={() =>
                       navigate(
-                        `/documents/${encodeURIComponent(String(currentImage.documentId))}`,
-                        {
-                          state: backLinkState,
-                        },
+                        `/documents/${encodeURIComponent(String(currentImage.documentId))}${sourcePage ? `?page=${sourcePage}` : ''}`,
+                        { state: backLinkState },
                       )
                     }
                     className={styles.provenanceLink}
@@ -536,9 +580,24 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                         : `Document ID: ${currentImage.documentId}`}
                     </span>
                   </Button>
-                  {currentImage.metadata?.['source_page'] ? (
+                  <HIGSettingsGroup>
+                    <HIGSettingsRow
+                      label="Page"
+                      value={sourcePage ? String(sourcePage) : 'Unknown'}
+                    />
+                    <HIGSettingsRow
+                      label="PDF object"
+                      value={sourceObject == null ? 'Unknown' : String(sourceObject)}
+                    />
+                    <HIGSettingsRow
+                      label="Source hash"
+                      value={sourceDocumentHash ? `${sourceDocumentHash.slice(0, 16)}…` : 'Missing'}
+                    />
+                  </HIGSettingsGroup>
+                  {sourceVerified ? (
                     <LqText variant="xxs" color="muted">
-                      Located on Page {String(currentImage.metadata['source_page'])}
+                      Source verification confirms extraction and location only. It does not
+                      authenticate depicted people, dates, or events.
                     </LqText>
                   ) : null}
                 </Stack>
@@ -552,7 +611,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 <Icon name="Info" size="sm" />
               </Box>
               <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                Forensic Description
+                {aiDescription ? 'AI Visual Analysis' : 'Catalog Description'}
               </LqText>
             </Flex>
             {isEditing ? (
@@ -563,9 +622,38 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 className={styles.textarea}
               />
             ) : (
-              <LqText variant="xs" color="muted">
-                {currentImage.description || 'No analytical summary provided.'}
-              </LqText>
+              <Stack gap="sm">
+                {aiDescription ? (
+                  <Flex gap="xs" align="center" wrap="wrap">
+                    <Badge
+                      tone={aiReviewState === 'accepted' ? 'success' : 'warning'}
+                      label={`AI · ${aiReviewState.toUpperCase()}`}
+                    />
+                    <Badge tone="neutral" label={aiModel} />
+                  </Flex>
+                ) : null}
+                <LqText variant="xs" color="muted">
+                  {aiDescription || currentImage.description || 'No analytical summary provided.'}
+                </LqText>
+                {aiSummary && aiSummary !== aiDescription ? (
+                  <Surface variant="glass" p="sm">
+                    <Stack gap="xs">
+                      <LqText variant="xxs" weight="bold" color="muted">
+                        AI SUMMARY
+                      </LqText>
+                      <LqText variant="xs" color="muted">
+                        {aiSummary}
+                      </LqText>
+                    </Stack>
+                  </Surface>
+                ) : null}
+                {aiDescription && aiReviewState !== 'accepted' ? (
+                  <LqText variant="xxs" color="muted">
+                    This machine-generated description is searchable but has not been accepted by a
+                    human reviewer.
+                  </LqText>
+                ) : null}
+              </Stack>
             )}
           </Stack>
 

@@ -12,7 +12,10 @@ async function main() {
   const extractor = new MediaExtractionService(mediaService);
 
   const COLLECTION = process.env.COLLECTION;
-  const BATCH_SIZE = 1000;
+  const BATCH_SIZE = Math.max(
+    1,
+    Number.parseInt(process.env.MEDIA_EXTRACTION_BATCH_SIZE || '250', 10) || 250,
+  );
   let totalExtracted = 0;
 
   let processedDocs = 0;
@@ -30,7 +33,19 @@ async function main() {
         FROM documents
         WHERE (file_type = 'pdf' OR file_path ILIKE '%.pdf')
         ${COLLECTION ? 'AND source_collection = $1' : ''}
-        AND (metadata_json->>'media_extracted')::boolean IS NOT TRUE
+        AND (
+          (metadata_json->>'media_extracted')::boolean IS NOT TRUE
+          OR EXISTS (
+            SELECT 1
+            FROM media_items m
+            WHERE m.document_id = documents.id
+              AND (
+                m.metadata_json->>'is_document_extract' = 'true'
+                OR m.file_path ILIKE '%/media/extracted/%'
+              )
+              AND m.metadata_json->>'source_page' IS NULL
+          )
+        )
         ORDER BY id ASC
         LIMIT ${BATCH_SIZE}
       `;
@@ -64,6 +79,7 @@ async function main() {
             media_extracted: true,
             media_extraction_count: count,
             media_extracted_at: new Date().toISOString(),
+            media_extraction_version: 'pdf-object-v2',
           };
 
           await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [

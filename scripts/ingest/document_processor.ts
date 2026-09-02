@@ -908,6 +908,11 @@ export async function processDocument(
 
     if (documentId) {
       const hasText = mimeType.startsWith('image/') && wordCount >= MEDIA_TEXT_THRESHOLD;
+      const hasVisualAnalysis =
+        mimeType.startsWith('image/') &&
+        metadataObj.vlm_parsed === true &&
+        content.trim().length > 0;
+      const visualDescription = hasVisualAnalysis ? content.slice(0, 4000) : undefined;
       await syncMediaItemFromDocument(
         {
           documentId,
@@ -917,6 +922,7 @@ export async function processDocument(
           collectionName: collection.name,
           collectionDescription: collection.description,
           title: deriveMediaTitle(filePath, collection.name),
+          description: visualDescription,
           metadata: {
             duration:
               typeof (meta as { durationSeconds?: unknown }).durationSeconds === 'number'
@@ -930,6 +936,18 @@ export async function processDocument(
               typeof (meta as { transcribedBy?: unknown }).transcribedBy === 'string'
                 ? (meta as { transcribedBy: string }).transcribedBy
                 : undefined,
+            ai_visual: hasVisualAnalysis
+              ? {
+                  indexed: true,
+                  source: 'document_vlm',
+                  description: visualDescription,
+                  pipelineVersion:
+                    typeof metadataObj.vlm_version === 'string'
+                      ? metadataObj.vlm_version
+                      : 'ingest-vlm',
+                  reviewState: 'unreviewed',
+                }
+              : undefined,
           },
           dateTaken: meta.date_created || null,
           hasText,

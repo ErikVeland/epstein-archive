@@ -597,7 +597,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             {/* Controls */}
             <Flex align="center" gap="sm">
               <SearchField
-                placeholder="Search archive..."
+                placeholder="Search images and AI descriptions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 density="compact"

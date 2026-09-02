@@ -21,6 +21,7 @@ SSH_KEY_PATH="${EPSTEIN_PROD_SSH_KEY_PATH:-$HOME/.ssh/id_epstein_prod_ed25519}"
 SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=60 -o ServerAliveCountMax=10)
 PUBLIC_ORIGIN="${EPSTEIN_PUBLIC_ORIGIN:-https://epstein.academy}"
 CANARY_PORT="${EPSTEIN_CANARY_PORT:-3013}"
+RELEASE_METADATA_BASE_REF=""
 
 # Colors
 GREEN='\033[0;32m'
@@ -56,22 +57,26 @@ ensure_local_git_identity() {
   log_warning "Configured local git identity for this repository: ${fallback_name} <${fallback_email}>"
 }
 
-verify_release_notes_version() {
-  local current_version
-  current_version=$(sed -n 's/.*"version":[[:space:]]*"\([^"]*\)".*/\1/p' package.json | head -n 1)
+select_release_metadata_base_ref() {
+  if [ -n "$(git status --porcelain)" ]; then
+    RELEASE_METADATA_BASE_REF="$(git rev-parse HEAD)"
+  else
+    RELEASE_METADATA_BASE_REF="$(git rev-parse HEAD^)"
+  fi
 
-  if [ -z "$current_version" ]; then
-    log_error "Could not read version from package.json"
+  git rev-parse --verify "${RELEASE_METADATA_BASE_REF}^{commit}" >/dev/null
+  log_step "Release metadata baseline: ${RELEASE_METADATA_BASE_REF:0:12}"
+}
+
+verify_release_metadata() {
+  if [ -z "$RELEASE_METADATA_BASE_REF" ]; then
+    log_error "Release metadata baseline was not selected."
     exit 1
   fi
 
-  if ! head -n 20 release_notes.md | grep -Eq "^##[[:space:]]+v?${current_version}([[:space:]]+-|[[:space:]]+—)"; then
-    log_error "release_notes.md must be updated for v${current_version} before deploy."
-    log_error "Expected top section heading like: ## ${current_version} - YYYY-MM-DD"
-    exit 1
-  fi
-
-  log_success "Release notes include v${current_version}."
+  # CERT_STEP: release_metadata_guard
+  pnpm check:release-metadata -- --base "$RELEASE_METADATA_BASE_REF"
+  log_success "Release version and notes are new, current, and aligned."
 }
 
 remote_pm2_reload_cmd() {
@@ -590,9 +595,16 @@ log_step "Using production SSH key: $SSH_KEY_PATH"
 if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
   sync_local_main_with_origin
 
+  if [ "$SKIP_INTEGRITY" = true ] && [ -n "$(git status --porcelain)" ]; then
+    log_error "--skip-integrity requires a clean working tree so validated release metadata is committed."
+    exit 1
+  fi
+
+  select_release_metadata_base_ref
+
   if [ "$SKIP_INTEGRITY" = true ]; then
-    log_warning "Bypassing local integrity checks (--skip-integrity). Standardizing format and release notes only..."
-    verify_release_notes_version
+    log_warning "Bypassing local build checks (--skip-integrity). Release metadata remains mandatory."
+    verify_release_metadata
   else
     log_step "Running pre-flight QA (format, lint, release notes, clean tree, build)..."
 
@@ -605,7 +617,7 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
 
     # Retired legacy parity check after the Postgres migration.
 
-    verify_release_notes_version
+    verify_release_metadata
 
     if [ -n "$(git status --porcelain)" ]; then
       log_step "Working tree is dirty; auto-committing changes before deploy..."
@@ -632,6 +644,8 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
   sync_local_main_with_origin
   if [ "$SYNCED_HEAD_CHANGED" = true ]; then
     log_warning "origin/main advanced during local gates; re-running build gates after rebase."
+    RELEASE_METADATA_BASE_REF="$(git rev-parse HEAD^)"
+    verify_release_metadata
     SKIP_SCHEMA_HASH_CHECK=true pnpm build:prod
     pnpm test:bundle-smoke:only
   fi
@@ -640,6 +654,14 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
   git push origin main --no-verify
 
   wait_for_ci_green
+elif [ "$DRY_RUN" = false ]; then
+  if [ -n "$(git status --porcelain)" ]; then
+    log_error "--db-only requires a clean working tree so validated release metadata is committed."
+    exit 1
+  fi
+
+  select_release_metadata_base_ref
+  verify_release_metadata
 fi
 
 if [ "$DRY_RUN" = false ]; then

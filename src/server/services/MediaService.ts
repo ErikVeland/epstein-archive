@@ -79,6 +79,20 @@ export class MediaService {
     const mediaPath = String(row['file_path'] ?? row['filePath'] ?? row['path'] ?? '');
     const filename = String(row['filename'] ?? row['file_name'] ?? path.basename(mediaPath));
     const thumbnailValue = row['thumbnail_path'] ?? row['thumbnailPath'];
+    const metadataValue = row['metadata_json'] ?? row['metadataJson'] ?? row['metadata'];
+    let metadata: Record<string, unknown> = {};
+    if (metadataValue && typeof metadataValue === 'object' && !Array.isArray(metadataValue)) {
+      metadata = metadataValue as Record<string, unknown>;
+    } else if (typeof metadataValue === 'string') {
+      try {
+        const parsed = JSON.parse(metadataValue) as unknown;
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          metadata = parsed as Record<string, unknown>;
+        }
+      } catch {
+        metadata = {};
+      }
+    }
 
     return {
       ...row,
@@ -132,6 +146,15 @@ export class MediaService {
         row['red_flag_rating'] == null && row['redFlagRating'] == null
           ? undefined
           : Number(row['red_flag_rating'] ?? row['redFlagRating']),
+      documentId:
+        row['document_id'] == null && row['documentId'] == null
+          ? undefined
+          : String(row['document_id'] ?? row['documentId']),
+      verificationStatus:
+        row['verification_status'] == null && row['verificationStatus'] == null
+          ? undefined
+          : String(row['verification_status'] ?? row['verificationStatus']),
+      metadata,
     };
   }
 
@@ -277,6 +300,83 @@ export class MediaService {
       [hash],
     );
     return !!result;
+  }
+
+  async findExtractedImageOccurrence(
+    documentId: string | number,
+    sourcePage: number,
+    objectNumber: number,
+    extractedObjectSha256: string,
+  ): Promise<MediaImage | undefined> {
+    const row = await this.pgRow<{ id: string | number }>(
+      `SELECT id
+       FROM media_items
+       WHERE document_id = $1::bigint
+         AND file_type LIKE 'image/%'
+         AND (
+           (
+             metadata_json->>'source_page' = $2::text
+             AND metadata_json->>'source_pdf_object_number' = $3::text
+           )
+           OR (
+             metadata_json->>'source_page' IS NULL
+             AND metadata_json->>'source_pdf_object_number' IS NULL
+             AND COALESCE(
+               metadata_json->>'extracted_object_sha256',
+               metadata_json->>'sha256'
+             ) = $4::text
+           )
+         )
+       ORDER BY
+         CASE WHEN metadata_json->>'source_page' = $2::text THEN 0 ELSE 1 END,
+         created_at
+       LIMIT 1`,
+      [documentId, String(sourcePage), String(objectNumber), extractedObjectSha256],
+    );
+    if (!row) return undefined;
+    return this.getImageById(Number(row.id));
+  }
+
+  async updateExtractedImageProvenance(
+    imageId: number,
+    updates: {
+      metadata: Record<string, unknown>;
+      verificationStatus: 'source_verified' | 'unverified';
+      hasText: boolean;
+      width: number;
+      height: number;
+      fileSize: number;
+      filePath: string;
+      description: string;
+    },
+  ): Promise<void> {
+    await this.pgExec(
+      `UPDATE media_items
+       SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || $2::jsonb,
+           verification_status = $3,
+           has_text = $4,
+           width = $5,
+           height = $6,
+           file_size = $7,
+           file_path = $8,
+           description = CASE
+             WHEN description IS NULL OR description LIKE 'Archival asset extracted from document ID%'
+               THEN $9
+             ELSE description
+           END
+       WHERE id = $1::text`,
+      [
+        imageId,
+        JSON.stringify(updates.metadata),
+        updates.verificationStatus,
+        updates.hasText,
+        updates.width,
+        updates.height,
+        updates.fileSize,
+        updates.filePath,
+        updates.description,
+      ],
+    );
   }
 
   // ============ IMAGE OPERATIONS ============
@@ -480,7 +580,7 @@ export class MediaService {
       image.thumbnailPath || null,
       image.title || null,
       image.description || null,
-      'unverified', // verification_status
+      image.verificationStatus || 'unverified',
       0, // red_flag_rating
       Boolean(image.isSensitive),
       JSON.stringify(metadata),
@@ -602,14 +702,14 @@ export class MediaService {
 
   async getTagById(id: number): Promise<MediaTag | undefined> {
     return await this.pgRow<MediaTag>(
-      'SELECT id, name, category, created_at as "dateCreated" FROM media_tags WHERE id = $1',
+      'SELECT id, name, category, NULL::text as "dateCreated" FROM media_tags WHERE id = $1',
       [id],
     );
   }
 
   async getOrCreateTag(name: string, category?: string): Promise<MediaTag> {
     let tag = await this.pgRow<MediaTag>(
-      'SELECT id, name, category, created_at as "dateCreated" FROM media_tags WHERE name = $1',
+      'SELECT id, name, category, NULL::text as "dateCreated" FROM media_tags WHERE name = $1',
       [name],
     );
 

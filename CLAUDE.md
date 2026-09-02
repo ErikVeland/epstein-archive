@@ -58,6 +58,20 @@ Pool selection for scripts:
 pnpm --filter @epstein/db build         # rebuild the @epstein/db package
 ```
 
+## Mandatory release metadata
+
+Every production deployment must use a new semantic version and a new top entry in `release_notes.md`. Never deploy another change under an existing version.
+
+Before running `deploy.sh` or pushing a production-bound commit:
+
+1. Increase the version in `package.json`.
+2. Add matching release notes with the current Brisbane date.
+3. Describe every material change included in the deployment.
+4. Commit the implementation, version, and notes together.
+5. Run `pnpm check:release-metadata -- --base <previous-deployment-ref>`.
+
+Do not bypass or weaken this guard. See `AGENTS.md` and `CODING_STANDARDS.md` for the complete policy.
+
 ## Architecture
 
 ### Repository layout

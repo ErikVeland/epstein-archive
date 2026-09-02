@@ -61,10 +61,10 @@ export const ApiUnavailableScreen: React.FC = () => {
           <Button
             variant="glass"
             onClick={() => {
-              window.open('/api/health/ready', '_blank', 'noopener,noreferrer');
+              window.open('/api/health', '_blank', 'noopener,noreferrer');
             }}
           >
-            Open /api/health/ready
+            Open /api/health
           </Button>
         </Flex>
 

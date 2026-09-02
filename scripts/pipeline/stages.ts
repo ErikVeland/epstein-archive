@@ -100,10 +100,10 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
   },
   {
     name: 'media-extraction',
-    description: 'Extract embedded media assets from document containers',
+    description: 'Extract media with page-level object provenance and repair legacy records',
     script: 'scripts/extract_media_from_docs.ts',
     phase: 'Embedded Media Extraction',
-    version: 'media-extract-v1',
+    version: 'media-extract-v2',
     modes: ['backfill'],
   },
   {

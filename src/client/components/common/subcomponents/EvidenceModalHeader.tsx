@@ -6,7 +6,13 @@ import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceModalHeader.module.css';
 import { FlagButton } from '@client/components/common/FlagButton';
 
-import { Button, NativeSelect } from '@client/design-system/lib';
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@client/design-system/lib';
 
 interface EvidenceEntity {
   id?: string | number;
@@ -56,6 +62,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
 }) => {
   const [showProfilePopover, setShowProfilePopover] = useState(false);
   const headerPhotoId = headerPhoto?.id ? String(headerPhoto.id) : 'header-photo';
+  const activeTabDetails = tabs.find((tab) => tab.key === activeTab) ?? tabs[0];
 
   return (
     <div className={s.header}>
@@ -200,21 +207,57 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
       )}
 
       <div className={s.mobileTabsDropdownContainer}>
-        <label htmlFor="mobile-tabs-select" className={s.mobileTabsLabel}>
-          Section:
-        </label>
-        <NativeSelect
-          id="mobile-tabs-select"
-          className={s.mobileTabsSelect}
-          value={activeTab}
-          onChange={(e) => onTabChange(e.target.value)}
-        >
-          {tabs.map((tab) => (
-            <option key={tab.key} value={tab.key}>
-              {tab.label}
-            </option>
-          ))}
-        </NativeSelect>
+        <span className={s.mobileTabsLabel}>Profile section</span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              unstyled
+              type="button"
+              className={s.mobileTabsTrigger}
+              aria-label="Choose profile section"
+              data-testid="mobile-section-trigger"
+            >
+              <span className={s.mobileTabsTriggerIcon} aria-hidden="true">
+                <Icon name="LayoutList" size="sm" />
+              </span>
+              <span className={s.mobileTabsCurrent}>{activeTabDetails?.label ?? 'Overview'}</span>
+              <span className={s.mobileTabsPosition} aria-hidden="true">
+                {Math.max(1, tabs.findIndex((tab) => tab.key === activeTab) + 1)}/{tabs.length}
+              </span>
+              <Icon name="ChevronDown" size="sm" className={s.mobileTabsChevron} />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            className={s.mobileTabsMenu}
+            align="start"
+            side="bottom"
+            sideOffset={8}
+            collisionPadding={16}
+          >
+            {tabs.map((tab) => {
+              const isActive = tab.key === activeTab;
+              return (
+                <DropdownMenuItem
+                  key={tab.key}
+                  className={`${s.mobileTabsMenuItem} ${isActive ? s.mobileTabsMenuItemActive : ''}`}
+                  aria-current={isActive ? 'page' : undefined}
+                  data-testid={`mobile-section-${tab.key}`}
+                  onSelect={() => onTabChange(tab.key)}
+                >
+                  <span className={s.mobileTabsMenuIcon} aria-hidden="true">
+                    {tab.icon ?? <Icon name="Circle" size="xs" />}
+                  </span>
+                  <span className={s.mobileTabsMenuLabel}>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span className={s.mobileTabsMenuCount}>{tab.count}</span>
+                  )}
+                  {isActive && <Icon name="Check" size="sm" className={s.mobileTabsCheck} />}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className={s.desktopTabsContainer}>

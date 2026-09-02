@@ -10,11 +10,17 @@ interface PresenceUser {
   path: string;
 }
 
+const HEARTBEAT_INTERVAL_MS = 5000;
+const HEARTBEAT_ENABLED =
+  !import.meta.env.DEV || import.meta.env.VITE_ENABLE_COLLABORATION_HEARTBEAT === 'true';
+
 export const CollaborationIndicator: React.FC = () => {
   const location = useLocation();
   const [coPresent, setCoPresent] = useState<PresenceUser[]>([]);
 
   useEffect(() => {
+    if (!HEARTBEAT_ENABLED) return undefined;
+
     const sendHeartbeat = async () => {
       try {
         const response = await fetch('/api/collaboration/heartbeat', {
@@ -31,11 +37,11 @@ export const CollaborationIndicator: React.FC = () => {
       }
     };
 
-    // Run immediately and then every 5 seconds
+    // Run immediately and then often enough to stay inside the server's presence window.
     void sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 5000);
+    const interval = window.setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
 
-    return () => clearInterval(interval);
+    return () => window.clearInterval(interval);
   }, [location.pathname]);
 
   if (coPresent.length === 0) return null;

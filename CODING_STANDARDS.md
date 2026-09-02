@@ -19,6 +19,19 @@ pnpm check:shared-component-drift # Verify shared design-system components are n
 
 No code with warnings or errors under these gates may be committed.
 
+### Release metadata gate
+
+Every production deployment must include a new semantic version and a new release-note entry. Reusing the currently deployed version is forbidden.
+
+- Increase `package.json` from the previous deployed version.
+- Add the matching entry at the top of `release_notes.md`.
+- Use `## x.y.z - YYYY-MM-DD - Descriptive title` with the current Brisbane date.
+- Include named sections and bullets that cover all material changes in the deployment.
+- Commit the implementation, version, and release notes together.
+- Run `pnpm check:release-metadata -- --base <previous-deployment-ref>` before deployment.
+
+The deploy script and production workflow must stop when this gate fails. Humans and AI agents must not bypass or weaken it.
+
 ---
 
 ## 2. Type Safety & Contract Design

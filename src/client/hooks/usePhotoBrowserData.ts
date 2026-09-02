@@ -105,8 +105,18 @@ function buildInitialState(): PhotoBrowserState {
 }
 
 function normalizeImage(image: Partial<MediaImage> & Record<string, unknown>): MediaImage {
+  const mediaPath = String(image.path || image.file_path || '');
+  const filename = String(image.filename || mediaPath.split('/').pop() || '');
+  const createdAt = typeof image.createdAt === 'string' ? image.createdAt : '';
   return {
     ...(image as MediaImage),
+    path: mediaPath,
+    file_path: mediaPath,
+    filename,
+    originalFilename: String(image.originalFilename || filename),
+    format: String(image.format || image.fileType || ''),
+    dateAdded: String(image.dateAdded || createdAt),
+    dateModified: String(image.dateModified || createdAt),
     isSensitive: Boolean(image.isSensitive),
     fileSize: Number(image.fileSize || 0),
   };
@@ -186,7 +196,7 @@ function buildImageQuery(filters: PhotoBrowserFilters, page: number): string {
 async function fetchLibraryTotalCount(): Promise<number> {
   try {
     const stats = await apiClient.get<MediaStats>('/media/stats', { cacheTtl: 60_000 });
-    if (typeof stats?.totalImages === 'number') return stats.totalImages;
+    if (typeof stats?.totalImages === 'number' && stats.totalImages > 0) return stats.totalImages;
   } catch {
     void 0;
   }
@@ -233,7 +243,7 @@ export function usePhotoBrowserData() {
             : ([] as Album[]),
         availableTags:
           tagsResult.status === 'fulfilled' && Array.isArray(tagsResult.value)
-            ? tagsResult.value
+            ? tagsResult.value.map((tag) => ({ ...tag, id: Number(tag.id) }))
             : ([] as MediaTag[]),
         libraryTotalCount: totalResult.status === 'fulfilled' ? totalResult.value : 0,
       };

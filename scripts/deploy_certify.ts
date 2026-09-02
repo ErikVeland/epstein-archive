@@ -162,6 +162,19 @@ function main() {
   );
 
   add(
+    'release_metadata_guard',
+    'New version and release notes required for deploy',
+    /CERT_STEP:\s*release_metadata_guard/.test(deploy) &&
+      /check:release-metadata -- --base/.test(deploy) &&
+      /Verify new release version and notes/.test(productionWorkflow) &&
+      /check:release-metadata -- --base HEAD\^/.test(productionWorkflow) &&
+      /fetch-depth:\s*2/.test(productionWorkflow) &&
+      /--skip-integrity requires a clean working tree/.test(deploy) &&
+      /--db-only requires a clean working tree/.test(deploy),
+    'deploy.sh and production CI must compare version and release notes with the prior commit',
+  );
+
+  add(
     'deploy_env_contract',
     'Tracked production deploy env contract',
     fs.existsSync(path.resolve(cwd, '.env.deploy.example')),

@@ -586,9 +586,20 @@ export const mediaRepository = {
       );
     }
     if (filters?.transcriptQuery?.trim()) {
-      const q = `%${filters.transcriptQuery.trim()}%`;
+      const searchText = filters.transcriptQuery.trim();
       whereParts.push(
-        `(COALESCE(m.metadata_json::text, '') ILIKE ${addParam(q)}::text OR COALESCE(m.description, '') ILIKE ${addParam(q)}::text OR COALESCE(m.title, '') ILIKE ${addParam(q)}::text)`,
+        `(
+          m.fts_vector @@ websearch_to_tsquery('english', ${addParam(searchText)}::text)
+          OR EXISTS (
+            SELECT 1
+            FROM documents visual_search_document
+            WHERE visual_search_document.id = m.document_id
+              AND visual_search_document.fts_vector @@ websearch_to_tsquery(
+                'english',
+                ${addParam(searchText)}::text
+              )
+          )
+        )`,
       );
     }
     if (filters?.excludeTextScans) {
@@ -611,7 +622,7 @@ export const mediaRepository = {
 
     const countRes = await pool.query(
       `
-        SELECT COUNT(*) AS total
+        SELECT COUNT(DISTINCT m.id) AS total
         FROM media_items m
         ${whereSql}
       `,
@@ -643,6 +654,13 @@ export const mediaRepository = {
 
     const listRes = await pool.query(
       `
+        WITH selected_media AS (
+          SELECT m.id
+          FROM media_items m
+          ${whereSql}
+          ORDER BY ${orderBySql}
+          LIMIT ${limitParam} OFFSET ${offsetParam}
+        )
         SELECT
           m.id,
           m.entity_id as "entityId",
@@ -662,21 +680,49 @@ export const mediaRepository = {
           m.metadata_json as "metadataJson",
           m.date_taken as "dateTaken",
           m.created_at as "createdAt",
-          string_agg(DISTINCT e.id || ':' || e.full_name, ',') as people,
-          COALESCE(
-            json_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name))
-              FILTER (WHERE t.id IS NOT NULL),
-            '[]'::json
-          ) as tags
-        FROM media_items m
-        LEFT JOIN media_item_people mp ON m.id = mp.media_item_id::text
-        LEFT JOIN entities e ON mp.entity_id = e.id
-        LEFT JOIN media_item_tags mt ON m.id = mt.media_item_id::text
-        LEFT JOIN media_tags t ON mt.tag_id = t.id
-        ${whereSql}
-        GROUP BY m.id
+          CASE
+            WHEN source_document.file_type ILIKE 'image/%'
+              AND COALESCE((source_document.metadata_json->>'vlm_parsed')::boolean, false) IS TRUE
+            THEN LEFT(COALESCE(source_document.content_refined, source_document.content, ''), 4000)
+            ELSE NULL
+          END as "visualDescription",
+          source_document.pipeline_version as "visualPipelineVersion",
+          visual_artifact.artifact_uuid::text as "visualArtifactId",
+          visual_artifact.model_id as "visualArtifactModel",
+          visual_artifact.review_state as "visualArtifactReviewState",
+          visual_artifact.confidence as "visualArtifactConfidence",
+          LEFT(visual_artifact.output_text, 2000) as "visualArtifactSummary",
+          people_list.people,
+          COALESCE(tag_list.tags, '[]'::json) as tags
+        FROM selected_media selected
+        JOIN media_items m ON m.id = selected.id
+        LEFT JOIN documents source_document ON source_document.id = m.document_id
+        LEFT JOIN LATERAL (
+          SELECT
+            artifact_uuid,
+            model_id,
+            review_state,
+            confidence,
+            output_text
+          FROM document_ai_artifacts
+          WHERE document_id = source_document.id
+            AND artifact_type = 'summary'
+          ORDER BY created_at DESC
+          LIMIT 1
+        ) visual_artifact ON source_document.file_type ILIKE 'image/%'
+        LEFT JOIN LATERAL (
+          SELECT string_agg(DISTINCT e.id || ':' || e.full_name, ',') as people
+          FROM media_item_people mp
+          JOIN entities e ON e.id = mp.entity_id
+          WHERE mp.media_item_id::text = m.id::text
+        ) people_list ON true
+        LEFT JOIN LATERAL (
+          SELECT json_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name)) as tags
+          FROM media_item_tags mt
+          JOIN media_tags t ON t.id = mt.tag_id
+          WHERE mt.media_item_id::text = m.id::text
+        ) tag_list ON true
         ORDER BY ${orderBySql}
-        LIMIT ${limitParam} OFFSET ${offsetParam}
       `,
       listParams,
     );
@@ -699,6 +745,13 @@ export const mediaRepository = {
       metadataJson: unknown;
       dateTaken: Date | null;
       createdAt: Date | null;
+      visualDescription: string | null;
+      visualPipelineVersion: string | null;
+      visualArtifactId: string | null;
+      visualArtifactModel: string | null;
+      visualArtifactReviewState: string | null;
+      visualArtifactConfidence: number | null;
+      visualArtifactSummary: string | null;
       people: string | null;
       tags: unknown;
     }
@@ -716,6 +769,24 @@ export const mediaRepository = {
           }
         } catch (e) {
           logger.error({ err: e, mediaId: item.id }, 'Error parsing metadata for media item');
+        }
+
+        const visualDescription = item.visualDescription?.trim() || null;
+        if (visualDescription) {
+          metadata = {
+            ...metadata,
+            ai_visual: {
+              indexed: true,
+              source: 'document_vlm',
+              description: visualDescription,
+              pipelineVersion: item.visualPipelineVersion,
+              artifactId: item.visualArtifactId,
+              model: item.visualArtifactModel || item.visualPipelineVersion,
+              reviewState: item.visualArtifactReviewState || 'unreviewed',
+              confidence: item.visualArtifactConfidence,
+              summary: item.visualArtifactSummary,
+            },
+          };
         }
 
         const people = item.people
@@ -740,6 +811,7 @@ export const mediaRepository = {
           fileSize: Number(item.fileSize || 0),
           isSensitive: Boolean(item.isSensitive),
           redFlagRating: Number(item.redFlagRating || 0),
+          description: item.description || visualDescription,
           metadata,
           tags,
           people,

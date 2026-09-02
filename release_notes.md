@@ -1,5 +1,35 @@
 # Release Notes
 
+## 22.3.0 - 2026-09-02 - Mobile Reader and Release Integrity
+
+### Mobile document experience
+
+- **The document reader now prioritizes the document.** Redundant floating controls were removed, reader actions were consolidated, and the header and content layout now fit narrow screens.
+- **Browser zoom is locked for the application shell.** Mobile users cannot accidentally zoom the interface in or out while they scroll through a document.
+- **Navigation and sheets now respect mobile space.** Bottom navigation, modal sheets, document metadata, and reader controls use consistent safe-area spacing and touch targets.
+
+### Mobile entity profiles
+
+- **The profile section picker now uses the application menu system.** The white native dropdown was replaced with a dark, viewport-aware menu with large touch targets, active-section feedback, and keyboard support.
+
+### Release integrity
+
+- **Every production deployment now requires a new version and new release notes.** The deploy guard compares the pending release with its base commit and blocks reused versions, unchanged notes, stale dates, mismatched headings, and empty release entries.
+- **Production CI checks release metadata before database or deployment work begins.** Repository instructions also require AI coding agents to update the version and notes before any production deployment.
+
+### Local development reliability
+
+- **Local API availability no longer flaps during database-heavy work.** The interface now uses a lightweight API liveness check, preserves the last healthy state across one transient failure, and stops sending co-presence heartbeats in development unless they are explicitly enabled.
+
+### Visual evidence and provenance
+
+- **Extracted PDF images now retain their exact source position.** The extraction pipeline records the source document, page, PDF object number, source-file hash, raw-object hash, derived-file hash, and extraction method, and it preserves repeated occurrences across documents.
+- **The media browser distinguishes source verification from interpretation.** Page-matched assets show a source-verification state and link directly to the original document page; probable-photo classification and AI descriptions remain clearly labeled machine assessments.
+- **Existing visual AI work is now searchable in the media library.** Media results correlate with linked image-document VLM text and summary artifacts, expose the model and review state, and include future VLM results during ingest and backfill.
+- **Legacy extraction repair is bounded and resumable.** A maintenance command can re-read Poppler object manifests and repair missing page provenance without guessing unmatched locations.
+
+---
+
 ## 22.2.0 - 2026-08-27 - Evidence Hypertext Library
 
 ### Evidence Search

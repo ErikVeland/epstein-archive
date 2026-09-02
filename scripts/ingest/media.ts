@@ -44,6 +44,7 @@ export async function syncMediaItemFromDocument(
     collectionName: string;
     collectionDescription?: string;
     title: string;
+    description?: string;
     metadata: Record<string, unknown>;
     dateTaken?: string | Date | null;
     hasText?: boolean;
@@ -58,6 +59,7 @@ export async function syncMediaItemFromDocument(
     collectionName,
     collectionDescription,
     title,
+    description,
     metadata,
     dateTaken,
     hasText = false,
@@ -109,6 +111,7 @@ export async function syncMediaItemFromDocument(
     sourceCollection: collectionName,
     evidenceRole: evidenceRoleForCollection(collectionName),
   });
+  const descriptionValue = description?.trim() || null;
 
   if (existing) {
     await db.query(
@@ -118,17 +121,19 @@ export async function syncMediaItemFromDocument(
            file_type = $3,
            file_path = $4,
            title = $5,
-           metadata_json = $6::jsonb,
-           file_size = $7,
-           date_taken = COALESCE($8::timestamp, date_taken),
-           has_text = $10
-       WHERE id = $9`,
+           description = COALESCE($6::text, description),
+           metadata_json = $7::jsonb,
+           file_size = $8,
+           date_taken = COALESCE($9::timestamp, date_taken),
+           has_text = $11
+       WHERE id = $10`,
       [
         documentId,
         albumId,
         mimeType,
         filePath,
         title,
+        descriptionValue,
         metadataJson,
         fileSize,
         dateTakenValue,
@@ -156,6 +161,7 @@ export async function syncMediaItemFromDocument(
        file_type,
        file_path,
        title,
+       description,
        verification_status,
        red_flag_rating,
        is_sensitive,
@@ -165,7 +171,7 @@ export async function syncMediaItemFromDocument(
        date_taken,
        has_text
      ) VALUES (
-       $1, $2, $3, $4, $5, $6, 'unverified', 0, false, $7::jsonb, CURRENT_TIMESTAMP, $8, $9, $10
+       $1, $2, $3, $4, $5, $6, $7, 'unverified', 0, false, $8::jsonb, CURRENT_TIMESTAMP, $9, $10, $11
      )`,
     [
       nextId,
@@ -174,6 +180,7 @@ export async function syncMediaItemFromDocument(
       mimeType,
       filePath,
       title,
+      descriptionValue,
       metadataJson,
       fileSize,
       dateTakenValue,

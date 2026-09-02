@@ -15,6 +15,52 @@ import { mediaIdParamSchema } from './mediaShared.js';
 const router = Router();
 const mediaService = new MediaService(null);
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+function buildBrowserMetadata(value: unknown): Record<string, unknown> {
+  const metadata = asRecord(value);
+  if (!metadata) return {};
+  const allowedKeys = [
+    'source_document',
+    'source_document_id',
+    'source_collection',
+    'source_page',
+    'source_pdf_object_number',
+    'source_pdf_object_generation',
+    'source_pdf_object_type',
+    'source_document_sha256',
+    'extracted_object_sha256',
+    'derived_file_sha256',
+    'is_document_extract',
+    'visual_classification',
+    'visual_classification_confidence',
+    'visual_classification_method',
+    'provenance',
+  ] as const;
+  const selected: Record<string, unknown> = {};
+  for (const key of allowedKeys) {
+    if (metadata[key] !== undefined) selected[key] = metadata[key];
+  }
+
+  const aiVisual = asRecord(metadata['ai_visual']);
+  if (aiVisual) {
+    selected['ai_visual'] = {
+      ...aiVisual,
+      description:
+        typeof aiVisual['description'] === 'string'
+          ? aiVisual['description'].slice(0, 4000)
+          : undefined,
+      summary:
+        typeof aiVisual['summary'] === 'string' ? aiVisual['summary'].slice(0, 2000) : undefined,
+    };
+  }
+  return selected;
+}
+
 const mediaImagesQuerySchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).default(1),
@@ -97,12 +143,17 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
               title: item.title || '',
               description: item.description || '',
               fileType: item.fileType,
+              format: item.fileType,
               fileSize: Number(item.fileSize || 0),
               width: Number(item.width || 0),
               height: Number(item.height || 0),
               thumbnailPath: item.thumbnailPath || null,
               path: item.filePath || item.file_path || null,
+              filename: path.basename(String(item.filePath || item.file_path || '')),
               isSensitive: Boolean(item.isSensitive),
+              documentId: item.documentId || null,
+              verificationStatus: item.verificationStatus || null,
+              metadata: buildBrowserMetadata(item.metadata),
               redFlagRating: Number(item.redFlagRating || 0),
               createdAt: item.createdAt || null,
               dateTaken: item.dateTaken || null,
