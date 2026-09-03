@@ -1,5 +1,25 @@
 # Release Notes
 
+## 22.5.1 - 2026-09-03 - Truthful Pipeline Progress
+
+### Status accuracy
+
+- **Completion now means successful coverage of every applicable workload.** Failed work is excluded from completed counts, an unknown or zero target is not displayed as 100%, and AI completion includes summaries, deterministic normalization, safe OCR cleanup, and verified-photograph VLM analysis.
+- **Entity and graph records are reported as available, not falsely complete.** Existing rows no longer stand in for an authoritative workload target.
+- **Stage telemetry is scoped to the active pipeline run.** Historical successes and failures remain audit history without contaminating the live status.
+- **AI artifact review totals use explicit accepted states.** Pending and unreviewed model output is not counted as human-reviewed evidence.
+
+### Throughput and reliability
+
+- **Repeated pipeline status requests are coalesced for 15 seconds.** The About page also polls at that cadence, preventing open dashboards from launching overlapping archive-wide count queries while ingestion is active.
+- **Live VLM and OCR counters use a lightweight 30-second cache.** The desktop observer no longer runs the verified-photo catalog scan every five seconds, while active-run status stays current.
+- **Status checkpoint writes are atomic.** Readers no longer see partial JSON while a worker publishes progress.
+- **Verified-photo VLM batches are larger and have no fixed per-image delay.** Strict photograph verification, bounded image inputs, and evidence-safe routing remain unchanged.
+
+### Agent guardrails
+
+- **Repository instructions now define pipeline-completion integrity.** Agents must keep workload domains separate, treat missing denominators as unknown, exclude failures, and never infer completion from the existence of output rows.
+
 ## 22.5.0 - 2026-09-03 - Evidence Enrichment and Accountability
 
 ### Enriched evidence corpus

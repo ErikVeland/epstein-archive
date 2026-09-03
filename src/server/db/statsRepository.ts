@@ -522,7 +522,7 @@ export const statsRepository = {
 
     // Media Progress Stats
     const mediaStatsRes = await getApiPool().query(
-      'SELECT count(*) as total, sum(case when has_text = true then 1 else 0 end) as processed FROM media_items',
+      'SELECT count(*) as total, count(*) filter (where has_text is not null) as processed FROM media_items',
     );
     const media = {
       total: Number(mediaStatsRes.rows[0].total || 0),
@@ -548,9 +548,11 @@ export const statsRepository = {
         `
         SELECT stage_name, status, COUNT(*)::text AS count, MAX(updated_at)::text AS latest_at
         FROM document_stage_runs
+        WHERE run_id = $1
         GROUP BY stage_name, status
         ORDER BY stage_name, status
       `,
+        [currentRun?.id ?? null],
       )
       .catch(() => ({ rows: [] }));
 
@@ -568,7 +570,9 @@ export const statsRepository = {
         `
         SELECT
           COUNT(*)::text AS total,
-          COUNT(*) FILTER (WHERE review_state <> 'unreviewed')::text AS reviewed
+          COUNT(*) FILTER (
+            WHERE review_state IN ('approved', 'accepted', 'verified')
+          )::text AS reviewed
         FROM document_ai_artifacts
       `,
       )

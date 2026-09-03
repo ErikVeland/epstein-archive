@@ -92,6 +92,10 @@ router.get('/backfill', async (_req, res, next) => {
               ? 'stalled'
               : 'stopped';
     const pool = getApiPool();
+    const activeRunRows = await pool.query<{ id: string }>(
+      "SELECT id::text FROM pipeline_runs WHERE status IN ('running', 'paused') ORDER BY started_at DESC LIMIT 1",
+    );
+    const activeRunId = activeRunRows.rows[0]?.id || null;
     const counts = await pool.query<{
       claim_triples: string;
       financial_transactions: string;
@@ -169,7 +173,9 @@ router.get('/backfill', async (_req, res, next) => {
         `
         SELECT
           COUNT(*)::text AS ai_artifacts,
-          COUNT(*) FILTER (WHERE review_state <> 'unreviewed')::text AS reviewed_ai_artifacts
+          COUNT(*) FILTER (
+            WHERE review_state IN ('approved', 'accepted', 'verified')
+          )::text AS reviewed_ai_artifacts
         FROM document_ai_artifacts
       `,
       )
@@ -193,9 +199,11 @@ router.get('/backfill', async (_req, res, next) => {
         `
         SELECT stage_name, status, COUNT(*)::text AS count, MAX(updated_at)::text AS latest_at
         FROM document_stage_runs
+        WHERE run_id = $1
         GROUP BY stage_name, status
         ORDER BY stage_name, status
       `,
+        [activeRunId],
       )
       .catch(() => ({ rows: [] }));
 

@@ -62,10 +62,34 @@ router.get('/', cacheMiddleware(300), async (_req, res, next) => {
   }
 });
 
-// Public Realtime Pipeline Stats (un-cached for widget updates)
+const PIPELINE_STATUS_CACHE_MS = 15_000;
+let pipelineStatusCache: { expiresAt: number; value: unknown } | null = null;
+let pipelineStatusInFlight: Promise<unknown> | null = null;
+
+const getCachedPipelineProgress = async (): Promise<unknown> => {
+  const now = Date.now();
+  if (pipelineStatusCache && pipelineStatusCache.expiresAt > now) {
+    return pipelineStatusCache.value;
+  }
+  if (!pipelineStatusInFlight) {
+    pipelineStatusInFlight = statsRepository
+      .getPipelineProgress()
+      .then((value) => {
+        pipelineStatusCache = { value, expiresAt: Date.now() + PIPELINE_STATUS_CACHE_MS };
+        return value;
+      })
+      .finally(() => {
+        pipelineStatusInFlight = null;
+      });
+  }
+  return pipelineStatusInFlight;
+};
+
+// Pipeline database aggregates are coalesced so every viewer does not start
+// another archive-wide count while the worker is using the ingest pool.
 router.get('/pipeline', async (_req, res, next) => {
   try {
-    const progress = await statsRepository.getPipelineProgress();
+    const progress = await getCachedPipelineProgress();
     res.json(progress);
   } catch (e) {
     next(e);

@@ -28,7 +28,7 @@ const STAGE_LABELS = {
 };
 const stageRows = Object.entries(STAGE_LABELS).map(([name, label]) => {
   const s = stageStatus[name] || {};
-  const done = Number(s.succeeded || s.skipped || 0);
+  const done = Number(s.succeeded || 0);
   const failed = Number(s.failed || 0);
   const running = Number(s.running || 0);
   const total = done + failed + running;
@@ -44,8 +44,6 @@ const stageRows = Object.entries(STAGE_LABELS).map(([name, label]) => {
           ? 'failed'
           : failed > 0
             ? 'failed'
-            : done > 0
-              ? 'done'
-              : 'idle',
+            : 'idle',
   };
 });

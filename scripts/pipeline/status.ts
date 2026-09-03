@@ -2,7 +2,7 @@
 // PIPELINE STATUS — shared mutable runtime state and live-status helpers
 // ============================================================================
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { CHECKPOINT_DIR, LIVE_STATUS_FILE } from './config.js';
 
 export type RecoveryService = 'exo' | 'postgres';
@@ -49,10 +49,12 @@ export function writeLiveStatus(fields: Record<string, unknown>) {
       // Non-fatal if file missing or corrupt
     }
     try {
+      const temporaryFile = `${LIVE_STATUS_FILE}.${process.pid}.tmp`;
       writeFileSync(
-        LIVE_STATUS_FILE,
+        temporaryFile,
         JSON.stringify({ ...current, pid: process.pid, ...fields }, null, 2),
       );
+      renameSync(temporaryFile, LIVE_STATUS_FILE);
     } catch (_e) {
       // Non-fatal log failure
     }

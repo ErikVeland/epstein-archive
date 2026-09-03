@@ -12,7 +12,11 @@
         <span className="stage-dot" />
         <span className="stage-name">{stage.label}</span>
         <span className="stage-count">
-          {fmt(stage.done)} / {fmt(stage.total)}
+          {stage.state === 'running'
+            ? 'live'
+            : stage.total > 0
+              ? `${fmt(stage.done)} recorded`
+              : '—'}
         </span>
       </div>
     ))}

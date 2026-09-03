@@ -1,10 +1,10 @@
-import fs from 'node:fs';
 import { existsSync, readFileSync } from 'node:fs';
 import sharp from 'sharp';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { resolveMediaPath } from '../src/server/utils/pathResolver.js';
 import { verifiedPhotographForVlmWhereSql } from './pipeline/vlmEligibility.js';
+import { writeLiveStatus as writePipelineLiveStatus } from './pipeline/status.js';
 import 'dotenv/config';
 
 if (!process.env.DATABASE_URL) {
@@ -17,7 +17,7 @@ if (!process.env.AI_PROVIDER) process.env.AI_PROVIDER = 'exo_cluster';
 
 const PIPELINE_VERSION = 'media-vlm-2.0';
 const RUN_ID = `media-vlm-backfill-${Date.now()}`;
-const VLM_BATCH_SIZE = Math.max(1, parseInt(process.env.VLM_BACKFILL_BATCH_SIZE || '20', 10) || 20);
+const VLM_BATCH_SIZE = Math.max(1, parseInt(process.env.VLM_BACKFILL_BATCH_SIZE || '50', 10) || 50);
 const configuredLimit =
   process.env.VLM_BACKFILL_MAX_MEDIA || process.env.VLM_BACKFILL_MAX_DOCS || '0';
 const VLM_MAX_MEDIA = Math.max(0, parseInt(configuredLimit, 10) || 0);
@@ -35,33 +35,21 @@ function writeLiveStatus(
   file: string | null,
   blockedReason?: string,
 ): void {
-  try {
-    if (!fs.existsSync('./pipeline_checkpoints')) fs.mkdirSync('./pipeline_checkpoints');
-    fs.writeFileSync(
-      './pipeline_checkpoints/live_status.json',
-      JSON.stringify(
-        {
-          running: true,
-          phase: 'VLM Backfill',
-          heartbeatAt: new Date().toISOString(),
-          vlmProcessed: processed,
-          vlmTotal: total,
-          vlmLiveProcessed: processed,
-          vlmLiveTotal: total,
-          currentFile: file,
-          blocked: Boolean(blockedReason),
-          blockedReason,
-          activeStage: blockedReason ? 'Vision Model Readiness' : 'VLM Visual Analysis',
-          activeStageDescription:
-            blockedReason || (file ? `Analyzing ${file}` : 'Preparing verified photograph batch'),
-        },
-        null,
-        2,
-      ),
-    );
-  } catch (_error) {
-    // Status reporting is non-fatal.
-  }
+  writePipelineLiveStatus({
+    running: true,
+    phase: 'VLM Backfill',
+    heartbeatAt: new Date().toISOString(),
+    vlmProcessed: processed,
+    vlmTotal: total,
+    vlmLiveProcessed: processed,
+    vlmLiveTotal: total,
+    currentFile: file,
+    blocked: Boolean(blockedReason),
+    blockedReason,
+    activeStage: blockedReason ? 'Vision Model Readiness' : 'VLM Visual Analysis',
+    activeStageDescription:
+      blockedReason || (file ? `Analyzing ${file}` : 'Preparing verified photograph batch'),
+  });
 }
 
 async function preparePhotographForVlm(imageBuffer: Buffer): Promise<Buffer> {
@@ -294,7 +282,6 @@ async function backfillVlm(): Promise<void> {
         failCount += 1;
       }
       processedThisRun += 1;
-      await sleep(500);
     }
   }
 
@@ -305,18 +292,12 @@ async function backfillVlm(): Promise<void> {
   console.log(`   Skipped: ${skippedCount}`);
   console.log('='.repeat(30));
 
-  try {
-    fs.writeFileSync(
-      './pipeline_checkpoints/live_status.json',
-      JSON.stringify(
-        { running: false, phase: 'Idle', exitReason: 'Verified photograph VLM backfill complete' },
-        null,
-        2,
-      ),
-    );
-  } catch (_error) {
-    // Status reporting is non-fatal.
-  }
+  writePipelineLiveStatus({
+    running: false,
+    phase: 'Idle',
+    exitReason: 'Verified photograph VLM backfill complete',
+    currentFile: null,
+  });
 
   await pool.end();
 }

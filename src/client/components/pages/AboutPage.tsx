@@ -342,12 +342,8 @@ export const AboutPage: React.FC = () => {
   }, [pipelineStatus]);
 
   const ingestionComplete = useMemo(() => {
-    if (!pipelineOverview) return true;
-    if (!pipelineOverview.target) return true;
-    // Lenient check for "effectively complete" or 100%
-    return (
-      pipelineOverview.ingested >= pipelineOverview.target || pipelineOverview.ingestPercent >= 99.9
-    );
+    if (!pipelineOverview || pipelineOverview.target <= 0) return false;
+    return pipelineOverview.ingested === pipelineOverview.target;
   }, [pipelineOverview]);
 
   const pipelineStages = useMemo(() => {
@@ -439,7 +435,7 @@ export const AboutPage: React.FC = () => {
     }, 8000);
     const pollTimer = setInterval(() => {
       void fetchPipelineStatus();
-    }, 5000);
+    }, 15000);
     return () => {
       clearTimeout(kickoff);
       clearInterval(timer);

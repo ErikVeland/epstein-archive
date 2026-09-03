@@ -24,3 +24,12 @@ If a production release includes locally extracted media, export and promote a v
 VLM visual analysis is restricted to media classified as `probable_photograph` with a `verified` or `source_verified` status. Do not send document scans, graphics, unknown images, missing assets, or unverified photographs to a vision model. Use OCR for text-only images and scanned PDF pages.
 
 LLM OCR cleanup must preserve raw and canonical evidence text. Store cleanup as a versioned, pending-review artifact with source/output hashes, model and prompt identity, and deterministic preservation checks. Never accept output that changes numeric tokens or evidence identifiers, and never enable an LLM path that rewrites canonical OCR automatically.
+
+## Pipeline status integrity
+
+- Never count failed, skipped, unknown, or merely discovered work as completed.
+- A zero or unavailable target is unknown, not 100%.
+- Global completion requires every applicable workload to have a known target, zero failures, and completed work equal to its target.
+- Scope run-status telemetry to the active pipeline run. Historical stage rows are audit history, not current completion.
+- Existing entity or graph rows mean data is available; they do not prove that extraction is complete.
+- Keep document ingestion, media cataloging, summaries, deterministic normalization, safe OCR cleanup, verified-photo VLM analysis, entities, and graph extraction as separate status domains.
