@@ -30,7 +30,6 @@ import { convert } from 'html-to-text';
 import AdmZip from 'adm-zip';
 import { RedactionResolver } from '../../src/server/services/RedactionResolver.js';
 import { TextCleaner } from '../utils/text_cleaner.js';
-import { AIEnrichmentService } from '../../src/server/services/AIEnrichmentService.js';
 import type { EmailMetadata } from './types.js';
 
 export const FFMPEG_BIN = '/usr/local/bin/ffmpeg';
@@ -86,37 +85,15 @@ export async function extractTextFromImage(
   filePath: string,
 ): Promise<{ text: string; pageCount: number; vlm_parsed?: boolean }> {
   try {
-    let vlm_parsed = false;
-    let text = '';
-    if (process.env.ENABLE_AI_ENRICHMENT === 'true') {
-      try {
-        const buffer = readFileSync(filePath);
-        text = await AIEnrichmentService.parseDocumentPageVisual(buffer);
-        if (text) {
-          vlm_parsed = true;
-          console.log(`   🧠 Image parsed via VLM Vision Engine (${text.length} chars)`);
-        }
-      } catch (err) {
-        console.warn(
-          '  ⚠️  VLM Image parsing failed, falling back to Tesseract:',
-          (err as Error).message,
-        );
-      }
-    }
-
-    if (!text) {
-      const worker = await createWorker('eng');
-      const {
-        data: { text: ocrText },
-      } = await worker.recognize(filePath);
-      text = ocrText;
-      await worker.terminate();
-    }
+    const worker = await createWorker('eng');
+    const {
+      data: { text },
+    } = await worker.recognize(filePath);
+    await worker.terminate();
 
     return {
       text: text || '',
       pageCount: 1,
-      vlm_parsed,
     };
   } catch (e) {
     console.warn('  ⚠️  Image OCR failed:', (e as Error).message);
@@ -209,7 +186,6 @@ export async function ocrFallbackForPdf(
 }> {
   const pages: { text: string; pageNumber: number; source: 'ocr' }[] = [];
   let worker: any = null;
-  let vlm_parsed_any = false;
 
   try {
     for (let i = 0; i < pageCount; i++) {
@@ -227,29 +203,11 @@ export async function ocrFallbackForPdf(
           );
         });
 
-        let pageText = '';
-
-        // Try high-fidelity VLM parser first
-        if (process.env.ENABLE_AI_ENRICHMENT === 'true') {
-          try {
-            pageText = await AIEnrichmentService.parseDocumentPageVisual(imageBuffer);
-            if (pageText) {
-              vlm_parsed_any = true;
-              console.log(`   🧠 Page ${pageNum} parsed via VLM (${pageText.length} chars)`);
-            }
-          } catch (_err) {
-            console.warn(`  ⚠️ VLM parse failed on page ${pageNum}, trying Tesseract...`);
-          }
-        }
-
-        // Fallback to Tesseract if VLM is disabled or produced no content
-        if (!pageText) {
-          if (!worker) worker = await createWorker('eng');
-          const {
-            data: { text },
-          } = await worker.recognize(imageBuffer);
-          pageText = text.trim();
-        }
+        if (!worker) worker = await createWorker('eng');
+        const {
+          data: { text },
+        } = await worker.recognize(imageBuffer);
+        const pageText = text.trim();
 
         pages.push({ text: pageText, pageNumber: pageNum, source: 'ocr' });
       } catch (pageErr) {
@@ -264,7 +222,6 @@ export async function ocrFallbackForPdf(
   return {
     text: pages.map((p) => p.text).join('\n\n'),
     pages,
-    vlm_parsed: vlm_parsed_any,
   };
 }
 

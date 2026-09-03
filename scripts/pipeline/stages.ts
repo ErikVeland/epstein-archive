@@ -66,15 +66,6 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     requiresAi: true,
   },
   {
-    name: 'vlm-visuals',
-    description: 'Reducto-style visual document parsing for image-heavy evidence',
-    script: 'scripts/backfill_vlm_visuals.ts',
-    phase: 'VLM Visual Analysis',
-    version: 'reducto-vlm-1',
-    modes: ['backfill'],
-    requiresAi: true,
-  },
-  {
     name: 'image-media',
     description: 'Backfill image media rows and album bindings',
     script: 'scripts/backfill_image_media.ts',
@@ -105,6 +96,15 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     phase: 'Embedded Media Extraction',
     version: 'media-extract-v2',
     modes: ['backfill'],
+  },
+  {
+    name: 'vlm-visuals',
+    description: 'Analyze only source-verified media classified as probable photographs',
+    script: 'scripts/backfill_vlm_visuals.ts',
+    phase: 'VLM Visual Analysis',
+    version: 'media-vlm-2',
+    modes: ['backfill'],
+    requiresAi: true,
   },
   {
     name: 'face-ingest',

@@ -42,6 +42,8 @@ Git ignores extracted media files. A normal code deployment cannot publish those
 - Verify bundle checksums, asset presence, row counts, classifications, and database fingerprints.
 - Keep the active media bundle on production so later deployments can verify parity.
 - Do not report a synchronized media release until the production verifier passes.
+- Run VLM analysis only for `probable_photograph` media with `verified` or `source_verified` status.
+- Use OCR, not VLM, for document scans and scanned PDF pages.
 
 ---
 

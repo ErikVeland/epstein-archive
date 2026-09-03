@@ -1,5 +1,23 @@
 # Release Notes
 
+## 22.3.4 - 2026-09-03 - Optimized Media and VLM Controls
+
+### Production media storage
+
+- **Production receives the optimized image variants.** The media release replaces 17,185 catalogued image files with their smaller local variants and updates the active asset-size manifest.
+- **The optimized catalog saves 23.74 GB.** Asset paths and media records remain stable, and the production verifier checks every deployed file against the new release manifest.
+
+### AI processing controls
+
+- **VLM analysis now accepts only verified photographs.** Eligible media must have the `probable_photograph` classification, a `verified` or `source_verified` status, and an available source file.
+- **Scans use OCR without a VLM attempt.** Standalone image OCR and scanned PDF fallback no longer send text pages to the vision model.
+- **Visual analysis is now media-specific.** The VLM worker stores its description and run metadata on the selected media item. It no longer replaces document content or page OCR.
+- **Pipeline order now enforces classification first.** Media extraction runs before VLM analysis so new extracted assets must pass the photograph and verification gate.
+
+### Guardrails
+
+- **Automated tests enforce the VLM eligibility rule.** Repository instructions also prohibit VLM work on scans, graphics, unknown media, missing files, and unverified photographs.
+
 ## 22.3.3 - 2026-09-03 - Media Verification Guard Repair
 
 ### Deployment safety

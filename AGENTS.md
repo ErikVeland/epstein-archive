@@ -20,3 +20,5 @@ Do not bypass, weaken, or skip the release metadata guard. If a user requests de
 `data/media/` is not stored in Git. A code deployment does not publish extracted assets or their local database rows.
 
 If a production release includes locally extracted media, export and promote a versioned media bundle. Run the production importer in dry-run mode before apply mode. Do not claim that production is synchronized until `pnpm media:release:verify` passes against the active bundle.
+
+VLM visual analysis is restricted to media classified as `probable_photograph` with a `verified` or `source_verified` status. Do not send document scans, graphics, unknown images, missing assets, or unverified photographs to a vision model. Use OCR for text-only images and scanned PDF pages.

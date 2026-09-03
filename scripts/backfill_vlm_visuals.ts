@@ -1,9 +1,9 @@
-import fs from 'fs';
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import fs from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { getIngestPool } from '../src/server/db/connection.js';
-import { TextCleaner } from './utils/text_cleaner.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
+import { resolveMediaPath } from '../src/server/utils/pathResolver.js';
+import { verifiedPhotographForVlmWhereSql } from './pipeline/vlmEligibility.js';
 import 'dotenv/config';
 
 if (!process.env.DATABASE_URL) {
@@ -11,21 +11,28 @@ if (!process.env.DATABASE_URL) {
   process.exit(1);
 }
 
-// Enable enrichment so service activates
 process.env.ENABLE_AI_ENRICHMENT = 'true';
 if (!process.env.AI_PROVIDER) process.env.AI_PROVIDER = 'exo_cluster';
 
-const PIPELINE_VERSION = 'reducto-vlm-1.0';
-const RUN_ID = `vlm-backfill-${Date.now()}`;
+const PIPELINE_VERSION = 'media-vlm-2.0';
+const RUN_ID = `media-vlm-backfill-${Date.now()}`;
 const VLM_BATCH_SIZE = Math.max(1, parseInt(process.env.VLM_BACKFILL_BATCH_SIZE || '20', 10) || 20);
-const VLM_MAX_DOCS = Math.max(0, parseInt(process.env.VLM_BACKFILL_MAX_DOCS || '0', 10) || 0);
+const configuredLimit =
+  process.env.VLM_BACKFILL_MAX_MEDIA || process.env.VLM_BACKFILL_MAX_DOCS || '0';
+const VLM_MAX_MEDIA = Math.max(0, parseInt(configuredLimit, 10) || 0);
+const ELIGIBILITY_SQL = verifiedPhotographForVlmWhereSql('media');
+
+interface MediaRow {
+  id: string;
+  file_path: string;
+}
 
 function writeLiveStatus(
   processed: number,
   total: number,
   file: string | null,
   blockedReason?: string,
-) {
+): void {
   try {
     if (!fs.existsSync('./pipeline_checkpoints')) fs.mkdirSync('./pipeline_checkpoints');
     fs.writeFileSync(
@@ -42,22 +49,22 @@ function writeLiveStatus(
           blockedReason,
           activeStage: blockedReason ? 'Vision Model Readiness' : 'VLM Visual Analysis',
           activeStageDescription:
-            blockedReason || (file ? `Analyzing ${file}` : 'Preparing visual backfill batch'),
+            blockedReason || (file ? `Analyzing ${file}` : 'Preparing verified photograph batch'),
         },
         null,
         2,
       ),
     );
-  } catch (_e) {
-    // non-fatal
+  } catch (_error) {
+    // Status reporting is non-fatal.
   }
 }
 
-function sleep(ms: number) {
+function sleep(ms: number): Promise<unknown> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function ensureVisionModelReady(processed: number, total: number) {
+async function ensureVisionModelReady(processed: number, total: number): Promise<void> {
   const modelId = process.env.VISION_MODEL;
   if (!modelId) return;
 
@@ -101,8 +108,8 @@ async function ensureVisionModelReady(processed: number, total: number) {
       const reason = `Waiting for EXO vision model ${modelId} to become active`;
       console.warn(`  ⏳ ${reason}`);
       writeLiveStatus(processed, total, null, reason);
-    } catch (err) {
-      const reason = `Waiting for EXO state API: ${(err as Error).message}`;
+    } catch (error) {
+      const reason = `Waiting for EXO state API: ${(error as Error).message}`;
       console.warn(`  ⏳ ${reason}`);
       writeLiveStatus(processed, total, null, reason);
     }
@@ -111,202 +118,160 @@ async function ensureVisionModelReady(processed: number, total: number) {
   }
 }
 
-async function backfillVlm() {
+async function recordFailure(mediaId: string, message: string, permanent: boolean): Promise<void> {
+  const pool = getIngestPool();
+  await pool.query(
+    `UPDATE media_items
+     SET metadata_json = jsonb_set(
+       COALESCE(metadata_json, '{}'::jsonb),
+       '{ai_visual}',
+       COALESCE(metadata_json->'ai_visual', '{}'::jsonb) || jsonb_build_object(
+         'indexed', false,
+         'error', $1::text,
+         'attempts', COALESCE((metadata_json->'ai_visual'->>'attempts')::integer, 0) + 1,
+         'failedPermanently', $2::boolean,
+         'runId', $3::text,
+         'pipelineVersion', $4::text
+       ),
+       true
+     )
+     WHERE id = $5::text`,
+    [message, permanent, RUN_ID, PIPELINE_VERSION, mediaId],
+  );
+}
+
+async function backfillVlm(): Promise<void> {
   const pool = getIngestPool();
   let successCount = 0;
   let failCount = 0;
   let skippedCount = 0;
   let processedThisRun = 0;
 
-  // Target images that have not yet been parsed by VLM
   const targetQuery = `
-    FROM documents 
-    WHERE file_type ILIKE 'image/%' 
-    AND COALESCE((metadata_json->>'vlm_parsed')::boolean, false) = false
-    AND COALESCE((metadata_json->>'vlm_failed_permanently')::boolean, false) = false
+    FROM media_items media
+    WHERE ${ELIGIBILITY_SQL}
+      AND COALESCE(media.metadata_json->'ai_visual'->>'indexed', 'false') <> 'true'
+      AND COALESCE(media.metadata_json->'ai_visual'->>'failedPermanently', 'false') <> 'true'
   `;
 
-  const countRes = await pool.query(`SELECT COUNT(*) as total ${targetQuery}`);
-  const totalDocs = parseInt(countRes.rows[0].total, 10);
-  console.log(`🚀 Found ${totalDocs} images requiring VLM visual extraction backfill.`);
+  const countResult = await pool.query<{ total: string }>(
+    `SELECT COUNT(*)::text AS total ${targetQuery}`,
+  );
+  const totalMedia = parseInt(countResult.rows[0].total, 10);
+  console.log(`🚀 Found ${totalMedia} verified photographs requiring VLM visual analysis.`);
+  console.log('   Eligibility: probable photograph with verified source status.');
 
-  if (totalDocs === 0) {
-    console.log('🎉 No documents require backfilling!');
+  if (totalMedia === 0) {
+    console.log('🎉 No verified photographs require VLM analysis.');
     await pool.end();
     return;
   }
-  if (VLM_MAX_DOCS > 0) {
-    console.log(`   ⏱️  This run is capped at ${VLM_MAX_DOCS} VLM documents.`);
+  if (VLM_MAX_MEDIA > 0) {
+    console.log(`   ⏱️  This run is capped at ${VLM_MAX_MEDIA} media items.`);
   }
 
   let hasMore = true;
   while (hasMore) {
-    if (VLM_MAX_DOCS > 0 && processedThisRun >= VLM_MAX_DOCS) {
-      console.log(`\n⏸️  VLM run cap reached (${processedThisRun}/${VLM_MAX_DOCS}).`);
+    if (VLM_MAX_MEDIA > 0 && processedThisRun >= VLM_MAX_MEDIA) {
+      console.log(`\n⏸️  VLM run cap reached (${processedThisRun}/${VLM_MAX_MEDIA}).`);
       break;
     }
 
-    await ensureVisionModelReady(successCount + failCount + skippedCount, totalDocs);
-
-    const query = `
-      SELECT id, file_name, file_path, source_collection, metadata_json
-      ${targetQuery}
-      ORDER BY COALESCE(red_flag_rating, 0) DESC, id ASC
-      LIMIT $1
-    `;
-
+    await ensureVisionModelReady(successCount + failCount + skippedCount, totalMedia);
     const remainingCap =
-      VLM_MAX_DOCS > 0 ? Math.max(0, VLM_MAX_DOCS - processedThisRun) : VLM_BATCH_SIZE;
-    const res = await pool.query(query, [Math.min(VLM_BATCH_SIZE, remainingCap)]);
-    const docs = res.rows;
-    if (docs.length === 0) {
+      VLM_MAX_MEDIA > 0 ? Math.max(0, VLM_MAX_MEDIA - processedThisRun) : VLM_BATCH_SIZE;
+    const result = await pool.query<MediaRow>(
+      `SELECT media.id, media.file_path
+       ${targetQuery}
+       ORDER BY COALESCE(media.red_flag_rating, 0) DESC, media.created_at ASC, media.id ASC
+       LIMIT $1::integer`,
+      [Math.min(VLM_BATCH_SIZE, remainingCap)],
+    );
+    if (result.rows.length === 0) {
       hasMore = false;
       break;
     }
 
-    for (const doc of docs) {
-      writeLiveStatus(successCount + failCount + skippedCount, totalDocs, doc.file_name);
-      const filePath = doc.file_path;
-      if (!filePath) {
-        console.warn(`  ⚠️  Missing file path (id: ${doc.id})`);
-        const meta = doc.metadata_json || {};
-        meta.vlm_error = 'Missing file path';
-        meta.vlm_parsed = true;
-        meta.vlm_failed_permanently = true;
-        meta.vlm_run_id = RUN_ID;
-        meta.vlm_version = PIPELINE_VERSION;
-        await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [
-          JSON.stringify(meta),
-          doc.id,
-        ]);
-        skippedCount++;
-        processedThisRun++;
-        continue;
-      }
-      // Try relative or absolute paths
-      let fullPath = filePath;
-      if (!existsSync(fullPath)) {
-        fullPath = join(process.cwd(), filePath);
-      }
-      // Sometimes documents reference paths in root data dir
-      if (!existsSync(fullPath) && process.env.RAW_CORPUS_BASE_PATH) {
-        fullPath = join(process.env.RAW_CORPUS_BASE_PATH, filePath);
-      }
-
-      if (!existsSync(fullPath)) {
-        console.warn(`  ⚠️  File not found: ${filePath} (id: ${doc.id})`);
-        const meta = doc.metadata_json || {};
-        meta.vlm_error = 'File not found';
-        meta.vlm_parsed = true;
-        meta.vlm_failed_permanently = true;
-        meta.vlm_run_id = RUN_ID;
-        meta.vlm_version = PIPELINE_VERSION;
-        await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [
-          JSON.stringify(meta),
-          doc.id,
-        ]);
-        skippedCount++;
-        processedThisRun++;
+    for (const media of result.rows) {
+      writeLiveStatus(successCount + failCount + skippedCount, totalMedia, media.file_path);
+      const fullPath = resolveMediaPath(media.file_path);
+      if (!fullPath || !existsSync(fullPath)) {
+        console.warn(`  ⚠️  File not found: ${media.file_path} (media id: ${media.id})`);
+        await pool.query(
+          `UPDATE media_items
+           SET metadata_json = jsonb_set(
+             COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('source_file_status', 'missing'),
+             '{ai_visual}',
+             jsonb_build_object(
+               'indexed', false,
+               'error', 'File not found',
+               'failedPermanently', true,
+               'runId', $1::text,
+               'pipelineVersion', $2::text
+             ),
+             true
+           )
+           WHERE id = $3::text`,
+          [RUN_ID, PIPELINE_VERSION, media.id],
+        );
+        skippedCount += 1;
+        processedThisRun += 1;
         continue;
       }
 
-      console.log(`  ⚙️  [${doc.id}] Analyzing via VLM: ${doc.file_name}...`);
-
+      console.log(`  ⚙️  [${media.id}] Analyzing verified photograph: ${media.file_path}`);
       try {
         const imageBuffer = readFileSync(fullPath);
-        const enrichedText = await AIEnrichmentService.parseDocumentPageVisual(imageBuffer);
-
-        if (!enrichedText || enrichedText.trim().length < 5) {
+        const visualDescription = (
+          await AIEnrichmentService.parseDocumentPageVisual(imageBuffer)
+        ).trim();
+        if (visualDescription.length < 5) {
           throw new Error('VLM produced empty or invalid output');
         }
 
-        // Forensic repair integration
-        const cleanedText = await TextCleaner.cleanOcrTextAsync(enrichedText, doc.file_name);
-        const preview = cleanedText.substring(0, 500);
-
-        // Merge metadata
-        const meta = doc.metadata_json || {};
-        meta.vlm_parsed = true;
-        meta.vlm_enriched_at = new Date().toISOString();
-        meta.vlm_run_id = RUN_ID;
-        meta.vlm_version = PIPELINE_VERSION;
-
-        await pool.query(
-          `UPDATE documents SET 
-            content = $1, 
-            content_refined = $2,
-            content_preview = $3,
-            metadata_json = $4,
-            pipeline_version = $5,
-            analyzed_at = NOW() 
-           WHERE id = $6`,
-          [enrichedText, cleanedText, preview, JSON.stringify(meta), PIPELINE_VERSION, doc.id],
-        );
-
         await pool.query(
           `UPDATE media_items
-           SET description = COALESCE(NULLIF(description, ''), $1),
-               metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object(
-                 'ai_visual',
-                 jsonb_build_object(
+           SET description = COALESCE(NULLIF(description, ''), $1::text),
+               metadata_json = jsonb_set(
+                 COALESCE(metadata_json, '{}'::jsonb),
+                 '{ai_visual}',
+                 COALESCE(metadata_json->'ai_visual', '{}'::jsonb) || jsonb_build_object(
                    'indexed', true,
-                   'source', 'document_vlm',
+                   'source', 'verified_media_vlm',
                    'description', $1::text,
                    'pipelineVersion', $2::text,
+                   'runId', $3::text,
+                   'analyzedAt', NOW()::text,
                    'reviewState', 'unreviewed'
-                 )
+                 ),
+                 true
                )
-           WHERE document_id = $3::bigint`,
-          [cleanedText.slice(0, 4000), PIPELINE_VERSION, doc.id],
+           WHERE id = $4::text
+             AND ${verifiedPhotographForVlmWhereSql('media_items')}`,
+          [visualDescription.slice(0, 4000), PIPELINE_VERSION, RUN_ID, media.id],
         );
-
-        // Ensure page 1 maps correctly
-        const pageCheck = await pool.query(
-          'SELECT id FROM document_pages WHERE document_id = $1 AND page_number = 1',
-          [doc.id],
+        console.log(`    ✅ Stored ${visualDescription.length} characters of visual analysis.`);
+        successCount += 1;
+      } catch (error) {
+        const message = (error as Error).message;
+        console.error(`    ❌ Failed to process ${media.file_path}: ${message}`);
+        const attemptsResult = await pool.query<{ attempts: number }>(
+          `SELECT COALESCE((metadata_json->'ai_visual'->>'attempts')::integer, 0) AS attempts
+           FROM media_items
+           WHERE id = $1::text`,
+          [media.id],
         );
-        if (pageCheck.rowCount === 0) {
-          await pool.query(
-            'INSERT INTO document_pages (document_id, page_number, extracted_text, text_source, created_at) VALUES ($1, 1, $2, $3, NOW())',
-            [doc.id, cleanedText, 'vlm_vision'],
-          );
-        } else {
-          await pool.query(
-            "UPDATE document_pages SET extracted_text = $1, text_source = 'vlm_vision' WHERE id = $2",
-            [cleanedText, pageCheck.rows[0].id],
-          );
-        }
-
-        console.log(`    ✅ Extracted ${enrichedText.length} chars via VLM.`);
-        successCount++;
-        processedThisRun++;
-      } catch (e) {
-        console.error(`    ❌ Failed to process ${doc.file_name}:`, (e as Error).message);
-        // Mark as failed but mark vlm_parsed=true to avoid loop, or log error
-        const meta = doc.metadata_json || {};
-        meta.vlm_error = (e as Error).message;
-        meta.vlm_parsed = false;
-        meta.vlm_attempts = (meta.vlm_attempts || 0) + 1;
-        // If failed more than 3 times, flag it so we skip it to make progress
-        if (meta.vlm_attempts >= 3) {
-          meta.vlm_parsed = true;
-          meta.vlm_failed_permanently = true;
-        }
-        await pool.query('UPDATE documents SET metadata_json = $1 WHERE id = $2', [
-          JSON.stringify(meta),
-          doc.id,
-        ]);
-        failCount++;
-        processedThisRun++;
+        const nextAttempts = Number(attemptsResult.rows[0]?.attempts || 0) + 1;
+        await recordFailure(media.id, message, nextAttempts >= 3);
+        failCount += 1;
       }
-
-      // Short sleep to yield to the Exo API cluster
+      processedThisRun += 1;
       await sleep(500);
     }
   }
 
   console.log('\n' + '='.repeat(30));
-  console.log('🏁 VLM Backfill Complete');
+  console.log('🏁 Verified Photograph VLM Backfill Complete');
   console.log(`   Success: ${successCount}`);
   console.log(`   Failed:  ${failCount}`);
   console.log(`   Skipped: ${skippedCount}`);
@@ -316,19 +281,19 @@ async function backfillVlm() {
     fs.writeFileSync(
       './pipeline_checkpoints/live_status.json',
       JSON.stringify(
-        { running: false, phase: 'Idle', exitReason: 'VLM Backfill Complete' },
+        { running: false, phase: 'Idle', exitReason: 'Verified photograph VLM backfill complete' },
         null,
         2,
       ),
     );
-  } catch (_e) {
-    // non-fatal
+  } catch (_error) {
+    // Status reporting is non-fatal.
   }
 
   await pool.end();
 }
 
-backfillVlm().catch((err) => {
-  console.error(err);
+backfillVlm().catch((error) => {
+  console.error(error);
   process.exit(1);
 });
