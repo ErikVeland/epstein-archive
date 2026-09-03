@@ -255,7 +255,7 @@ export const propertiesQuerySchema = z.object({
       .string()
       .optional()
       .transform((v) => v === 'true'),
-    sortBy: z.enum(['value', 'owner', 'year']).optional(),
+    sortBy: z.enum(['relevance', 'value', 'owner', 'year']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
   }),
 });

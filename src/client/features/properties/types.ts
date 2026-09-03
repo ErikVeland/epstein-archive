@@ -19,7 +19,14 @@ export interface Property {
   is_epstein_property: number;
   is_known_associate: number;
   linked_entity_id: number | null;
-  address_source: 'original' | 'name_derived' | null;
+  address_source: 'original' | 'name_derived' | 'document_verified' | null;
+  photo_media_id: string | null;
+  photo_title: string | null;
+  photo_caption: string | null;
+  photo_description: string | null;
+  photo_verification_status: string | null;
+  photo_match_basis: string | null;
+  photo_match_confidence: number | null;
 }
 
 export interface PropertyStats {

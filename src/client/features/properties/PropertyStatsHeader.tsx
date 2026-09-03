@@ -18,8 +18,8 @@ export function PropertyStatsHeader({ stats }: PropertyStatsHeaderProps): React.
           Palm Beach Property Records
         </h1>
         <p className={styles.subtitle}>
-          Explore {formatNumber(stats.totalProperties)} properties from Palm Beach County public
-          records
+          Browse {formatNumber(stats.totalProperties)} parcel records with assessed values,
+          structural facts, archive media, and evidence links
         </p>
       </div>
 
@@ -32,17 +32,17 @@ export function PropertyStatsHeader({ stats }: PropertyStatsHeaderProps): React.
         <div className={styles.statCard}>
           <Icon name="DollarSign" size="md" />
           <div className={styles.statValue}>{formatNumber(stats.maxTaxValue)}</div>
-          <div className={styles.statLabel}>Max Value</div>
+          <div className={styles.statLabel}>Highest Assessment</div>
         </div>
         <div className={styles.statCard}>
           <Icon name="TrendingUp" size="md" />
           <div className={styles.statValue}>{formatNumber(stats.avgTaxValue)}</div>
-          <div className={styles.statLabel}>Average Value</div>
+          <div className={styles.statLabel}>Average Assessment</div>
         </div>
         <div className={cn(styles.statCard, styles.flaggedCard)}>
           <Icon name="AlertTriangle" size="md" />
           <div className={styles.statValue}>{stats.knownAssociateProperties}</div>
-          <div className={styles.statLabel}>Known Associates</div>
+          <div className={styles.statLabel}>Entity-linked Records</div>
         </div>
       </div>
     </div>

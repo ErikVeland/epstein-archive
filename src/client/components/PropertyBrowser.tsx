@@ -30,9 +30,10 @@ export function PropertyBrowser(): React.ReactElement {
   const [propertyType, setPropertyType] = useState('');
   const [minValue, setMinValue] = useState('');
   const [showAssociatesOnly, setShowAssociatesOnly] = useState(false);
+  const [sortBy, setSortBy] = useState('relevance');
   const [page, setPage] = useState(1);
   usePageScrollRestoration(
-    `/properties:${viewMode}:${searchTerm}:${propertyType}:${minValue}:${showAssociatesOnly}:${page}`,
+    `/properties:${viewMode}:${searchTerm}:${propertyType}:${minValue}:${showAssociatesOnly}:${sortBy}:${page}`,
   );
 
   const {
@@ -88,13 +89,22 @@ export function PropertyBrowser(): React.ReactElement {
     properties: Property[];
     totalPages: number;
   }>({
-    queryKey: ['properties-list', searchTerm, propertyType, minValue, showAssociatesOnly, page],
+    queryKey: [
+      'properties-list',
+      searchTerm,
+      propertyType,
+      minValue,
+      showAssociatesOnly,
+      sortBy,
+      page,
+    ],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm) params.append('search', searchTerm);
       if (propertyType) params.append('type', propertyType);
       if (minValue) params.append('minValue', minValue);
       if (showAssociatesOnly) params.append('associatesOnly', 'true');
+      params.append('sortBy', sortBy);
       params.append('page', page.toString());
       params.append('limit', '50');
       const res = await fetch(`/api/properties?${params}`);
@@ -202,7 +212,7 @@ export function PropertyBrowser(): React.ReactElement {
           onClick={() => setViewMode('associates')}
         >
           <Icon name="AlertTriangle" size="sm" />
-          Known Associates ({knownAssociates.length})
+          Entity-linked Records ({knownAssociates.length})
         </Button>
         <Button
           variant={viewMode === 'analytics' ? 'primary' : 'ghost'}
@@ -226,6 +236,7 @@ export function PropertyBrowser(): React.ReactElement {
             propertyType={propertyType}
             minValue={minValue}
             showAssociatesOnly={showAssociatesOnly}
+            sortBy={sortBy}
             page={page}
             totalPages={totalPages}
             viewMode={viewMode}
@@ -233,6 +244,7 @@ export function PropertyBrowser(): React.ReactElement {
             onPropertyTypeChange={setPropertyType}
             onMinValueChange={setMinValue}
             onShowAssociatesOnlyChange={setShowAssociatesOnly}
+            onSortByChange={setSortBy}
             onPageChange={setPage}
             onViewModeChange={setViewMode}
             onSelectProperty={setSelectedProperty}

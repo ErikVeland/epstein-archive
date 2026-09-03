@@ -24,6 +24,36 @@ const PROPERTY_COLUMNS = `
   address_source
 `;
 
+const PROPERTY_MEDIA_COLUMNS = `
+  property_photo.photo_media_id,
+  property_photo.photo_title,
+  property_photo.photo_caption,
+  property_photo.photo_description,
+  property_photo.photo_verification_status,
+  property_photo.photo_match_basis,
+  property_photo.photo_match_confidence
+`;
+
+const PROPERTY_MEDIA_JOIN = `
+  LEFT JOIN LATERAL (
+    SELECT
+      media.id AS photo_media_id,
+      media.title AS photo_title,
+      media.caption AS photo_caption,
+      media.description AS photo_description,
+      media.verification_status AS photo_verification_status,
+      link.match_basis AS photo_match_basis,
+      link.confidence AS photo_match_confidence
+    FROM property_media_links link
+    JOIN media_items media ON media.id = link.media_item_id
+    WHERE link.property_id = palm_beach_properties.id
+      AND media.file_type LIKE 'image/%'
+      AND media.verification_status = 'verified'
+    ORDER BY link.is_primary DESC, link.confidence DESC, media.id
+    LIMIT 1
+  ) property_photo ON true
+`;
+
 export interface Property {
   id: number;
   pcn: string;
@@ -45,7 +75,14 @@ export interface Property {
   is_epstein_property: number;
   is_known_associate: number;
   linked_entity_id: number | null;
-  address_source: 'original' | 'name_derived' | null;
+  address_source: 'original' | 'name_derived' | 'document_verified' | null;
+  photo_media_id: string | null;
+  photo_title: string | null;
+  photo_caption: string | null;
+  photo_description: string | null;
+  photo_verification_status: string | null;
+  photo_match_basis: string | null;
+  photo_match_confidence: number | null;
 }
 
 export interface PropertyStats {
@@ -70,7 +107,7 @@ export const propertiesRepository = {
       maxValue?: number;
       propertyUse?: string;
       knownAssociatesOnly?: boolean;
-      sortBy?: 'value' | 'owner' | 'year';
+      sortBy?: 'relevance' | 'value' | 'owner' | 'year';
       sortOrder?: 'asc' | 'desc';
     } = {},
   ): Promise<{
@@ -89,7 +126,7 @@ export const propertiesRepository = {
       maxValue,
       propertyUse,
       knownAssociatesOnly = false,
-      sortBy = 'value',
+      sortBy = 'relevance',
       sortOrder = 'desc',
     } = filters;
 
@@ -99,9 +136,11 @@ export const propertiesRepository = {
     let i = 1;
 
     if (ownerSearch) {
-      conditions.push(`(owner_name_1 ILIKE $${i} OR owner_name_2 ILIKE $${i + 1})`);
-      params.push(`%${ownerSearch}%`, `%${ownerSearch}%`);
-      i += 2;
+      conditions.push(
+        `(owner_name_1 ILIKE $${i} OR owner_name_2 ILIKE $${i} OR site_address ILIKE $${i} OR street_name ILIKE $${i} OR pcn ILIKE $${i})`,
+      );
+      params.push(`%${ownerSearch}%`);
+      i += 1;
     }
 
     if (minValue !== undefined) {
@@ -140,13 +179,22 @@ export const propertiesRepository = {
       year: 'year_built',
       value: 'total_tax_value',
     };
-    const sortCol = ALLOWED_SORT_COLS[sortBy] ?? 'total_tax_value';
-    const nullsClause = sortBy === 'owner' ? '' : ' NULLS LAST';
-    orderClause = `ORDER BY ${sortCol} ${dir}${nullsClause}`;
+    if (sortBy === 'relevance') {
+      orderClause = `ORDER BY
+        CASE WHEN pcn = '50434327060000391' AND owner_name_1 = 'EPSTEIN JEFFREY' THEN 0 ELSE 1 END,
+        (property_photo.photo_media_id IS NOT NULL) DESC,
+        is_known_associate DESC,
+        total_tax_value DESC NULLS LAST`;
+    } else {
+      const sortCol = ALLOWED_SORT_COLS[sortBy] ?? 'total_tax_value';
+      const nullsClause = sortBy === 'owner' ? '' : ' NULLS LAST';
+      orderClause = `ORDER BY ${sortCol} ${dir}${nullsClause}`;
+    }
 
     // Get properties
     const query = `
-      SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties
+      SELECT ${PROPERTY_COLUMNS}, ${PROPERTY_MEDIA_COLUMNS} FROM palm_beach_properties
+      ${PROPERTY_MEDIA_JOIN}
       ${whereClause}
       ${orderClause}
       LIMIT $${i++} OFFSET $${i++}
@@ -176,7 +224,10 @@ export const propertiesRepository = {
   getPropertyById: async (id: number): Promise<Property | null> => {
     const pool = getApiPool();
     const res = await pool.query(
-      `SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties WHERE id = $1`,
+      `SELECT ${PROPERTY_COLUMNS}, ${PROPERTY_MEDIA_COLUMNS}
+       FROM palm_beach_properties
+       ${PROPERTY_MEDIA_JOIN}
+       WHERE palm_beach_properties.id = $1`,
       [id],
     );
     return (res.rows[0] as Property) || null;
@@ -188,7 +239,8 @@ export const propertiesRepository = {
   getKnownAssociateProperties: async (): Promise<Property[]> => {
     const pool = getApiPool();
     const res = await pool.query(`
-      SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties
+      SELECT ${PROPERTY_COLUMNS}, ${PROPERTY_MEDIA_COLUMNS} FROM palm_beach_properties
+      ${PROPERTY_MEDIA_JOIN}
       WHERE is_known_associate = 1 OR linked_entity_id IS NOT NULL
       ORDER BY total_tax_value DESC
     `);
@@ -201,7 +253,8 @@ export const propertiesRepository = {
   getEpsteinProperties: async (): Promise<Property[]> => {
     const pool = getApiPool();
     const res = await pool.query(`
-      SELECT ${PROPERTY_COLUMNS} FROM palm_beach_properties
+      SELECT ${PROPERTY_COLUMNS}, ${PROPERTY_MEDIA_COLUMNS} FROM palm_beach_properties
+      ${PROPERTY_MEDIA_JOIN}
       WHERE is_epstein_property = 1
       ORDER BY total_tax_value DESC
     `);

@@ -1,5 +1,27 @@
 # Release Notes
 
+## 22.6.6 - 2026-09-04 - Property Evidence Listings
+
+### Real-estate catalogue
+
+- **Property records now read as housing listings.** Each card leads with verified imagery when available, assessed value, address or parcel identity, owner of record, bedrooms, bathrooms, living area, acreage, year built, and property type.
+- **Investigation relevance is the default order.** The confirmed subject parcel appears first, followed by records with verified archive media and entity-linked owners. Users can still sort by assessment, owner, or year built.
+- **Search now covers the full record.** Owner names, addresses, street names, and parcel control numbers are searchable from one field.
+- **Every record links to its official source.** Parcel cards and dossiers open the corresponding Palm Beach County Property Appraiser record in a separate tab.
+
+### Evidence-safe photography and labels
+
+- **Property photography now has an auditable relationship layer.** Each link stores the archive media item, match basis, confidence, and primary-image status. No image is attached until its specific parcel match is verified.
+- **Unmatched records do not receive decorative stock images.** They show an intentional evidence placeholder until a verified property photograph is linked.
+- **The subject parcel has its evidence-verified historic address.** The exact parcel record restores 358 El Brillo Way without relying on owner-name inference.
+- **Loose surname matches no longer claim ownership by Jeffrey Epstein.** They appear as review-only owner-name matches. Existing entity relationships appear as “Entity-linked owner,” with a clear warning that the link is a review aid and not proof of identity or wrongdoing.
+- **Assessment language is precise.** The interface no longer presents tax-roll values as listing prices.
+
+### Investigator dossier
+
+- **Property details combine public-record and archive context.** The side dossier includes the source parcel, map, verified-image description, structural data, valuations, entity profile, and investigation action.
+- **Photo provenance remains visible.** Verified archive images retain their media identifier and relationship metadata through the property API.
+
 ## 22.6.5 - 2026-09-04 - Flight Evidence Board
 
 ### Evidence-first departures board

@@ -13,8 +13,11 @@ router.get('/', validate(propertiesQuerySchema), async (req, res, next) => {
     if (rejectDeepOffset(res, 'Property', page, limit)) return;
 
     const sortByRaw = String(q.sortBy || '').trim();
-    const sortByParam: 'value' | 'owner' | 'year' | undefined =
-      sortByRaw === 'value' || sortByRaw === 'owner' || sortByRaw === 'year'
+    const sortByParam: 'relevance' | 'value' | 'owner' | 'year' | undefined =
+      sortByRaw === 'relevance' ||
+      sortByRaw === 'value' ||
+      sortByRaw === 'owner' ||
+      sortByRaw === 'year'
         ? sortByRaw
         : undefined;
 

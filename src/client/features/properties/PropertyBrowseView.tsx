@@ -15,6 +15,7 @@ interface PropertyBrowseViewProps {
   propertyType: string;
   minValue: string;
   showAssociatesOnly: boolean;
+  sortBy: string;
   page: number;
   totalPages: number;
   viewMode: ViewMode;
@@ -22,6 +23,7 @@ interface PropertyBrowseViewProps {
   onPropertyTypeChange: (value: string) => void;
   onMinValueChange: (value: string) => void;
   onShowAssociatesOnlyChange: (value: boolean) => void;
+  onSortByChange: (value: string) => void;
   onPageChange: (page: number) => void;
   onViewModeChange: (mode: ViewMode) => void;
   onSelectProperty: (property: Property) => void;
@@ -35,6 +37,7 @@ export function PropertyBrowseView({
   propertyType,
   minValue,
   showAssociatesOnly,
+  sortBy,
   page,
   totalPages,
   viewMode,
@@ -42,6 +45,7 @@ export function PropertyBrowseView({
   onPropertyTypeChange,
   onMinValueChange,
   onShowAssociatesOnlyChange,
+  onSortByChange,
   onPageChange,
   onViewModeChange,
   onSelectProperty,
@@ -94,6 +98,22 @@ export function PropertyBrowseView({
               ]}
             />
 
+            <Select
+              rootClassName={styles.sortSelect}
+              aria-label="Sort property listings"
+              value={sortBy}
+              onChange={(event) => {
+                onSortByChange(event.target.value);
+                onPageChange(1);
+              }}
+              options={[
+                { value: 'relevance', label: 'Investigation relevance' },
+                { value: 'value', label: 'Assessed value' },
+                { value: 'owner', label: 'Owner name' },
+                { value: 'year', label: 'Year built' },
+              ]}
+            />
+
             <div className={styles.checkboxWrapper}>
               <label className={styles.checkboxLabel}>
                 <Input
@@ -105,7 +125,7 @@ export function PropertyBrowseView({
                   }}
                   className={styles.checkbox}
                 />
-                Known Associates Only
+                Entity-linked owners only
               </label>
             </div>
 
@@ -116,7 +136,7 @@ export function PropertyBrowseView({
                 variant={viewMode === 'browse' ? 'primary' : 'ghost'}
                 size="sm"
                 className={styles.viewToggleButton}
-                title="Browse List"
+                title="Property listings"
               >
                 <Icon name="List" size="sm" />
               </Button>
@@ -151,6 +171,16 @@ export function PropertyBrowseView({
           </div>
         ) : (
           <>
+            <div className={styles.resultsHeader}>
+              <div>
+                <span className={styles.resultsEyebrow}>Property catalogue</span>
+                <h2 className={styles.resultsTitle}>Public records, presented as listings</h2>
+              </div>
+              <p className={styles.resultsNote}>
+                Values are assessments, not asking prices. Photos appear only when the archive has a
+                verified property match.
+              </p>
+            </div>
             <div className={styles.propertyGrid}>
               {properties.map((property) => (
                 <PropertyCard key={property.id} property={property} onSelect={onSelectProperty} />

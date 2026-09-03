@@ -27,7 +27,12 @@ export function PropertyDetailPanel({
   if (!property) return null;
 
   const isAssociate = property.is_known_associate === 1;
-  const isEpstein = property.is_epstein_property === 1;
+  const isSubjectParcel =
+    property.pcn === '50434327060000391' && property.owner_name_1 === 'EPSTEIN JEFFREY';
+  const isSurnameMatch = property.is_epstein_property === 1 && !isSubjectParcel;
+  const hasVerifiedPhoto =
+    Boolean(property.photo_media_id) && property.photo_verification_status === 'verified';
+  const parcelUrl = `https://pbcpao.gov/Property/Summary?parcelId=${encodeURIComponent(property.pcn)}`;
 
   return createPortal(
     <div className={styles.overlay}>
@@ -41,17 +46,20 @@ export function PropertyDetailPanel({
         <div className={styles.header}>
           <div className={styles.headerMain}>
             <div className={styles.headerBadges}>
-              {isEpstein && (
+              {isSubjectParcel && (
                 <span className={cn(styles.badge, styles.badgeEpstein)}>
-                  <Icon name="AlertTriangle" size="xs" />
-                  Epstein Property
+                  <Icon name="ShieldCheck" size="xs" />
+                  Subject parcel
                 </span>
               )}
               {isAssociate && (
                 <span className={cn(styles.badge, styles.badgeAssociate)}>
-                  <Icon name="AlertTriangle" size="xs" />
-                  Known Associate
+                  <Icon name="Link" size="xs" />
+                  Entity-linked owner
                 </span>
+              )}
+              {isSurnameMatch && (
+                <span className={styles.badge}>Owner-name match · review required</span>
               )}
             </div>
             <h3 id="property-detail-title" className={styles.ownerName}>
@@ -68,7 +76,9 @@ export function PropertyDetailPanel({
               )}
             </h3>
             {property.owner_name_2 && <p className={styles.ownerName2}>{property.owner_name_2}</p>}
-            <p className={styles.propertyValue}>{formatCurrency(property.total_tax_value)}</p>
+            <p className={styles.propertyValue}>
+              {formatCurrency(property.total_tax_value)} assessed value
+            </p>
           </div>
           <Button
             className={styles.closeBtn}
@@ -84,6 +94,30 @@ export function PropertyDetailPanel({
         </div>
 
         <div className={styles.content}>
+          <div className={styles.photoPanel}>
+            {hasVerifiedPhoto ? (
+              <img
+                src={`/api/media/images/${encodeURIComponent(property.photo_media_id!)}/file`}
+                alt={property.photo_title || 'Verified archive property photograph'}
+                className={styles.propertyPhoto}
+              />
+            ) : (
+              <div className={styles.photoPlaceholder}>
+                <Icon name="Home" size="xl" />
+                <span>No verified archive photo is linked to this parcel</span>
+              </div>
+            )}
+            {hasVerifiedPhoto && (
+              <div className={styles.photoMetadata}>
+                <span>
+                  <Icon name="BadgeCheck" size="xs" /> Verified archive image
+                </span>
+                <strong>{property.photo_title}</strong>
+                {property.photo_description && <p>{property.photo_description}</p>}
+              </div>
+            )}
+          </div>
+
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <Icon name="MapPin" size="sm" className={styles.sectionIcon} />
@@ -97,8 +131,18 @@ export function PropertyDetailPanel({
                   (inferred)
                 </span>
               )}
+              {property.address_source === 'document_verified' && (
+                <span className={styles.derivedNote} title="Restored from source evidence">
+                  {' '}
+                  (evidence verified)
+                </span>
+              )}
             </p>
             {property.pcn && <p className={styles.pcn}>PCN: {property.pcn}</p>}
+            <a href={parcelUrl} target="_blank" rel="noreferrer" className={styles.officialLink}>
+              <Icon name="ExternalLink" size="xs" />
+              Open official Palm Beach County parcel record
+            </a>
             {property.site_address && (
               <PropertyLocationMap
                 address={property.site_address}
@@ -161,7 +205,7 @@ export function PropertyDetailPanel({
             </div>
             <div className={styles.detailGrid}>
               <div className={styles.detailCell}>
-                <span className={styles.detailLabel}>Total Tax Value</span>
+                <span className={styles.detailLabel}>Assessed Value</span>
                 <span className={cn(styles.detailValue, styles.valueHighlight)}>
                   {formatCurrency(property.total_tax_value)}
                 </span>
@@ -195,7 +239,7 @@ export function PropertyDetailPanel({
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <Icon name="User" size="sm" className={styles.sectionIcon} />
-                <span className={styles.sectionTitle}>Linked Entity</span>
+                <span className={styles.sectionTitle}>Investigative Context</span>
               </div>
               <Link
                 to={`/entity/${property.linked_entity_id}`}
@@ -206,6 +250,10 @@ export function PropertyDetailPanel({
                 <Icon name="User" size="sm" />
                 View Entity Profile
               </Link>
+              <p className={styles.contextNote}>
+                This owner record links to an archive entity. The link guides review and does not,
+                by itself, establish ownership by a specific person or wrongdoing.
+              </p>
             </div>
           )}
 
@@ -214,7 +262,7 @@ export function PropertyDetailPanel({
               item={{
                 id: String(property.id),
                 title: `${property.owner_name_1 ?? 'Unknown'} - ${property.site_address ?? property.street_name ?? 'Unknown Address'}`,
-                description: `${property.property_use ?? 'Property'} valued at ${formatCurrency(property.total_tax_value)}${isAssociate ? ' (Known Associate)' : ''}`,
+                description: `${property.property_use ?? 'Property'} with an assessed value of ${formatCurrency(property.total_tax_value)}${isAssociate ? ' (entity-linked owner)' : ''}`,
                 type: 'property',
                 sourceId: String(property.id),
                 metadata: {
@@ -223,6 +271,7 @@ export function PropertyDetailPanel({
                   value: property.total_tax_value,
                   isKnownAssociate: isAssociate,
                   linkedEntityId: property.linked_entity_id,
+                  photoMediaId: property.photo_media_id,
                 },
               }}
               variant="button"

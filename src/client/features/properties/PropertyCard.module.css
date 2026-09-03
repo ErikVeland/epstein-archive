@@ -1,137 +1,277 @@
-/* PropertyCard.module.css */
-
 .card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
-  padding: var(--space-4);
+  overflow: hidden;
   position: relative;
   cursor: pointer;
+  min-width: 0;
   transition:
     border-color 0.2s,
     transform 0.2s,
-    background-color 0.2s;
+    box-shadow 0.2s;
 }
 
 .card:hover {
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--glass-border));
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
 }
 
 .flagged {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.05);
+  border-color: color-mix(in srgb, var(--accent) 56%, var(--glass-border));
 }
 
-.associateBadge {
+.media {
+  aspect-ratio: 16 / 9;
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--glass-bg-strong) 84%, var(--accent) 16%);
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.card:hover .photo {
+  transform: scale(1.025);
+}
+
+.photoPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 65%),
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 26px,
+      color-mix(in srgb, var(--glass-border) 38%, transparent) 27px 28px
+    );
+}
+
+.photoPlaceholder > svg {
+  color: color-mix(in srgb, var(--accent) 68%, var(--text-secondary));
+}
+
+.photoPlaceholder > span {
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.photoPlaceholder > small {
+  color: var(--text-muted);
+}
+
+.badges {
   position: absolute;
-  top: -8px;
-  right: 12px;
-  background: #f59e0b;
-  color: #000;
-  font-size: var(--type-xs);
-  font-weight: var(--weight-bold);
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  backdrop-filter: blur(12px);
+}
+
+.matchBadge {
+  backdrop-filter: blur(12px);
+}
+
+.photoCredit {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--glass-bg-strong) 84%, transparent);
+  font-size: var(--type-xs);
+  backdrop-filter: blur(12px);
 }
 
-.epsteinBadge {
-  background: #ef4444;
-  color: var(--text-primary);
+.body {
+  padding: var(--space-4);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--space-3);
   margin-bottom: var(--space-3);
 }
 
-.ownerName {
+.eyebrow,
+.ownerName,
+.secondaryOwner {
   margin: 0;
-  font-size: 1rem;
-  flex: 1;
+}
+
+.eyebrow {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .propertyValue {
+  display: block;
+  color: var(--accent-success);
+  font-size: 1.45rem;
   font-weight: var(--weight-bold);
-  color: #10b981;
-  white-space: nowrap;
-  margin-left: var(--space-3);
+  line-height: 1.2;
+}
+
+.propertyType {
+  max-width: 46%;
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  text-align: right;
+  text-transform: uppercase;
 }
 
 .address {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.address > svg {
+  flex: 0 0 auto;
+  margin-top: 0.12em;
+  color: var(--accent);
+}
+
+.ownerName {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  margin-bottom: var(--space-3);
+  font-size: var(--type-small);
 }
 
-.details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  font-size: 0.85rem;
-  margin-bottom: var(--space-3);
-}
-
-.detailLabel {
-  font-weight: var(--weight-bold);
-}
-
-.valueGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--glass-border);
-}
-
-.valueLabel {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
-.valueText {
-  font-weight: 600;
+.secondaryOwner {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
 }
 
 .derivedBadge {
-  font-size: 0.7rem;
+  flex: 0 0 auto;
+  padding: 1px var(--space-1);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
   color: var(--text-muted);
-  margin-left: 2px;
-  cursor: help;
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
 }
 
-.associateLink {
+.facts {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--glass-border);
-  color: var(--accent);
-  text-decoration: none;
-  font-size: 0.9rem;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-4) 0;
+  padding: var(--space-3) 0;
+  border-block: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  font-size: var(--type-small);
 }
 
-.associateLink:hover {
+.facts strong {
+  color: var(--text-primary);
+}
+
+.recordContext {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--space-3);
+}
+
+.valueLabel,
+.valueText,
+.pcn {
+  display: block;
+}
+
+.valueLabel {
+  margin-bottom: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  text-transform: uppercase;
+}
+
+.valueText {
+  font-weight: var(--weight-semibold);
+}
+
+.pcn {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.recordLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  text-decoration: none;
+}
+
+.recordLink:hover {
+  color: var(--accent);
   text-decoration: underline;
 }
 
 .actions {
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
 }
 
-.addButtonFull {
+.detailsButton {
+  justify-content: space-between;
   width: 100%;
-  justify-content: center;
+}
+
+.addButton {
+  min-width: 2.75rem;
+}
+
+@media (max-width: 480px) {
+  .recordContext {
+    grid-template-columns: 1fr;
+  }
 }
