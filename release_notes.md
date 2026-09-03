@@ -1,5 +1,14 @@
 # Release Notes
 
+## 22.3.3 - 2026-09-03 - Media Verification Guard Repair
+
+### Deployment safety
+
+- **The active media-release verifier now works inside its intended read-only transaction.** It prepares its temporary ID table before entering read-only mode, then checks the deployed assets, source-document lineage, classifications, tag links, and exact catalog fingerprints without allowing persistent database writes.
+- **Later deployments can enforce active media parity.** The deployment gate can now verify the promoted extracted-media release instead of failing while it creates its temporary verification workspace.
+
+---
+
 ## 22.3.2 - 2026-09-03 - Extracted Media Promotion
 
 ### Production media parity

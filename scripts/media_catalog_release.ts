@@ -743,14 +743,33 @@ async function verifyAssets(bundle: string, manifest: MediaReleaseManifest): Pro
   }
 }
 
-async function insertReleaseIds(client: pg.Client, bundle: string): Promise<number> {
-  await client.query(`
+function releaseIdsTableSql(onCommit: 'DROP' | 'PRESERVE ROWS'): string {
+  return `
     CREATE TEMP TABLE media_release_ids (
       id text PRIMARY KEY,
       document_id bigint NOT NULL,
       file_path text NOT NULL
-    ) ON COMMIT DROP
-  `);
+    ) ON COMMIT ${onCommit}
+  `;
+}
+
+export function mediaReleaseVerificationPlan(): readonly [string, string] {
+  return [releaseIdsTableSql('PRESERVE ROWS'), 'BEGIN READ ONLY'];
+}
+
+async function createReleaseIdsTable(
+  client: pg.Client,
+  onCommit: 'DROP' | 'PRESERVE ROWS' = 'DROP',
+): Promise<void> {
+  await client.query(releaseIdsTableSql(onCommit));
+}
+
+async function insertReleaseIds(
+  client: pg.Client,
+  bundle: string,
+  createTable = true,
+): Promise<number> {
+  if (createTable) await createReleaseIdsTable(client);
   let batch: MediaRecord[] = [];
   let count = 0;
   const flush = async (): Promise<void> => {
@@ -1248,8 +1267,12 @@ async function verifyRelease(options: CliOptions): Promise<void> {
   const client = new Client({ connectionString: databaseUrl() });
   await client.connect();
   try {
-    await client.query('BEGIN READ ONLY');
-    const stagedIds = await insertReleaseIds(client, options.bundle);
+    // PostgreSQL permits writes to an existing temporary table in a read-only
+    // transaction, but it does not permit CREATE TEMP TABLE after BEGIN READ ONLY.
+    const [prepareTemporaryIds, beginReadOnly] = mediaReleaseVerificationPlan();
+    await client.query(prepareTemporaryIds);
+    await client.query(beginReadOnly);
+    const stagedIds = await insertReleaseIds(client, options.bundle, false);
     if (stagedIds !== manifest.database.mediaItems) {
       throw new Error(`Staged ${stagedIds} media IDs; expected ${manifest.database.mediaItems}`);
     }
