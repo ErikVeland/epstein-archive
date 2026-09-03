@@ -32,6 +32,17 @@ Every production deployment must include a new semantic version and a new releas
 
 The deploy script and production workflow must stop when this gate fails. Humans and AI agents must not bypass or weaken it.
 
+### Extracted media promotion gate
+
+Git ignores extracted media files. A normal code deployment cannot publish those assets or their related local database rows.
+
+- Export locally generated media as a versioned release bundle.
+- Copy assets without deleting or replacing unrelated production files.
+- Run the importer in dry-run mode before apply mode.
+- Verify bundle checksums, asset presence, row counts, classifications, and database fingerprints.
+- Keep the active media bundle on production so later deployments can verify parity.
+- Do not report a synchronized media release until the production verifier passes.
+
 ---
 
 ## 2. Type Safety & Contract Design

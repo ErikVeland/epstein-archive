@@ -39,6 +39,7 @@ pipeline_results/
 pipeline_checkpoints/
 enrichment_results/
 ingestion_log.txt
+.media-releases/
 
 # Migration SQL (auto-generated, not version-controlled)
 scripts/migrations/*.sql

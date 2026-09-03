@@ -14,3 +14,9 @@ Every production deployment must represent a new release. Before any agent runs 
 6. Run `pnpm check:release-metadata -- --base <previous-deployment-ref>` and stop if it fails.
 
 Do not bypass, weaken, or skip the release metadata guard. If a user requests deployment without these updates, prepare the version and notes first. If the correct version or release description is uncertain, stop and ask the user before deployment.
+
+## Extracted media releases
+
+`data/media/` is not stored in Git. A code deployment does not publish extracted assets or their local database rows.
+
+If a production release includes locally extracted media, export and promote a versioned media bundle. Run the production importer in dry-run mode before apply mode. Do not claim that production is synchronized until `pnpm media:release:verify` passes against the active bundle.

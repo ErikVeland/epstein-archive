@@ -688,7 +688,7 @@ if [ "$DEPLOY_DB" = true ]; then
       echo 'Syncing code from origin/main for migration phase...'
       git fetch origin
       git reset --hard origin/main
-      git clean -fd -e dist -e .releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
+      git clean -fd -e dist -e .releases -e .media-releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
 
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
@@ -724,6 +724,12 @@ if [ "$DEPLOY_DB" = true ]; then
       PROVENANCE_BACKFILL_MAX="${PROVENANCE_BACKFILL_MAX:-0}" pnpm provenance:backfill
       echo 'Running media classification and catalog enrichment...'
       pnpm media:release:enrich
+      if [ -f .media-releases/current/manifest.json ]; then
+        echo 'Verifying promoted media catalog and assets...'
+        pnpm media:release:verify -- --bundle .media-releases/current
+      else
+        echo 'No promoted media release is active; skipping media parity verification.'
+      fi
       echo 'Syncing canonical VIP entity list before release verification...'
       pnpm db:sync-vip-entities
       echo 'Quarantining entity-quality pollution before release verification...'
@@ -883,7 +889,7 @@ if [ "$DB_ONLY" = false ]; then
 
       echo 'Syncing live source tree to promoted commit...'
       git reset --hard \"\$TARGET_SHA\"
-      git clean -fd -e dist -e .releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
+      git clean -fd -e dist -e .releases -e .media-releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
 
       # CERT_STEP: static_root_invariant
       # git clean has removed symlinked build roots on some filesystems even with

@@ -1,5 +1,21 @@
 # Release Notes
 
+## 22.3.2 - 2026-09-03 - Extracted Media Promotion
+
+### Production media parity
+
+- **Production now receives the complete available extracted image catalog.** The release promotes 98,001 document-linked image records and their source assets from the enriched local archive. One stale row with a missing source file remains excluded and explicitly marked unavailable.
+- **Album, tag, classification, and provenance data remain attached.** The importer maps albums and tags by name, preserves stable media identifiers, and validates every referenced source document before it writes data.
+- **The promotion is additive.** It does not delete unrelated production media or source files.
+
+### Deployment safety
+
+- **Media promotion now has a repeatable audit, dry-run, and apply workflow.** The source audit marks missing files unavailable. The importer uses a transaction, a deployment lock, bundle checksums, asset-size checks, and exact database fingerprints.
+- **Later deployments verify the active media release.** The deployment process preserves the release bundle and stops when its catalog records or assets no longer match.
+- **Repository instructions now cover ignored media assets.** They state that a code deployment cannot publish `data/media/` and prohibit a synchronized-release claim before production verification passes.
+
+---
+
 ## 22.3.1 - 2026-09-03 - Media Catalog Enrichment
 
 ### Enriched media catalog
