@@ -15,8 +15,8 @@ SELECT
   metadata_json,
   created_at
 FROM financial_transactions
-ORDER BY transaction_date DESC 
-LIMIT :limit!;
+ORDER BY transaction_date DESC, id DESC
+LIMIT :limit! OFFSET :offset!;
 
 /* @name getTransactionsByInvestigation */
 SELECT

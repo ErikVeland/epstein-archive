@@ -40,8 +40,11 @@ const MAX_GUEST_KEY_BASE64_LEN = 200;
 const MAX_GUEST_NONCE_LEN = 128;
 const GUEST_SIGNATURE_MAX_AGE_MS = 5 * 60 * 1000;
 const GUEST_SIGNATURE_MAX_FUTURE_SKEW_MS = 60 * 1000;
+const verifiedGuestRequests = new WeakMap<Request, NonNullable<AuthRequest['user']>>();
 
 const verifyGuestSignature = (req: Request): AuthRequest['user'] | null => {
+  const verified = verifiedGuestRequests.get(req);
+  if (verified) return verified;
   const signature = req.headers['x-signature'] as string;
   const publicKeyBase64 = req.headers['x-public-key'] as string;
   const timestampHeader = req.headers['x-guest-timestamp'] as string;
@@ -90,12 +93,14 @@ const verifyGuestSignature = (req: Request): AuthRequest['user'] | null => {
     if (cacheService.get<boolean>('general', replayKey)) return null;
     cacheService.set('general', replayKey, true, Math.ceil(GUEST_SIGNATURE_MAX_AGE_MS / 1000));
 
-    return {
+    const user = {
       id: `guest:${fingerprint}`,
       username: `Guest ${fingerprint.slice(0, 8)}`,
       role: 'guest',
       email: null,
     };
+    verifiedGuestRequests.set(req, user);
+    return user;
   } catch (error) {
     logger.warn({ err: error }, '[Auth] Guest signature verification failed');
     return null;

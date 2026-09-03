@@ -10,6 +10,8 @@ export interface FinancialTransactionDto {
   description: string | null;
   transactionType: string | null;
   riskRating: number | null;
+  sourceDocumentId?: string | null;
+  method?: string | null;
 }
 
 export interface FinancialSummaryDto {

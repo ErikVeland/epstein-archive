@@ -10,6 +10,7 @@ export type NumberOrString = number | string;
 /** 'GetTransactions' parameters type */
 export interface IGetTransactionsParams {
   limit: NumberOrString;
+  offset: NumberOrString;
 }
 
 /** 'GetTransactions' return type */
@@ -37,12 +38,13 @@ export interface IGetTransactionsQuery {
 }
 
 const getTransactionsIR: any = {
-  usedParamSet: { limit: true },
+  usedParamSet: { limit: true, offset: true },
   params: [
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 280, b: 286 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 288, b: 294 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 303, b: 310 }] },
   ],
   statement:
-    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions\nORDER BY transaction_date DESC \nLIMIT :limit!',
+    'SELECT\n  id,\n  from_entity,\n  to_entity,\n  amount,\n  currency,\n  transaction_date,\n  transaction_type,\n  method,\n  risk_level,\n  description,\n  investigation_id,\n  source_document_id,\n  metadata_json,\n  created_at\nFROM financial_transactions\nORDER BY transaction_date DESC, id DESC\nLIMIT :limit! OFFSET :offset!',
 };
 
 /**
@@ -64,8 +66,8 @@ const getTransactionsIR: any = {
  *   metadata_json,
  *   created_at
  * FROM financial_transactions
- * ORDER BY transaction_date DESC
- * LIMIT :limit!
+ * ORDER BY transaction_date DESC, id DESC
+ * LIMIT :limit! OFFSET :offset!
  * ```
  */
 export const getTransactions = new PreparedQuery<IGetTransactionsParams, IGetTransactionsResult>(

@@ -394,7 +394,14 @@ class ApiClient {
       if (!headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
       const isMutating = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase());
-      if (typeof window !== 'undefined' && isMutating && !url.includes('/auth/') && !token) {
+      const isFinancialRead =
+        method.toUpperCase() === 'GET' && /\/financial\/transactions(?:\?|$)/.test(url);
+      if (
+        typeof window !== 'undefined' &&
+        (isMutating || isFinancialRead) &&
+        !url.includes('/auth/') &&
+        !token
+      ) {
         try {
           let path = url;
           if (url.startsWith('http://') || url.startsWith('https://')) {

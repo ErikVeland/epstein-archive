@@ -16,6 +16,8 @@ interface TransactionRowInput {
   transaction_type?: unknown;
   type?: unknown;
   risk_rating?: unknown;
+  source_document_id?: unknown;
+  method?: unknown;
 }
 
 interface SummaryRowInput {
@@ -44,11 +46,13 @@ export const mapFinancialTransactionDto = (row: TransactionRowInput): FinancialT
   fromEntityName: asNullableString(row.from_entity_name ?? row.from_entity),
   toEntityName: asNullableString(row.to_entity_name ?? row.to_entity),
   amount: Number(row.amount || 0),
-  currency: String(row.currency || 'USD'),
+  currency: String(row.currency || ''),
   date: String(row.transaction_date ?? row.date ?? ''),
   description: asNullableString(row.description),
   transactionType: asNullableString(row.transaction_type ?? row.type),
   riskRating: row.risk_rating != null ? Number(row.risk_rating) : null,
+  sourceDocumentId: asNullableString(row.source_document_id),
+  method: asNullableString(row.method),
 });
 
 export const mapFinancialSummaryDto = (data: SummaryRowInput): FinancialSummaryDto => ({

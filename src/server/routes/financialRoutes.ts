@@ -31,10 +31,10 @@ router.get(
   validate(financialTransactionsQuerySchema),
   async (req, res, next) => {
     try {
-      const { limit } = req.query as unknown as z.infer<
+      const { limit, offset } = req.query as unknown as z.infer<
         typeof financialTransactionsQuerySchema
       >['query'];
-      const transactions = await financialRepository.getTransactions(limit);
+      const transactions = await financialRepository.getTransactions(limit, offset);
       res.json(transactions.map(mapFinancialTransactionDto));
     } catch (error) {
       next(error);

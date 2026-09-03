@@ -1,5 +1,27 @@
 # Release Notes
 
+## 22.6.12 - 2026-09-04 - Source-led Financial Review
+
+### Financial evidence
+
+- Replace speculative flow and pattern displays with chronological, searchable financial records and direct source-document links.
+- Expose stored provenance and payment methods in list and detail responses. Do not substitute wire transfers or USD when those fields are missing.
+- Keep stated amounts separate by currency and label sums as extracted mentions, not verified transfers or net flow.
+- Add source-link and unknown-party review queues, currency filters, scoped JSON exports, and explicit loading, empty, and error states.
+- Remove silent snapshot substitution and fixed-confidence laundering claims. Explain extraction limits, duplicate mentions, and incomplete source dates.
+
+### Browsing and API
+
+- Add bounded offset pagination with a stable date-and-ID order. Load older records in batches and render additional cards on demand.
+- Use the authenticated API client and validate financial responses against a shared contract.
+- Sign guest financial reads and reuse signature verification only within the same request. Retain replay rejection across separate requests.
+- Preserve investigation-specific scope without falling back to unrelated archive records.
+
+### Verification
+
+- Add tests for provenance mapping, currency isolation, missing information, and invalid payload handling.
+- This release changes presentation and read APIs. It does not verify financial allegations or modify extracted evidence.
+
 ## 22.6.11 - 2026-09-04 - Stable FAQ Carousel Height
 
 ### About page

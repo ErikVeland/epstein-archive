@@ -56,13 +56,13 @@ export const financialRepository = {
       from_entity: String(r.from_entity || ''),
       to_entity: String(r.to_entity || ''),
       amount: Number(r.amount || 0),
-      currency: String(r.currency || 'USD'),
+      currency: String(r.currency || ''),
       transaction_date:
         r.transaction_date instanceof Date
           ? r.transaction_date.toISOString()
           : String(r.transaction_date || ''),
-      transaction_type: String(r.transaction_type || 'transfer'),
-      method: String(r.method || 'wire'),
+      transaction_type: String(r.transaction_type || ''),
+      method: String(r.method || ''),
       risk_level: String(r.risk_level || 'medium'),
       description: String(r.description || ''),
       investigation_id: r.investigation_id ? Number(r.investigation_id) : undefined,
@@ -73,14 +73,17 @@ export const financialRepository = {
     };
   },
 
-  getTransactions: async (limit: number = 100): Promise<FinancialTransaction[]> => {
-    const rows = await financialQueries.getTransactions.run({ limit }, getApiPool());
+  getTransactions: async (
+    limit: number = 100,
+    offset: number = 0,
+  ): Promise<FinancialTransaction[]> => {
+    const rows = await financialQueries.getTransactions.run({ limit, offset }, getApiPool());
     return rows.map((r: IGetTransactionsResult) => ({
       id: Number(r.id),
       from_entity: r.from_entity,
       to_entity: r.to_entity,
       amount: Number(r.amount),
-      currency: r.currency || 'USD',
+      currency: r.currency || '',
       transaction_date:
         r.transaction_date instanceof Date
           ? r.transaction_date.toISOString()
@@ -108,7 +111,7 @@ export const financialRepository = {
       from_entity: r.from_entity,
       to_entity: r.to_entity,
       amount: Number(r.amount),
-      currency: r.currency || 'USD',
+      currency: r.currency || '',
       transaction_date:
         r.transaction_date instanceof Date
           ? r.transaction_date.toISOString()
@@ -131,7 +134,7 @@ export const financialRepository = {
       from_entity: r.from_entity,
       to_entity: r.to_entity,
       amount: Number(r.amount),
-      currency: r.currency || 'USD',
+      currency: r.currency || '',
       transaction_date:
         r.transaction_date instanceof Date
           ? r.transaction_date.toISOString()

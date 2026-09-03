@@ -5,6 +5,8 @@ import Icon from '@client/components/common/Icon';
 import { ShareCitationBar } from '@client/components/common/ShareCitationBar';
 import { Surface } from '@client/design-system/lib';
 import styles from './SharedDetailPage.module.css';
+import { financialAmount, financialDate } from '@client/utils/financialReview';
+import { financialRecordSchema } from '@shared/contracts/financial';
 
 interface FinancialDetail {
   id: string;
@@ -16,14 +18,12 @@ interface FinancialDetail {
   description: string | null;
   transactionType: string | null;
   riskRating: number | null;
+  sourceDocumentId?: string | null;
+  method?: string | null;
 }
 
 function formatCurrency(amount: number, currency: string) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency || 'USD',
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
+  return financialAmount(amount, currency);
 }
 
 export function FinancialTransactionDetailPage() {
@@ -33,7 +33,7 @@ export function FinancialTransactionDetailPage() {
     queryFn: async () => {
       const response = await fetch(`/api/financial/transactions/${encodeURIComponent(id)}`);
       if (!response.ok) throw new Error('Transaction not found');
-      return (await response.json()) as FinancialDetail;
+      return financialRecordSchema.parse(await response.json());
     },
     enabled: !!id,
   });
@@ -74,6 +74,14 @@ export function FinancialTransactionDetailPage() {
           may require normalization or human review.
         </p>
         <ShareCitationBar title={title} citation={citation} />
+        {data?.sourceDocumentId && (
+          <Link to={`/documents?id=${encodeURIComponent(data.sourceDocumentId)}`}>
+            Open original source document →
+          </Link>
+        )}
+        {data && !data.sourceDocumentId && (
+          <p>Source document link unavailable. This record is not independently verified.</p>
+        )}
       </Surface>
       <div className={styles.grid}>
         <Surface variant="panel" className={styles.card}>
@@ -102,9 +110,7 @@ export function FinancialTransactionDetailPage() {
             </div>
             <div className={styles.fact}>
               <span className={styles.label}>Date</span>
-              <span className={styles.value}>
-                {data?.date ? new Date(data.date).toLocaleDateString() : '—'}
-              </span>
+              <span className={styles.value}>{financialDate(data?.date || '')}</span>
             </div>
             <div className={styles.fact}>
               <span className={styles.label}>Description</span>
