@@ -1,5 +1,24 @@
 # Release Notes
 
+## 22.6.8 - 2026-09-04 - Timeline Player Paths
+
+### Visual exploration
+
+- Add an alternate Player paths view beside the existing chronology, with coloured lanes and selectable year nodes.
+- Toggle individual people and organisations, filter by decade and event type, or isolate events shared by selected names. Existing significance filters apply to both views.
+- Keep names visible while the map scrolls horizontally. The record inspector moves below the map on smaller screens.
+
+### Evidence boundaries
+
+- Draw shared-event links only when the same timeline record explicitly lists both names. Do not infer contact, causation, or wrongdoing from a link.
+- Keep unresolved names separate from linked entity identities. Open linked profiles and existing event source details directly.
+- Label missing direct sources and unnamed records. Equal-width year columns are an exploration aid, not an elapsed-time scale.
+- Reuse the current timeline feed without changing evidence, enrichment data, or database schema. This view does not independently verify existing timeline entries.
+
+### Verification
+
+- Add regression checks for duplicate names, unresolved identities, shared-event filtering, chronological order, invalid dates, and empty selections.
+
 ## 22.6.7 - 2026-09-04 - Black Book Source Integrity and Identity Review
 
 ### Original evidence

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../common/CloseButton';
 import { useFilters } from '@client/contexts/useFilters';
@@ -11,13 +11,15 @@ import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import { EntityMentionPill } from '../common/EntityMentionPill';
 import styles from './Timeline.module.css';
+import { AnimatedSegmentedControl } from '../common/AnimatedSegmentedControl';
+import { PlayerTimeline } from './PlayerTimeline';
 
 interface EntityLink {
   id: number;
   name: string;
 }
 
-interface TimelineEvent {
+export interface TimelineEvent {
   id: string;
   date: Date;
   title: string;
@@ -56,6 +58,16 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [supportLoading, setSupportLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = searchParams.get('view') === 'players' ? 'players' : 'chronology';
+  const setView = (value: 'chronology' | 'players') => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      if (value === 'players') next.set('view', value);
+      else next.delete('view');
+      return next;
+    });
+  };
   const [filteredSignificance, setFilteredSignificance] = useState<('high' | 'medium' | 'low')[]>([
     'high',
     'medium',
@@ -107,7 +119,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
     items.forEach((item) => observer.observe(item));
 
     return () => observer.disconnect();
-  }, [sortedEvents]);
+  }, [sortedEvents, view]);
 
   const toggleSignificanceFilter = (significance: 'high' | 'medium' | 'low') => {
     setFilteredSignificance((prev) => {
@@ -349,6 +361,15 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
     <div className={`${styles.root} ${className}`}>
       <div className={styles.stickyHeader}>
         <div className={styles.filterRow}>
+          <AnimatedSegmentedControl
+            value={view}
+            onChange={setView}
+            ariaLabel="Timeline view"
+            options={[
+              { value: 'chronology', label: 'Chronology', icon: 'Calendar' },
+              { value: 'players', label: 'Player paths', icon: 'Users' },
+            ]}
+          />
           <div className={styles.significanceFilters}>
             <Button
               variant="ghost"
@@ -394,109 +415,117 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
 
           <div className={styles.spacer}></div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-            className={styles.sortButton}
-            title={sortOrder === 'desc' ? 'Showing newest first' : 'Showing oldest first'}
-          >
-            {sortOrder === 'desc' ? (
-              <>
-                <Icon name="ArrowDown" className={styles.sortIcon} />
-                <span>Newest First</span>
-              </>
-            ) : (
-              <>
-                <Icon name="ArrowUp" className={styles.sortIcon} />
-                <span>Oldest First</span>
-              </>
-            )}
-          </Button>
+          {view === 'chronology' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
+              className={styles.sortButton}
+              title={sortOrder === 'desc' ? 'Showing newest first' : 'Showing oldest first'}
+            >
+              {sortOrder === 'desc' ? (
+                <>
+                  <Icon name="ArrowDown" className={styles.sortIcon} />
+                  <span>Newest First</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="ArrowUp" className={styles.sortIcon} />
+                  <span>Oldest First</span>
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className={styles.timelineContainer} ref={containerRef}>
-        <ScopedErrorBoundary
-          fallback={
-            <div className={styles.errorCard}>
-              <p className={styles.errorTitle}>Timeline Event Error</p>
-              <p>One or more events failed to render. The dataset may contain invalid entries.</p>
-            </div>
-          }
-        >
-          {sortedEvents.map((event, index) => {
-            const year = event.date.getFullYear();
-            const prevYear = index > 0 ? sortedEvents[index - 1].date.getFullYear() : null;
-            const showYearDivider = year !== prevYear;
+      {view === 'players' ? (
+        <PlayerTimeline events={filteredEvents} onOpenEvent={setSelectedEvent} />
+      ) : (
+        <div className={styles.timelineContainer} ref={containerRef}>
+          <ScopedErrorBoundary
+            fallback={
+              <div className={styles.errorCard}>
+                <p className={styles.errorTitle}>Timeline Event Error</p>
+                <p>One or more events failed to render. The dataset may contain invalid entries.</p>
+              </div>
+            }
+          >
+            {sortedEvents.map((event, index) => {
+              const year = event.date.getFullYear();
+              const prevYear = index > 0 ? sortedEvents[index - 1].date.getFullYear() : null;
+              const showYearDivider = year !== prevYear;
 
-            return (
-              <React.Fragment key={event.id}>
-                {showYearDivider && (
-                  <div className={styles.yearBlock}>
-                    <span className={styles.yearGlyph}>{year}</span>
-                    <div className={styles.yearRule} />
-                  </div>
-                )}
-                <div className={styles.eventItem} style={{ '--i': index } as React.CSSProperties}>
-                  <div className={`${styles.timelineDot} ${getDotClass(event.significance)}`} />
-
-                  <div
-                    className={`${styles.eventCard} ${getSignificanceCardClass(event)}`}
-                    onClick={() => setSelectedEvent(event)}
-                  >
-                    <div className={styles.eventMetaRow}>
-                      <div className={`${styles.typeBadge} ${getTypeBadgeClass(event.type)}`}>
-                        {getTypeIcon(event.type)}
-                        <span>{event.type}</span>
-                      </div>
-                      {event.is_curated && <span className={styles.keyEventBadge}>KEY EVENT</span>}
-                      <span className={styles.datePill}>{formatDate(event.date)}</span>
+              return (
+                <React.Fragment key={event.id}>
+                  {showYearDivider && (
+                    <div className={styles.yearBlock}>
+                      <span className={styles.yearGlyph}>{year}</span>
+                      <div className={styles.yearRule} />
                     </div>
+                  )}
+                  <div className={styles.eventItem} style={{ '--i': index } as React.CSSProperties}>
+                    <div className={`${styles.timelineDot} ${getDotClass(event.significance)}`} />
 
-                    <h3 className={styles.eventTitle}>{event.title}</h3>
-
-                    <p className={styles.eventDescription}>{event.description}</p>
-
-                    {event.entities.length > 0 && (
-                      <div className={styles.pillRow}>
-                        {event.entities.slice(0, 4).map((entity, i) => (
-                          <EntityMentionPill
-                            key={i}
-                            entityId={typeof entity === 'object' && entity.id ? entity.id : null}
-                            entityName={typeof entity === 'string' ? entity : entity.name}
-                            onOpen={openEntity}
-                            showIcon={false}
-                          />
-                        ))}
-                        {event.entities.length > 4 && (
-                          <span className={styles.pill}>+{event.entities.length - 4} more</span>
+                    <div
+                      className={`${styles.eventCard} ${getSignificanceCardClass(event)}`}
+                      onClick={() => setSelectedEvent(event)}
+                    >
+                      <div className={styles.eventMetaRow}>
+                        <div className={`${styles.typeBadge} ${getTypeBadgeClass(event.type)}`}>
+                          {getTypeIcon(event.type)}
+                          <span>{event.type}</span>
+                        </div>
+                        {event.is_curated && (
+                          <span className={styles.keyEventBadge}>KEY EVENT</span>
                         )}
+                        <span className={styles.datePill}>{formatDate(event.date)}</span>
                       </div>
-                    )}
 
-                    {hasSupportSignal(event.support) && event.support && (
-                      <div className={styles.supportRow}>
-                        <span className={styles.supportPill}>
-                          {event.support.evidence_count} evidence
-                        </span>
-                        <span className={styles.supportPill}>
-                          {event.support.document_count} docs
-                        </span>
-                        {event.support.media_count > 0 && (
+                      <h3 className={styles.eventTitle}>{event.title}</h3>
+
+                      <p className={styles.eventDescription}>{event.description}</p>
+
+                      {event.entities.length > 0 && (
+                        <div className={styles.pillRow}>
+                          {event.entities.slice(0, 4).map((entity, i) => (
+                            <EntityMentionPill
+                              key={i}
+                              entityId={typeof entity === 'object' && entity.id ? entity.id : null}
+                              entityName={typeof entity === 'string' ? entity : entity.name}
+                              onOpen={openEntity}
+                              showIcon={false}
+                            />
+                          ))}
+                          {event.entities.length > 4 && (
+                            <span className={styles.pill}>+{event.entities.length - 4} more</span>
+                          )}
+                        </div>
+                      )}
+
+                      {hasSupportSignal(event.support) && event.support && (
+                        <div className={styles.supportRow}>
                           <span className={styles.supportPill}>
-                            {event.support.media_count} media
+                            {event.support.evidence_count} evidence
                           </span>
-                        )}
-                      </div>
-                    )}
+                          <span className={styles.supportPill}>
+                            {event.support.document_count} docs
+                          </span>
+                          {event.support.media_count > 0 && (
+                            <span className={styles.supportPill}>
+                              {event.support.media_count} media
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </React.Fragment>
-            );
-          })}
-        </ScopedErrorBoundary>
-      </div>
+                </React.Fragment>
+              );
+            })}
+          </ScopedErrorBoundary>
+        </div>
+      )}
 
       {selectedEvent &&
         createPortal(
