@@ -704,6 +704,10 @@ if [ "$DEPLOY_DB" = true ]; then
 
       echo 'Installing dependencies for migration phase...'
       pnpm install --frozen-lockfile
+      if [ ! -x .venv/bin/python ] || ! .venv/bin/python -c 'import pymupdf' >/dev/null 2>&1; then
+        echo 'Installing evidence pipeline Python dependencies...'
+        pnpm pipeline:python:setup
+      fi
 
       # CERT_STEP: pg_dump_pre_migration_backup
       echo 'Creating Postgres pre-migration backup...'

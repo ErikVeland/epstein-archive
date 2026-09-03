@@ -1,262 +1,126 @@
-# IMPORANT: DO NOT DELETE THIS SCRIPT.
-# It is a critical component of the ingestion pipeline for recovering redacted text.
-# Restored from: https://github.com/OpLuminA/unredact.py
+"""Detect text concealed by PDF drawing overlays without modifying source evidence.
 
-import os
-import fitz  # PyMuPDF
-import glob
+This scanner reports a recovery only when a later opaque vector rectangle covers an
+earlier machine-readable text span. The derived PDF is a byte-for-byte source copy;
+the JSON sidecar contains the auditable findings.
+"""
+
 import argparse
-import sys
 import csv
+import glob
 import json
+import os
+import shutil
+import sys
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# os.chdir(BASE_DIR)  <-- Removed to support relative paths from caller CWD
+import pymupdf as fitz
 
-def clean_vector_redactions(page):
-    cleaned_drawings = []
-    removed_rects = []
-    black_v_removed = 0
-    white_v_removed = 0
-    drawings = page.get_drawings()
-    
-    for path in drawings:
-        is_redaction = False
-        fill_color = path.get("fill")
-        stroke_color = path.get("color")
-        
-        if fill_color:
-            if all(c < 0.05 for c in fill_color):
-                bbox = path["rect"]
-                if bbox.width > 5 and bbox.height > 5:
-                    is_redaction = True
-                    black_v_removed += 1
-        
-        if not is_redaction and stroke_color:
-            if all(c < 0.05 for c in stroke_color) and path.get("width", 0) > 10:
-                is_redaction = True
-                black_v_removed += 1
 
-        if not is_redaction and fill_color:
-            if all(c > 0.95 for c in fill_color):
-                bbox = path["rect"]
-                if bbox.width > 5 and bbox.height > 5:
-                    is_redaction = True
-                    white_v_removed += 1
+def _is_opaque_redaction_candidate(path, page_area):
+    fill = path.get("fill")
+    rect = path.get("rect")
+    if fill is None or rect is None or path.get("fill_opacity", 1) < 0.95:
+        return False
+    is_black = all(channel <= 0.08 for channel in fill)
+    is_white = all(channel >= 0.92 for channel in fill)
+    if not (is_black or is_white):
+        return False
+    if rect.width < 8 or rect.height < 4 or rect.height > 120:
+        return False
+    if rect.get_area() > page_area * 0.25 or rect.width / max(rect.height, 1) < 1.25:
+        return False
+    return True
 
-        if is_redaction:
-            removed_rects.append(path["rect"])
-        else:
-            cleaned_drawings.append(path)
-            
-    return cleaned_drawings, black_v_removed, white_v_removed, removed_rects
 
-def process_file(file_path, output_folder, remove_bbox, highlight_text, custom_name=None):
-    base_fname = os.path.basename(file_path)
-    fname_no_ext = os.path.splitext(base_fname)[0]
-    
-    if custom_name:
-        final_name = custom_name if custom_name.lower().endswith(".pdf") else f"{custom_name}.pdf"
-    else:
-        final_name = f"{fname_no_ext}_UNREDACTED.pdf"
-        
-    json_name = f"{os.path.splitext(final_name)[0]}.json"
+def _trace_text(trace):
+    return "".join(chr(char[0]) for char in trace.get("chars", []) if char and char[0] > 0).strip()
 
-    stats = {"black_img": 0, "white_img": 0, "black_vec": 0, "white_vec": 0, "annots": 0}
-    
-    # Store found unredacted spans
-    unredacted_data = {
-        "original_file": base_fname,
-        "spans": []
-    }
 
-    print(f"\n[STARTING] {base_fname} -> {final_name}")
-    try:
-        doc = fitz.open(file_path)
-        total_pages = len(doc)
-        new_doc = fitz.open() 
-        
-        for page_index, page in enumerate(doc):
-            current_pg = page_index + 1
-            print(f"  [PROCESSING] Page {current_pg} of {total_pages}...", end='\r')
-            
-            page.set_cropbox(page.rect)
-            page.set_mediabox(page.rect)
+def detect_overlay_text(page, page_number):
+    findings = []
+    seen = set()
+    text_traces = page.get_texttrace()
+    for drawing in page.get_drawings():
+        if not _is_opaque_redaction_candidate(drawing, page.rect.get_area()):
+            continue
+        overlay_rect = fitz.Rect(drawing["rect"])
+        overlay_seq = int(drawing.get("seqno", -1))
+        for trace in text_traces:
+            text_seq = int(trace.get("seqno", sys.maxsize))
+            if overlay_seq <= text_seq:
+                continue
+            text = _trace_text(trace)
+            if not text:
+                continue
+            text_rect = fitz.Rect(trace.get("bbox", (0, 0, 0, 0)))
+            if text_rect.is_empty:
+                continue
+            intersection = overlay_rect & text_rect
+            overlap = intersection.get_area() / max(text_rect.get_area(), 1)
+            if overlap < 0.55:
+                continue
+            key = (text, tuple(round(value, 2) for value in text_rect))
+            if key in seen:
+                continue
+            seen.add(key)
+            findings.append(
+                {
+                    "kind": "overlay_text_exposed",
+                    "page": page_number,
+                    "text": text,
+                    "bbox": list(text_rect),
+                    "redaction_bbox": list(overlay_rect),
+                    "confidence": round(min(0.99, 0.86 + overlap * 0.13), 3),
+                    "evidence": [
+                        "machine-readable text precedes opaque vector rectangle",
+                        f"{overlap:.0%} of text bounds covered",
+                    ],
+                    "method": "pdf_object_order_v2",
+                }
+            )
+    return findings
 
-            removed_rects_on_page = []
 
-            if remove_bbox == 1:
-                page_annots = list(page.annots())
-                stats["annots"] += len(page_annots)
-                for annot in page_annots:
-                    # Treat annots (like redaction annotations) as removed regions too?
-                    # Often they are just markup. Let's start with vector/image based.
-                    page.delete_annot(annot)
+def process_file(file_path, output_folder, custom_name=None):
+    base_name = os.path.basename(file_path)
+    stem = os.path.splitext(base_name)[0]
+    final_name = custom_name or f"{stem}_UNREDACTED.pdf"
+    if not final_name.lower().endswith(".pdf"):
+        final_name += ".pdf"
+    os.makedirs(output_folder, exist_ok=True)
 
-            new_page = new_doc.new_page(width=page.rect.width, height=page.rect.height)
-            
-            page_images = page.get_images(full=True)
-            for img in page_images:
-                xref = img[0]
-                try:
-                    img_rects = page.get_image_rects(xref)
-                    if not img_rects: continue
-                    target_rect = img_rects[0]
-                    
-                    if target_rect.height > 10:
-                        pix = fitz.Pixmap(doc, xref)
-                        should_keep = True
-                        if remove_bbox == 1:
-                            check_pix = fitz.Pixmap(fitz.csRGB, pix) if pix.colorspace.n > 3 else pix
-                            pixels = check_pix.samples
-                            avg_brightness = sum(pixels) / len(pixels)
-                            
-                            is_black_rect = False
-                            if avg_brightness < 15:
-                                is_black_rect = True
-                                stats["black_img"] += 1
-                            if avg_brightness > 240:
-                                # White rects usually hide text too
-                                is_black_rect = True 
-                                stats["white_img"] += 1
-                            
-                            if is_black_rect:
-                                should_keep = False
-                                removed_rects_on_page.append(target_rect)
-                                
-                            if should_keep and check_pix != pix: check_pix = None
+    payload = {"original_file": base_name, "scanner_version": "2", "spans": []}
+    with fitz.open(file_path) as document:
+        for page_index, page in enumerate(document):
+            payload["spans"].extend(detect_overlay_text(page, page_index + 1))
 
-                        if should_keep:
-                            new_page.insert_image(target_rect, pixmap=pix)
-                        pix = None 
-                except: continue
+    output_pdf = os.path.join(output_folder, final_name)
+    shutil.copy2(file_path, output_pdf)
+    json_path = os.path.join(output_folder, f"{os.path.splitext(final_name)[0]}.json")
+    with open(json_path, "w", encoding="utf-8") as output:
+        json.dump(payload, output, ensure_ascii=False, indent=2)
+    print(f"[FORENSIC] {base_name}: {len(payload['spans'])} covered text spans")
+    return [base_name, len(payload["spans"])]
 
-            if remove_bbox == 1:
-                safe_drawings, b_rem, w_rem, v_rects = clean_vector_redactions(page)
-                stats["black_vec"] += b_rem
-                stats["white_vec"] += w_rem
-                removed_rects_on_page.extend(v_rects)
-                
-                shape = new_page.new_shape()
-                for path in safe_drawings:
-                    for item in path["items"]:
-                        if item[0] == "l": shape.draw_line(item[1], item[2])
-                        elif item[0] == "re": shape.draw_rect(item[1])
-                        elif item[0] == "qu": shape.draw_quad(item[1])
-                        elif item[0] == "c": shape.draw_bezier(item[1], item[2], item[3], item[4])
-                    shape.finish(
-                        fill=path.get("fill"), 
-                        color=path.get("color"), 
-                        width=path.get("width", 1),
-                        fill_opacity=path.get("fill_opacity", 1)
-                    )
-                shape.commit()
-            else:
-                shape = new_page.new_shape()
-                for path in page.get_drawings():
-                    for item in path["items"]:
-                        if item[0] == "l": shape.draw_line(item[1], item[2])
-                        elif item[0] == "re": shape.draw_rect(item[1])
-                    shape.finish(fill=path.get("fill"), color=path.get("color"))
-                shape.commit()
 
-            text_dict = page.get_text("dict")
-            for block in text_dict["blocks"]:
-                for line in block.get("lines", []):
-                    for span in line.get("spans", []):
-                        text = span["text"].strip()
-                        if text:
-                            # Check if this text was under a removed redaction
-                            bbox = fitz.Rect(span["bbox"])
-                            was_covered = False
-                            for r_rect in removed_rects_on_page:
-                                # Loose intersection or containment?
-                                # Let's say if > 30% of area? 
-                                # Or just simple intersection since redactions usually cover well.
-                                if bbox.intersects(r_rect):
-                                    was_covered = True
-                                    break
-                            
-                            if was_covered:
-                                unredacted_data["spans"].append({
-                                    "page": current_pg,
-                                    "text": text,
-                                    "bbox": list(span["bbox"]), # [x0, y0, x1, y1]
-                                    "rect": [bbox.x0, bbox.y0, bbox.x1, bbox.y1]
-                                })
-                            
-                            # Highlight unredacted text in the PDF output?
-                            # User arg: highlight_text
-                            text_color = (1, 0, 0) if (highlight_text == 1 and was_covered) else (0, 0, 0)
-                            
-                            new_page.insert_text(
-                                span["origin"], 
-                                span["text"], 
-                                fontsize=span["size"], 
-                                color=text_color,
-                                overlay=True,
-                                render_mode=0,
-                                fill_opacity=1.0
-                            )
+def run_operation(input_path, output_folder, custom_name):
+    files = [input_path] if os.path.isfile(input_path) else glob.glob(os.path.join(input_path, "*.pdf"))
+    if not files:
+        raise FileNotFoundError(f"No PDF input found: {input_path}")
+    rows = [process_file(path, output_folder, custom_name if len(files) == 1 else None) for path in files]
+    if rows:
+        with open(os.path.join(output_folder, "summary_of_changes.csv"), "w", newline="", encoding="utf-8") as output:
+            writer = csv.writer(output)
+            writer.writerow(["Filename", "Overlay_Text_Findings"])
+            writer.writerows(rows)
 
-        summary = (f"\n  [SUMMARY] Removed: {stats['black_img']} BlackImg, {stats['white_img']} WhiteImg, "
-                   f"{stats['black_vec']} BlackVec, {stats['white_vec']} WhiteVec, {stats['annots']} Annots")
-        print(summary)
-        
-        out_path = os.path.join(output_folder, final_name)
-        new_doc.save(out_path, garbage=3, deflate=False)
-        doc.close()
-        new_doc.close()
-        
-        # Save JSON
-        json_path = os.path.join(output_folder, json_name)
-        with open(json_path, 'w') as f:
-            json.dump(unredacted_data, f, indent=2)
-            
-        print(f"✅ Success: Saved to {out_path}")
-        print(f"📊 Spans saved to {json_path}")
-        
-        return [base_fname, stats['black_img'], stats['white_img'], stats['black_vec'], stats['white_vec'], stats['annots']]
-        
-    except Exception as e:
-        print(f"\n❌ Error processing {base_fname}: {e}")
-        import traceback
-        traceback.print_exc()
-        return None
-
-def run_operation(input_path, output_folder, remove_bbox, highlight_text, custom_name):
-    if not os.path.exists(output_folder): 
-        os.makedirs(output_folder)
-    
-    log_data = []
-    
-    if os.path.isfile(input_path):
-        result = process_file(input_path, output_folder, remove_bbox, highlight_text, custom_name)
-        if result: log_data.append(result)
-    elif os.path.isdir(input_path):
-        files = glob.glob(os.path.join(input_path, "*.pdf"))
-        for file_path in files:
-            result = process_file(file_path, output_folder, remove_bbox, highlight_text, None)
-            if result: log_data.append(result)
-    
-    if log_data:
-        csv_path = os.path.join(output_folder, "summary_of_changes.csv")
-        headers = ["Filename", "Black_Images", "White_Images", "Black_Vectors", "White_Vectors", "Annotations"]
-        with open(csv_path, "w", newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(headers)
-            writer.writerows(log_data)
-        print(f"\n📊 Summary CSV saved to: {csv_path}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("-i", "--input", type=str)
-    parser.add_argument("-o", "--output", type=str)
-    parser.add_argument("-n", "--name", type=str)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input", required=True)
+    parser.add_argument("-o", "--output", required=True)
+    parser.add_argument("-n", "--name")
     parser.add_argument("-b", "--bbox", type=int, default=1)
-    parser.add_argument("--highlight", "--hl", type=int, default=1)
-    args, unknown = parser.parse_known_args()
-
-    in_path = (args.input if args.input else input("Input Path: ")).strip().replace('"', '')
-    out_dir = (args.output if args.output else input("Output Folder: ")).strip().replace('"', '')
-    run_operation(in_path, out_dir, args.bbox, args.highlight, args.name)
+    parser.add_argument("--highlight", "--hl", type=int, default=0)
+    args = parser.parse_args()
+    run_operation(args.input, args.output, args.name)

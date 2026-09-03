@@ -24,6 +24,21 @@ export interface EnrichmentOutput {
   isSensitive: boolean;
 }
 
+export interface RedactionContextCandidate {
+  value: string;
+  category: 'name' | 'identifier';
+  entityId: string | null;
+  corroboratingDocumentCount: number;
+}
+
+export interface RedactionContextInference {
+  candidate: RedactionContextCandidate;
+  confidence: number;
+  rationale: string;
+  modelId: string;
+  promptVersion: 'redaction-context-v1';
+}
+
 export class ExoModelUnavailableError extends Error {
   constructor(message: string) {
     super(message);
@@ -279,13 +294,21 @@ export class AIEnrichmentService {
       maxTokens?: number;
       temperature?: number;
       retryCount?: number;
+      timeoutMs?: number;
       task?: 'repair' | 'classify' | 'resolve' | 'summarize' | 'graph' | 'vision';
       images?: Buffer[];
       modelId?: string;
     } = {},
   ): Promise<string> {
     const provider = process.env.AI_PROVIDER || 'local_ollama';
-    const { maxTokens = 100, temperature = 0.1, retryCount = 2, task, images } = options;
+    const {
+      maxTokens = 100,
+      temperature = 0.1,
+      retryCount = 2,
+      timeoutMs = this.AI_REQUEST_TIMEOUT_MS,
+      task,
+      images,
+    } = options;
 
     let attempt = 0;
     // Track how many different models we've tried to avoid an infinite model-switch loop
@@ -324,7 +347,7 @@ export class AIEnrichmentService {
               // returned directly rather than consumed by reasoning_content.
               enable_thinking: false,
             }),
-            signal: AbortSignal.timeout(this.AI_REQUEST_TIMEOUT_MS),
+            signal: AbortSignal.timeout(timeoutMs),
           });
 
           if (!response.ok) {
@@ -394,7 +417,7 @@ export class AIEnrichmentService {
               stream: false,
               options: { temperature, num_predict: maxTokens },
             }),
-            signal: AbortSignal.timeout(this.AI_REQUEST_TIMEOUT_MS),
+            signal: AbortSignal.timeout(timeoutMs),
           });
 
           if (!response.ok) {
@@ -832,6 +855,80 @@ ${entityList}
       return { entityId: null, confidence: 0, canonicalName: null };
     } catch (_e) {
       return { entityId: null, confidence: 0, canonicalName: null };
+    }
+  }
+
+  /**
+   * Rank a closed list of evidence-backed candidates for a redacted span.
+   * The model cannot invent a name or identifier outside the supplied list.
+   */
+  static async inferRedactionCandidate(
+    preContext: string,
+    postContext: string,
+    candidates: RedactionContextCandidate[],
+  ): Promise<RedactionContextInference | null> {
+    if (!this.aiEnabled || candidates.length === 0) return null;
+
+    const allowed = candidates.slice(0, 40);
+    const candidateList = allowed
+      .map(
+        (candidate, index) =>
+          `${index + 1}. ${candidate.value} [${candidate.category}; ` +
+          `${candidate.corroboratingDocumentCount} corroborating documents]`,
+      )
+      .join('\n');
+    const promptVersion = 'redaction-context-v1' as const;
+    const prompt = `### TASK
+Rank a possible value for one redacted span using only the supplied evidence.
+
+### CONTEXT BEFORE
+${preContext.slice(-700)}
+
+### REDACTED SPAN
+[REDACTED]
+
+### CONTEXT AFTER
+${postContext.slice(0, 700)}
+
+### ALLOWED CANDIDATES
+${candidateList}
+
+### RULES
+- Select only one numbered candidate from the list, or NONE.
+- Do not infer guilt, conduct, or a new identity.
+- Use a low score when several candidates fit.
+- Confidence measures contextual fit, not truth.
+- Output one line: CANDIDATE: <number> | <0.00-1.00> | <short rationale>
+- If the evidence is insufficient, output: NONE`;
+
+    try {
+      const modelId = await this.getModelId('resolve');
+      const output = await this.callLLM(prompt, {
+        maxTokens: 100,
+        temperature: 0,
+        retryCount: 0,
+        timeoutMs: 30_000,
+        task: 'resolve',
+        modelId,
+      });
+      const match = output.match(
+        /^CANDIDATE:\s*(\d+)\s*\|\s*([01](?:\.\d+)?)\s*\|\s*(.{1,240})$/im,
+      );
+      if (!match) return null;
+      const candidate = allowed[Number(match[1]) - 1];
+      if (!candidate) return null;
+      const confidence = Math.min(0.95, Math.max(0, Number(match[2]) || 0));
+      if (confidence < 0.55) return null;
+      return {
+        candidate,
+        confidence,
+        rationale: match[3].trim(),
+        modelId,
+        promptVersion,
+      };
+    } catch (error) {
+      logger.warn({ err: error }, '[AIEnrichment] redaction candidate inference failed');
+      return null;
     }
   }
 

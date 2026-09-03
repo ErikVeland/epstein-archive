@@ -1,5 +1,32 @@
 # Release Notes
 
+## 22.6.0 - 2026-09-04 - Redaction Intelligence
+
+### Evidence recovery
+
+- **The archive now detects false PDF redactions without altering source files.** The scanner reports machine-readable text only when a later opaque drawing object covers it. Every finding retains its page, bounds, source hash, method, and confidence.
+- **Original PDFs remain byte-for-byte unchanged.** The forensic output is a findings sidecar and an identical working copy. The pipeline no longer deletes drawings, images, or annotations from evidence.
+
+### Contextual hypotheses
+
+- **EXO can rank possible names and identifiers from a closed evidence set.** Candidates must already occur in the document, its entity links, or visible identifiers. The model cannot add an unsupported identity.
+- **Protected identity categories are excluded from candidate generation.** Survivor, victim, and minor entity records cannot become contextual unredaction suggestions.
+- **Low-fit candidates remain unresolved.** The pipeline requires at least 55% contextual confidence before it stores a hypothesis and caps machine confidence at 95%.
+- **Each hypothesis is reviewable.** The archive stores the model, prompt version, rationale, corroborating-document count, confidence, and review state separately from canonical evidence.
+- **Confidence is not presented as truth.** The Redaction Intelligence page states that confidence measures contextual fit and does not establish identity, accuracy, guilt, or truth.
+
+### Review experience
+
+- **The Redactions page separates structural recoveries, contextual hypotheses, and unresolved gaps.** It links each finding back to the original document and page.
+- **Empty legacy attempts no longer fill the review queue.** The queue now contains only documents with stored, auditable findings.
+- **The FAQ explains the new trust boundary.** It distinguishes readable text beneath a PDF overlay from an inferred candidate and confirms that original files remain unchanged.
+
+### Pipeline and verification
+
+- **Redaction intelligence is a registered pipeline stage.** A resumable scan ledger prevents repeated work and supports bounded parallel PDF analysis.
+- **The deploy process installs the required isolated Python dependency when needed.** The scanner fails fast when PyMuPDF is unavailable.
+- **Validated shared contracts protect the API boundary.** Summary, queue, and document-finding responses reject malformed confidence or provenance data.
+
 ## 22.5.4 - 2026-09-03 - Search Highlight Isolation
 
 ### Navigation repair

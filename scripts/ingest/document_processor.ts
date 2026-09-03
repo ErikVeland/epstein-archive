@@ -539,11 +539,7 @@ export async function processDocument(
       redactionCoverageAfter = 1 - afterCoverage;
       unredactedTextGain = afterCoverage - baselineCoverage;
 
-      if (
-        pdfPathForOcr !== filePath &&
-        unredactedText &&
-        unredactedText.length > originalText.length
-      ) {
+      if (unredactedSpans && unredactedSpans.length > 0) {
         unredactionSucceeded = 1;
       }
 

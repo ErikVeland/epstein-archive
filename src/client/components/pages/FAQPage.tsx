@@ -138,7 +138,7 @@ const FAQPage = () => {
     {
       question: 'Why are some documents redacted?',
       answer:
-        'Official redactions can protect victims, private individuals, grand-jury material, investigative methods, or active matters. The archive preserves official redactions. It does not claim to recover content hidden behind them, and OCR processes only visible material.',
+        'Official redactions can protect victims, private individuals, grand-jury material, investigative methods, or active matters. The archive never changes the original file. The Redaction Intelligence view can identify text that remains machine-readable beneath a later PDF overlay. It can also rank context-supported candidates for names or identifiers, but those candidates are hypotheses. Confidence measures contextual fit, not truth, identity, or guilt.',
       icon: <Icon name="Lock" size="md" className={s.iconDanger} />,
     },
     {

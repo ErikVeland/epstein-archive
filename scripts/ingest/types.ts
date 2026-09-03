@@ -27,7 +27,18 @@ export interface CollectionConfig {
 
 export interface UnredactionResult {
   pdfPath: string;
-  unredactedSpans?: any[]; // Raw JSON from script
+  unredactedSpans?: OverlayTextFinding[];
+}
+
+export interface OverlayTextFinding {
+  kind: 'overlay_text_exposed';
+  page: number;
+  text: string;
+  bbox: number[];
+  redaction_bbox?: number[];
+  confidence: number;
+  evidence: string[];
+  method: 'pdf_object_order_v2';
 }
 
 export interface EmailMetadata {

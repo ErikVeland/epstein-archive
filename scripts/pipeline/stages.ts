@@ -42,6 +42,16 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     modes: ['full', 'ingest'],
   },
   {
+    name: 'redaction-intelligence',
+    description:
+      'Detect source-layer PDF overlays and rank closed-list contextual redaction candidates',
+    script: 'scripts/backfill_redaction_intelligence.ts',
+    phase: 'Redaction Intelligence',
+    version: 'redaction-intel-v1',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
     name: 'provenance-backfill',
     description: 'Rebuild durable source and chain-of-custody provenance for legacy documents',
     script: 'scripts/backfill_document_provenance.ts',

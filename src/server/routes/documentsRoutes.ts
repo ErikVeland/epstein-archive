@@ -3,7 +3,13 @@ import { documentsRepository } from '../db/documentsRepository.js';
 import { documentPagesRepository } from '../db/documentPagesRepository.js';
 import { documentAnnotationsRepository } from '../db/documentAnnotationsRepository.js';
 import { dataQualityRepository } from '../db/dataQualityRepository.js';
+import { redactionsRepository } from '../db/redactionsRepository.js';
 import { z } from 'zod';
+import {
+  DocumentRedactionsSchema,
+  RedactionIntelligenceSummarySchema,
+  RedactionQueueSchema,
+} from '../../shared/schemas/redactions.js';
 import { validate } from '../middleware/validate.js';
 import {
   mapDocumentsListResponseDto,
@@ -11,7 +17,6 @@ import {
 } from '../mappers/documentsDtoMapper.js';
 import { searchRepository } from '../db/searchRepository.js';
 import { icebergRepository } from '../db/icebergRepository.js';
-import { RedactionResolver } from '../services/RedactionResolver.js';
 import { AnnotationPolicyService } from '../services/AnnotationPolicyService.js';
 import { logger } from '../services/Logger.js';
 import fs from 'fs';
@@ -615,6 +620,25 @@ router.post(
   },
 );
 
+// GET /api/documents/redactions/summary
+router.get('/redactions/summary', async (_req, res, next) => {
+  try {
+    res.json(RedactionIntelligenceSummarySchema.parse(await redactionsRepository.getSummary()));
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/documents/redactions/queue
+router.get('/redactions/queue', async (req, res, next) => {
+  try {
+    const limit = Math.max(1, Math.min(200, Number(req.query.limit) || 50));
+    res.json(RedactionQueueSchema.parse(await redactionsRepository.getQueue(limit)));
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/documents/:id/redactions
 router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next) => {
   try {
@@ -622,24 +646,23 @@ router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next)
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
-    const redactionSpans = Array.isArray(doc.redaction_spans)
-      ? (doc.redaction_spans as Array<Record<string, unknown>>)
-      : [];
-    res.json({
-      hasFailedRedactions: redactionSpans.length > 0,
-      count: redactionSpans.length,
-      redactions: redactionSpans.map((s: Record<string, unknown>) => {
-        const text = String(s.original_text || '');
-        const resolution = RedactionResolver.resolve(text);
-        return {
-          page: s.page_index || 1,
-          text,
-          bbox: s.bbox || [0, 0, 0, 0],
-          resolvedText: resolution.resolvedText,
-          candidates: resolution.candidates,
-        };
+    const findings = await redactionsRepository.getDocumentFindings(String(id));
+    res.json(
+      DocumentRedactionsSchema.parse({
+        documentId: String(id),
+        sourceFileUrl: `/api/documents/${encodeURIComponent(String(id))}/file?variant=original`,
+        count: findings.length,
+        overlayRecoveryCount: findings.filter((finding) => finding.type === 'overlay_text_exposed')
+          .length,
+        hypothesisCount: findings.filter((finding) => finding.type === 'contextual_hypothesis')
+          .length,
+        unresolvedCount: findings.filter((finding) => finding.type === 'unresolved_redaction')
+          .length,
+        findings,
+        disclaimer:
+          'Confidence ranks machine-generated leads. It does not establish identity, accuracy, guilt, or truth. Verify every finding against the original document and independent evidence.',
       }),
-    });
+    );
   } catch (error) {
     next(error);
   }

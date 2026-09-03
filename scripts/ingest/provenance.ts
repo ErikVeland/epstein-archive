@@ -2,7 +2,7 @@
 // PROVENANCE — pHash generation, unredaction, redaction storage
 // ============================================================================
 
-import { join, basename, extname } from 'path';
+import { join, basename, extname, isAbsolute, resolve as resolvePath } from 'path';
 import { readFileSync, existsSync, mkdtempSync, mkdirSync, copyFileSync } from 'fs';
 import * as fs from 'fs';
 import { tmpdir } from 'os';
@@ -15,7 +15,7 @@ import {
   type RedactionInference,
 } from '../../src/server/services/RedactionClassifier.js';
 import type { IngestContext } from './context.js';
-import type { UnredactionResult } from './types.js';
+import type { OverlayTextFinding, UnredactionResult } from './types.js';
 
 export function deriveMediaTitle(filePath: string, collectionName: string): string {
   const filename = basename(filePath, extname(filePath));
@@ -106,11 +106,26 @@ export async function maybeUnredactPdf(originalPath: string): Promise<Unredactio
     try {
       const tmpDir = mkdtempSync(join(tmpdir(), 'unredact-'));
       const scriptPath = join(process.cwd(), 'scripts', 'unredact.py');
+      const managedPython = join(process.cwd(), '.venv', 'bin', 'python');
+      const pythonBin =
+        process.env.PIPELINE_PYTHON || (existsSync(managedPython) ? managedPython : 'python3');
 
-      // Use --highlight 1 to visibly mark unredacted text in the PDF
-      const args = [scriptPath, '-i', originalPath, '-o', tmpDir, '-b', '1', '--highlight', '1'];
+      const absoluteOriginalPath = isAbsolute(originalPath)
+        ? originalPath
+        : resolvePath(process.cwd(), originalPath);
+      const args = [
+        scriptPath,
+        '-i',
+        absoluteOriginalPath,
+        '-o',
+        tmpDir,
+        '-b',
+        '1',
+        '--highlight',
+        '0',
+      ];
 
-      const child = execFile('python3', args, { cwd: tmpDir }, (err) => {
+      const child = execFile(pythonBin, args, { cwd: tmpDir }, (err) => {
         if (err) {
           console.warn('  ⚠️  unredact.py failed, using original PDF:', err.message);
           // Cleanup on error
@@ -133,7 +148,7 @@ export async function maybeUnredactPdf(originalPath: string): Promise<Unredactio
         const candidateJson = join(tmpDir, `${base}_UNREDACTED.json`);
 
         if (existsSync(resultPdf)) {
-          let unredactedSpans: any[] = [];
+          let unredactedSpans: OverlayTextFinding[] = [];
 
           // Copy the result PDF out of tmp before we delete tmp
           if (!existsSync(join(process.cwd(), 'data/temp_extraction'))) {
@@ -145,8 +160,15 @@ export async function maybeUnredactPdf(originalPath: string): Promise<Unredactio
             try {
               const raw = readFileSync(candidateJson, 'utf-8');
               const data = JSON.parse(raw);
-              if (data && data.spans) {
-                unredactedSpans = data.spans;
+              if (data && Array.isArray(data.spans)) {
+                unredactedSpans = data.spans.filter((span: unknown): span is OverlayTextFinding =>
+                  Boolean(
+                    span &&
+                    typeof span === 'object' &&
+                    (span as { kind?: unknown }).kind === 'overlay_text_exposed' &&
+                    typeof (span as { text?: unknown }).text === 'string',
+                  ),
+                );
                 console.log(`   ✨ Captured ${unredactedSpans.length} unredacted text spans.`);
               }
             } catch (e) {
@@ -161,7 +183,7 @@ export async function maybeUnredactPdf(originalPath: string): Promise<Unredactio
             console.warn('  ⚠️  Failed to log unredaction stats:', e);
           }
 
-          console.log(`   🧰 Using unredacted PDF for OCR: ${candidatePdf}`);
+          console.log(`   🧰 Using evidence-preserving forensic PDF copy: ${candidatePdf}`);
           return resolve({ pdfPath: candidatePdf, unredactedSpans });
         }
 
@@ -198,16 +220,20 @@ export async function maybeUnredactPdf(originalPath: string): Promise<Unredactio
 export async function storeRedactions(
   documentId: number,
   content: string,
-  unredactedSpans: any[] | null,
+  unredactedSpans: OverlayTextFinding[] | null,
   ctx: IngestContext,
 ) {
   try {
-    const insertSpanSql = `
-      INSERT INTO redaction_spans (
-        document_id, span_start, span_end, bbox_json, redaction_kind,
-        inferred_class, inferred_role, confidence, evidence_json, page_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    `;
+    const hashResult = await ctx.db.query<{ content_hash: string | null }>(
+      'SELECT content_hash FROM documents WHERE id = $1',
+      [documentId],
+    );
+    const sourceSha256 = hashResult.rows[0]?.content_hash || null;
+    await ctx.db.query(
+      `DELETE FROM redaction_findings
+       WHERE document_id = $1 AND method IN ('pdf_object_order_v2', 'context_classifier_v2')`,
+      [documentId],
+    );
 
     // 1. Process "Faulty" Redactions (Hidden Layer Text Recovered)
     if (unredactedSpans) {
@@ -216,53 +242,57 @@ export async function storeRedactions(
         if (!cleanSpanText) continue;
 
         const idx = content.indexOf(cleanSpanText);
-        if (idx !== -1) {
-          const pre = content.substring(Math.max(0, idx - 100), idx);
-          const post = content.substring(
-            idx + cleanSpanText.length,
-            idx + cleanSpanText.length + 100,
-          );
+        const pre = idx < 0 ? '' : content.substring(Math.max(0, idx - 100), idx);
+        const post =
+          idx < 0
+            ? ''
+            : content.substring(idx + cleanSpanText.length, idx + cleanSpanText.length + 100);
 
-          let inference = RedactionClassifier.classify(pre, post);
-          // If AI enrichment enabled, try semantic classification
-          try {
-            const aiInferences = await AIEnrichmentService.classifyRedaction(pre, post);
-            if (aiInferences && aiInferences.length > 0) {
-              const top = aiInferences[0];
-              const map: Record<string, RedactionInference['inferredClass']> = {
-                PERSON: 'person',
-                ORGANIZATION: 'org',
-                LOCATION: 'location',
-                DATE: 'date',
-                FINANCIAL: 'misc',
-                LEGAL: 'misc',
-                OTHER: 'misc',
-              };
-              const mapped = map[top.type?.toUpperCase()] || 'misc';
-              inference = {
-                inferredClass: mapped,
-                inferredRole: mapped === 'misc' ? top.type?.toLowerCase() || null : null,
-                confidence: top.confidence || 0.6,
-                evidence: [top.description || 'ai_inferred'],
-              };
-            }
-          } catch (_e) {
-            ctx.audit.recordError('overlay_inference', (_e as Error).message);
+        let inference = RedactionClassifier.classify(pre, post);
+        try {
+          const aiInferences = await AIEnrichmentService.classifyRedaction(pre, post);
+          if (aiInferences && aiInferences.length > 0) {
+            const top = aiInferences[0];
+            const map: Record<string, RedactionInference['inferredClass']> = {
+              PERSON: 'person',
+              ORGANIZATION: 'org',
+              LOCATION: 'location',
+              DATE: 'date',
+              FINANCIAL: 'misc',
+              LEGAL: 'misc',
+              OTHER: 'misc',
+            };
+            const mapped = map[top.type?.toUpperCase()] || 'misc';
+            inference = {
+              inferredClass: mapped,
+              inferredRole: mapped === 'misc' ? top.type?.toLowerCase() || null : null,
+              confidence: top.confidence || 0.6,
+              evidence: [top.description || 'ai_inferred'],
+            };
           }
-
-          await ctx.db.query(insertSpanSql, [
-            documentId,
-            idx,
-            idx + cleanSpanText.length,
-            JSON.stringify(span.bbox || []),
-            'pdf_overlay',
-            inference.inferredClass,
-            inference.inferredRole,
-            inference.confidence,
-            JSON.stringify(inference.evidence),
-            null,
-          ]);
+        } catch (_e) {
+          ctx.audit.recordError('overlay_inference', (_e as Error).message);
         }
+
+        await ctx.db.query(
+          `INSERT INTO redaction_findings (
+               document_id, page_number, span_start, span_end, finding_type, source_text, bbox_json,
+               inferred_class, confidence, evidence_json, method, source_sha256
+             ) VALUES ($1, $2, $3, $4, 'overlay_text_exposed', $5, $6, $7, $8, $9, $10, $11)`,
+          [
+            documentId,
+            span.page,
+            idx < 0 ? null : idx,
+            idx < 0 ? null : idx + cleanSpanText.length,
+            cleanSpanText,
+            JSON.stringify({ text: span.bbox, overlay: span.redaction_bbox || null }),
+            inference.inferredClass,
+            Math.max(Number(span.confidence) || 0, inference.confidence),
+            JSON.stringify([...span.evidence, ...inference.evidence]),
+            span.method,
+            sourceSha256,
+          ],
+        );
       }
     }
 
@@ -278,18 +308,22 @@ export async function storeRedactions(
 
       const inference = RedactionClassifier.classify(pre, post);
 
-      await ctx.db.query(insertSpanSql, [
-        documentId,
-        start,
-        end,
-        null,
-        'removed_text',
-        inference.inferredClass,
-        inference.inferredRole,
-        inference.confidence,
-        JSON.stringify(inference.evidence),
-        null,
-      ]);
+      await ctx.db.query(
+        `INSERT INTO redaction_findings (
+           document_id, span_start, span_end, finding_type, source_text, inferred_class, confidence,
+           evidence_json, method, source_sha256
+         ) VALUES ($1, $2, $3, 'unresolved_redaction', $4, $5, $6, $7, 'context_classifier_v2', $8)`,
+        [
+          documentId,
+          start,
+          end,
+          match[0],
+          inference.inferredClass,
+          inference.confidence,
+          JSON.stringify(inference.evidence),
+          sourceSha256,
+        ],
+      );
       count++;
     }
 
@@ -300,6 +334,19 @@ export async function storeRedactions(
       );
       console.log(`\n      Stored ${count} redactions for doc ${documentId}`);
     }
+    await ctx.db.query(
+      `INSERT INTO redaction_document_scans (
+         document_id, source_sha256, overlay_scanned_at, context_scanned_at, scanner_version
+       ) VALUES ($1, $2, NOW(), NOW(), 'redaction-intelligence-v1')
+       ON CONFLICT (document_id) DO UPDATE SET
+         source_sha256 = EXCLUDED.source_sha256,
+         overlay_scanned_at = EXCLUDED.overlay_scanned_at,
+         context_scanned_at = EXCLUDED.context_scanned_at,
+         scanner_version = EXCLUDED.scanner_version,
+         error_text = NULL,
+         updated_at = NOW()`,
+      [documentId, sourceSha256],
+    );
   } catch (e) {
     console.warn('   Failed to store redactions:', e);
   }
