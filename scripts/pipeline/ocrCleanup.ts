@@ -140,6 +140,13 @@ export function validateOcrCleanup(input: string, output: string): OcrCleanupVal
   };
 }
 
+export function preserveOcrSource(input: string): {
+  output: string;
+  validation: OcrCleanupValidation;
+} {
+  return { output: input, validation: validateOcrCleanup(input, input) };
+}
+
 export function ocrCleanupInputHash(text: string): string {
   return crypto.createHash('sha256').update(text).digest('hex');
 }

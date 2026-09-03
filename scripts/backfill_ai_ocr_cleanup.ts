@@ -8,6 +8,7 @@ import {
   OCR_CLEAN_ARTIFACT_VERSION,
   OCR_CLEAN_PROMPT_VERSION,
   ocrCleanupInputHash,
+  preserveOcrSource,
   selectOcrCleanupModels,
   splitOcrText,
   validateOcrCleanup,
@@ -28,6 +29,7 @@ interface CachedCleanup {
   modelIds: string[];
   sourceDocumentId: number;
   chunkCount: number;
+  preservedChunkCount: number;
 }
 
 const BATCH_SIZE = Math.max(
@@ -162,6 +164,10 @@ async function findReusableCleanup(
     modelIds,
     sourceDocumentId: Number(match.document_id),
     chunkCount: splitOcrText(sourceText).length,
+    preservedChunkCount:
+      typeof match.provenance_json?.preservedChunkCount === 'number'
+        ? match.provenance_json.preservedChunkCount
+        : 0,
   };
 }
 
@@ -174,6 +180,7 @@ async function cleanDocument(
   const outputs: string[] = [];
   const validations: OcrCleanupValidation[] = [];
   const modelIds: string[] = [];
+  let preservedChunkCount = 0;
 
   for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex += 1) {
     const chunk = chunks[chunkIndex];
@@ -184,6 +191,7 @@ async function cleanDocument(
     );
 
     for (const modelId of attempts) {
+      modelIds.push(modelId);
       const output = await AIEnrichmentService.cleanOcrChunkForArtifact(chunk, {
         modelId,
         documentLabel: document.file_name || 'evidence document',
@@ -192,13 +200,15 @@ async function cleanDocument(
       if (validation.accepted) {
         acceptedOutput = output.trim();
         acceptedValidation = validation;
-        modelIds.push(modelId);
         break;
       }
     }
 
     if (!acceptedValidation) {
-      throw new Error(`chunk ${chunkIndex + 1}/${chunks.length} failed forensic validation`);
+      const preserved = preserveOcrSource(chunk);
+      acceptedOutput = preserved.output;
+      acceptedValidation = preserved.validation;
+      preservedChunkCount += 1;
     }
     outputs.push(acceptedOutput);
     validations.push(acceptedValidation);
@@ -215,6 +225,7 @@ async function cleanDocument(
     modelIds: Array.from(new Set(modelIds)),
     sourceDocumentId: Number(document.id),
     chunkCount: chunks.length,
+    preservedChunkCount,
   };
 }
 
@@ -261,6 +272,7 @@ async function persistCleanup(
           inputHash,
           outputHash,
           chunkCount: cleanup.chunkCount,
+          preservedChunkCount: cleanup.preservedChunkCount,
           modelIds: cleanup.modelIds,
           validation: cleanup.validation,
           canonicalTextUpdated: false,

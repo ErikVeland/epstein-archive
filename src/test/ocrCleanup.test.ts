@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
+  preserveOcrSource,
   selectOcrCleanupModels,
   splitOcrText,
   validateOcrCleanup,
 } from '../../scripts/pipeline/ocrCleanup.js';
 
 describe('safe OCR cleanup', () => {
+  it('preserves exact source text when model output cannot be accepted', () => {
+    const source = 'EFTA00000123 Account total 4,500 on 03/12/2025.';
+    const preserved = preserveOcrSource(source);
+    expect(preserved.output).toBe(source);
+    expect(preserved.validation.accepted).toBe(true);
+  });
+
   it('routes only text-generation models', () => {
     expect(
       selectOcrCleanupModels([

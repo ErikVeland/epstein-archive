@@ -1,5 +1,12 @@
 # Release Notes
 
+## 22.3.8 - 2026-09-03 - OCR Uncertainty Preservation
+
+### Safe partial cleanup
+
+- **A rejected chunk now falls back to its exact source OCR.** One uncertain section no longer rejects an otherwise safe document or causes repeated EXO work.
+- **Artifacts record unchanged sections.** Provenance now includes the number of chunks preserved verbatim and every EXO text model attempted, while the assembled document still passes the complete preservation gate before storage.
+
 ## 22.3.7 - 2026-09-03 - Safe AI OCR Cleanup
 
 ### Forensic OCR integrity
