@@ -1,5 +1,15 @@
 # Release Notes
 
+## 22.5.3 - 2026-09-03 - About Action Styling Repair
+
+### Interface repair
+
+- **The About-page View action now uses the active design token.** Its border, tinted background, hover treatment, and focus outline no longer depend on an undefined CSS variable, so browsers render the intended button hierarchy on desktop and mobile.
+
+### Verification
+
+- **Production visual inspection now includes computed action styles.** The release check confirms that View renders as a sized flex control with a visible border and surface treatment.
+
 ## 22.5.2 - 2026-09-03 - Archive Navigation and Original Downloads
 
 ### Source navigation
