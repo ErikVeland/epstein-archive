@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.6.11 - 2026-09-04 - Stable FAQ Carousel Height
+
+### About page
+
+- Reserve the tallest FAQ slide's height at the current screen width so automatic and manual slide changes do not move the footer.
+- Keep full answers readable on narrow screens and at larger text sizes without a fixed pixel-height crop.
+- Hide inactive slides from assistive technology and label the slide-selection buttons.
+
 ## 22.6.10 - 2026-09-04 - Consistent Redacted Wordmark
 
 ### Logo presentation

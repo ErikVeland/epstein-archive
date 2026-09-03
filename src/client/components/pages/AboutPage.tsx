@@ -1800,19 +1800,25 @@ export const AboutPage: React.FC = () => {
 
           <div className={s.carouselContent}>
             <div className={s.dotRow}>
-              {faqs.map((_, i) => (
+              {faqs.map((faq, i) => (
                 <Button
                   unstyled
                   key={i}
                   onClick={() => setActiveFaq(i)}
-                  className={i === activeFaq ? s.dotBtnActive : s.dotBtnInactive}
+                  aria-label={`Show FAQ: ${faq.question}`}
+                  aria-pressed={i === activeFaq}
+                  className={`${s.dotBtn} ${i === activeFaq ? s.dotBtnActive : s.dotBtnInactive}`}
                 />
               ))}
             </div>
 
-            <div>
-              <h3 className={s.faqQuestion}>{faqs[activeFaq].question}</h3>
-              <p className={s.faqAnswer}>"{faqs[activeFaq].answer}"</p>
+            <div className={s.faqSlides}>
+              {faqs.map((faq, i) => (
+                <div key={faq.question} className={s.faqSlide} aria-hidden={i !== activeFaq}>
+                  <h3 className={s.faqQuestion}>{faq.question}</h3>
+                  <p className={s.faqAnswer}>"{faq.answer}"</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

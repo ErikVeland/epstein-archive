@@ -1539,6 +1539,22 @@
   margin-bottom: var(--space-2);
 }
 
+/* All slides size one grid row to the tallest answer at the current width. */
+.faqSlides {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.faqSlide {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.faqSlide[aria-hidden='true'] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .dotBtn {
   height: 0.25rem;
   border-radius: 999px;
