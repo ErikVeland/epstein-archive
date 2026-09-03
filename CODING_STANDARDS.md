@@ -44,6 +44,7 @@ Git ignores extracted media files. A normal code deployment cannot publish those
 - Do not report a synchronized media release until the production verifier passes.
 - Run VLM analysis only for `probable_photograph` media with `verified` or `source_verified` status.
 - Use OCR, not VLM, for document scans and scanned PDF pages.
+- Keep raw and canonical OCR immutable during LLM cleanup. Generated cleanup must be a versioned, reviewable artifact and must pass deterministic checks for numeric and evidence-identifier preservation before storage.
 
 ---
 

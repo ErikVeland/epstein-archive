@@ -5,7 +5,6 @@
 import type { CollectionConfig } from './types.js';
 
 export const PIPELINE_VERSION = '1.3.0';
-export const ALLOW_AI_CONTENT_REWRITE = process.env.ALLOW_AI_CONTENT_REWRITE === 'true';
 export const STEP_VERSIONS = {
   collector: '1.0.0',
   reader_pdf: '1.1.0', // Tesseract fallback for scanned PDFs

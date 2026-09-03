@@ -1,5 +1,26 @@
 # Release Notes
 
+## 22.3.7 - 2026-09-03 - Safe AI OCR Cleanup
+
+### Forensic OCR integrity
+
+- **OCR cleanup now preserves raw evidence.** EXO-generated cleanup is stored as a separate, pending-review artifact and never overwrites canonical OCR text.
+- **Every output must pass deterministic preservation checks.** The pipeline rejects changed numeric tokens, removed or invented evidence identifiers, excessive deletion or expansion, low source-word retention, excessive novel wording, and model preambles.
+- **Long documents are processed in full.** Bounded chunks cover the complete source text instead of silently limiting cleanup to the first five chunks.
+- **Artifact writes are atomic and auditable.** Each accepted result records input and output hashes, exact model IDs, prompt and artifact versions, chunk count, validation measurements, source lineage, and review requirements.
+
+### Queue and model routing
+
+- **Only OCR-backed documents enter the cleanup queue.** Eligibility comes from page-level OCR provenance or the permanent legacy-reset marker; ordinary digital text and image assets are excluded.
+- **Only callable EXO text models receive OCR cleanup work.** Vision models remain dedicated to verified photographs, and one document worker is assigned per available text model.
+- **Queue discovery uses indexed provenance candidates.** The worker avoids decompressing the full document corpus before inference begins, and exact duplicate OCR sources reuse an already validated artifact.
+- **The unsafe v1 execution paths are disabled.** Ingest and enrichment can no longer invoke the legacy truncating cleanup or enable canonical AI text rewrites.
+
+### Legacy repair and progress accuracy
+
+- **Unverifiable legacy cleanup is removed and requeued.** The data migration restores affected refined text from immutable raw OCR, clears stale derived hashes and legacy flags, removes v1 artifacts, and marks each affected document for v2 processing.
+- **The pipeline dashboard reports the real v2 workload.** AI OCR progress uses eligible OCR documents as its stable denominator and accepted v2 artifacts as its numerator instead of the former equals-sign heuristic.
+
 ## 22.3.6 - 2026-09-03 - Summary Completion Edge Case
 
 ### Pipeline correctness

@@ -306,9 +306,6 @@ export async function runEnrichPhase(
   } else if (mode === 'new') {
     whereClause += " AND created_at > now() - interval '1 day'";
   }
-  const allowAiContentRewrite =
-    process.env.NODE_ENV !== 'production' && process.env.ALLOW_AI_CONTENT_REWRITE === 'true';
-
   // Get enrichable total once at start for progress tracking
   const enrichTotalRow = (
     await pool.query(`SELECT COUNT(*) AS total FROM documents WHERE ${whereClause}`)
@@ -442,9 +439,8 @@ export async function runEnrichPhase(
               doc.file_name ||
               'Unknown Document';
 
-            let refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
-            let analysisText = refinedText;
-            let cleanedTextForArtifact: string | null = null;
+            const refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
+            const analysisText = refinedText;
             const inputHash = crypto
               .createHash('sha256')
               .update(refinedText)
@@ -459,23 +455,6 @@ export async function runEnrichPhase(
               modelId: primaryModel,
               metrics: { mode, fileName: doc.file_name, fallbackModels },
             });
-
-            // LLM OCR Re-Correction Pipeline Phase:
-            // Reconstruct highly garbled text (ocr_confidence < 0.6 or containing equals signs) into readable sentences using Ollama or Exo.
-            const ocrConf = meta.ocr_confidence;
-            const isLowLegibility =
-              mode !== 'backfill' &&
-              ((typeof ocrConf === 'number' && ocrConf < 0.6) || (doc.content || '').includes('='));
-            if (isLowLegibility && process.env.ENABLE_AI_ENRICHMENT === 'true') {
-              const cleanedText = await AIEnrichmentService.cleanOCRText(refinedText, subject);
-              if (cleanedText && cleanedText.length > 50) {
-                cleanedTextForArtifact = cleanedText;
-                analysisText = cleanedText;
-                if (allowAiContentRewrite) {
-                  refinedText = cleanedText;
-                }
-              }
-            }
 
             // Release raw content from row object — refinedText is the only copy we need
             doc.content = null;
@@ -554,42 +533,10 @@ export async function runEnrichPhase(
               );
             }
 
-            if (allowAiContentRewrite && cleanedTextForArtifact) {
-              await pool.query('UPDATE documents SET content_refined = $1 WHERE id = $2', [
-                cleanedTextForArtifact,
-                doc.id,
-              ]);
-            }
-
             const outputHash = crypto
               .createHash('sha256')
               .update(analysisText + summary)
               .digest('hex');
-            if (cleanedTextForArtifact) {
-              const cleanedOutputHash = crypto
-                .createHash('sha256')
-                .update(cleanedTextForArtifact)
-                .digest('hex');
-              await PipelineService.upsertAiArtifact({
-                runId: currentPipelineRun?.id,
-                stageRunId: documentStageRun?.id,
-                documentId: Number(doc.id),
-                artifactType: 'ocr_clean_text',
-                artifactVersion: 'ocr-clean-v1',
-                modelId: selectedModel,
-                promptVersion: 'forensic-ocr-clean-v1',
-                sourceExcerpt: refinedText.slice(0, 2000),
-                outputText: cleanedTextForArtifact,
-                confidence: 0.6,
-                provenance: {
-                  provider: process.env.AI_PROVIDER,
-                  mode,
-                  inputHash,
-                  outputHash: cleanedOutputHash,
-                  canonicalTextUpdated: allowAiContentRewrite,
-                },
-              });
-            }
             await PipelineService.upsertAiArtifact({
               runId: currentPipelineRun?.id,
               stageRunId: documentStageRun?.id,
@@ -608,8 +555,8 @@ export async function runEnrichPhase(
                 mode,
                 inputHash,
                 outputHash,
-                sourceText: cleanedTextForArtifact ? 'ocr_clean_text_artifact' : 'decoded_content',
-                canonicalTextUpdated: allowAiContentRewrite && Boolean(cleanedTextForArtifact),
+                sourceText: 'decoded_content',
+                canonicalTextUpdated: false,
               },
             });
             await PipelineService.finishStageRun(documentStageRun?.id, {

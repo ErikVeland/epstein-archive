@@ -17,16 +17,19 @@ npx tsx scripts/unified_pipeline.ts --list-stages   # Inspect every registered s
 npx tsx scripts/unified_pipeline.ts --mode backfill --stage semantic-embeddings
 ```
 
-Backfill is intentionally **text-first**. Provenance and image OCR run before
-`ai-enrichment`. Media extraction then classifies assets before the slow VLM stage.
+Backfill establishes provenance and image OCR before `ai-enrichment`. Media extraction
+then classifies assets before the slow VLM stage. A separate AI OCR cleanup stage runs
+only on documents with OCR provenance. It stores validated `ocr-clean-v2` artifacts for
+review and never replaces raw or canonical evidence text.
 The VLM worker accepts only `probable_photograph` media with a `verified` or
 `source_verified` status. It rejects scans, graphics, unknown images, missing files,
 and unverified photographs. For targeted catch-up, use one of these runs:
 
 ```bash
-pnpm pipeline:backfill:enrichment    # summaries + OCR cleanup artifacts only
+pnpm pipeline:backfill:enrichment    # summary artifacts only
 pnpm pipeline:backfill:text-first    # all non-VLM backfill stages
 pnpm pipeline:backfill:vlm-slice     # capped risk-first VLM slice
+pnpm pipeline:backfill:ocr-cleanup   # validated, reviewable OCR cleanup artifacts
 ```
 
 You can also compose controls directly:
@@ -89,6 +92,7 @@ Run the full suite to verify repository health and database performance.
 | `backfill_semantic_embeddings.ts`  | Semantic     | Backfills pgvector document/entity embeddings.                        |
 | `refresh_analytics_views.ts`       | Analytics    | Refreshes materialized views and planner stats after stage writes.    |
 | `backfill_image_ocr.ts`            | OCR          | Backfills image text extraction gaps.                                 |
+| `backfill_ai_ocr_cleanup.ts`       | OCR          | Generates validated EXO cleanup artifacts from OCR-backed documents.  |
 | `backfill_image_media.ts`          | Media        | Backfills image media records and album bindings.                     |
 | `backfill_email_headers_pg.ts`     | Email        | Backfills structured email metadata.                                  |
 | `backfill_extracted_date.ts`       | Dates        | Backfills normalized extracted document dates.                        |

@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "22.3.6",
+  "version": "22.3.7",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -48,6 +48,8 @@
     "pipeline:backfill:enrichment": "BATCH_SIZE=8 tsx scripts/unified_pipeline.ts --mode backfill --stage ai-enrichment",
     "pipeline:backfill:text-first": "PIPELINE_SKIP_STAGES=vlm-visuals BATCH_SIZE=8 tsx scripts/unified_pipeline.ts --mode backfill",
     "pipeline:backfill:vlm-slice": "VLM_BACKFILL_MAX_MEDIA=200 BATCH_SIZE=3 tsx scripts/unified_pipeline.ts --mode backfill --stage vlm-visuals",
+    "pipeline:backfill:ocr-cleanup": "tsx scripts/unified_pipeline.ts --mode backfill --stage ai-ocr-cleanup",
+    "ocr:cleanup:reset": "tsx scripts/reset_legacy_ocr_cleanup.ts",
     "local:db:up": "docker compose up -d postgres",
     "local:db:down": "docker compose down",
     "local:setup": "pnpm local:db:up && pnpm db:migrate:pg && pnpm seed:minimal",

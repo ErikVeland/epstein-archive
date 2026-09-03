@@ -1,5 +1,5 @@
 // ============================================================================
-// QUEUE WORKER — processQueue, enrichCompleted, ocrCleanCompleted
+// QUEUE WORKER — processQueue and enrichCompleted
 // ============================================================================
 
 import * as path from 'path';
@@ -14,7 +14,7 @@ import {
   intFromEnv,
   WorkerPool,
 } from '../../src/server/queue/index.js';
-import { PIPELINE_VERSION, ALLOW_AI_CONTENT_REWRITE } from './config.js';
+import { PIPELINE_VERSION } from './config.js';
 import type { IngestContext } from './context.js';
 
 /**
@@ -52,8 +52,7 @@ export async function enrichCompleted(ctx: IngestContext): Promise<void> {
   let processed = 0;
   let lastId = 0;
 
-  // Backfill: summaries only — OCR cleaning runs at ingest time for new docs.
-  // Skipping cleanOCRText here reduces LLM calls from ~6 to 1 per doc.
+  // OCR cleanup runs only in the versioned ai-ocr-cleanup stage.
   const processRow = async (row: { id: number; file_path: string | null; content: string }) => {
     try {
       const text = row.content;
@@ -130,118 +129,6 @@ export async function enrichCompleted(ctx: IngestContext): Promise<void> {
 
   process.stdout.write(
     `\n   ✅ Enrichment complete — ${processed.toLocaleString()} docs processed.\n`,
-  );
-}
-
-/**
- * OCR cleaning backfill: stores cleaned OCR text as an AI artifact. Canonical content_refined
- * is updated only when ALLOW_AI_CONTENT_REWRITE=true.
- */
-export async function ocrCleanCompleted(ctx: IngestContext): Promise<void> {
-  const db = getIngestPool();
-  const CONCURRENCY = intFromEnv('AI_OCR_CLEAN_CONCURRENCY', 8, 1, 16);
-
-  const { rows: countRows } = await db.query(`
-    SELECT COUNT(*) AS n FROM documents
-    WHERE processing_status = 'completed'
-      AND content IS NOT NULL
-      AND length(content) >= 100
-      AND NOT EXISTS (
-        SELECT 1 FROM document_ai_artifacts daa
-        WHERE daa.document_id = documents.id
-          AND daa.artifact_type = 'ocr_clean_text'
-          AND daa.artifact_version = 'ocr-clean-v1'
-          AND daa.prompt_version = 'forensic-ocr-clean-v1'
-      )
-  `);
-  const total = parseInt(countRows[0].n, 10);
-  console.log(`   📊 ${total.toLocaleString()} docs need OCR cleaning`);
-  if (total === 0) {
-    console.log('   ✅ Already fully cleaned.');
-    return;
-  }
-
-  let processed = 0;
-  let lastId = 0;
-  const BATCH = intFromEnv('AI_OCR_CLEAN_BATCH_SIZE', 100, 1, 1000);
-
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const { rows } = await db.query(
-      `SELECT id, file_path, content FROM documents
-       WHERE processing_status = 'completed'
-         AND content IS NOT NULL
-         AND length(content) >= 100
-         AND NOT EXISTS (
-           SELECT 1 FROM document_ai_artifacts daa
-           WHERE daa.document_id = documents.id
-             AND daa.artifact_type = 'ocr_clean_text'
-             AND daa.artifact_version = 'ocr-clean-v1'
-             AND daa.prompt_version = 'forensic-ocr-clean-v1'
-         )
-         AND id > $1
-       ORDER BY id LIMIT $2`,
-      [lastId, BATCH],
-    );
-    if (rows.length === 0) break;
-
-    for (let i = 0; i < rows.length; i += CONCURRENCY) {
-      const chunk = rows.slice(i, i + CONCURRENCY);
-      await Promise.allSettled(
-        chunk.map(async (row) => {
-          try {
-            const cleaned = await AIEnrichmentService.cleanOCRText(row.content as string);
-            if (cleaned && cleaned !== row.content) {
-              const sourceText = row.content as string;
-              const inputHash = crypto.createHash('sha256').update(sourceText).digest('hex');
-              const outputHash = crypto.createHash('sha256').update(cleaned).digest('hex');
-              await PipelineService.upsertAiArtifact({
-                runId: ctx.currentRun?.id,
-                documentId: Number(row.id),
-                artifactType: 'ocr_clean_text',
-                artifactVersion: 'ocr-clean-v1',
-                modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
-                promptVersion: 'forensic-ocr-clean-v1',
-                sourceExcerpt: sourceText.slice(0, 2000),
-                outputText: cleaned,
-                confidence: 0.6,
-                provenance: {
-                  provider: process.env.AI_PROVIDER,
-                  pipelineVersion: PIPELINE_VERSION,
-                  inputHash,
-                  outputHash,
-                  canonicalTextUpdated: ALLOW_AI_CONTENT_REWRITE,
-                },
-              });
-              if (ALLOW_AI_CONTENT_REWRITE) {
-                await db.query(
-                  `UPDATE documents
-                   SET content_refined   = $1,
-                       last_processed_at = NOW()
-                   WHERE id = $2`,
-                  [cleaned, row.id],
-                );
-              }
-            }
-          } catch {
-            /* non-fatal */
-          }
-        }),
-      );
-      processed += chunk.length;
-      if (processed % 50 === 0 || processed === total) {
-        const pct = ((processed / total) * 100).toFixed(1);
-        process.stdout.write(
-          `\r   🔧 Cleaned ${processed.toLocaleString()} / ${total.toLocaleString()} (${pct}%)`,
-        );
-      }
-    }
-
-    lastId = rows[rows.length - 1].id as number;
-  }
-
-  process.stdout.write(
-    `\n   ✅ OCR cleaning complete — ${processed.toLocaleString()} docs processed.\n`,
   );
 }
 
@@ -331,39 +218,11 @@ export async function processQueue(ctx: IngestContext): Promise<void> {
           const context = fullDoc.content.slice(0, 2000);
           const repaired = await AIEnrichmentService.repairMimeWildcards(fullDoc.content, context);
 
-          // Run OCR cleaning and summary generation in parallel on the repaired text
-          const [cleaned, summary] = await Promise.all([
-            AIEnrichmentService.cleanOCRText(repaired),
-            AIEnrichmentService.summarizeDocument(repaired, {
-              fileName: doc.file_path ? path.basename(doc.file_path) : undefined,
-            }),
-          ]);
-
-          const refined = cleaned || repaired;
-          const contentChanged = refined !== fullDoc.content;
+          const summary = await AIEnrichmentService.summarizeDocument(repaired, {
+            fileName: doc.file_path ? path.basename(doc.file_path) : undefined,
+          });
+          const contentChanged = repaired !== fullDoc.content;
           const hasSummary = summary && summary.length > 0;
-
-          if (contentChanged && cleaned) {
-            const sourceText = fullDoc.content as string;
-            await PipelineService.upsertAiArtifact({
-              runId: ctx.currentRun?.id,
-              documentId: docId,
-              artifactType: 'ocr_clean_text',
-              artifactVersion: 'ocr-clean-v1',
-              modelId: process.env.EXO_MODEL || process.env.AI_PROVIDER || 'auto',
-              promptVersion: 'forensic-ocr-clean-v1',
-              sourceExcerpt: sourceText.slice(0, 2000),
-              outputText: cleaned,
-              confidence: 0.6,
-              provenance: {
-                provider: process.env.AI_PROVIDER,
-                pipelineVersion: PIPELINE_VERSION,
-                inputHash: crypto.createHash('sha256').update(sourceText).digest('hex'),
-                outputHash: crypto.createHash('sha256').update(cleaned).digest('hex'),
-                canonicalTextUpdated: ALLOW_AI_CONTENT_REWRITE,
-              },
-            });
-          }
 
           if (hasSummary) {
             const sourceText = repaired as string;
@@ -390,15 +249,7 @@ export async function processQueue(ctx: IngestContext): Promise<void> {
             });
           }
 
-          if (ALLOW_AI_CONTENT_REWRITE && contentChanged) {
-            await db.query(
-              `UPDATE documents
-               SET content_refined   = $1,
-                   last_processed_at = NOW()
-               WHERE id = $2`,
-              [refined, docId],
-            );
-          } else if (contentChanged || hasSummary) {
+          if (contentChanged || hasSummary) {
             await db.query('UPDATE documents SET last_processed_at = NOW() WHERE id = $1', [docId]);
           }
         }

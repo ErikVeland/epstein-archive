@@ -22,7 +22,7 @@ if (!process.env.AI_PROVIDER) {
 import { buildContext, startPipelineRun, verifyDatabase } from './ingest/context.js';
 import { COLLECTIONS } from './ingest/config.js';
 import { processCollection } from './ingest/discovery.js';
-import { processQueue, enrichCompleted, ocrCleanCompleted } from './ingest/queue_worker.js';
+import { processQueue, enrichCompleted } from './ingest/queue_worker.js';
 import { PipelineService } from '../src/server/services/pipelineService.js';
 import { markViewsDirty } from '../src/server/services/matViewRefresh.js';
 
@@ -73,9 +73,9 @@ async function main() {
   }
 
   if (mode === 'ocr-clean') {
-    console.log('🔧 OCR cleaning backfill: cleaning text for completed docs.\n');
-    await ocrCleanCompleted(ctx);
-    return;
+    throw new Error(
+      'Legacy OCR cleanup is disabled. Use unified_pipeline.ts --mode backfill --stage ai-ocr-cleanup.',
+    );
   }
 
   // Start Pipeline Run

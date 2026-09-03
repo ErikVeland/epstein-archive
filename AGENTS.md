@@ -22,3 +22,5 @@ Do not bypass, weaken, or skip the release metadata guard. If a user requests de
 If a production release includes locally extracted media, export and promote a versioned media bundle. Run the production importer in dry-run mode before apply mode. Do not claim that production is synchronized until `pnpm media:release:verify` passes against the active bundle.
 
 VLM visual analysis is restricted to media classified as `probable_photograph` with a `verified` or `source_verified` status. Do not send document scans, graphics, unknown images, missing assets, or unverified photographs to a vision model. Use OCR for text-only images and scanned PDF pages.
+
+LLM OCR cleanup must preserve raw and canonical evidence text. Store cleanup as a versioned, pending-review artifact with source/output hashes, model and prompt identity, and deterministic preservation checks. Never accept output that changes numeric tokens or evidence identifiers, and never enable an LLM path that rewrites canonical OCR automatically.

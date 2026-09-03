@@ -83,6 +83,15 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     requiresAi: true,
   },
   {
+    name: 'ai-ocr-cleanup',
+    description: 'Create validated, reviewable OCR-clean artifacts from immutable OCR source text',
+    script: 'scripts/backfill_ai_ocr_cleanup.ts',
+    phase: 'AI OCR Cleanup',
+    version: 'ocr-clean-v2',
+    modes: ['full', 'ingest', 'backfill'],
+    requiresAi: true,
+  },
+  {
     name: 'email-headers',
     description: 'Backfill parsed email headers for communication analysis',
     script: 'scripts/backfill_email_headers_pg.ts',

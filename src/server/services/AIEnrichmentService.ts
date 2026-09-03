@@ -577,54 +577,37 @@ Do not identify a person unless their identity is established by clearly visible
    * headers/footers, and corrects obvious character confusions. Operates on
    * paragraph-sized chunks so context is preserved across sentences.
    */
-  static async cleanOCRText(text: string, evidenceType?: string): Promise<string> {
-    const isAiEnabled = AIEnrichmentService.aiEnabled;
-    if (!isAiEnabled || !text || text.length < 100) return text;
+  /**
+   * Clean one bounded OCR chunk for a durable, reviewable artifact.
+   * The caller validates and assembles chunks and never writes this output to raw evidence.
+   */
+  static async cleanOcrChunkForArtifact(
+    chunk: string,
+    options: { modelId: string; documentLabel?: string },
+  ): Promise<string> {
+    if (!this.aiEnabled || !chunk.trim()) return '';
+    const documentLabel = options.documentLabel || 'evidence document';
+    const prompt = `You are correcting OCR transcription errors in a ${documentLabel}.
 
-    // Chunk at paragraph boundaries, cap at 5 chunks to keep latency reasonable
-    const MAX_CHUNK = 1400;
-    const MAX_CHUNKS = 5;
-    const paragraphs = text.split(/\n{2,}/);
-    const chunks: string[] = [];
-    let current = '';
-    for (const para of paragraphs) {
-      if (current.length + para.length > MAX_CHUNK && current.length > 0) {
-        chunks.push(current.trim());
-        current = para;
-      } else {
-        current = current ? current + '\n\n' + para : para;
-      }
-    }
-    if (current.trim()) chunks.push(current.trim());
+Rules:
+1. Preserve every fact, name, number, date, identifier, punctuation mark, and paragraph in the same order.
+2. Correct only clear OCR errors, broken words, misplaced hard line breaks, and repeated page-header or page-footer debris.
+3. Never summarize, translate, explain, infer, complete missing facts, or add context.
+4. If text is uncertain, preserve the source characters. Do not guess.
+5. Return only the corrected text. Do not add Markdown fences or a preamble.
 
-    const toProcess = chunks.slice(0, MAX_CHUNKS);
-    const cleaned = await Promise.all(toProcess.map((c) => this.cleanOCRChunk(c, evidenceType)));
-
-    const remainder = chunks.slice(MAX_CHUNKS).join('\n\n');
-    return [cleaned.join('\n\n'), remainder].filter(Boolean).join('\n\n');
-  }
-
-  private static async cleanOCRChunk(chunk: string, evidenceType?: string): Promise<string> {
-    try {
-      const docLabel = evidenceType || 'legal document';
-      const prompt = `Task: Clean OCR-extracted text from a ${docLabel}. Fix hyphenated line-break splits (e.g. "con-\nfidential" → "confidential"), join sentences broken by hard line breaks, remove page numbers and headers that appear mid-text, and correct obvious OCR character confusions (0/O, 1/l/I, rn/m). Preserve all factual content and paragraph structure exactly.
-
-Text:
+SOURCE OCR:
 ${chunk}
 
-Cleaned text (output ONLY the cleaned text, no explanation):`;
+CORRECTED OCR:`;
 
-      const result = await this.callLLM(prompt, {
-        maxTokens: Math.floor(chunk.length * 1.3),
-        temperature: 0.05,
-      });
-
-      if (!result || result.length < chunk.length * 0.4 || result.length > chunk.length * 2.5)
-        return chunk;
-      return result;
-    } catch {
-      return chunk;
-    }
+    return await this.callLLM(prompt, {
+      task: 'repair',
+      modelId: options.modelId,
+      maxTokens: Math.min(2200, Math.max(256, Math.ceil(chunk.length * 0.6))),
+      temperature: 0,
+      retryCount: 1,
+    });
   }
 
   /**
