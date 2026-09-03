@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import type { Person } from '../types';
@@ -95,6 +95,17 @@ function AppRootContent() {
 
   const navigation = useNavigation();
   const { searchTerm, setSearchTerm } = navigation;
+  const previousSearchPath = useRef(location.pathname);
+
+  useEffect(() => {
+    const changedScreen = previousSearchPath.current !== location.pathname;
+    previousSearchPath.current = location.pathname;
+    if (!changedScreen) return;
+
+    const params = new URLSearchParams(location.search);
+    const hasExplicitSearch = Boolean((params.get('q') || params.get('search') || '').trim());
+    if (!hasExplicitSearch && searchTerm) setSearchTerm('');
+  }, [location.pathname, location.search, searchTerm, setSearchTerm]);
 
   const { searchSuggestions, searchSuggestionsLoading } = useGlobalSearch({
     searchTerm,

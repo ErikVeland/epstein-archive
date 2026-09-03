@@ -14,7 +14,7 @@ import { DocumentList } from './DocumentList';
 import { useDocumentBrowserData } from '@client/hooks/useDocumentBrowserData';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { usePageScrollRestoration } from '@client/hooks/usePageScrollRestoration';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { SearchMode } from '@client/services/apiClient';
 import styles from './DocumentBrowser.module.css';
 
@@ -54,28 +54,17 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   selectedDocumentId,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const backLinkState = useBackLinkState();
   const { filters: globalFilters } = useFilters();
   const navigation = useNavigation();
   const { searchTerm: contextSearchTerm, setSearchTerm: setContextSearchTerm } = navigation;
+  const hasExternalSearchTerm = externalSearchTerm !== undefined;
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const searchParam = params.get('search') || params.get('q');
-    if (searchParam && searchParam !== contextSearchTerm) {
-      if (onSearchTermChange) {
-        onSearchTermChange(searchParam);
-      } else {
-        setContextSearchTerm(searchParam);
-      }
-    } else if (!searchParam && params.has('source') && contextSearchTerm) {
-      if (onSearchTermChange) onSearchTermChange('');
-      else setContextSearchTerm('');
-    }
-  }, [contextSearchTerm, onSearchTermChange, setContextSearchTerm]);
-
-  const effectiveSearchTerm =
-    externalSearchTerm !== undefined ? externalSearchTerm : contextSearchTerm;
+  const routeSearchTerm = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get('search') || params.get('q') || '';
+  }, [location.search]);
 
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<'relevance' | 'date' | 'red_flag' | 'fileType' | 'size'>(
@@ -91,7 +80,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     const saved = window.localStorage.getItem('document-browser-density');
     return saved === 'comfortable' ? 'comfortable' : 'compact';
   });
-  const [searchInput, setSearchInput] = useState(effectiveSearchTerm || '');
+  const [searchInput, setSearchInput] = useState(routeSearchTerm);
   const [searchMode, setSearchModeState] = useState<SearchMode>(() => {
     if (typeof window === 'undefined') return 'lexical';
     const params = new URLSearchParams(window.location.search);
@@ -100,11 +89,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const [isHeaderCondensed, setIsHeaderCondensed] = useState(false);
   const [jumpToPage, setJumpToPage] = useState('');
 
-  const [prevEffectiveSearchTerm, setPrevEffectiveSearchTerm] = useState(effectiveSearchTerm);
-  if (effectiveSearchTerm !== prevEffectiveSearchTerm) {
-    setPrevEffectiveSearchTerm(effectiveSearchTerm);
-    setSearchInput(effectiveSearchTerm || '');
-  }
+  const effectiveSearchTerm = searchInput;
   const availableCollections = useMemo<Array<{ id: string; name: string }>>(() => [], []);
 
   const [filters, setFilters] = useState<BrowseFilters>(() => {
@@ -135,6 +120,15 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const documentContainerRef = useRef<HTMLDivElement>(null);
   const { currentHighlightIndex, totalHighlights, nextHighlight, prevHighlight, hasHighlights } =
     useHighlightNavigation(effectiveSearchTerm, documentContainerRef);
+
+  useEffect(() => {
+    setSearchInput(routeSearchTerm);
+    if (hasExternalSearchTerm) {
+      onSearchTermChange?.(routeSearchTerm);
+    } else {
+      setContextSearchTerm(routeSearchTerm);
+    }
+  }, [hasExternalSearchTerm, onSearchTermChange, routeSearchTerm, setContextSearchTerm]);
   const openDocumentRoute = useCallback(
     (document: Document) => {
       const params = new URLSearchParams(window.location.search);
@@ -185,15 +179,36 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (searchInput === effectiveSearchTerm) return;
-      if (onSearchTermChange) {
-        onSearchTermChange(searchInput);
-      } else {
+      if (externalSearchTerm !== undefined) {
+        if (externalSearchTerm !== searchInput) onSearchTermChange?.(searchInput);
+      } else if (contextSearchTerm !== searchInput) {
         setContextSearchTerm(searchInput);
       }
+
+      const params = new URLSearchParams(location.search);
+      const normalizedSearch = searchInput.trim();
+      const currentSearch = params.get('search') || params.get('q') || '';
+      if (normalizedSearch === currentSearch && !params.has('q')) return;
+      if (normalizedSearch) {
+        params.set('search', normalizedSearch);
+      } else {
+        params.delete('search');
+      }
+      params.delete('q');
+      const query = params.toString();
+      navigate(`${location.pathname}${query ? `?${query}` : ''}`, { replace: true });
     }, 260);
     return () => window.clearTimeout(timer);
-  }, [effectiveSearchTerm, onSearchTermChange, searchInput, setContextSearchTerm]);
+  }, [
+    contextSearchTerm,
+    externalSearchTerm,
+    location.pathname,
+    location.search,
+    navigate,
+    onSearchTermChange,
+    searchInput,
+    setContextSearchTerm,
+  ]);
 
   useEffect(() => {
     window.localStorage.setItem('document-browser-density', densityMode);

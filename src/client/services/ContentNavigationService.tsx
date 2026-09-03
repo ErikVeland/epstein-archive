@@ -3,9 +3,7 @@ import { NavigationContext } from './NavigationContext';
 
 // Internal provider implementation
 const NavigationProviderImpl = ({ children }: { children: ReactNode }) => {
-  const [searchTerm, setSearchTerm] = useState<string>(
-    () => localStorage.getItem('navigationSearchTerm') || '',
-  );
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, unknown>>(() => {
     const saved = localStorage.getItem('navigationFilters');
     return saved ? JSON.parse(saved) : {};
@@ -17,10 +15,11 @@ const NavigationProviderImpl = ({ children }: { children: ReactNode }) => {
     localStorage.getItem('navigationSelectedDocument'),
   );
 
-  // Save state to localStorage whenever it changes
+  // Search text is route-scoped. Older builds persisted it globally, which caused
+  // machine-generated context and highlights to leak into unrelated screens.
   useEffect(() => {
-    localStorage.setItem('navigationSearchTerm', searchTerm);
-  }, [searchTerm]);
+    localStorage.removeItem('navigationSearchTerm');
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('navigationFilters', JSON.stringify(filters));

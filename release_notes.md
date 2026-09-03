@@ -1,5 +1,17 @@
 # Release Notes
 
+## 22.5.4 - 2026-09-03 - Search Highlight Isolation
+
+### Navigation repair
+
+- **Document highlights now belong to the current URL.** Searches entered in the Document Browser are reflected in the route, so document views and Back navigation retain intentional search context without relying on hidden application state.
+- **Casual browsing clears machine-generated search context.** Opening a document collection or screen without an explicit `search` or `q` parameter removes inherited terms and stale highlights.
+- **Legacy global searches no longer survive reloads.** The application removes the old `navigationSearchTerm` value instead of persisting it across unrelated screens and sessions.
+
+### Verification
+
+- **Navigation checks cover route-scoped search behavior.** Lint, TypeScript, unit, production-build, and browser checks verify that explicit searches remain usable and unsearched routes render without inherited highlights.
+
 ## 22.5.3 - 2026-09-03 - About Action Styling Repair
 
 ### Interface repair
