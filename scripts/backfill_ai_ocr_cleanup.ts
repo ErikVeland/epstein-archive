@@ -32,6 +32,11 @@ interface CachedCleanup {
   preservedChunkCount: number;
 }
 
+interface CleanupResolution {
+  cleanup: CachedCleanup;
+  reused: boolean;
+}
+
 const BATCH_SIZE = Math.max(
   1,
   Number.parseInt(process.env.AI_OCR_CLEAN_BATCH_SIZE || '50', 10) || 50,
@@ -229,6 +234,41 @@ async function cleanDocument(
   };
 }
 
+async function resolveCleanup(
+  document: OcrDocumentRow,
+  textModels: string[],
+  preferredModelIndex: number,
+  inputHash: string,
+  cache: Map<string, CachedCleanup>,
+  inFlight: Map<string, Promise<CleanupResolution>>,
+): Promise<CleanupResolution> {
+  const cached = cache.get(inputHash);
+  if (cached) return { cleanup: cached, reused: true };
+
+  const active = inFlight.get(inputHash);
+  if (active) {
+    const resolution = await active;
+    return { cleanup: resolution.cleanup, reused: true };
+  }
+
+  const pending = (async (): Promise<CleanupResolution> => {
+    const persisted = await findReusableCleanup(document.content, inputHash);
+    if (persisted) return { cleanup: persisted, reused: true };
+    return {
+      cleanup: await cleanDocument(document, textModels, preferredModelIndex),
+      reused: false,
+    };
+  })();
+  inFlight.set(inputHash, pending);
+  try {
+    const resolution = await pending;
+    remember(cache, inputHash, resolution.cleanup);
+    return resolution;
+  } finally {
+    inFlight.delete(inputHash);
+  }
+}
+
 async function persistCleanup(
   document: OcrDocumentRow,
   cleanup: CachedCleanup,
@@ -353,6 +393,7 @@ async function main(): Promise<void> {
   let reused = 0;
   let lastId = 0;
   const cache = new Map<string, CachedCleanup>();
+  const inFlight = new Map<string, Promise<CleanupResolution>>();
   const keepalive = setInterval(() => {
     publishOcrStatus({
       ocrCleanupProcessed: processed,
@@ -390,20 +431,16 @@ async function main(): Promise<void> {
           group.map(async (document, groupIndex) => {
             const inputHash = ocrCleanupInputHash(document.content);
             try {
-              let cleanup: CachedCleanup | null | undefined = cache.get(inputHash);
-              let cacheHit = Boolean(cleanup);
-              if (!cleanup) {
-                cleanup = await findReusableCleanup(document.content, inputHash);
-                cacheHit = Boolean(cleanup);
-                if (cleanup) remember(cache, inputHash, cleanup);
-              }
-              if (!cleanup) {
-                cleanup = await cleanDocument(document, textModels, groupIndex);
-                remember(cache, inputHash, cleanup);
-              } else if (cacheHit) {
-                reused += 1;
-              }
-              await persistCleanup(document, cleanup, inputHash, cacheHit);
+              const resolution = await resolveCleanup(
+                document,
+                textModels,
+                groupIndex,
+                inputHash,
+                cache,
+                inFlight,
+              );
+              if (resolution.reused) reused += 1;
+              await persistCleanup(document, resolution.cleanup, inputHash, resolution.reused);
               succeeded += 1;
             } catch (error) {
               failed += 1;

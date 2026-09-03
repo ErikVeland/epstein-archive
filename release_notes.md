@@ -1,5 +1,12 @@
 # Release Notes
 
+## 22.3.9 - 2026-09-03 - OCR Duplicate Single-Flight
+
+### EXO throughput
+
+- **Concurrent duplicate documents now share one cleanup request.** An in-flight source-hash lock prevents identical OCR records in the same batch from occupying both text models with duplicate work.
+- **Persistent and in-memory reuse remain validated.** Reused output must pass the full preservation gate against the current source before the worker stores a separate provenance-linked artifact for that document.
+
 ## 22.3.8 - 2026-09-03 - OCR Uncertainty Preservation
 
 ### Safe partial cleanup
