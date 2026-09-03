@@ -22,13 +22,21 @@ import { EmailMailboxSidebar } from './EmailMailboxSidebar';
 import { EmailFilterPanel } from './EmailFilterPanel';
 import { EmailAnalyticsPane } from './EmailAnalyticsPane';
 import { EmailContentPane } from './EmailContentPane';
+import { EmailNarrativeView } from './EmailNarrativeView';
 
 export const EmailClient: React.FC = () => {
   const backLinkState = useBackLinkState();
   const { goBack } = useReliableBackNavigation('/emails');
   const [searchParams, setSearchParams] = useSearchParams();
   const deepLinkedMessageId = searchParams.get('messageId') || searchParams.get('id');
+  const deepLinkedThreadId = searchParams.get('threadId');
   const showSuppressedJunk = searchParams.get('showSuppressedJunk') === '1';
+
+  const [collection, setCollection] = useState<'all' | 'curated'>(() => {
+    if (searchParams.get('collection') === 'all') return 'all';
+    if (deepLinkedMessageId || deepLinkedThreadId) return 'all';
+    return 'curated';
+  });
 
   const selectedMailboxId = searchParams.get('mailboxId') || 'all';
   const [activeTab, setActiveTab] = useState<
@@ -62,7 +70,8 @@ export const EmailClient: React.FC = () => {
       | null) || 'date',
   );
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(
-    (searchParams.get('sortOrder') as 'asc' | 'desc' | null) || 'desc',
+    (searchParams.get('sortOrder') as 'asc' | 'desc' | null) ||
+      (collection === 'curated' ? 'asc' : 'desc'),
   );
   const [isNavigatingRandom, setIsNavigatingRandom] = useState(false);
 
@@ -93,8 +102,8 @@ export const EmailClient: React.FC = () => {
 
   const VALID_PANES = new Set(['mailboxes', 'threads', 'messages']);
   type MobilePane = 'mailboxes' | 'threads' | 'messages';
-  const rawPane = searchParams.get('pane') ?? 'mailboxes';
-  const mobilePane: MobilePane = VALID_PANES.has(rawPane) ? (rawPane as MobilePane) : 'mailboxes';
+  const rawPane = searchParams.get('pane') ?? 'threads';
+  const mobilePane: MobilePane = VALID_PANES.has(rawPane) ? (rawPane as MobilePane) : 'threads';
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -175,6 +184,7 @@ export const EmailClient: React.FC = () => {
     showYahooPostMortem,
     showEmptyBodies,
     topic,
+    collection,
     sortBy,
     sortOrder,
     updateUrlState,
@@ -403,6 +413,20 @@ export const EmailClient: React.FC = () => {
     }
   };
 
+  const showCuratedCollection = useCallback(() => {
+    setCollection('curated');
+    setActiveTab('all');
+    setSortBy('date');
+    setSortOrder('asc');
+  }, []);
+
+  const showArchiveCollection = useCallback((tab: 'all' | 'promotions' = 'all') => {
+    setCollection('all');
+    setActiveTab(tab);
+    setSortBy('date');
+    setSortOrder('desc');
+  }, []);
+
   return (
     <div className={styles.emailWorkspace}>
       <div className={styles.mobileOnly}>
@@ -492,20 +516,31 @@ export const EmailClient: React.FC = () => {
               unstyled
               type="button"
               className={`${styles.subTabItem} ${
-                activeTab === 'all' ? styles.subTabItemActive : ''
+                collection === 'curated' ? styles.subTabItemActive : ''
               }`}
-              onClick={() => setActiveTab('all')}
+              onClick={showCuratedCollection}
             >
-              <Icon name="Inbox" />
-              <span>All Mail</span>
+              <Icon name="History" />
+              <span>Key correspondence</span>
             </Button>
             <Button
               unstyled
               type="button"
               className={`${styles.subTabItem} ${
-                activeTab === 'promotions' ? styles.subTabItemActive : ''
+                collection === 'all' && activeTab === 'all' ? styles.subTabItemActive : ''
               }`}
-              onClick={() => setActiveTab('promotions')}
+              onClick={() => showArchiveCollection('all')}
+            >
+              <Icon name="Inbox" />
+              <span>Full archive</span>
+            </Button>
+            <Button
+              unstyled
+              type="button"
+              className={`${styles.subTabItem} ${
+                collection === 'all' && activeTab === 'promotions' ? styles.subTabItemActive : ''
+              }`}
+              onClick={() => showArchiveCollection('promotions')}
             >
               <Icon name="Tags" />
               <span>Promotions</span>
@@ -525,7 +560,11 @@ export const EmailClient: React.FC = () => {
               <span>Random Email</span>
             </Button>
           </div>
-          <div className={styles.paneHeader}>
+          <div
+            className={`${styles.paneHeader} ${
+              collection === 'curated' ? styles.curatedPaneHeader : ''
+            }`}
+          >
             <div className={styles.threadHeaderLeft}>
               <Button
                 onClick={() => updateUrlState({ pane: 'mailboxes' })}
@@ -537,7 +576,9 @@ export const EmailClient: React.FC = () => {
               >
                 <Icon name="ArrowLeft" className={styles.backIcon} />
               </Button>
-              <span className={styles.threadLabel}>Conversations</span>
+              <span className={styles.threadLabel}>
+                {collection === 'curated' ? 'Correspondence timeline' : 'Conversations'}
+              </span>
             </div>
             <div className={styles.threadCount}>
               <div className={styles.densityToolbar}>
@@ -576,7 +617,8 @@ export const EmailClient: React.FC = () => {
           <div className={styles.paneSubheader}>
             <div className={styles.threadMetaRow}>
               <span>
-                {threads.length.toLocaleString()} of {threadsTotal.toLocaleString()} threads
+                {threads.length.toLocaleString()} of {threadsTotal.toLocaleString()}{' '}
+                {collection === 'curated' ? 'curated threads' : 'threads'}
               </span>
               <span
                 className={styles.metadataOnly}
@@ -647,7 +689,26 @@ export const EmailClient: React.FC = () => {
             ) : threadsError ? (
               <div className={styles.stateError}>{threadsError}</div>
             ) : threads.length === 0 ? (
-              searchInput || activeTab !== 'all' ? (
+              collection === 'curated' && !searchInput && activeTab === 'all' ? (
+                <div className={styles.stateEmpty}>
+                  <div className={styles.emptyTitle}>No key correspondence in this mailbox</div>
+                  <p>
+                    This reading path only includes multi-message correspondence linked to at least
+                    two people in the archive's key-person index.
+                  </p>
+                  <div className={styles.emptyActions}>
+                    <Button
+                      onClick={() => showArchiveCollection('all')}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={styles.emptyActionButton}
+                    >
+                      Open full archive
+                    </Button>
+                  </div>
+                </div>
+              ) : searchInput || activeTab !== 'all' ? (
                 <div className={styles.stateEmpty}>
                   <div className={styles.emptyTitle}>No conversations match these filters</div>
                   <p>
@@ -683,6 +744,12 @@ export const EmailClient: React.FC = () => {
                   body="This mailbox is empty. Email archives are imported from .mbox or .pst source files during ingestion. If you expected messages here, ensure the ingestion pipeline has been run for this mailbox."
                 />
               )
+            ) : collection === 'curated' ? (
+              <EmailNarrativeView
+                threads={threads}
+                selectedThreadId={selectedThreadId}
+                onOpen={handleOpenThread}
+              />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <div className={styles.tableHeader}>

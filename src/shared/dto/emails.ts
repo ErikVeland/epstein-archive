@@ -23,12 +23,14 @@ export interface EmailThreadListItemDto {
   subject: string;
   participants: string[];
   participantCount: number;
+  firstMessageAt: string;
   lastMessageAt: string;
   snippet: string;
   messageCount: number;
   hasAttachments: boolean;
   linkedEntityIds: number[];
   linkedEntities: { entityId: number; name: string }[];
+  keyPeople: string[];
   risk: number | null;
   ladder: string | null;
   confidence: number | null;

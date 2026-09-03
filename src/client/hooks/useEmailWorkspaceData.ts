@@ -51,6 +51,7 @@ interface UseEmailWorkspaceDataOptions {
   showYahooPostMortem: boolean;
   showEmptyBodies: boolean;
   topic: string;
+  collection: 'all' | 'curated';
   sortBy: string;
   sortOrder: string;
   updateUrlState: (updates: Record<string, string | null>) => void;
@@ -72,6 +73,7 @@ export function useEmailWorkspaceData({
   showYahooPostMortem,
   showEmptyBodies,
   topic,
+  collection,
   sortBy,
   sortOrder,
   updateUrlState,
@@ -167,6 +169,7 @@ export function useEmailWorkspaceData({
           showYahooPostMortem,
           showEmptyBodies,
           topic: topic || undefined,
+          collection,
           sortBy,
           sortOrder,
         });
@@ -212,6 +215,7 @@ export function useEmailWorkspaceData({
       showEmptyBodies,
       toFilter,
       topic,
+      collection,
       sortBy,
       sortOrder,
     ],
@@ -370,6 +374,7 @@ export function useEmailWorkspaceData({
       showYahooPostMortem: showYahooPostMortem ? null : '0',
       showEmptyBodies: showEmptyBodies ? null : '0',
       topic: topic || null,
+      collection: collection === 'all' ? 'all' : null,
       sortBy: sortBy !== 'date' ? sortBy : null,
       sortOrder: sortOrder !== 'desc' ? sortOrder : null,
     });
@@ -388,6 +393,7 @@ export function useEmailWorkspaceData({
     showEmptyBodies,
     toFilter,
     topic,
+    collection,
     sortBy,
     sortOrder,
     updateUrlState,

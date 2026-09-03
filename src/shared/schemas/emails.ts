@@ -23,14 +23,26 @@ export const emailThreadListItemSchema = z.object({
   subject: z.string(),
   participants: z.array(z.string()),
   participantCount: z.number(),
+  firstMessageAt: z.string().default(''),
   lastMessageAt: z.string(),
   snippet: z.string(),
   messageCount: z.number(),
   hasAttachments: z.boolean(),
   linkedEntityIds: z.array(z.number()),
+  linkedEntities: z
+    .array(
+      z.object({
+        entityId: z.number(),
+        name: z.string(),
+      }),
+    )
+    .default([]),
+  keyPeople: z.array(z.string()).default([]),
   risk: z.number().nullable(),
   ladder: z.string().nullable(),
   confidence: z.number().nullable(),
+  signalScore: z.number().optional(),
+  significanceScore: z.number().optional(),
 });
 
 export const emailThreadsResponseSchema = z.object({

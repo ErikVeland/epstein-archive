@@ -875,6 +875,7 @@ class ApiClient {
     showYahooPostMortem?: boolean;
     showEmptyBodies?: boolean;
     topic?: string;
+    collection?: 'all' | 'curated';
     sortBy?: string;
     sortOrder?: string;
   }): Promise<EmailThreadsResponseDto> {
@@ -894,6 +895,7 @@ class ApiClient {
     if (params.showYahooPostMortem) usp.append('showYahooPostMortem', '1');
     if (params.showEmptyBodies) usp.append('showEmptyBodies', '1');
     if (params.topic) usp.append('topic', params.topic);
+    if (params.collection) usp.append('collection', params.collection);
     if (params.sortBy) usp.append('sortBy', params.sortBy);
     if (params.sortOrder) usp.append('sortOrder', params.sortOrder);
     const url = `${API_BASE_URL}/emails/threads${usp.toString() ? `?${usp.toString()}` : ''}`;

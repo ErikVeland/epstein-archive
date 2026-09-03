@@ -1,5 +1,25 @@
 # Release Notes
 
+## 22.6.4 - 2026-09-04 - Key Correspondence Narrative
+
+### Curated email archive
+
+- **The email browser now opens on Key correspondence.** This collection removes bulk mail, empty records, generic subjects, invalid dates, and implausible thread merges from the main reading path.
+- **Related replies are reconstructed into threads.** The archive groups dated messages by normalized subjects when the source did not preserve a thread identifier.
+- **Curation requires evidence context.** Each thread contains multiple substantive messages and links at least two people from the archive's key-person index.
+- **The complete mailbox remains available.** Full archive and Promotions views retain the unabridged records and existing filters.
+
+### Timeline narrative
+
+- **Curated threads follow their original message dates.** The API now prefers the preserved email date instead of the database ingestion timestamp for lists, filters, and message order.
+- **The timeline groups correspondence into clear periods.** Each card shows its date range, message count, subject, header participants, linked people, source preview, and attachment status.
+- **The interface states the evidence limit.** Machine curation creates a reading path. A link or mention does not establish participation, knowledge, or wrongdoing.
+
+### Performance and verification
+
+- **Thread counts and list pages load concurrently.** The curated landing view avoids a second sequential archive scan.
+- **Server tests protect the curation boundary.** Tests cover thread reconstruction, key-person requirements, bulk-mail suppression, chronology, and consistent detail filtering.
+
 ## 22.6.3 - 2026-09-04 - Media Browser First Paint and Interest Ranking
 
 ### Faster first paint

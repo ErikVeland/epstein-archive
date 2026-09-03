@@ -169,6 +169,12 @@ const parseCursor = (value: string | undefined): ParsedCursor | null => {
 const encodeCursor = (lastMessageAt: string, threadId: string): string =>
   Buffer.from(`${lastMessageAt}|${threadId}`, 'utf8').toString('base64');
 
+const serializeEmailDate = (value: unknown): string => {
+  if (value instanceof Date) return value.toISOString();
+  const parsed = new Date(String(value || ''));
+  return Number.isNaN(parsed.getTime()) ? String(value || '') : parsed.toISOString();
+};
+
 const threadRowField = <T = unknown>(
   row: Record<string, unknown>,
   camel: string,
@@ -210,6 +216,7 @@ const threadsSchema = z.object({
     showYahooPostMortem: z.preprocess((v) => v === '1', z.boolean()).optional(),
     showEmptyBodies: z.preprocess((v) => v === '1', z.boolean()).optional(),
     topic: z.string().optional(),
+    collection: z.enum(['all', 'curated']).optional().default('all'),
     sortBy: z
       .enum(['date', 'subject', 'views', 'stars', 'participants'])
       .optional()
@@ -344,6 +351,7 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
     const showYahooPostMortem = readOptionalBoolean(queryParams.showYahooPostMortem) ?? true;
     const showEmptyBodies = readOptionalBoolean(queryParams.showEmptyBodies) ?? true;
     const topic = readString(queryParams.topic);
+    const collection = (readString(queryParams.collection) || 'all') as 'all' | 'curated';
     const sortBy = (readString(queryParams.sortBy) || 'date') as
       | 'date'
       | 'subject'
@@ -385,6 +393,7 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
         sortBy,
         sortOrder,
         topicDocIds,
+        collection,
       }),
       { rows: [], countRow: { total: 0 } },
     );
@@ -394,7 +403,12 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
     const lastRow = pageRows[pageRows.length - 1] as Record<string, unknown> | undefined;
     const nextCursor = hasMore
       ? encodeCursor(
-          String(threadRowField(lastRow || {}, 'lastMessageAt') || ''),
+          serializeEmailDate(
+            threadRowField(
+              lastRow || {},
+              collection === 'curated' ? 'firstMessageAt' : 'lastMessageAt',
+            ) || '',
+          ),
           String(threadRowField(lastRow || {}, 'threadId') || ''),
         )
       : null;
@@ -403,7 +417,7 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
       String(threadRowField(row as Record<string, unknown>, 'threadId') || ''),
     );
     const entityRows =
-      threadIds.length > 0
+      threadIds.length > 0 && collection !== 'curated'
         ? await withEmailListTimeout(
             'thread entity lookup',
             getEmailLinkedEntitiesForThreads(threadIds),
@@ -427,7 +441,14 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
             threadRowField(row as Record<string, unknown>, 'participantsRaw') || '',
           ),
           participantCount: threadRowField(row as Record<string, unknown>, 'participantCount') || 0,
-          lastMessageAt: threadRowField(row as Record<string, unknown>, 'lastMessageAt') || '',
+          firstMessageAt: serializeEmailDate(
+            threadRowField(row as Record<string, unknown>, 'firstMessageAt') ||
+              threadRowField(row as Record<string, unknown>, 'lastMessageAt') ||
+              '',
+          ),
+          lastMessageAt: serializeEmailDate(
+            threadRowField(row as Record<string, unknown>, 'lastMessageAt') || '',
+          ),
           snippet: String((row as Record<string, unknown>).snippet || ''),
           messageCount: threadRowField(row as Record<string, unknown>, 'messageCount') || 0,
           hasAttachments:
@@ -436,6 +457,9 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
             threadRowField(row as Record<string, unknown>, 'linkedEntityIdsRaw') || '',
           ),
           linkedEntities: entitiesByThread.get(threadId) ?? [],
+          keyPeople: normalizeList(
+            threadRowField(row as Record<string, unknown>, 'keyPeopleRaw') || '',
+          ),
           risk:
             (row as Record<string, unknown>).risk == null
               ? null

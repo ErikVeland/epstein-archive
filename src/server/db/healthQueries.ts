@@ -261,6 +261,60 @@ export async function getGraphCommunities() {
   return runQuery<undefined, Record<string, unknown>>(graphQueries.getGraphCommunities, undefined);
 }
 
+const emailOriginalDateSql = (alias: string): string => `
+  CASE
+    WHEN COALESCE(${alias}.metadata_json ->> 'date', '') ~ '^\\d{4}-\\d{2}-\\d{2}T'
+      THEN (${alias}.metadata_json ->> 'date')::timestamptz
+    ELSE COALESCE(${alias}.date_created, '1970-01-01T00:00:00.000Z'::timestamptz)
+  END
+`;
+
+const emailThreadIdSql = (alias: string): string => `
+  COALESCE(
+    ${alias}.metadata_json ->> 'thread_id',
+    ${alias}.metadata_json ->> 'threadId',
+    ${alias}.metadata_json ->> 'conversation_id',
+    ${alias}.metadata_json ->> 'message_id',
+    ${alias}.id::text
+  )
+`;
+
+const canonicalEmailSubjectSql = (alias: string): string => `
+  lower(trim(regexp_replace(
+    regexp_replace(
+      COALESCE(${alias}.metadata_json ->> 'subject', ${alias}.title, ${alias}.file_name, ''),
+      '^(\\s*((re|fw|fwd)\\s*:\\s*))+',
+      '',
+      'i'
+    ),
+    '\\s+',
+    ' ',
+    'g'
+  )))
+`;
+
+const emailNarrativeThreadIdSql = (alias: string): string =>
+  `'story:' || md5(${canonicalEmailSubjectSql(alias)})`;
+
+const curatedEmailDocumentFilterSql = (alias: string): string => `
+  AND COALESCE(${alias}.metadata_json ->> 'date', '') ~ '^\\d{4}-\\d{2}-\\d{2}T'
+  AND (${emailOriginalDateSql(alias)}) BETWEEN '1990-01-01T00:00:00.000Z'::timestamptz
+    AND '2019-08-15T23:59:59.999Z'::timestamptz
+  AND LENGTH(TRIM(COALESCE(${alias}.content_refined, ''))) > 20
+  AND LENGTH(TRIM(COALESCE(
+    ${alias}.metadata_json ->> 'subject',
+    ${alias}.title,
+    ${alias}.file_name,
+    ''
+  ))) > 2
+  AND COALESCE(${alias}.metadata_json ->> 'from', '') <> ''
+  AND COALESCE(${alias}.metadata_json ->> 'to', '') <> ''
+  AND (
+    COALESCE(${alias}.metadata_json ->> 'from', '') || ' ' ||
+    COALESCE(${alias}.metadata_json ->> 'subject', '')
+  ) !~* '(unsubscribe|newsletter|morning squawk|washingtonpost|amazon|donaldjtrump|victory\\.donaldtrump|campaigns\\.rnchq|dailynews|notification|no.?reply|news@|alerts?@|updates?@|marketing|mailchimp|sailthru|horoscope|sotheby|frontiers|birthstone|promotional|your order|headlines)'
+`;
+
 export async function getEmailThreadMessageHeaders(threadId: string) {
   const pool = getApiPool();
   const { rows } = await pool.query(
@@ -278,7 +332,7 @@ export async function getEmailThreadMessageHeaders(threadId: string) {
       COALESCE(d.metadata_json ->> 'from', '') AS "fromAddress",
       COALESCE(d.metadata_json ->> 'to', '') AS "toAddresses",
       COALESCE(d.metadata_json ->> 'cc', '') AS "ccAddresses",
-      COALESCE(d.date_created, '1970-01-01T00:00:00.000Z') AS "dateCreated",
+      ${emailOriginalDateSql('d')} AS "dateCreated",
       COALESCE(d.content_refined, '') AS snippet,
       CASE WHEN (COALESCE(d.metadata_json ->> 'attachments_count', '0'))::int > 0 THEN 1 ELSE 0 END AS "hasAttachments",
       COALESCE(d.metadata_json ->> 'attachments', '[]') AS "attachmentsMetaRaw",
@@ -290,13 +344,14 @@ export async function getEmailThreadMessageHeaders(threadId: string) {
       d.red_flag_rating AS "redFlagRating"
     FROM documents d
     WHERE d.evidence_type = 'email'
-      AND COALESCE(
-        d.metadata_json ->> 'thread_id',
-        d.metadata_json ->> 'threadId',
-        d.metadata_json ->> 'conversation_id',
-        d.metadata_json ->> 'message_id',
-        d.id::text
-      ) = $1
+      AND (
+        (${emailThreadIdSql('d')} = $1 AND $1 NOT LIKE 'story:%')
+        OR (
+          ${emailNarrativeThreadIdSql('d')} = $1
+          AND $1 LIKE 'story:%'
+          ${curatedEmailDocumentFilterSql('d')}
+        )
+      )
     ORDER BY "dateCreated" ASC, d.id ASC
     `,
     [threadId],
@@ -333,14 +388,23 @@ export async function getEmailLinkedEntitiesForThreads(
   const { rows } = await pool.query<{ threadId: string; entityId: number; name: string }>(
     `
     SELECT
-      COALESCE(d.metadata_json->>'thread_id', d.id::text) AS "threadId",
+      CASE
+        WHEN ${emailNarrativeThreadIdSql('d')} = ANY($1) THEN ${emailNarrativeThreadIdSql('d')}
+        ELSE ${emailThreadIdSql('d')}
+      END AS "threadId",
       e.id AS "entityId",
       e.full_name AS name
     FROM documents d
     JOIN entity_mentions em ON d.id = em.document_id
     JOIN entities e ON em.entity_id = e.id
     WHERE d.evidence_type = 'email'
-      AND COALESCE(d.metadata_json->>'thread_id', d.id::text) = ANY($1)
+      AND (
+        ${emailThreadIdSql('d')} = ANY($1)
+        OR (
+          ${emailNarrativeThreadIdSql('d')} = ANY($1)
+          ${curatedEmailDocumentFilterSql('d')}
+        )
+      )
     GROUP BY "threadId", e.id, e.full_name
     ORDER BY "threadId", e.full_name
     `,
@@ -749,18 +813,12 @@ export async function getEmailCategoriesCounts(): Promise<EmailCategoriesCounts>
   return counts;
 }
 
-const buildThreadBaseSql = (where: string) => `
+const buildThreadBaseSql = (where: string, curatedOnly: boolean) => `
 WITH email_docs AS (
   SELECT
     d.id,
-    COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) AS dateCreated,
-    COALESCE(
-      metadata_json ->> 'thread_id',
-      metadata_json ->> 'threadId',
-      metadata_json ->> 'conversation_id',
-      metadata_json ->> 'message_id',
-      d.id::text
-    ) AS threadId,
+    ${emailOriginalDateSql('d')} AS dateCreated,
+    ${curatedOnly ? emailNarrativeThreadIdSql('d') : emailThreadIdSql('d')} AS threadId,
     COALESCE(metadata_json ->> 'subject', d.file_name, d.title, 'No Subject') AS subject,
     COALESCE(metadata_json ->> 'from', '') AS fromAddress,
     COALESCE(metadata_json ->> 'to', '') AS toAddress,
@@ -778,9 +836,14 @@ threaded AS (
   SELECT
     threadId,
     MIN(subject) AS subject,
+    MIN(dateCreated) AS firstMessageAt,
     MAX(dateCreated) AS lastMessageAt,
     COUNT(*) AS messageCount,
-    STRING_AGG(DISTINCT fromAddress, ',') AS participantsRaw,
+    CONCAT_WS(
+      ',',
+      STRING_AGG(DISTINCT NULLIF(fromAddress, ''), ','),
+      STRING_AGG(DISTINCT NULLIF(toAddress, ''), ',')
+    ) AS participantsRaw,
     MAX(COALESCE(red_flag_rating, 0)) AS risk,
     MAX(signalScore) AS signalScore,
     MAX(significanceScore) AS significanceScore,
@@ -808,27 +871,47 @@ threaded AS (
   FROM email_docs
   GROUP BY threadId
 )
+${
+  curatedOnly
+    ? `, key_entities AS (
+  SELECT
+    ed.threadId,
+    COUNT(DISTINCT e.id) AS keyEntityCount,
+    STRING_AGG(DISTINCT e.full_name, ',' ORDER BY e.full_name) AS keyPeopleRaw
+  FROM email_docs ed
+  JOIN entity_mentions em ON em.document_id = ed.id
+  JOIN entities e ON e.id = em.entity_id
+  WHERE COALESCE(e.entity_type, 'Person') = 'Person'
+    AND COALESCE(e.junk_tier, 'clean') <> 'junk'
+    AND COALESCE(e.is_vip, 0) = 1
+  GROUP BY ed.threadId
+)`
+    : ''
+}
 SELECT
-  threadId,
-  subject,
-  participantsRaw,
+  t.threadId,
+  t.subject,
+  t.participantsRaw,
   COALESCE(
     CASE WHEN participantsRaw = '' THEN 0
          ELSE (LENGTH(participantsRaw) - LENGTH(REPLACE(participantsRaw, ',', '')) + 1)
     END,
     0
   ) AS participantCount,
-  lastMessageAt,
-  snippet,
-  messageCount,
-  hasAttachments,
-  linkedEntityIdsRaw,
-  risk,
-  ladder,
-  confidence,
-  signalScore,
-  significanceScore
-FROM threaded
+  t.firstMessageAt,
+  t.lastMessageAt,
+  t.snippet,
+  t.messageCount,
+  t.hasAttachments,
+  t.linkedEntityIdsRaw,
+  t.risk,
+  t.ladder,
+  t.confidence,
+  t.signalScore,
+  t.significanceScore
+  ${curatedOnly ? ", COALESCE(ke.keyEntityCount, 0) AS keyEntityCount, COALESCE(ke.keyPeopleRaw, '') AS keyPeopleRaw" : ", 0 AS keyEntityCount, '' AS keyPeopleRaw"}
+FROM threaded t
+${curatedOnly ? 'LEFT JOIN key_entities ke ON ke.threadId = t.threadId' : ''}
 `;
 
 const buildThreadCountSql = (where: string) => `
@@ -995,20 +1078,8 @@ export async function getEmailThreads(params: {
   sortBy?: 'date' | 'subject' | 'views' | 'stars' | 'participants';
   sortOrder?: 'asc' | 'desc';
   topicDocIds?: string[];
+  collection?: 'all' | 'curated';
 }) {
-  const buildConversationThreadFilter = (qualifier: string) => `
-    COALESCE(${qualifier}.participantsraw, '') <> ''
-    AND (
-      CASE
-        WHEN COALESCE(${qualifier}.participantsraw, '') = '' THEN 0
-        ELSE (
-          LENGTH(${qualifier}.participantsraw) -
-          LENGTH(REPLACE(${qualifier}.participantsraw, ',', '')) + 1
-        )
-      END
-    ) BETWEEN 2 AND 12
-  `;
-
   const {
     mailboxId,
     query = '',
@@ -1027,11 +1098,25 @@ export async function getEmailThreads(params: {
     sortBy = 'date',
     sortOrder = 'desc',
     topicDocIds = [],
+    collection = 'all',
   } = params;
 
   const queryParams: unknown[] = [];
   let where = getJunkFilterClause(showSuppressedJunk);
-  const threadedWhere = '';
+  const curatedOnly = collection === 'curated';
+  const threadedWhere = curatedOnly
+    ? `WHERE keyEntityCount >= 2
+        AND messageCount >= 2
+        AND lastMessageAt - firstMessageAt <= INTERVAL '366 days'
+        AND lower(trim(regexp_replace(
+          regexp_replace(t.subject, '^(\\s*((re|fw|fwd)\\s*:\\s*))+', '', 'i'),
+          '\\s+', ' ', 'g'
+        ))) !~ '^(hi|hello|update|fyi|call|tomorrow|follow up|checking in|no subject|re|fw|fwd)$'`
+    : '';
+
+  if (curatedOnly) {
+    where += curatedEmailDocumentFilterSql('d');
+  }
 
   if (topicDocIds.length > 0) {
     where += ` AND d.id = ANY($${queryParams.length + 1})`;
@@ -1081,12 +1166,12 @@ export async function getEmailThreads(params: {
   }
 
   if (dateFrom.length > 0) {
-    where += ` AND COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) >= $${queryParams.length + 1}`;
+    where += ` AND (${emailOriginalDateSql('d')}) >= $${queryParams.length + 1}`;
     queryParams.push(dateFrom);
   }
 
   if (dateTo.length > 0) {
-    where += ` AND COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) <= $${queryParams.length + 1}`;
+    where += ` AND (${emailOriginalDateSql('d')}) <= $${queryParams.length + 1}`;
     queryParams.push(dateTo);
   }
 
@@ -1101,7 +1186,7 @@ export async function getEmailThreads(params: {
 
   if (!showYahooPostMortem) {
     // Restrict all emails to cutoff date Aug 15 2019 by default to trim post-mortem spam
-    where += ` AND COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) <= '2019-08-15T23:59:59.999Z'::timestamptz`;
+    where += ` AND (${emailOriginalDateSql('d')}) <= '2019-08-15T23:59:59.999Z'::timestamptz`;
   }
 
   if (!showEmptyBodies) {
@@ -1110,27 +1195,87 @@ export async function getEmailThreads(params: {
   }
 
   try {
-    const baseSql = buildThreadBaseSql(where);
+    const baseSql = buildThreadBaseSql(where, curatedOnly);
     const countSql =
       threadedWhere.length > 0
-        ? `SELECT COUNT(*)::bigint AS total FROM (${baseSql}) counted WHERE ${buildConversationThreadFilter('counted')}`
+        ? `SELECT COUNT(*)::bigint AS total FROM (${baseSql}) counted ${threadedWhere.replaceAll('t.', 'counted.')}`
         : buildThreadCountSql(where);
-    const { rows: countRows } = await getApiPool().query(countSql, queryParams);
-    const total = Number(countRows[0]?.total || 0);
-
     const cursorParams: unknown[] = [];
     let cursorClause = '';
+    const sortDateColumn = curatedOnly ? 'firstMessageAt' : 'lastMessageAt';
     if (parsedCursor) {
-      cursorClause = `${threadedWhere.length > 0 ? ' AND ' : ' WHERE '} (lastMessageAt < $${queryParams.length + 1} OR (lastMessageAt = $${queryParams.length + 1} AND threadId > $${queryParams.length + 2})) `;
+      const cursorOperator = sortOrder === 'asc' ? '>' : '<';
+      cursorClause = `${threadedWhere.length > 0 ? ' AND ' : ' WHERE '} (${sortDateColumn} ${cursorOperator} $${queryParams.length + 1} OR (${sortDateColumn} = $${queryParams.length + 1} AND threadId > $${queryParams.length + 2})) `;
       cursorParams.push(parsedCursor.lastMessageAt, parsedCursor.threadId);
     }
 
     const sortDirection = sortOrder === 'asc' ? 'ASC' : 'DESC';
-    let sortColumn = 'lastMessageAt';
+    let sortColumn = sortDateColumn;
     if (sortBy === 'subject') sortColumn = 'subject';
     if (sortBy === 'views') sortColumn = 'significanceScore';
     if (sortBy === 'stars') sortColumn = 'signalScore';
     if (sortBy === 'participants') sortColumn = 'participantsRaw';
+
+    if (curatedOnly) {
+      const curatedCursorClause = parsedCursor
+        ? `WHERE (${sortDateColumn} ${sortOrder === 'asc' ? '>' : '<'} $${queryParams.length + 1}
+            OR (${sortDateColumn} = $${queryParams.length + 1}
+              AND threadId > $${queryParams.length + 2}))`
+        : '';
+      const curatedListSql = `
+        SELECT
+          paged_rows.threadId,
+          paged_rows.subject,
+          paged_rows.participantsRaw,
+          paged_rows.participantCount,
+          paged_rows.firstMessageAt,
+          paged_rows.lastMessageAt,
+          paged_rows.snippet,
+          paged_rows.messageCount,
+          paged_rows.hasAttachments,
+          paged_rows.linkedEntityIdsRaw,
+          paged_rows.risk,
+          paged_rows.ladder,
+          paged_rows.confidence,
+          paged_rows.signalScore,
+          paged_rows.significanceScore,
+          paged_rows.keyEntityCount,
+          paged_rows.keyPeopleRaw,
+          paged_rows."totalCount"
+        FROM (
+          SELECT
+            curated_rows.threadId,
+            curated_rows.subject,
+            curated_rows.participantsRaw,
+            curated_rows.participantCount,
+            curated_rows.firstMessageAt,
+            curated_rows.lastMessageAt,
+            curated_rows.snippet,
+            curated_rows.messageCount,
+            curated_rows.hasAttachments,
+            curated_rows.linkedEntityIdsRaw,
+            curated_rows.risk,
+            curated_rows.ladder,
+            curated_rows.confidence,
+            curated_rows.signalScore,
+            curated_rows.significanceScore,
+            curated_rows.keyEntityCount,
+            curated_rows.keyPeopleRaw,
+            COUNT(*) OVER() AS "totalCount"
+          FROM (${baseSql} ${threadedWhere}) curated_rows
+        ) paged_rows
+        ${curatedCursorClause}
+        ORDER BY ${sortColumn} ${sortDirection}, threadId ASC
+        LIMIT $${queryParams.length + cursorParams.length + 1}
+      `;
+      const { rows } = await getApiPool().query(curatedListSql, [
+        ...queryParams,
+        ...cursorParams,
+        limit + 1,
+      ]);
+      const total = Number(rows[0]?.totalCount || rows[0]?.totalcount || 0);
+      return { rows, countRow: { total } };
+    }
 
     const listSql = `${baseSql}
         ${threadedWhere}
@@ -1139,11 +1284,11 @@ export async function getEmailThreads(params: {
         LIMIT $${queryParams.length + cursorParams.length + 1}
       `;
 
-    const { rows } = await getApiPool().query(listSql, [
-      ...queryParams,
-      ...cursorParams,
-      limit + 1,
+    const [{ rows: countRows }, { rows }] = await Promise.all([
+      getApiPool().query(countSql, queryParams),
+      getApiPool().query(listSql, [...queryParams, ...cursorParams, limit + 1]),
     ]);
+    const total = Number(countRows[0]?.total || 0);
 
     return { rows, countRow: { total } };
   } catch (error) {

@@ -610,6 +610,7 @@
 .subTabBar {
   display: flex;
   align-items: center;
+  overflow-x: auto;
   border-bottom: 1px solid var(--glass-border);
   background: var(--glass-bg-strong);
   padding: 0 1rem;
@@ -626,6 +627,7 @@
   color: var(--text-secondary);
   border-bottom: 3px solid transparent;
   margin-bottom: -1px;
+  white-space: nowrap;
 }
 
 .subTabItem:hover {
@@ -1100,6 +1102,299 @@
 .threadPaneBody {
   flex: 1;
   min-height: 0;
+}
+
+.narrativeScroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-5) clamp(var(--space-4), 4vw, var(--space-8)) var(--space-8);
+  scroll-behavior: smooth;
+}
+
+.narrativeIntro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-4);
+  max-width: 920px;
+  margin: 0 auto var(--space-8);
+  padding: var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--glass-border));
+  border-radius: var(--radius-xl);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 9%, var(--glass-bg-strong)),
+    var(--glass-bg-strong)
+  );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-strong) 7%, transparent);
+}
+
+.narrativeIntroIcon {
+  display: flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--glass-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.narrativeIntro h2,
+.narrativeChapterHeader h3,
+.narrativeCard h4 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.narrativeIntro h2 {
+  margin-top: var(--space-1);
+  font-size: clamp(1.3rem, 3vw, 1.75rem);
+}
+
+.narrativeIntro p {
+  max-width: 72ch;
+  margin: var(--space-2) 0 0;
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.narrativeKicker,
+.narrativeYear {
+  color: var(--accent);
+  font-size: 0.6875rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.narrativeIntro .narrativeCaveat {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.narrativeChapter {
+  max-width: 920px;
+  margin: 0 auto var(--space-8);
+}
+
+.narrativeChapterHeader {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.25fr) minmax(0, 1fr);
+  gap: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.narrativeChapterHeader h3 {
+  font-size: var(--font-size-lg);
+}
+
+.narrativeChapterHeader p {
+  margin: var(--space-1) 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.narrativeThreadList {
+  margin-left: 0.4rem;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 42%, var(--glass-border));
+  padding: var(--space-4) 0 0 var(--space-6);
+}
+
+.narrativeCard {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-strong);
+  color: inherit;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.narrativeCard:hover,
+.narrativeCard:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--glass-border));
+  background: var(--glass-bg-highlight);
+  transform: translateX(2px);
+}
+
+.narrativeCard:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  outline-offset: 2px;
+}
+
+.narrativeCardActive {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--glass-bg-strong));
+}
+
+.narrativeRail {
+  position: absolute;
+  top: 1.35rem;
+  left: calc(var(--space-6) * -1 - 0.35rem);
+  display: flex;
+  width: 0.75rem;
+  height: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--app-bg);
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.narrativeCardBody {
+  padding: var(--space-4) var(--space-5);
+}
+
+.narrativeCardMeta,
+.narrativeCardFooter,
+.narrativePeople,
+.narrativeOpen,
+.narrativeAttachment {
+  display: flex;
+  align-items: center;
+}
+
+.narrativeCardMeta {
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.narrativeCardMeta time {
+  color: var(--accent);
+  font-weight: var(--font-weight-bold);
+}
+
+.narrativeAttachment,
+.narrativePeople,
+.narrativeOpen {
+  gap: var(--space-1);
+}
+
+.narrativeAttachment svg,
+.narrativePeople svg,
+.narrativeOpen svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.narrativeCard h4 {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-snug);
+}
+
+.narrativeParticipants,
+.narrativeSnippet {
+  margin: var(--space-2) 0 0;
+}
+
+.narrativeParticipants {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.narrativeSnippet {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.narrativeCardFooter {
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--glass-border);
+  font-size: 0.6875rem;
+}
+
+.narrativePeople {
+  min-width: 0;
+  color: var(--text-muted);
+}
+
+.narrativePeople span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.narrativeOpen {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-weight: var(--font-weight-bold);
+}
+
+@media (max-width: 640px) {
+  .subTabBar {
+    scrollbar-width: none;
+  }
+
+  .subTabBar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .subTabItem {
+    padding: 0.75rem;
+    font-size: 0.6875rem;
+  }
+
+  .curatedPaneHeader .densityToolbar {
+    display: none;
+  }
+
+  .narrativeScroll {
+    padding: var(--space-3);
+  }
+
+  .narrativeIntro {
+    grid-template-columns: 1fr;
+    margin-bottom: var(--space-6);
+    padding: var(--space-4);
+  }
+
+  .narrativeChapterHeader {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+
+  .narrativeThreadList {
+    padding-left: var(--space-4);
+  }
+
+  .narrativeRail {
+    left: calc(var(--space-4) * -1 - 0.35rem);
+  }
+
+  .narrativeCardBody {
+    padding: var(--space-4);
+  }
+
+  .narrativeCardFooter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 .quickLabel {

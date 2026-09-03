@@ -9,6 +9,11 @@ import type {
   EmailThreadsResponseDto,
 } from '@shared/dto/emails';
 
+const mapDateString = (value: unknown): string => {
+  if (value instanceof Date) return value.toISOString();
+  return String(value || '');
+};
+
 export const mapEmailMailboxDto = (row: Record<string, unknown>): EmailMailboxDto => ({
   mailboxId: String(row.mailboxId || (row.entityId ? `entity:${row.entityId}` : 'all')),
   entityId: row.entityId == null ? null : Number(row.entityId),
@@ -41,7 +46,8 @@ export const mapEmailThreadListItemDto = (
   subject: String(row.subject || 'No Subject'),
   participants: Array.isArray(row.participants) ? row.participants.map(String) : [],
   participantCount: Number(row.participantCount || 0),
-  lastMessageAt: String(row.lastMessageAt || ''),
+  firstMessageAt: mapDateString(row.firstMessageAt || row.lastMessageAt),
+  lastMessageAt: mapDateString(row.lastMessageAt),
   snippet: String(row.snippet || ''),
   messageCount: Number(row.messageCount || 0),
   hasAttachments: Boolean(row.hasAttachments),
@@ -56,6 +62,7 @@ export const mapEmailThreadListItemDto = (
         name: String(e.name || ''),
       }))
     : [],
+  keyPeople: Array.isArray(row.keyPeople) ? row.keyPeople.map(String) : [],
   risk: row.risk == null ? null : Number(row.risk),
   ladder: row.ladder ? String(row.ladder) : null,
   confidence: row.confidence == null ? null : Number(row.confidence),
@@ -98,7 +105,7 @@ export const mapEmailThreadDetailsDto = (
           from: String(msg.from || ''),
           to: Array.isArray(msg.to) ? msg.to.map(String) : [],
           cc: Array.isArray(msg.cc) ? msg.cc.map(String) : [],
-          date: String(msg.date || ''),
+          date: mapDateString(msg.date),
           snippet: String(msg.snippet || ''),
           flags: {
             hasAttachments: Boolean(
