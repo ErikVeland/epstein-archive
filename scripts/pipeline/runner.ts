@@ -27,6 +27,11 @@ import {
 import { stageByName, type UnifiedStage } from './stages.js';
 import { ensureServiceHealthyOrRecover } from './recovery.js';
 import { deriveDocumentTitle, isFallbackDocumentTitle } from '../../src/shared/documentTitle.js';
+import {
+  resolveSummaryConcurrency,
+  resolveSummaryFetchBatchSize,
+  selectSummaryModels,
+} from './enrichmentScheduling.js';
 
 /**
  * Run a subprocess and stream its output. A heartbeat keepalive timer fires
@@ -61,6 +66,18 @@ export function runScript(scriptPath: string, args: string[] = []): Promise<numb
       reject(err);
     });
   });
+}
+
+async function withPipelineHeartbeat<T>(
+  operation: Promise<T>,
+  fields: Record<string, unknown>,
+): Promise<T> {
+  const timer = setInterval(() => updateHeartbeat(fields), 30_000);
+  try {
+    return await operation;
+  } finally {
+    clearInterval(timer);
+  }
 }
 
 export async function checkPipelineControlSignal(
@@ -251,17 +268,21 @@ export async function runEnrichPhase(
     );
   }
   const defaultModel = modelPool[0] || process.env.AI_PROVIDER || 'auto';
-  const fastModels = modelPool.filter((model) => !model.toLowerCase().includes('qwen3-vl'));
+  const summaryModels = selectSummaryModels(modelPool);
   const qualityModel =
-    modelPool.find(
-      (model) =>
-        model.toLowerCase().includes('qwen3.5-9b') || model.toLowerCase().includes('qwen3-vl'),
-    ) || defaultModel;
-  // Give fast text models more routine work while retaining a quality sample.
-  const weightedModels = [...fastModels, ...fastModels, qualityModel];
+    summaryModels.find((model) => model.toLowerCase().includes('qwen3.5-9b')) ||
+    summaryModels[0] ||
+    defaultModel;
+  const summaryConcurrency = resolveSummaryConcurrency(
+    summaryModels,
+    process.env.AI_SUMMARY_CONCURRENCY,
+  );
+  const fetchBatchSize = resolveSummaryFetchBatchSize(BATCH_SIZE, summaryConcurrency);
   let routingIndex = 0;
   const modelUsage: Record<string, number> = {};
   console.log(`   Callable model pool: ${modelPool.join(' | ') || defaultModel}`);
+  console.log(`   Text summary models: ${summaryModels.join(' | ') || defaultModel}`);
+  console.log(`   Summary concurrency: ${summaryConcurrency}`);
 
   const pool = getIngestPool();
   const stage = stageByName('ai-enrichment');
@@ -269,12 +290,12 @@ export async function runEnrichPhase(
     runId: currentPipelineRun?.id,
     stageName: stage.name,
     stageVersion: stage.version,
-    modelId: modelPool.join(',') || defaultModel,
-    metrics: { mode, modelPool },
+    modelId: summaryModels.join(',') || defaultModel,
+    metrics: { mode, modelPool, summaryModels, summaryConcurrency, fetchBatchSize },
   });
 
   let whereClause =
-    "content IS NOT NULL AND length(content) > 50 AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
+    "content IS NOT NULL AND length(content) > 50 AND COALESCE(file_type, '') NOT LIKE 'image/%' AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
   const summaryArtifactPredicate =
     "NOT (metadata_json ? 'ai_summary') AND NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'summary' AND daa.artifact_version = 'summary-v2' AND daa.prompt_version = 'forensic-summary-v1')";
   if (mode === 'backfill') {
@@ -312,21 +333,40 @@ export async function runEnrichPhase(
     exitCode: null,
   });
 
-  const failedDocIds = new Set<number>();
+  if (enrichTotal === 0) {
+    console.log('   ✅ All eligible text documents already have summary artifacts.');
+    await PipelineService.finishStageRun(aggregateStageRun?.id, {
+      status: 'succeeded',
+      metrics: {
+        documentsEnriched: 0,
+        summariesGenerated: 0,
+        mode,
+        modelPool,
+        summaryModels,
+        summaryConcurrency,
+        fetchBatchSize,
+        modelUsage,
+      },
+    });
+    return { documentsEnriched: 0, summariesGenerated: 0 };
+  }
+
+  let lastScannedId = 0;
 
   while (!isShuttingDown()) {
-    // Always query at offset 0: enriched docs drop out of the WHERE clause
-    // so the result set naturally shrinks each iteration.
+    // Scan by primary key. Re-sorting the full pending queue for each small batch
+    // dominated total runtime once the archive passed one million documents.
     const docs = (
       await pool.query(
         `
       SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name, title, red_flag_rating
       FROM documents
-      WHERE ${whereClause} ${failedDocIds.size > 0 ? `AND id NOT IN (${Array.from(failedDocIds).join(',')})` : ''}
-      ORDER BY COALESCE(red_flag_rating, 0) DESC, id ASC
+      WHERE ${whereClause}
+        AND id > $2
+      ORDER BY id ASC
       LIMIT $1
     `,
-        [BATCH_SIZE],
+        [fetchBatchSize, lastScannedId],
       )
     ).rows as {
       id: number;
@@ -338,6 +378,7 @@ export async function runEnrichPhase(
     }[];
 
     if (docs.length === 0) break;
+    lastScannedId = Number(docs[docs.length - 1].id);
 
     // Write progress to live_status.json once per batch so the widget stays current
     updateHeartbeat({
@@ -350,132 +391,151 @@ export async function runEnrichPhase(
       modelUsage,
     });
 
-    // Process sequentially: EXO is local so parallel requests queue up on its side
-    // anyway, while concurrent fetches multiply Node.js heap usage for no throughput gain.
-    for (const doc of docs) {
-      if (isShuttingDown()) break;
-      let documentStageRun: { id: number } | null = null;
-      try {
-        // High-risk evidence gets the strongest model. Routine documents are
-        // deterministically balanced across the two faster text models.
-        const primaryModel =
-          Number(doc.red_flag_rating || 0) >= 4 || weightedModels.length === 0
-            ? qualityModel
-            : weightedModels[routingIndex++ % weightedModels.length];
-        const fallbackModels = [primaryModel, qualityModel, ...modelPool].filter(
-          (model, index, all) => Boolean(model) && all.indexOf(model) === index,
-        );
-        let selectedModel = primaryModel;
-        pipelineRuntime.currentDocId = Number(doc.id);
-        pipelineRuntime.currentFile = doc.file_name || null;
-        pipelineRuntime.currentDocStartedAt = Date.now();
-        updateHeartbeat({
-          phase: 'Enrichment',
-          currentDocId: doc.id,
-          currentFile: doc.file_name,
-          currentDocStartedAt: new Date(pipelineRuntime.currentDocStartedAt).toISOString(),
-        });
-
-        // node-postgres auto-parses jsonb into objects; handle both cases
-        let meta: Record<string, unknown> = {};
-        if (doc.metadata_json) {
-          if (typeof doc.metadata_json === 'object' && doc.metadata_json !== null) {
-            meta = doc.metadata_json as Record<string, unknown>;
-          } else if (typeof doc.metadata_json === 'string') {
-            try {
-              meta = JSON.parse(doc.metadata_json);
-            } catch {
-              meta = {};
-            }
-          }
-        }
-        // Release metadata_json from the row object immediately after parsing
-        doc.metadata_json = null;
-
-        const subject =
-          (meta.subject as string) || (meta.title as string) || doc.file_name || 'Unknown Document';
-
-        let refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
-        let analysisText = refinedText;
-        let cleanedTextForArtifact: string | null = null;
-        const inputHash = crypto
-          .createHash('sha256')
-          .update(refinedText)
-          .digest('hex')
-          .slice(0, 40);
-        documentStageRun = await PipelineService.startStageRun({
-          runId: currentPipelineRun?.id,
-          documentId: Number(doc.id),
-          stageName: stage.name,
-          stageVersion: stage.version,
-          inputHash,
-          modelId: primaryModel,
-          metrics: { mode, fileName: doc.file_name, fallbackModels },
-        });
-
-        // LLM OCR Re-Correction Pipeline Phase:
-        // Reconstruct highly garbled text (ocr_confidence < 0.6 or containing equals signs) into readable sentences using Ollama or Exo.
-        const ocrConf = meta.ocr_confidence;
-        const isLowLegibility =
-          mode !== 'backfill' &&
-          ((typeof ocrConf === 'number' && ocrConf < 0.6) || (doc.content || '').includes('='));
-        if (isLowLegibility && process.env.ENABLE_AI_ENRICHMENT === 'true') {
-          const cleanedText = await AIEnrichmentService.cleanOCRText(refinedText, subject);
-          if (cleanedText && cleanedText.length > 50) {
-            cleanedTextForArtifact = cleanedText;
-            analysisText = cleanedText;
-            if (allowAiContentRewrite) {
-              refinedText = cleanedText;
-            }
-          }
-        }
-
-        // Release raw content from row object — refinedText is the only copy we need
-        doc.content = null;
-
-        let summary: string | null = null;
-        let lastModelError: unknown = null;
-        for (const candidateModel of fallbackModels) {
-          selectedModel = candidateModel;
+    // Use each callable text-model instance concurrently. Vision instances stay
+    // reserved for verified photographs and never receive summary work.
+    for (let offset = 0; offset < docs.length; offset += summaryConcurrency) {
+      const chunk = docs.slice(offset, offset + summaryConcurrency);
+      const results = await Promise.allSettled(
+        chunk.map(async (doc) => {
+          if (isShuttingDown()) return;
+          let documentStageRun: { id: number } | null = null;
           try {
-            summary = await withTimeoutReject(
-              AIEnrichmentService.summarizeDocument(analysisText, {
-                fileName: doc.file_name || undefined,
-                subject,
-                modelId: candidateModel,
-              }),
-              {
-                timeoutMs: DOC_PROCESSING_TIMEOUT_MS,
-                timeoutMessage: `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,
-              },
+            // High-risk evidence gets the strongest model. Routine documents are
+            // deterministically balanced across the two faster text models.
+            const primaryModel =
+              Number(doc.red_flag_rating || 0) >= 4 || summaryModels.length === 0
+                ? qualityModel
+                : summaryModels[routingIndex++ % summaryModels.length];
+            const fallbackModels = [primaryModel, qualityModel, ...summaryModels].filter(
+              (model, index, all) => Boolean(model) && all.indexOf(model) === index,
             );
-            if (summary && summary.length >= 20) break;
-          } catch (error) {
-            lastModelError = error;
-            console.warn(`   ⚠️ ${candidateModel} failed for ${doc.id}; trying fallback`);
-          }
-        }
-        if (!summary && lastModelError) throw lastModelError;
+            let selectedModel = primaryModel;
+            pipelineRuntime.currentDocId = Number(doc.id);
+            pipelineRuntime.currentFile = doc.file_name || null;
+            pipelineRuntime.currentDocStartedAt = Date.now();
+            updateHeartbeat({
+              phase: 'Enrichment',
+              currentDocId: doc.id,
+              currentFile: doc.file_name,
+              currentDocStartedAt: new Date(pipelineRuntime.currentDocStartedAt).toISOString(),
+            });
 
-        if (!summary || summary.length < 10) {
-          const preview = analysisText
-            .replace(/[\r\n]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, 200);
-          summary = `Document "${doc.file_name}" summary preview: ${preview}...`;
-        }
+            // node-postgres auto-parses jsonb into objects; handle both cases
+            let meta: Record<string, unknown> = {};
+            if (doc.metadata_json) {
+              if (typeof doc.metadata_json === 'object' && doc.metadata_json !== null) {
+                meta = doc.metadata_json as Record<string, unknown>;
+              } else if (typeof doc.metadata_json === 'string') {
+                try {
+                  meta = JSON.parse(doc.metadata_json);
+                } catch {
+                  meta = {};
+                }
+              }
+            }
+            // Release metadata_json from the row object immediately after parsing
+            doc.metadata_json = null;
 
-        if (isFallbackDocumentTitle({ id: doc.id, title: doc.title, fileName: doc.file_name })) {
-          const derivedTitle = deriveDocumentTitle({
-            id: doc.id,
-            title: doc.title,
-            fileName: doc.file_name,
-            aiSummary: summary,
-            ocrText: analysisText,
-          });
-          await pool.query(
-            `UPDATE documents
+            const subject =
+              (meta.subject as string) ||
+              (meta.title as string) ||
+              doc.file_name ||
+              'Unknown Document';
+
+            let refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
+            let analysisText = refinedText;
+            let cleanedTextForArtifact: string | null = null;
+            const inputHash = crypto
+              .createHash('sha256')
+              .update(refinedText)
+              .digest('hex')
+              .slice(0, 40);
+            documentStageRun = await PipelineService.startStageRun({
+              runId: currentPipelineRun?.id,
+              documentId: Number(doc.id),
+              stageName: stage.name,
+              stageVersion: stage.version,
+              inputHash,
+              modelId: primaryModel,
+              metrics: { mode, fileName: doc.file_name, fallbackModels },
+            });
+
+            // LLM OCR Re-Correction Pipeline Phase:
+            // Reconstruct highly garbled text (ocr_confidence < 0.6 or containing equals signs) into readable sentences using Ollama or Exo.
+            const ocrConf = meta.ocr_confidence;
+            const isLowLegibility =
+              mode !== 'backfill' &&
+              ((typeof ocrConf === 'number' && ocrConf < 0.6) || (doc.content || '').includes('='));
+            if (isLowLegibility && process.env.ENABLE_AI_ENRICHMENT === 'true') {
+              const cleanedText = await AIEnrichmentService.cleanOCRText(refinedText, subject);
+              if (cleanedText && cleanedText.length > 50) {
+                cleanedTextForArtifact = cleanedText;
+                analysisText = cleanedText;
+                if (allowAiContentRewrite) {
+                  refinedText = cleanedText;
+                }
+              }
+            }
+
+            // Release raw content from row object — refinedText is the only copy we need
+            doc.content = null;
+
+            let summary: string | null = null;
+            let lastModelError: unknown = null;
+            for (const candidateModel of fallbackModels) {
+              selectedModel = candidateModel;
+              try {
+                summary = await withPipelineHeartbeat(
+                  withTimeoutReject(
+                    AIEnrichmentService.summarizeDocument(analysisText, {
+                      fileName: doc.file_name || undefined,
+                      subject,
+                      modelId: candidateModel,
+                    }),
+                    {
+                      timeoutMs: DOC_PROCESSING_TIMEOUT_MS,
+                      timeoutMessage: `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,
+                    },
+                  ),
+                  {
+                    phase: 'Enrichment',
+                    enrichProcessed: documentsEnriched,
+                    enrichTotal,
+                    currentFile: doc.file_name,
+                    currentDocId: doc.id,
+                    activeModel: candidateModel,
+                    inFlight: chunk.length,
+                  },
+                );
+                if (summary && summary.length >= 20) break;
+              } catch (error) {
+                lastModelError = error;
+                console.warn(`   ⚠️ ${candidateModel} failed for ${doc.id}; trying fallback`);
+              }
+            }
+            if (!summary && lastModelError) throw lastModelError;
+
+            if (!summary || summary.length < 10) {
+              const preview = analysisText
+                .replace(/[\r\n]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 200);
+              summary = `Document "${doc.file_name}" summary preview: ${preview}...`;
+            }
+
+            if (
+              isFallbackDocumentTitle({ id: doc.id, title: doc.title, fileName: doc.file_name })
+            ) {
+              const derivedTitle = deriveDocumentTitle({
+                id: doc.id,
+                title: doc.title,
+                fileName: doc.file_name,
+                aiSummary: summary,
+                ocrText: analysisText,
+              });
+              await pool.query(
+                `UPDATE documents
              SET title = $1
              WHERE id = $2
                AND (
@@ -485,129 +545,136 @@ export async function runEnrichPhase(
                  OR title = $3
                  OR title = $4
                )`,
-            [
-              derivedTitle.title,
-              doc.id,
-              deriveDocumentTitle({ id: doc.id, fileName: doc.file_name }).title,
-              `Document ${doc.id}`,
-            ],
-          );
-        }
+                [
+                  derivedTitle.title,
+                  doc.id,
+                  deriveDocumentTitle({ id: doc.id, fileName: doc.file_name }).title,
+                  `Document ${doc.id}`,
+                ],
+              );
+            }
 
-        if (allowAiContentRewrite && cleanedTextForArtifact) {
-          await pool.query('UPDATE documents SET content_refined = $1 WHERE id = $2', [
-            cleanedTextForArtifact,
-            doc.id,
-          ]);
-        }
+            if (allowAiContentRewrite && cleanedTextForArtifact) {
+              await pool.query('UPDATE documents SET content_refined = $1 WHERE id = $2', [
+                cleanedTextForArtifact,
+                doc.id,
+              ]);
+            }
 
-        const outputHash = crypto
-          .createHash('sha256')
-          .update(analysisText + summary)
-          .digest('hex');
-        if (cleanedTextForArtifact) {
-          const cleanedOutputHash = crypto
-            .createHash('sha256')
-            .update(cleanedTextForArtifact)
-            .digest('hex');
-          await PipelineService.upsertAiArtifact({
-            runId: currentPipelineRun?.id,
-            stageRunId: documentStageRun?.id,
-            documentId: Number(doc.id),
-            artifactType: 'ocr_clean_text',
-            artifactVersion: 'ocr-clean-v1',
-            modelId: selectedModel,
-            promptVersion: 'forensic-ocr-clean-v1',
-            sourceExcerpt: refinedText.slice(0, 2000),
-            outputText: cleanedTextForArtifact,
-            confidence: 0.6,
-            provenance: {
-              provider: process.env.AI_PROVIDER,
-              mode,
-              inputHash,
-              outputHash: cleanedOutputHash,
-              canonicalTextUpdated: allowAiContentRewrite,
-            },
-          });
-        }
-        await PipelineService.upsertAiArtifact({
-          runId: currentPipelineRun?.id,
-          stageRunId: documentStageRun?.id,
-          documentId: Number(doc.id),
-          artifactType: 'summary',
-          artifactVersion: 'summary-v2',
-          modelId: selectedModel,
-          promptVersion: 'forensic-summary-v1',
-          sourceExcerpt: analysisText.slice(0, 2000),
-          outputText: summary,
-          confidence: summary.startsWith('Document "') ? 0.35 : 0.75,
-          provenance: {
-            provider: process.env.AI_PROVIDER,
-            routedModel: selectedModel,
-            attemptedModels: fallbackModels.slice(0, fallbackModels.indexOf(selectedModel) + 1),
-            mode,
-            inputHash,
-            outputHash,
-            sourceText: cleanedTextForArtifact ? 'ocr_clean_text_artifact' : 'decoded_content',
-            canonicalTextUpdated: allowAiContentRewrite && Boolean(cleanedTextForArtifact),
-          },
-        });
-        await PipelineService.finishStageRun(documentStageRun?.id, {
-          status: 'succeeded',
-          outputHash,
-          metrics: { summaryChars: summary.length, analysisChars: analysisText.length },
-        });
-        summariesGenerated++;
-        documentsEnriched++;
-        modelUsage[selectedModel] = (modelUsage[selectedModel] || 0) + 1;
-        markProgress({
-          phase: 'Enrichment',
-          enrichProcessed: documentsEnriched,
-          enrichTotal,
-          currentFile: doc.file_name,
-          currentDocId: doc.id,
-          activeModel: selectedModel,
-          exoModelPool: modelPool,
-          modelUsage,
-        });
-      } catch (error) {
-        console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
-        failedDocIds.add(Number(doc.id));
-        await PipelineService.finishStageRun(documentStageRun?.id, {
-          status: 'failed',
-          errorMessage: String((error as Error)?.message || error),
-        });
+            const outputHash = crypto
+              .createHash('sha256')
+              .update(analysisText + summary)
+              .digest('hex');
+            if (cleanedTextForArtifact) {
+              const cleanedOutputHash = crypto
+                .createHash('sha256')
+                .update(cleanedTextForArtifact)
+                .digest('hex');
+              await PipelineService.upsertAiArtifact({
+                runId: currentPipelineRun?.id,
+                stageRunId: documentStageRun?.id,
+                documentId: Number(doc.id),
+                artifactType: 'ocr_clean_text',
+                artifactVersion: 'ocr-clean-v1',
+                modelId: selectedModel,
+                promptVersion: 'forensic-ocr-clean-v1',
+                sourceExcerpt: refinedText.slice(0, 2000),
+                outputText: cleanedTextForArtifact,
+                confidence: 0.6,
+                provenance: {
+                  provider: process.env.AI_PROVIDER,
+                  mode,
+                  inputHash,
+                  outputHash: cleanedOutputHash,
+                  canonicalTextUpdated: allowAiContentRewrite,
+                },
+              });
+            }
+            await PipelineService.upsertAiArtifact({
+              runId: currentPipelineRun?.id,
+              stageRunId: documentStageRun?.id,
+              documentId: Number(doc.id),
+              artifactType: 'summary',
+              artifactVersion: 'summary-v2',
+              modelId: selectedModel,
+              promptVersion: 'forensic-summary-v1',
+              sourceExcerpt: analysisText.slice(0, 2000),
+              outputText: summary,
+              confidence: summary.startsWith('Document "') ? 0.35 : 0.75,
+              provenance: {
+                provider: process.env.AI_PROVIDER,
+                routedModel: selectedModel,
+                attemptedModels: fallbackModels.slice(0, fallbackModels.indexOf(selectedModel) + 1),
+                mode,
+                inputHash,
+                outputHash,
+                sourceText: cleanedTextForArtifact ? 'ocr_clean_text_artifact' : 'decoded_content',
+                canonicalTextUpdated: allowAiContentRewrite && Boolean(cleanedTextForArtifact),
+              },
+            });
+            await PipelineService.finishStageRun(documentStageRun?.id, {
+              status: 'succeeded',
+              outputHash,
+              metrics: { summaryChars: summary.length, analysisChars: analysisText.length },
+            });
+            summariesGenerated++;
+            documentsEnriched++;
+            modelUsage[selectedModel] = (modelUsage[selectedModel] || 0) + 1;
+            markProgress({
+              phase: 'Enrichment',
+              enrichProcessed: documentsEnriched,
+              enrichTotal,
+              currentFile: doc.file_name,
+              currentDocId: doc.id,
+              activeModel: selectedModel,
+              exoModelPool: modelPool,
+              modelUsage,
+            });
+          } catch (error) {
+            console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
+            await PipelineService.finishStageRun(documentStageRun?.id, {
+              status: 'failed',
+              errorMessage: String((error as Error)?.message || error),
+            });
 
-        if (error instanceof ExoModelUnavailableError) {
-          const message = error.message;
-          writeLiveStatus({
-            blocked: true,
-            blockedReason: message,
-            lastError: message,
-            lastErrorAt: new Date().toISOString(),
-            currentFile: doc.file_name,
-            currentDocId: doc.id,
-          });
-          throw new PipelineBlockedError(message, 'exo');
-        }
+            if (error instanceof ExoModelUnavailableError) {
+              const message = error.message;
+              writeLiveStatus({
+                blocked: true,
+                blockedReason: message,
+                lastError: message,
+                lastErrorAt: new Date().toISOString(),
+                currentFile: doc.file_name,
+                currentDocId: doc.id,
+              });
+              throw new PipelineBlockedError(message, 'exo');
+            }
 
-        if (
-          error instanceof PipelineBlockedError ||
-          String((error as Error)?.message || '').includes('timed out')
-        ) {
-          throw error;
-        }
-      } finally {
-        pipelineRuntime.currentDocId = null;
-        pipelineRuntime.currentFile = null;
-        pipelineRuntime.currentDocStartedAt = 0;
-      }
+            if (
+              error instanceof PipelineBlockedError ||
+              String((error as Error)?.message || '').includes('timed out')
+            ) {
+              throw error;
+            }
+          } finally {
+            pipelineRuntime.currentDocId = null;
+            pipelineRuntime.currentFile = null;
+            pipelineRuntime.currentDocStartedAt = 0;
+          }
 
-      if (documentsEnriched % 10 === 0) {
-        const elapsed = (Date.now() - startTime) / 1000;
-        const rate = elapsed > 0 ? documentsEnriched / elapsed : 0;
-        process.stdout.write(`\r   ⏳ ${documentsEnriched} enriched | ${rate.toFixed(1)} docs/s`);
-      }
+          if (documentsEnriched % 10 === 0) {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const rate = elapsed > 0 ? documentsEnriched / elapsed : 0;
+            process.stdout.write(
+              `\r   ⏳ ${documentsEnriched} enriched | ${rate.toFixed(1)} docs/s`,
+            );
+          }
+        }),
+      );
+      const rejected = results.find(
+        (result): result is PromiseRejectedResult => result.status === 'rejected',
+      );
+      if (rejected) throw rejected.reason;
     }
 
     // Brief pause between batches — allows V8 GC to reclaim the just-processed docs
@@ -620,7 +687,16 @@ export async function runEnrichPhase(
   pipelineRuntime.currentDocStartedAt = 0;
   await PipelineService.finishStageRun(aggregateStageRun?.id, {
     status: 'succeeded',
-    metrics: { documentsEnriched, summariesGenerated, mode, modelPool, modelUsage },
+    metrics: {
+      documentsEnriched,
+      summariesGenerated,
+      mode,
+      modelPool,
+      summaryModels,
+      summaryConcurrency,
+      fetchBatchSize,
+      modelUsage,
+    },
   });
   return { documentsEnriched, summariesGenerated };
 }

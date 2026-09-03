@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { existsSync, readFileSync } from 'node:fs';
+import sharp from 'sharp';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { resolveMediaPath } from '../src/server/utils/pathResolver.js';
@@ -20,6 +21,7 @@ const VLM_BATCH_SIZE = Math.max(1, parseInt(process.env.VLM_BACKFILL_BATCH_SIZE 
 const configuredLimit =
   process.env.VLM_BACKFILL_MAX_MEDIA || process.env.VLM_BACKFILL_MAX_DOCS || '0';
 const VLM_MAX_MEDIA = Math.max(0, parseInt(configuredLimit, 10) || 0);
+const VLM_MAX_EDGE = Math.max(768, parseInt(process.env.VLM_MAX_IMAGE_EDGE || '1600', 10) || 1600);
 const ELIGIBILITY_SQL = verifiedPhotographForVlmWhereSql('media');
 
 interface MediaRow {
@@ -44,6 +46,8 @@ function writeLiveStatus(
           heartbeatAt: new Date().toISOString(),
           vlmProcessed: processed,
           vlmTotal: total,
+          vlmLiveProcessed: processed,
+          vlmLiveTotal: total,
           currentFile: file,
           blocked: Boolean(blockedReason),
           blockedReason,
@@ -58,6 +62,19 @@ function writeLiveStatus(
   } catch (_error) {
     // Status reporting is non-fatal.
   }
+}
+
+async function preparePhotographForVlm(imageBuffer: Buffer): Promise<Buffer> {
+  return sharp(imageBuffer)
+    .rotate()
+    .resize({
+      width: VLM_MAX_EDGE,
+      height: VLM_MAX_EDGE,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 84, mozjpeg: true })
+    .toBuffer();
 }
 
 function sleep(ms: number): Promise<unknown> {
@@ -221,10 +238,21 @@ async function backfillVlm(): Promise<void> {
 
       console.log(`  ⚙️  [${media.id}] Analyzing verified photograph: ${media.file_path}`);
       try {
-        const imageBuffer = readFileSync(fullPath);
-        const visualDescription = (
-          await AIEnrichmentService.parseDocumentPageVisual(imageBuffer)
-        ).trim();
+        const sourceImageBuffer = readFileSync(fullPath);
+        const analysisImageBuffer = await preparePhotographForVlm(sourceImageBuffer);
+        const keepalive = setInterval(
+          () =>
+            writeLiveStatus(successCount + failCount + skippedCount, totalMedia, media.file_path),
+          30_000,
+        );
+        let visualDescription = '';
+        try {
+          visualDescription = (
+            await AIEnrichmentService.analyzeVerifiedPhotograph(analysisImageBuffer)
+          ).trim();
+        } finally {
+          clearInterval(keepalive);
+        }
         if (visualDescription.length < 5) {
           throw new Error('VLM produced empty or invalid output');
         }

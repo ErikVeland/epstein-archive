@@ -1,5 +1,25 @@
 # Release Notes
 
+## 22.3.5 - 2026-09-03 - AI Pipeline Throughput and Metrics
+
+### Pipeline throughput
+
+- **Summary workers now use all callable text-model instances concurrently.** Vision models remain reserved for verified photographs, and concurrency never exceeds live text-model capacity.
+- **Image documents no longer enter the document-summary queue.** Scans remain available through OCR, while verified photographs use the media VLM path instead of generating summaries from legacy synthetic visual text.
+- **Summary queue reads now use primary-key pagination.** This removes the repeated full-corpus sort that took tens of seconds for every three-document batch.
+- **Long inference calls keep the pipeline heartbeat current.** Valid model work no longer triggers a false stalled-worker restart.
+- **Larger database fetches feed many inference batches.** The pipeline spends less time finding pending documents and more time generating summaries.
+- **Photograph analysis now uses bounded 1,600-pixel inputs and concise visual-search output.** This reduces transfer, vision-token, and generation overhead while retaining useful scene, visible-text, and search-term context.
+- **VLM requests publish a keepalive heartbeat.** A long photograph inference cannot be mistaken for a stalled worker.
+- **Email-header backfill is now idempotent and keyset-paginated.** Unparseable messages are recorded once instead of consuming up to 20,000 repeated attempts on every pipeline cycle.
+- **Verified-photograph analysis now runs before secondary metadata backfills.** Available vision capacity starts reducing the visible VLM queue as soon as text summaries are complete.
+
+### Progress accuracy
+
+- **Decoded and normalized progress uses both refined text and verified normalized-text hashes.** The dashboard no longer reports completed deterministic normalization as pending work.
+- **VLM progress counts only eligible verified photographs.** Historical document VLM flags no longer appear as current visual-analysis progress.
+- **Widget cache refreshes use one database worker.** Long archive scans cannot create overlapping refresh queries every five seconds.
+
 ## 22.3.4 - 2026-09-03 - Optimized Media and VLM Controls
 
 ### Production media storage

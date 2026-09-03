@@ -74,11 +74,20 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     modes: ['backfill'],
   },
   {
+    name: 'vlm-visuals',
+    description: 'Analyze only source-verified media classified as probable photographs',
+    script: 'scripts/backfill_vlm_visuals.ts',
+    phase: 'VLM Visual Analysis',
+    version: 'media-vlm-2',
+    modes: ['backfill'],
+    requiresAi: true,
+  },
+  {
     name: 'email-headers',
     description: 'Backfill parsed email headers for communication analysis',
     script: 'scripts/backfill_email_headers_pg.ts',
     phase: 'Email Header Backfill',
-    version: 'email-headers-v1',
+    version: 'email-headers-v2',
     modes: ['backfill'],
   },
   {
@@ -96,15 +105,6 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     phase: 'Embedded Media Extraction',
     version: 'media-extract-v2',
     modes: ['backfill'],
-  },
-  {
-    name: 'vlm-visuals',
-    description: 'Analyze only source-verified media classified as probable photographs',
-    script: 'scripts/backfill_vlm_visuals.ts',
-    phase: 'VLM Visual Analysis',
-    version: 'media-vlm-2',
-    modes: ['backfill'],
-    requiresAi: true,
   },
   {
     name: 'face-ingest',

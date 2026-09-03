@@ -544,32 +544,29 @@ export class AIEnrichmentService {
     return r;
   }
 
-  /**
-   * VLM: Structured Visual Page Parsing (Reducto Standard)
-   * Uses a Vision model to translate visual page layouts, text, and photos into structured MD.
-   */
-  static async parseDocumentPageVisual(imageBuffer: Buffer): Promise<string> {
+  /** Describe a source-verified photograph for visual search and review. */
+  static async analyzeVerifiedPhotograph(imageBuffer: Buffer): Promise<string> {
     const isAiEnabled = AIEnrichmentService.aiEnabled;
     if (!isAiEnabled) return '';
 
     try {
-      const prompt = `Task: Perform rigorous visual-linguistic document analysis.
-1. Transcribe all visible text perfectly, preserving grammatical structure and flow.
-2. Represent all tabular data exactly as clean GitHub Flavored Markdown tables.
-3. For ANY graphics, charts, or photos, inject an inline markdown blockquote right where the item appears, providing an extremely meticulous detailed physical description of the visual scene.
-4. Use proper markdown headings for layout structure.
-5. Do NOT output conversational preambles or conclusions. Output ONLY the resulting document markdown.`;
+      const prompt = `Describe this source-verified photograph for forensic visual search.
+Return only these compact Markdown fields:
+- Scene: people, objects, setting, activity, composition, and notable visual details.
+- Visible text: only text that is clearly legible; otherwise "None legible".
+- Search terms: 8-20 concrete, comma-separated visual terms.
+Do not identify a person unless their identity is established by clearly visible text in the image. Do not infer motives, relationships, location, date, or criminal conduct. Distinguish direct observation from uncertainty.`;
 
       const result = await this.callLLM(prompt, {
         task: 'vision',
         images: [imageBuffer],
-        maxTokens: 3000, // Highly detailed page parsing requires adequate token headroom
-        temperature: 0.1, // Low temperature for transcription accuracy
+        maxTokens: 700,
+        temperature: 0.1,
       });
 
       return result || '';
     } catch (e) {
-      logger.warn({ err: e }, '⚠️ parseDocumentPageVisual failed');
+      logger.warn({ err: e }, '⚠️ analyzeVerifiedPhotograph failed');
       return '';
     }
   }

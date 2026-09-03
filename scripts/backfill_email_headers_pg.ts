@@ -25,6 +25,7 @@ type HeaderHints = {
 
 const BATCH_SIZE = Number(process.env.EMAIL_HEADER_BACKFILL_BATCH || 200);
 const MAX_ROWS = Number(process.env.EMAIL_HEADER_BACKFILL_MAX || 20000);
+const BACKFILL_VERSION = 'email-headers-v2';
 
 function isBlank(value: unknown): boolean {
   if (value == null) return true;
@@ -45,6 +46,7 @@ async function main() {
   let processed = 0;
   let updated = 0;
   let failed = 0;
+  let lastScannedId = 0;
 
   try {
     while (processed < MAX_ROWS) {
@@ -55,20 +57,23 @@ async function main() {
           FROM documents
           WHERE evidence_type = 'email'
             AND content IS NOT NULL
+            AND id > $2
             AND (
               metadata_json IS NULL
               OR COALESCE(metadata_json ->> 'from', '') = ''
             )
+            AND COALESCE(metadata_json ->> 'email_header_backfill_version', '') <> $3
           ORDER BY id ASC
           LIMIT $1
         `,
-        [limit],
+        [limit, lastScannedId, BACKFILL_VERSION],
       );
 
       if (rows.length === 0) break;
 
       for (const row of rows) {
         processed += 1;
+        lastScannedId = row.id;
 
         try {
           const existing = (
@@ -106,6 +111,8 @@ async function main() {
           next.attachments_count = parsed.attachments_count;
           next.mime_parse_status = parsed.mime_parse_status;
           if (parsed.mime_parse_reason) next.mime_parse_reason = parsed.mime_parse_reason;
+          next.email_header_backfill_version = BACKFILL_VERSION;
+          next.email_header_backfill_attempted_at = new Date().toISOString();
 
           await client.query(`UPDATE documents SET metadata_json = $2::jsonb WHERE id = $1`, [
             row.id,
@@ -114,6 +121,18 @@ async function main() {
           updated += 1;
         } catch (error) {
           failed += 1;
+          const message = error instanceof Error ? error.message : String(error);
+          await client.query(
+            `UPDATE documents
+             SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object(
+               'email_header_backfill_version', $2::text,
+               'email_header_backfill_attempted_at', NOW()::text,
+               'mime_parse_status', 'failed',
+               'mime_parse_reason', $3::text
+             )
+             WHERE id = $1`,
+            [row.id, BACKFILL_VERSION, message.slice(0, 500)],
+          );
           if (failed <= 10) {
             console.warn(`[email-header-backfill] parse failed for document ${row.id}:`, error);
           }
