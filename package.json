@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "22.6.0",
+  "version": "22.6.1",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -28,7 +28,7 @@
     "semantic:backfill": "tsx scripts/backfill_semantic_embeddings.ts",
     "provenance:backfill": "tsx scripts/backfill_document_provenance.ts",
     "redactions:backfill": "tsx scripts/backfill_redaction_intelligence.ts",
-    "pipeline:python:setup": "python3 -m venv .venv && .venv/bin/python -m pip install --disable-pip-version-check -r requirements-pipeline.txt",
+    "pipeline:python:setup": "bash scripts/setup_pipeline_python.sh",
     "passages:backfill": "tsx scripts/backfill_evidence_passages.ts",
     "titles:backfill": "tsx scripts/backfill_document_titles.ts",
     "risk:recalculate": "tsx scripts/recalculate_entity_risk.ts",

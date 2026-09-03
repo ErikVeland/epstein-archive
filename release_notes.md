@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.6.1 - 2026-09-04 - Portable Pipeline Runtime
+
+### Deployment reliability
+
+- **The evidence pipeline can now install its pinned PDF runtime without administrator access.** Deployment uses the standard virtual-environment path when available and a verified manylinux wheel fallback when the production host does not provide `ensurepip` or `python3-venv`.
+- **The fallback package is integrity checked before extraction.** Its fixed version, platform, download URL, and SHA-256 digest are recorded in the bootstrap code; unsupported hosts fail closed.
+- **Redaction scanning still uses an isolated project interpreter.** The application does not alter system Python packages.
+
 ## 22.6.0 - 2026-09-04 - Redaction Intelligence
 
 ### Evidence recovery
