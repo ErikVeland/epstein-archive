@@ -71,6 +71,36 @@
   height: 40px;
 }
 
+.boardNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: calc(var(--space-3) * -1) 0 var(--space-5);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--glass-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 5%, var(--glass-bg));
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+}
+
+.boardNotice svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.filterRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.sortFilter {
+  min-width: 11rem;
+}
+
 .dateInput {
   background: transparent;
   border: none;
@@ -220,6 +250,26 @@
 }
 
 @media (max-width: 480px) {
+  .flightTracker :global(.tracker-header) {
+    gap: var(--space-4);
+  }
+
+  .flightTracker :global(.header-stats) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-2);
+  }
+
+  .flightTracker :global(.view-toggle) {
+    width: 100%;
+  }
+
+  .flightTracker :global(.view-toggle button) {
+    flex: 1;
+    justify-content: center;
+    padding-inline: var(--space-3);
+  }
+
   .viewTabLabel {
     display: none;
   }
@@ -229,14 +279,20 @@
     align-items: stretch;
   }
 
-  .dateRangeWrapper {
+  .sortFilter {
     width: 100%;
-    justify-content: space-between;
+  }
+
+  .dateRangeWrapper {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    width: 100%;
+    padding: 0;
   }
 
   .dateInput {
+    min-width: 0;
     width: auto;
-    flex: 1;
   }
 
   .flightMapContainer {

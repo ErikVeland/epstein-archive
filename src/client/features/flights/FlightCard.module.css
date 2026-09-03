@@ -2,7 +2,20 @@
 
 .cardRoot {
   width: 100%;
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+.cardRoot:hover,
+.cardRoot:focus-visible {
+  border-left-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--glass-bg));
+  transform: translateX(2px);
 }
 
 .routeContainer {
@@ -23,9 +36,11 @@
 }
 
 .planeIcon {
-  font-size: var(--font-size-sm);
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
   color: var(--accent);
-  padding: 0 var(--space-2);
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--accent) 50%, transparent));
 }
 
 .passengerTag {
@@ -49,16 +64,44 @@
   margin-bottom: var(--space-2);
 }
 
+.flightIdentity {
+  min-width: 0;
+}
+
+.flightIconBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
 .dateLabel {
   flex-shrink: 0;
 }
 
 .tailNumber {
   font-family: var(--font-mono, monospace);
+  color: var(--text-primary);
 }
 
 .passengerCount {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
   flex-shrink: 0;
+  min-height: 1.5rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-xs);
 }
 
 .mutedIcon {
@@ -86,7 +129,157 @@
 }
 
 .passengers {
-  margin-top: var(--space-2);
+  min-width: 0;
+}
+
+.planeMarker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--accent) 10%, var(--glass-bg-strong));
+}
+
+.interestBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 1.75rem;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.interestScore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.25rem;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-family: var(--font-mono, monospace);
+}
+
+.high {
+  border-color: color-mix(in srgb, var(--risk-critical) 45%, transparent);
+  color: var(--risk-critical);
+  background: color-mix(in srgb, var(--risk-critical) 8%, transparent);
+}
+
+.notable {
+  border-color: color-mix(in srgb, var(--accent-warning) 45%, transparent);
+  color: var(--accent-warning);
+  background: color-mix(in srgb, var(--accent-warning) 8%, transparent);
+}
+
+.context {
+  color: var(--text-muted);
+}
+
+.contextRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, auto);
+  align-items: center;
+  gap: var(--space-3);
   padding-top: var(--space-2);
   border-top: 1px solid var(--glass-border);
+}
+
+.reasonList {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.reasonList span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  overflow: hidden;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-strong);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reasonList .sourceNote {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent-warning) 8%, var(--glass-bg-strong));
+}
+
+.sourceNote svg {
+  flex: 0 0 auto;
+  color: var(--accent-warning);
+}
+
+@media (max-width: 1024px) {
+  .cardRoot {
+    padding: var(--space-4);
+  }
+
+  .topRow {
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .flightIdentity {
+    flex-wrap: wrap;
+  }
+
+  .dateLabel {
+    width: 100%;
+    padding-left: calc(1.75rem + var(--space-2));
+  }
+
+  .routeContainer {
+    padding: var(--space-5) 0;
+  }
+
+  .flightLineWrap {
+    padding: 0 var(--space-2);
+  }
+
+  .contextRow {
+    grid-template-columns: 1fr;
+  }
+
+  .reasonList {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .interestBadge {
+    padding-left: var(--space-2);
+    font-size: 0;
+  }
+
+  .interestScore {
+    font-size: var(--type-xs);
+  }
+
+  .airportCode {
+    font-size: var(--type-h4);
+  }
+
+  .reasonList span:nth-child(n + 3) {
+    display: none;
+  }
 }

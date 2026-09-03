@@ -9,8 +9,12 @@ export interface Flight {
   arrival_country: string;
   aircraft_tail: string;
   aircraft_type: string;
+  pilot?: string;
+  notes?: string;
   passengers?: { passenger_name: string; role: string; entity_id?: number }[];
 }
+
+export type FlightSortMode = 'interest' | 'latest' | 'earliest' | 'manifest';
 
 export interface FlightStats {
   totalFlights: number;

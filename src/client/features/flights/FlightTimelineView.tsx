@@ -25,27 +25,37 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({ flights,
           body="Flight logs for the Epstein aircraft are imported from the source manifest during ingestion. No records have been loaded yet — run the flights ingestion pipeline to populate this view."
         />
       ) : (
-        <AutoSizer>
-          {({ height, width }: { height: number; width: number }) => (
-            <List
-              height={height ?? 600}
-              itemCount={flights.length}
-              itemSize={window.innerWidth <= 1024 ? 240 : 200}
-              width={width ?? '100%'}
-              initialScrollOffset={initialScrollOffset}
-              onScroll={onScroll}
-            >
-              {({ index, style }) => {
-                const flight = flights[index];
-                return (
-                  <Box style={style} className={styles.itemWrapper}>
-                    <FlightCard flight={flight} formatDate={formatDate} />
-                  </Box>
-                );
-              }}
-            </List>
-          )}
-        </AutoSizer>
+        <>
+          <div className={styles.boardHeader} aria-hidden="true">
+            <span>Flight / date</span>
+            <span>Route</span>
+            <span>Manifest</span>
+            <span>Review status</span>
+          </div>
+          <div className={styles.listViewport}>
+            <AutoSizer>
+              {({ height, width }: { height: number; width: number }) => (
+                <List
+                  height={height ?? 600}
+                  itemCount={flights.length}
+                  itemSize={window.innerWidth <= 1024 ? 300 : 218}
+                  width={width ?? '100%'}
+                  initialScrollOffset={initialScrollOffset}
+                  onScroll={onScroll}
+                >
+                  {({ index, style }) => {
+                    const flight = flights[index];
+                    return (
+                      <Box style={style} className={styles.itemWrapper}>
+                        <FlightCard flight={flight} formatDate={formatDate} />
+                      </Box>
+                    );
+                  }}
+                </List>
+              )}
+            </AutoSizer>
+          </div>
+        </>
       )}
     </Box>
   );

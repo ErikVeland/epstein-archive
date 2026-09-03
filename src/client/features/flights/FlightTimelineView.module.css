@@ -1,8 +1,27 @@
 /* Flight Timeline - Scoped Virtualization Tokens */
 
 .container {
-  height: 800px;
+  height: 860px;
   width: 100%;
+}
+
+.boardHeader {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.8fr) 1.2fr 1fr minmax(9rem, 0.7fr);
+  gap: var(--space-4);
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.listViewport {
+  height: calc(100% - 2.5rem);
 }
 
 .itemWrapper {
@@ -11,4 +30,18 @@
 
 .noFlights {
   height: 400px;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    height: 820px;
+  }
+
+  .boardHeader {
+    display: none;
+  }
+
+  .listViewport {
+    height: 100%;
+  }
 }

@@ -1,5 +1,24 @@
 # Release Notes
 
+## 22.6.5 - 2026-09-04 - Flight Evidence Board
+
+### Evidence-first departures board
+
+- **Flights now open in evidence-interest order.** Source annotations, key archive people, relevant island routes, international legs, manifest size, and alternate aircraft contribute to a transparent review score.
+- **Each flight explains why it was surfaced.** Compact reason labels distinguish source notes, route context, notable manifests, and other useful signals without implying guilt or knowledge.
+- **The complete manifest remains available.** Users can switch to latest, earliest, or largest-manifest order and continue to filter by passenger and date.
+
+### Clearer flight information
+
+- **The timeline now reads like an aviation status board.** Tail number, date, route, manifest, and review status have a consistent hierarchy.
+- **Aircraft icons are visible again.** Fixed dimensions and a dedicated route marker prevent the SVG from collapsing between the route lines.
+- **All 110 flight records load into the board.** The client retrieves both API pages instead of silently omitting the final ten records.
+- **The evidence boundary is explicit.** Interest scores guide review; a manifest entry does not prove participation, knowledge, or wrongdoing.
+
+### Verification
+
+- **Unit tests protect the interest model.** Tests cover source annotations, key-person context, USVI and international routing, and ordinary baseline records.
+
 ## 22.6.4 - 2026-09-04 - Key Correspondence Narrative
 
 ### Curated email archive

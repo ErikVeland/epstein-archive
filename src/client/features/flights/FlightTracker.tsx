@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { Button, Input, NativeSelect } from '@client/design-system/lib';
@@ -13,10 +13,18 @@ import { FlightTimelineView } from './FlightTimelineView';
 import { FlightMapView } from './FlightMapView';
 import { FlightStatsView } from './FlightStatsView';
 import { FlightNetworkView } from './FlightNetworkView';
+import { assessFlightInterest } from './flightInterest';
 
 // Re-export shared types so sub-components can import from the orchestrator if desired
 export type { Flight, FlightStats, AirportCoords, CoOccurrence, ViewMode } from './types';
-import type { Flight, FlightStats, AirportCoords, CoOccurrence, ViewMode } from './types';
+import type {
+  Flight,
+  FlightStats,
+  AirportCoords,
+  CoOccurrence,
+  FlightSortMode,
+  ViewMode,
+} from './types';
 
 const formatDate = (dateStr: string): string => {
   const date = new Date(dateStr);
@@ -39,6 +47,7 @@ export const FlightTracker: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const [selectedPassenger, setSelectedPassenger] = useState<string>('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [sortMode, setSortMode] = useState<FlightSortMode>('interest');
 
   const {
     data: flightsPayload,
@@ -53,12 +62,18 @@ export const FlightTracker: React.FC = () => {
       if (dateRange.start) params.append('startDate', dateRange.start);
       if (dateRange.end) params.append('endDate', dateRange.end);
       params.append('limit', '100');
-      const flightsRes = await fetch(`/api/flights?${params}`);
-      if (!flightsRes.ok) {
-        throw new Error(`Failed to load flights: ${flightsRes.status}`);
-      }
-      const flightsData = await flightsRes.json();
-      return { flights: (flightsData.flights || []) as Flight[] };
+      const pageParams = [1, 2].map((page) => {
+        const next = new URLSearchParams(params);
+        next.set('page', String(page));
+        return next;
+      });
+      const responses = await Promise.all(pageParams.map((page) => fetch(`/api/flights?${page}`)));
+      const failedResponse = responses.find((response) => !response.ok);
+      if (failedResponse) throw new Error(`Failed to load flights: ${failedResponse.status}`);
+      const payloads = await Promise.all(responses.map((response) => response.json()));
+      return {
+        flights: payloads.flatMap((payload) => (payload.flights || []) as Flight[]),
+      };
     },
     placeholderData: (previousData) => previousData,
   });
@@ -109,12 +124,30 @@ export const FlightTracker: React.FC = () => {
     enabled: viewMode === 'network',
   });
 
-  const flights = flightsPayload?.flights || [];
+  const flights = useMemo(() => flightsPayload?.flights || [], [flightsPayload]);
+  const sortedFlights = useMemo(() => {
+    return [...flights].sort((a, b) => {
+      if (sortMode === 'interest') {
+        const scoreDifference = assessFlightInterest(b).score - assessFlightInterest(a).score;
+        if (scoreDifference !== 0) return scoreDifference;
+      }
+      if (sortMode === 'manifest') {
+        const manifestDifference = (b.passengers?.length || 0) - (a.passengers?.length || 0);
+        if (manifestDifference !== 0) return manifestDifference;
+      }
+      const dateDifference = new Date(b.date).getTime() - new Date(a.date).getTime();
+      return sortMode === 'earliest' ? -dateDifference : dateDifference;
+    });
+  }, [flights, sortMode]);
+  const highInterestCount = useMemo(
+    () => flights.filter((flight) => assessFlightInterest(flight).level === 'high').length,
+    [flights],
+  );
   const loading = flightsLoading;
 
   if (loading) {
     return (
-      <div className="flight-tracker loading-state">
+      <div className={`flight-tracker loading-state ${styles.flightTracker}`}>
         <div className="loading-spinner">
           <div className="radar-sweep" />
           <span>Loading Flight Data...</span>
@@ -125,7 +158,7 @@ export const FlightTracker: React.FC = () => {
 
   if (flightsIsError) {
     return (
-      <div className="flight-tracker">
+      <div className={`flight-tracker ${styles.flightTracker}`}>
         <div className={styles.errorFallback}>
           <p className={styles.errorFallbackTitle}>Flights data unavailable</p>
           <p>{flightsError instanceof Error ? flightsError.message : 'Unknown error'}</p>
@@ -139,14 +172,14 @@ export const FlightTracker: React.FC = () => {
   }
 
   return (
-    <div className="flight-tracker">
+    <div className={`flight-tracker ${styles.flightTracker}`}>
       <div className="tracker-header">
         <div className="header-left">
           <h1>
             <Icon name="Navigation" size="lg" />
-            Flight Tracker
+            Flight Evidence Board
           </h1>
-          <p className="subtitle">Tracking flights on N908JE "Lolita Express"</p>
+          <p className="subtitle">Routes, manifests, aircraft, and source context</p>
         </div>
 
         <div className="header-stats">
@@ -162,7 +195,19 @@ export const FlightTracker: React.FC = () => {
             <span className="value">{Object.keys(airports).length}</span>
             <span className="label">Airports</span>
           </div>
+          <div className="mini-stat">
+            <span className="value">{highInterestCount}</span>
+            <span className="label">High interest</span>
+          </div>
         </div>
+      </div>
+
+      <div className={styles.boardNotice}>
+        <Icon name="Info" size="sm" ariaHidden />
+        <span>
+          Interest ranks records for review. A manifest entry does not prove knowledge or
+          wrongdoing.
+        </span>
       </div>
 
       <div className="tracker-controls">
@@ -211,6 +256,18 @@ export const FlightTracker: React.FC = () => {
 
         <div className="filters">
           <div className={styles.filterRow}>
+            <NativeSelect
+              unstyled
+              className={styles.sortFilter}
+              aria-label="Sort flight records"
+              value={sortMode}
+              onChange={(event) => setSortMode(event.target.value as FlightSortMode)}
+            >
+              <option value="interest">Evidence interest</option>
+              <option value="latest">Latest first</option>
+              <option value="earliest">Earliest first</option>
+              <option value="manifest">Largest manifest</option>
+            </NativeSelect>
             <NativeSelect
               unstyled
               className="passenger-filter"
@@ -262,7 +319,7 @@ export const FlightTracker: React.FC = () => {
         >
           {/* On desktop: only the active view renders */}
           {!isTouch && viewMode === 'timeline' && (
-            <FlightTimelineView flights={flights} formatDate={formatDate} />
+            <FlightTimelineView flights={sortedFlights} formatDate={formatDate} />
           )}
           {!isTouch && viewMode === 'map' && (
             <FlightMapView flights={flights} airports={airports} stats={stats} />
@@ -273,7 +330,7 @@ export const FlightTracker: React.FC = () => {
           )}
 
           {/* On touch: timeline is always the base; secondary views open as MobileToolScreen */}
-          {isTouch && <FlightTimelineView flights={flights} formatDate={formatDate} />}
+          {isTouch && <FlightTimelineView flights={sortedFlights} formatDate={formatDate} />}
           {isTouch && viewMode !== 'timeline' && (
             <MobileToolScreen
               toolName={VIEW_LABELS[viewMode as Exclude<ViewMode, 'timeline'>]}

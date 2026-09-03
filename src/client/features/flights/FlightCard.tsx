@@ -7,6 +7,7 @@ import { useLongPress } from '@client/hooks/useLongPress';
 import { useInvestigations } from '@client/contexts/InvestigationsContext';
 import type { Flight } from './types';
 import styles from './FlightCard.module.css';
+import { assessFlightInterest } from './flightInterest';
 
 interface FlightCardProps {
   flight: Flight;
@@ -17,6 +18,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
   const navigate = useNavigate();
   const { addToInvestigation, selectedInvestigation, investigations } = useInvestigations();
   const [menuOpen, setMenuOpen] = useState(false);
+  const interest = assessFlightInterest(flight);
 
   const {
     consumeClick,
@@ -56,20 +58,21 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
         {...longPressHandlers}
       >
         <Flex align="center" justify="between" className={styles.topRow}>
-          <Flex align="center" gap="sm">
+          <Flex align="center" gap="sm" className={styles.flightIdentity}>
+            <span className={styles.flightIconBox}>
+              <Icon name="Plane" size="sm" ariaHidden />
+            </span>
+            <LqText variant="xs" weight="bold" className={styles.tailNumber}>
+              {flight.aircraft_tail || 'AIRCRAFT N/A'}
+            </LqText>
             <LqText variant="xs" weight="medium" color="muted" className={styles.dateLabel}>
               {formatDate(flight.date)}
             </LqText>
-            <LqText variant="xs" color="muted" className={styles.tailNumber}>
-              {flight.aircraft_tail}
-            </LqText>
           </Flex>
-          <Flex align="center" gap="xs" className={styles.passengerCount}>
-            <Icon name="Users" size="xs" className={styles.mutedIcon} />
-            <LqText variant="xs" weight="bold" color="muted">
-              {flight.passengers?.length || 0}
-            </LqText>
-          </Flex>
+          <span className={`${styles.interestBadge} ${styles[interest.level]}`}>
+            {interest.label}
+            <span className={styles.interestScore}>{interest.score}</span>
+          </span>
         </Flex>
 
         <Flex align="center" justify="between" className={styles.routeContainer}>
@@ -84,7 +87,9 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
 
           <Flex align="center" className={styles.flightLineWrap}>
             <Box className={styles.dashedLine} />
-            <Icon name="Plane" className={styles.planeIcon} />
+            <span className={styles.planeMarker}>
+              <Icon name="Plane" size="md" className={styles.planeIcon} ariaHidden />
+            </span>
             <Box className={styles.dashedLine} />
           </Flex>
 
@@ -98,24 +103,43 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
           </Box>
         </Flex>
 
-        <Flex wrap="wrap" gap="xs" className={styles.passengers}>
-          {flight.passengers?.slice(0, 4).map((p, i) => (
-            <Surface
-              key={i}
-              variant="panel"
-              className={cn(styles.passengerTag, styles[(p.role || 'personnel').toLowerCase()])}
-            >
-              <LqText variant="xs" weight="bold">
-                {p.passenger_name}
+        <div className={styles.contextRow}>
+          <Flex wrap="wrap" gap="xs" className={styles.passengers}>
+            <span className={styles.passengerCount}>
+              <Icon name="Users" size="xs" className={styles.mutedIcon} ariaHidden />
+              {flight.passengers?.length || 0}
+            </span>
+            {flight.passengers?.slice(0, 4).map((p, i) => (
+              <Surface
+                key={i}
+                variant="panel"
+                className={cn(styles.passengerTag, styles[(p.role || 'personnel').toLowerCase()])}
+              >
+                <LqText variant="xs" weight="bold">
+                  {p.passenger_name}
+                </LqText>
+              </Surface>
+            ))}
+            {(flight.passengers?.length || 0) > 4 && (
+              <LqText variant="xs" color="muted" weight="medium">
+                +{(flight.passengers?.length || 0) - 4}
               </LqText>
-            </Surface>
-          ))}
-          {(flight.passengers?.length || 0) > 4 && (
-            <LqText variant="xs" color="muted" weight="medium">
-              +{(flight.passengers?.length || 0) - 4} more
-            </LqText>
-          )}
-        </Flex>
+            )}
+          </Flex>
+          <div className={styles.reasonList} aria-label="Reasons for interest rating">
+            {flight.notes && (
+              <span className={styles.sourceNote} title={flight.notes}>
+                <Icon name="FileText" size="xs" ariaHidden />
+                {flight.notes}
+              </span>
+            )}
+            {interest.reasons
+              .filter((reason) => reason !== 'Source note flags this record')
+              .map((reason) => (
+                <span key={reason}>{reason}</span>
+              ))}
+          </div>
+        </div>
       </Surface>
       <CardActionSheet
         open={menuOpen}
