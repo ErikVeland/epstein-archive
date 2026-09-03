@@ -1,5 +1,11 @@
 # Release Notes
 
+## 22.3.6 - 2026-09-03 - Summary Completion Edge Case
+
+### Pipeline correctness
+
+- **Documents with null metadata now enter the pending-summary queue correctly.** The queue predicate no longer lets SQL null semantics skip an otherwise eligible document, allowing summary progress to reach an exact 100%.
+
 ## 22.3.5 - 2026-09-03 - AI Pipeline Throughput and Metrics
 
 ### Pipeline throughput

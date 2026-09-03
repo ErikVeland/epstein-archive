@@ -297,7 +297,7 @@ export async function runEnrichPhase(
   let whereClause =
     "content IS NOT NULL AND length(content) > 50 AND COALESCE(file_type, '') NOT LIKE 'image/%' AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_enrichment_failed')";
   const summaryArtifactPredicate =
-    "NOT (metadata_json ? 'ai_summary') AND NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'summary' AND daa.artifact_version = 'summary-v2' AND daa.prompt_version = 'forensic-summary-v1')";
+    "NOT COALESCE(metadata_json ? 'ai_summary', false) AND NOT EXISTS (SELECT 1 FROM document_ai_artifacts daa WHERE daa.document_id = documents.id AND daa.artifact_type = 'summary' AND daa.artifact_version = 'summary-v2' AND daa.prompt_version = 'forensic-summary-v1')";
   if (mode === 'backfill') {
     // Backfill summaries only. OCR cleanup has its own ingest/queue stage; mixing the two here
     // caused documents with an existing summary but no useful OCR-clean output to be selected
