@@ -1,90 +1,23 @@
 import { blackBookQueries } from '@epstein/db';
+import { createHash } from 'node:crypto';
+import { blackBookSourcePages } from '../../shared/blackBookSourcePages.js';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
+import { createBlackBookIdentityMatcher, type BlackBookIdentity } from './blackBookIdentity.js';
 
-// Common OCR errors in the Black Book and their corrections
-// Format: [error, correction]
-const OCR_CORRECTIONS: [string, string][] = [
-  // Trump entries
-  ['Trump, Donaic', 'Trump, Donald'],
-  ['he Trump Organization', 'The Trump Organization'],
-  ['Milania', 'Melania'],
-  ['Truit Mas ne.', 'Trump Mansion'],
-  ['Tomores Pa biasor Assoc.', 'Trump Plaza Business Assoc.'],
-  // Common OCR pattern errors
-  ['(и', '(h)'],
-  ['(w)', '(w)'],
-  ['(hf)', '(hf)'],
-  ['฿', '(f)'], // Thai Baht symbol often misread
-  // Name corrections
-  ['AcDonald', 'McDonald'],
-  ['Thoistrup', 'Tholstrup'],
-];
+let identityCache: { expiresAt: number; identities: BlackBookIdentity[] } | null = null;
 
-let hasLoggedBlackBookArrayParseFailure = false;
-
-type BlackBookEntryRow = {
-  id?: string | number | null;
-  personId?: string | number | null;
-  documentId?: string | number | null;
-  displayName?: string | null;
-  entryText?: string | null;
-  emailAddresses?: unknown;
-  addresses?: unknown;
-  phoneNumbers?: unknown;
-  entryCategory?: string | null;
-};
-
-/**
- * Apply OCR corrections to entry text
- */
-function applyOcrCorrections(text: string): string {
-  let corrected = text;
-  for (const [error, correction] of OCR_CORRECTIONS) {
-    corrected = corrected.replace(new RegExp(escapeRegExp(error), 'g'), correction);
-  }
-  return corrected;
-}
-
-function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function parseArrayValue(value: unknown): string[] {
-  if (Array.isArray(value)) return value.map((v) => String(v));
-  if (typeof value !== 'string' || value.trim().length === 0) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.map((v) => String(v)) : [];
-  } catch (err) {
-    // These parse errors previously returned [] silently which can look like "valid empty data".
-    // Log once per process to avoid noisy logs if a dataset has many malformed rows.
-    if (!hasLoggedBlackBookArrayParseFailure) {
-      hasLoggedBlackBookArrayParseFailure = true;
-      logger.warn(
-        {
-          err,
-          sample: value.slice(0, 200),
-          length: value.length,
-        },
-        '[BlackBook] Failed to parse JSON array field; returning []',
-      );
-    }
-    return [];
-  }
-}
-
-/**
- * Apply corrections to all entries in a result set
- */
-function correctEntries<T extends { entryText?: string | null; displayName?: string | null }>(
-  entries: T[],
-): T[] {
-  return entries.map((entry) => ({
-    ...entry,
-    entryText: entry.entryText ? applyOcrCorrections(entry.entryText) : entry.entryText,
-    displayName: entry.displayName ? applyOcrCorrections(entry.displayName) : entry.displayName,
+async function getIdentityIndex(): Promise<BlackBookIdentity[]> {
+  if (identityCache && identityCache.expiresAt > Date.now()) return identityCache.identities;
+  const rows = await blackBookQueries.getBlackBookIdentityIndex.run(undefined, getApiPool());
+  const identities = rows.map((row) => ({
+    id: Number(row.id),
+    fullName: row.fullName,
+    isVip: row.isVip === 1,
+    thumbnailPath: row.thumbnailPath,
   }));
+  identityCache = { expiresAt: Date.now() + 300_000, identities };
+  return identities;
 }
 
 export const blackBookRepository = {
@@ -97,171 +30,75 @@ export const blackBookRepository = {
     category?: 'original' | 'contact' | 'credential';
     limit?: number;
   }) => {
-    const entries = await blackBookQueries.getBlackBookEntries.run(
-      {
-        letter: filters?.letter === 'ALL' ? null : filters?.letter || null,
-        search: filters?.search || null,
-        hasPhone: filters?.hasPhone ?? null,
-        limit: filters?.limit ? String(filters.limit) : '100',
-      },
-      getApiPool(),
-    );
-
-    const filteredEntries = (entries as BlackBookEntryRow[])
-      .map((e) => {
-        const emails = parseArrayValue(e.emailAddresses);
-        const addresses = parseArrayValue(e.addresses);
-        const phones = parseArrayValue(e.phoneNumbers);
-        const entryText = String(e.entryText || '');
-
-        let category = String(e.entryCategory || 'original').toLowerCase();
-        if (category === 'original') {
-          const text = entryText.toLowerCase();
-          const credentialKeywords = [
-            'pin',
-            'code',
-            'password',
-            'passcode',
-            'lock',
-            'combination',
-            'login',
-            'username',
-            'member id',
-            'acc#',
-            'account #',
-          ];
-          const hasCredentialKeyword = credentialKeywords.some((keyword) => {
-            const regex = new RegExp(`\\b${keyword}\\b`, 'i');
-            return regex.test(text);
-          });
-
-          if (
-            hasCredentialKeyword ||
-            /combination[:\-\s]\d+/i.test(text) ||
-            /code[:\-\s]\d+/i.test(text)
-          ) {
-            category = 'credential';
-          } else if (phones.length > 0 || emails.length > 0 || addresses.length > 0) {
-            category = 'contact';
-          }
-        }
-
+    const category = filters?.category || 'original';
+    const original = category === 'original';
+    const [rows, identities] = await Promise.all([
+      blackBookQueries.getBlackBookSourceEntries.run(
+        {
+          category,
+          search: original ? null : filters?.search || null,
+          hasPhone: filters?.hasPhone === true,
+          hasEmail: filters?.hasEmail === true,
+          hasAddress: filters?.hasAddress === true,
+          limit: original ? 10000 : Math.min(filters?.limit || 1000, 5000),
+        },
+        getApiPool(),
+      ),
+      getIdentityIndex(),
+    ]);
+    const search = filters?.search?.trim().toLowerCase();
+    const matchIdentity = createBlackBookIdentityMatcher(identities);
+    const entries = rows
+      .map((row) => {
+        const sourceName = String(row.entryText || '')
+          .split('\n')[0]
+          .trim();
+        const match = original
+          ? matchIdentity(sourceName)
+          : { status: 'unresolved' as const, identity: null };
         return {
-          ...e,
-          entryCategory: category,
-          emails,
-          addresses,
+          ...row,
+          id: Number(row.id),
+          personId: match.identity?.id ?? null,
+          documentId: row.documentId ? Number(row.documentId) : null,
+          pageNumber: original
+            ? (blackBookSourcePages[
+                createHash('sha256')
+                  .update(row.entryText || '')
+                  .digest('hex')
+              ] ?? row.pageNumber)
+            : row.pageNumber,
+          sourceName,
+          displayName: match.status === 'name_match' ? match.identity!.fullName : sourceName,
+          candidateName: match.identity?.fullName ?? null,
+          matchStatus: match.status,
+          isVip: match.identity?.isVip ?? false,
+          thumbnailPath:
+            match.status === 'name_match' ? (match.identity?.thumbnailPath ?? null) : null,
         };
       })
-      .filter((e) => {
-        const emails = e.emails;
-        const addresses = e.addresses;
-
-        if (filters?.hasEmail && (!Array.isArray(emails) || emails.length === 0)) return false;
-        if (filters?.hasAddress && (!Array.isArray(addresses) || addresses.length === 0))
+      .filter((entry) => {
+        if (
+          filters?.letter &&
+          filters.letter !== 'ALL' &&
+          !entry.sourceName.toUpperCase().startsWith(filters.letter.toUpperCase())
+        )
           return false;
-        if (filters?.category && e.entryCategory !== filters.category.toLowerCase()) return false;
-        return true;
+        return (
+          !search ||
+          [entry.entryText, entry.displayName, entry.candidateName].some((value) =>
+            value?.toLowerCase().includes(search),
+          )
+        );
       });
-
-    // Enrich with profile pictures
-    const names = filteredEntries
-      .map((e: { displayName?: string | null }) => e.displayName)
-      .filter((n: unknown): n is string => typeof n === 'string' && n.length > 0);
-
-    const thumbnailsByPersonId = new Map<number, string>();
-    const thumbnailsByName = new Map<string, string>();
-    const dedupedPersonIds = Array.from(
-      new Set(
-        filteredEntries
-          .map((e: BlackBookEntryRow) => {
-            const id = Number(e.personId);
-            return Number.isFinite(id) && id > 0 ? id : null;
-          })
-          .filter((id: number | null): id is number => id != null),
-      ),
-    ).slice(0, 2000);
-    const dedupedNames = Array.from(new Set(names)).slice(0, 2000);
-
-    if (dedupedPersonIds.length > 0) {
-      try {
-        const thumbRes = await getApiPool().query(
-          `
-          SELECT
-            entity_ids.entity_id,
-            COALESCE(representative_face.crop_path, tagged_face.crop_path) AS thumbnail_path
-          FROM UNNEST($1::bigint[]) AS entity_ids(entity_id)
-          LEFT JOIN LATERAL (
-            SELECT f.crop_path
-            FROM face_clusters fc
-            JOIN faces f ON f.id = fc.representative_face_id
-            WHERE fc.entity_id = entity_ids.entity_id
-              AND fc.is_hidden = false
-              AND f.crop_path IS NOT NULL
-            LIMIT 1
-          ) representative_face ON TRUE
-          LEFT JOIN LATERAL (
-            SELECT f.crop_path
-            FROM media_item_people mip
-            JOIN faces f ON f.media_item_id::text = mip.media_item_id::text
-            LEFT JOIN face_clusters fc ON fc.id = f.cluster_id
-            WHERE mip.entity_id = entity_ids.entity_id
-              AND f.crop_path IS NOT NULL
-              AND (fc.is_hidden = false OR fc.is_hidden IS NULL)
-            ORDER BY
-              CASE WHEN fc.entity_id = entity_ids.entity_id THEN 0 ELSE 1 END,
-              f.detection_confidence DESC NULLS LAST,
-              f.id
-            LIMIT 1
-          ) tagged_face ON TRUE
-          `,
-          [dedupedPersonIds],
-        );
-
-        for (const row of thumbRes.rows) {
-          if (typeof row.thumbnail_path === 'string' && row.thumbnail_path.length > 0) {
-            thumbnailsByPersonId.set(Number(row.entity_id), row.thumbnail_path);
-          }
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logger.warn({ message }, '[BlackBook] Entity thumbnail enrichment skipped');
-      }
-    }
-
-    if (dedupedNames.length > 0) {
-      try {
-        const thumbRes = await getApiPool().query(
-          `
-          SELECT fc.name, f.crop_path
-          FROM face_clusters fc
-          JOIN faces f ON f.id = fc.representative_face_id
-          WHERE fc.name = ANY($1::text[]) AND fc.is_hidden = false
-          `,
-          [dedupedNames],
-        );
-        for (const row of thumbRes.rows) {
-          thumbnailsByName.set(row.name, row.crop_path);
-        }
-      } catch (error) {
-        // Face thumbnail enrichment is optional; never fail the Black Book response on this step.
-        const message = error instanceof Error ? error.message : String(error);
-        logger.warn({ message }, '[BlackBook] Thumbnail enrichment skipped');
-      }
-    }
-
-    return correctEntries(
-      filteredEntries.map((e: BlackBookEntryRow) => ({
-        ...e,
-        id: Number(e.id),
-        personId: e.personId ? Number(e.personId) : null,
-        documentId: e.documentId ? Number(e.documentId) : null,
-        entryCategory: e.entryCategory,
-        thumbnailPath:
-          (e.personId ? thumbnailsByPersonId.get(Number(e.personId)) : undefined) ??
-          (typeof e.displayName === 'string' ? thumbnailsByName.get(e.displayName) : undefined),
-      })),
+    entries.sort(
+      (a, b) =>
+        Number(b.isVip) - Number(a.isVip) ||
+        Number(b.matchStatus === 'name_match') - Number(a.matchStatus === 'name_match') ||
+        a.displayName.localeCompare(b.displayName) ||
+        a.id - b.id,
     );
+    return entries.slice(0, filters?.limit || 1000);
   },
 
   getBlackBookReviewEntries: async () => {

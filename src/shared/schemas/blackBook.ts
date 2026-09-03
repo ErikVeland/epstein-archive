@@ -13,6 +13,10 @@ export const blackBookEntrySchema = z.object({
   entry_category: z.string().optional(),
   person_name: z.string().nullable(),
   thumbnail_path: z.string().nullable(),
+  source_name: z.string(),
+  candidate_name: z.string().nullable(),
+  match_status: z.enum(['name_match', 'possible_match', 'ambiguous', 'unresolved']),
+  is_vip: z.boolean(),
 });
 
 // Schema for GET /api/black-book

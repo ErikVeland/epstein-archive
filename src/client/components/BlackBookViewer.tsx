@@ -2,7 +2,10 @@ import React, { useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
-import { extractCleanName, formatPhoneNumber } from '@client/utils/prettifyOCR';
+import { formatPhoneNumber } from '@client/utils/prettifyOCR';
+import { blackBookListResponseSchema } from '@shared/schemas/blackBook';
+import { blackBookPortraits } from '@shared/blackBookPortraits';
+import { blackBookSourceSha256 } from '@shared/blackBookSourcePages';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
@@ -25,14 +28,19 @@ interface BlackBookEntry {
   document_id?: number;
   person_name?: string;
   thumbnail_path?: string;
+  page_number?: number | null;
+  source_name: string;
+  candidate_name: string | null;
+  match_status: 'name_match' | 'possible_match' | 'ambiguous' | 'unresolved';
+  is_vip: boolean;
 }
 
 type BlackBookCategoryFilter = 'ALL' | 'Original' | 'Contact' | 'Credential';
 type BlackBookTextMode = 'pretty' | 'raw';
 
 const CATEGORY_OPTIONS: Array<{ value: BlackBookCategoryFilter; label: string }> = [
-  { value: 'ALL', label: 'All' },
-  { value: 'Original', label: 'Address Book' },
+  { value: 'Original', label: 'Original book' },
+  { value: 'Contact', label: 'Extracted contacts' },
 ];
 
 const TEXT_MODE_OPTIONS: Array<{
@@ -40,7 +48,7 @@ const TEXT_MODE_OPTIONS: Array<{
   label: string;
   icon: 'Eye' | 'FileText';
 }> = [
-  { value: 'pretty', label: 'Pretty', icon: 'Eye' },
+  { value: 'pretty', label: 'Reading view', icon: 'Eye' },
   { value: 'raw', label: 'Raw OCR', icon: 'FileText' },
 ];
 
@@ -80,7 +88,8 @@ export const BlackBookViewer: React.FC = () => {
   const [hasPhone, setHasPhone] = useState<boolean>(false);
   const [hasEmail, setHasEmail] = useState<boolean>(false);
   const [hasAddress, setHasAddress] = useState<boolean>(false);
-  const [selectedCategory, setSelectedCategory] = useState<BlackBookCategoryFilter>('ALL');
+  const [selectedCategory, setSelectedCategory] = useState<BlackBookCategoryFilter>('Original');
+  const [knownOnly, setKnownOnly] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<BlackBookEntry | null>(null);
 
   React.useEffect(() => {
@@ -134,17 +143,26 @@ export const BlackBookViewer: React.FC = () => {
       if (!response.ok) {
         throw new Error(`Black Book API request failed (${response.status})`);
       }
-      const result = await response.json();
+      const result = blackBookListResponseSchema.parse(await response.json());
 
       const data = result.data || [];
 
       return data.map((entry: Record<string, unknown>): BlackBookEntry => {
+        const referencePortrait =
+          entry.match_status === 'name_match' && typeof entry.person_name === 'string'
+            ? blackBookPortraits[entry.person_name]
+            : undefined;
         const rawPhones = entry.phone_numbers ?? entry.phoneNumbers;
         const rawAddresses = entry.addresses;
         const rawEmails = entry.email_addresses ?? entry.emailAddresses;
 
         return {
           id: Number(entry.id),
+          source_name: String(entry.source_name || ''),
+          candidate_name: typeof entry.candidate_name === 'string' ? entry.candidate_name : null,
+          match_status: entry.match_status as BlackBookEntry['match_status'],
+          is_vip: entry.is_vip === true,
+          page_number: typeof entry.page_number === 'number' ? entry.page_number : null,
           person_id:
             entry.person_id != null
               ? Number(entry.person_id)
@@ -177,13 +195,13 @@ export const BlackBookViewer: React.FC = () => {
               ? entry.thumbnail_path
               : typeof entry.thumbnailPath === 'string'
                 ? entry.thumbnailPath
-                : undefined,
+                : referencePortrait?.path,
         };
       });
     },
   });
 
-  const filteredEntries = entries;
+  const filteredEntries = knownOnly ? entries.filter((entry) => entry.person_id !== null) : entries;
   const error = isError
     ? queryError instanceof Error
       ? queryError.message
@@ -233,7 +251,10 @@ export const BlackBookViewer: React.FC = () => {
           <div>
             <h2 className={styles.title}>Jeffrey Epstein's Black Book</h2>
             <p className={styles.subtitle}>
-              {filteredEntries.length} of {entries.length} contacts
+              {filteredEntries.length} records shown ·{' '}
+              {entries.filter((entry) => entry.match_status === 'name_match').length} name matches ·{' '}
+              {entries.filter((entry) => entry.match_status === 'possible_match').length} possible
+              matches
             </p>
           </div>
         </div>
@@ -248,6 +269,29 @@ export const BlackBookViewer: React.FC = () => {
           className={styles.textModeToggle}
         />
       </div>
+
+      <Surface variant="glass" p={4} className={styles.evidenceContext}>
+        <p className={styles.subtitle}>
+          Names are review leads, not confirmed identities or evidence of wrongdoing. Original OCR
+          stays unchanged. Missing page links mean source review is incomplete.
+        </p>
+        <a
+          className={styles.documentLink}
+          href={`/api/media/pdf?filePath=${encodeURIComponent("data/originals/Jeffrey Epstein's Black Book.pdf")}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open original Black Book PDF
+        </a>
+        <label className={styles.checkLabel}>
+          <Input
+            type="checkbox"
+            checked={knownOnly}
+            onChange={(event) => setKnownOnly(event.target.checked)}
+          />
+          Linked review leads only
+        </label>
+      </Surface>
 
       {/* Search Bar */}
       <div className={styles.searchWrap}>
@@ -329,9 +373,10 @@ export const BlackBookViewer: React.FC = () => {
 
               return (
                 <List
+                  key={`${searchTerm}:${selectedLetter}:${selectedCategory}:${knownOnly}:${hasPhone}:${hasEmail}:${hasAddress}`}
                   height={safeHeight}
                   itemCount={rowCount}
-                  itemSize={220}
+                  itemSize={300}
                   width={safeWidth || '100%'}
                   className={styles.virtualList}
                 >
@@ -341,10 +386,8 @@ export const BlackBookViewer: React.FC = () => {
                     return (
                       <div style={style} className={styles.row}>
                         {rowItems.map((entry) => {
-                          const rawName = entry.person_name || extractName(entry.entry_text);
-                          const displayName = showRaw
-                            ? rawName
-                            : extractCleanName(entry.entry_text) || rawName;
+                          const rawName = entry.source_name || extractName(entry.entry_text);
+                          const displayName = showRaw ? rawName : entry.person_name || rawName;
                           const visiblePhones = entry.phone_numbers.slice(0, 2);
                           const visibleEmails = entry.email_addresses.slice(0, 1);
                           const visibleAddresses = entry.addresses.slice(0, 1);
@@ -393,7 +436,10 @@ export const BlackBookViewer: React.FC = () => {
                                   </div>
                                 )}
                                 <div className={styles.nameWrap}>
-                                  {entry.person_name ? (
+                                  {entry.thumbnail_path?.startsWith('/reference-portraits/') && (
+                                    <span className={styles.subtitle}>Reference portrait</span>
+                                  )}
+                                  {entry.person_id ? (
                                     <Button
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -401,7 +447,7 @@ export const BlackBookViewer: React.FC = () => {
                                       }}
                                       variant="ghost"
                                       className={styles.entityButton}
-                                      title="Click to view entity profile"
+                                      title={`Review candidate profile: ${entry.candidate_name || displayName}`}
                                     >
                                       <span className={styles.textClamp}>{displayName}</span>
                                       <Icon name="ExternalLink" className={styles.tinyExternal} />
@@ -526,6 +572,15 @@ export const BlackBookViewer: React.FC = () => {
 
                               {/* Metadata & Categories */}
                               <div className={styles.cardFooter}>
+                                <span className={styles.subtitle}>
+                                  {entry.match_status === 'name_match'
+                                    ? 'Name match · review identity'
+                                    : entry.match_status === 'possible_match'
+                                      ? `Possible: ${entry.candidate_name}`
+                                      : entry.match_status === 'ambiguous'
+                                        ? 'Ambiguous name · review required'
+                                        : 'Unresolved transcription'}
+                                </span>
                                 <span
                                   className={`${styles.categoryBadge} ${getCategoryBadgeClass(entry.entry_category)}`}
                                 >
@@ -609,8 +664,8 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
     });
   };
 
-  const rawName = entry.person_name || entry.entry_text.split('\n')[0]?.trim() || 'Unknown';
-  const cleanName = extractCleanName(entry.entry_text) || rawName;
+  const rawName = entry.source_name || entry.entry_text.split('\n')[0]?.trim() || 'Unknown';
+  const cleanName = entry.person_name || rawName;
   const displayName = localShowRaw ? rawName : cleanName;
 
   const handleEntityClick = (personId: number) => {
@@ -686,6 +741,34 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
         </div>
 
         <div className={styles.modalBody}>
+          <Surface variant="glass" p={3}>
+            <p className={styles.subtitle}>Source transcription: {entry.source_name}</p>
+            <p className={styles.subtitle}>
+              {entry.candidate_name
+                ? `Candidate profile: ${entry.candidate_name}. ${entry.match_status === 'name_match' ? 'Complete-name match' : 'Possible OCR spelling match'}; identity requires source review.`
+                : 'No unique match in the VIP and reviewed-entity index.'}
+            </p>
+            <p className={styles.subtitle}>
+              {entry.page_number
+                ? `Source page ${entry.page_number}`
+                : 'Exact source page not yet mapped. This entry is not fully verified.'}
+            </p>
+            {entry.thumbnail_path?.startsWith('/reference-portraits/') &&
+              entry.person_name &&
+              blackBookPortraits[entry.person_name] && (
+                <p className={styles.subtitle}>
+                  Reference portrait, not evidence of this entry.{' '}
+                  {blackBookPortraits[entry.person_name].credit}{' '}
+                  <a
+                    href={blackBookPortraits[entry.person_name].source}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Portrait source
+                  </a>
+                </p>
+              )}
+          </Surface>
           {/* Phone Numbers */}
           {entry.phone_numbers.length > 0 && (
             <div className={styles.detailSection}>
@@ -836,10 +919,23 @@ const ContactDetailsModal: React.FC<ContactDetailsModalProps> = ({
         </div>
 
         <div className={styles.modalFooter}>
+          {entry.entry_category === 'original' && (
+            <a
+              className={styles.documentLink}
+              title={`Preserved PDF SHA-256: ${blackBookSourceSha256}`}
+              href={`/api/media/pdf?filePath=${encodeURIComponent("data/originals/Jeffrey Epstein's Black Book.pdf")}#page=${entry.page_number || 1}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {entry.page_number
+                ? `Open source PDF · page ${entry.page_number}`
+                : 'Open original PDF · page not mapped'}
+            </a>
+          )}
           {entry.person_id && (
             <Button variant="secondary" onClick={() => handleEntityClick(entry.person_id || 0)}>
               <Icon name="User" size="sm" style={{ marginRight: '0.25rem' }} />
-              <span>View Entity Profile</span>
+              <span>Review Candidate Profile</span>
             </Button>
           )}
           {entry.document_id && (

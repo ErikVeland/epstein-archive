@@ -1,0 +1,10 @@
+{
+  "srcDir": ".",
+  "transforms": [
+    {
+      "mode": "sql",
+      "include": "./src/queries/black_book.sql",
+      "emitTemplate": "./src/queries/__generated__/{{name}}.ts"
+    }
+  ]
+}

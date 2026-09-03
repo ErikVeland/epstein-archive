@@ -4,6 +4,7 @@ import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate, blackBookQuerySchema, blackBookReviewSchema } from '../middleware/validate.js';
 import { BULK_EXPORT_LIMIT_CAP } from '../utils/paginationGuards.js';
+import { blackBookListResponseSchema } from '../../shared/schemas/blackBook.js';
 
 const router = express.Router();
 
@@ -73,16 +74,22 @@ router.get('/', validate(blackBookQuerySchema), async (req, res, next) => {
         entry_category: blackBookEntry.entryCategory || 'original',
         person_name: blackBookEntry.displayName || null,
         thumbnail_path: blackBookEntry.thumbnailPath || null,
+        source_name: entry.sourceName,
+        candidate_name: entry.candidateName,
+        match_status: entry.matchStatus,
+        is_vip: entry.isVip,
       };
     });
 
-    res.json({
-      data,
-      total: data.length,
-      page: 1,
-      pageSize: data.length,
-      totalPages: 1,
-    });
+    res.json(
+      blackBookListResponseSchema.parse({
+        data,
+        total: data.length,
+        page: 1,
+        pageSize: data.length,
+        totalPages: 1,
+      }),
+    );
   } catch (error) {
     next(error);
   }

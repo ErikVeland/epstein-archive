@@ -222,6 +222,26 @@
 .nameWrap {
   min-width: 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.evidenceContext {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.evidenceContext > p {
+  flex-basis: 100%;
+}
+
+.evidenceContext > a {
+  font-size: var(--type-sm);
+  color: var(--accent);
 }
 
 .entityButton {

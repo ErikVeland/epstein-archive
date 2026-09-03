@@ -182,3 +182,155 @@ export const updateBlackBookReview = new PreparedQuery<
   IUpdateBlackBookReviewParams,
   IUpdateBlackBookReviewResult
 >(updateBlackBookReviewIR);
+
+/** 'GetBlackBookSourceEntries' parameters type */
+export interface IGetBlackBookSourceEntriesParams {
+  category: string;
+  hasAddress?: boolean | null | void;
+  hasEmail?: boolean | null | void;
+  hasPhone?: boolean | null | void;
+  limit: NumberOrString;
+  search?: string | null | void;
+}
+
+/** 'GetBlackBookSourceEntries' return type */
+export interface IGetBlackBookSourceEntriesResult {
+  addresses: string | null;
+  documentId: string | null;
+  emailAddresses: string | null;
+  entryCategory: string | null;
+  entryText: string | null;
+  id: number;
+  notes: string | null;
+  pageNumber: number | null;
+  personId: string | null;
+  phoneNumbers: string | null;
+}
+
+/** 'GetBlackBookSourceEntries' query type */
+export interface IGetBlackBookSourceEntriesQuery {
+  params: IGetBlackBookSourceEntriesParams;
+  result: IGetBlackBookSourceEntriesResult;
+}
+
+const getBlackBookSourceEntriesIR: any = {
+  usedParamSet: {
+    category: true,
+    search: true,
+    hasPhone: true,
+    hasEmail: true,
+    hasAddress: true,
+    limit: true,
+  },
+  params: [
+    { name: 'category', required: true, transform: { type: 'scalar' }, locs: [{ a: 332, b: 341 }] },
+    {
+      name: 'search',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [
+        { a: 350, b: 356 },
+        { a: 402, b: 408 },
+      ],
+    },
+    {
+      name: 'hasPhone',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [{ a: 425, b: 433 }],
+    },
+    {
+      name: 'hasEmail',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [{ a: 527, b: 535 }],
+    },
+    {
+      name: 'hasAddress',
+      required: false,
+      transform: { type: 'scalar' },
+      locs: [{ a: 633, b: 643 }],
+    },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 743, b: 749 }] },
+  ],
+  statement:
+    'SELECT bb.id, bb.person_id AS "personId", bb.entry_text AS "entryText",\n  bb.phone_numbers AS "phoneNumbers", bb.addresses, bb.email_addresses AS "emailAddresses",\n  bb.notes, bb.entry_category AS "entryCategory", bb.document_id AS "documentId",\n  bb.page_number AS "pageNumber"\nFROM black_book_entries bb\nWHERE bb.entry_category = :category!\n  AND (:search::text IS NULL OR bb.entry_text ILIKE \'%\' || :search || \'%\')\n  AND (:hasPhone::boolean IS NOT TRUE OR (bb.phone_numbers IS NOT NULL AND bb.phone_numbers <> \'[]\'))\n  AND (:hasEmail::boolean IS NOT TRUE OR (bb.email_addresses IS NOT NULL AND bb.email_addresses <> \'[]\'))\n  AND (:hasAddress::boolean IS NOT TRUE OR (bb.addresses IS NOT NULL AND bb.addresses <> \'[]\'))\nORDER BY bb.id\nLIMIT :limit!',
+};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * SELECT bb.id, bb.person_id AS "personId", bb.entry_text AS "entryText",
+ *   bb.phone_numbers AS "phoneNumbers", bb.addresses, bb.email_addresses AS "emailAddresses",
+ *   bb.notes, bb.entry_category AS "entryCategory", bb.document_id AS "documentId",
+ *   bb.page_number AS "pageNumber"
+ * FROM black_book_entries bb
+ * WHERE bb.entry_category = :category!
+ *   AND (:search::text IS NULL OR bb.entry_text ILIKE '%' || :search || '%')
+ *   AND (:hasPhone::boolean IS NOT TRUE OR (bb.phone_numbers IS NOT NULL AND bb.phone_numbers <> '[]'))
+ *   AND (:hasEmail::boolean IS NOT TRUE OR (bb.email_addresses IS NOT NULL AND bb.email_addresses <> '[]'))
+ *   AND (:hasAddress::boolean IS NOT TRUE OR (bb.addresses IS NOT NULL AND bb.addresses <> '[]'))
+ * ORDER BY bb.id
+ * LIMIT :limit!
+ * ```
+ */
+export const getBlackBookSourceEntries = new PreparedQuery<
+  IGetBlackBookSourceEntriesParams,
+  IGetBlackBookSourceEntriesResult
+>(getBlackBookSourceEntriesIR);
+
+/** 'GetBlackBookIdentityIndex' parameters type */
+export type IGetBlackBookIdentityIndexParams = void;
+
+/** 'GetBlackBookIdentityIndex' return type */
+export interface IGetBlackBookIdentityIndexResult {
+  fullName: string;
+  id: string;
+  isVip: number | null;
+  primaryRole: string | null;
+  thumbnailPath: string | null;
+}
+
+/** 'GetBlackBookIdentityIndex' query type */
+export interface IGetBlackBookIdentityIndexQuery {
+  params: IGetBlackBookIdentityIndexParams;
+  result: IGetBlackBookIdentityIndexResult;
+}
+
+const getBlackBookIdentityIndexIR: any = {
+  usedParamSet: {},
+  params: [],
+  statement:
+    "WITH portraits AS (\n  SELECT DISTINCT ON (fc.entity_id) fc.entity_id, f.crop_path\n  FROM face_clusters fc\n  JOIN faces f ON f.id = fc.representative_face_id\n  JOIN media_items m ON m.id = f.media_item_id::text\n  WHERE fc.entity_id IS NOT NULL AND fc.is_hidden = false\n    AND m.verification_status IN ('verified', 'source_verified')\n    AND COALESCE(m.is_sensitive, false) = false\n  ORDER BY fc.entity_id, fc.id\n)\nSELECT e.id, e.full_name AS \"fullName\", e.is_vip AS \"isVip\",\n  e.primary_role AS \"primaryRole\",\n  portraits.crop_path AS \"thumbnailPath\"\nFROM entities e\nLEFT JOIN portraits ON portraits.entity_id = e.id\nWHERE (e.is_vip = 1 OR e.manually_reviewed = 1)\n  AND COALESCE(e.quarantine_status, 0) = 0\n  AND COALESCE(e.junk_tier, 'clean') = 'clean'\n  AND lower(COALESCE(e.entity_type, '')) = 'person'\n  AND COALESCE(e.primary_role, '') !~* 'victim|survivor|minor'\n  AND e.full_name IS NOT NULL",
+};
+
+/**
+ * Query generated from SQL:
+ * ```
+ * WITH portraits AS (
+ *   SELECT DISTINCT ON (fc.entity_id) fc.entity_id, f.crop_path
+ *   FROM face_clusters fc
+ *   JOIN faces f ON f.id = fc.representative_face_id
+ *   JOIN media_items m ON m.id = f.media_item_id::text
+ *   WHERE fc.entity_id IS NOT NULL AND fc.is_hidden = false
+ *     AND m.verification_status IN ('verified', 'source_verified')
+ *     AND COALESCE(m.is_sensitive, false) = false
+ *   ORDER BY fc.entity_id, fc.id
+ * )
+ * SELECT e.id, e.full_name AS "fullName", e.is_vip AS "isVip",
+ *   e.primary_role AS "primaryRole",
+ *   portraits.crop_path AS "thumbnailPath"
+ * FROM entities e
+ * LEFT JOIN portraits ON portraits.entity_id = e.id
+ * WHERE (e.is_vip = 1 OR e.manually_reviewed = 1)
+ *   AND COALESCE(e.quarantine_status, 0) = 0
+ *   AND COALESCE(e.junk_tier, 'clean') = 'clean'
+ *   AND lower(COALESCE(e.entity_type, '')) = 'person'
+ *   AND COALESCE(e.primary_role, '') !~* 'victim|survivor|minor'
+ *   AND e.full_name IS NOT NULL
+ * ```
+ */
+export const getBlackBookIdentityIndex = new PreparedQuery<
+  IGetBlackBookIdentityIndexParams,
+  IGetBlackBookIdentityIndexResult
+>(getBlackBookIdentityIndexIR);

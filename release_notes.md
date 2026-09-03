@@ -1,5 +1,27 @@
 # Release Notes
 
+## 22.6.7 - 2026-09-04 - Black Book Source Integrity and Identity Review
+
+### Original evidence
+
+- **The default Black Book view now isolates original-book records.** Contacts extracted from other documents are a separate collection, not evidence of inclusion in the book.
+- **Raw OCR is preserved in API responses.** Silent spelling substitutions are removed. Reading names and candidate identities remain separate from source transcription.
+- **Filters no longer hide entries without phone numbers by default.** The original collection is filtered before the display limit, including canonical-name search.
+- **Source coverage is explicit.** The original PDF opens directly. A reproducible, read-only audit records one strict page match, pinned to the source entry hash and PDF checksum. Unmapped pages remain unresolved.
+
+### Identity and portrait context
+
+- **Complete names are compared with VIP and reviewed entities.** Exact name matches and possible OCR matches have separate labels. Household entries, initials, surname-only fragments, and ambiguous matches do not acquire an automatic identity.
+- **Reference portraits have source credits.** Three public-domain portraits are available for complete-name matches. They identify candidate profiles and are not represented as Black Book evidence.
+- **Unassigned group-photo faces are no longer used as portraits.** Archive face crops require the same assigned entity and verified, non-sensitive source media.
+- **The viewer no longer renders dead profile buttons.** Unresolved entries offer evidence search instead. Review leads can be filtered and opened as candidate profiles.
+
+### Review limits and verification
+
+- **The identity lookup has a targeted index and short-lived cache.** Reviewing the book no longer requires a full scan of the entity table on first load.
+- **This release does not claim 100% transcription or identity verification.** The current local audit contains 1,077 original fragments, 19 complete-name matches, three possible matches, and one ambiguous match. These are review aids, not adjudicated identities.
+- **Regression tests protect the matching boundary.** Checks cover complete names, OCR candidates, household fragments, ambiguous identities, and raw-text preservation.
+
 ## 22.6.6 - 2026-09-04 - Property Evidence Listings
 
 ### Real-estate catalogue
