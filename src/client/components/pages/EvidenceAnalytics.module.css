@@ -1,0 +1,187 @@
+.root {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.2rem;
+  min-width: 0;
+  width: 100%;
+}
+.toolbar,
+.sectionHeading,
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  justify-content: space-between;
+}
+.toolbar > :first-child {
+  flex: 1;
+  min-width: 180px;
+}
+.note {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin: 0.25rem 0 0.8rem;
+}
+.peopleGrid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+.panel {
+  padding: 1.25rem;
+  min-width: 0;
+}
+.panel h3 {
+  font-size: 1.2rem;
+  margin: 0 0 0.75rem;
+}
+.panel h4 {
+  font-size: 1rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.peopleList {
+  display: grid;
+  gap: 0.25rem;
+  max-height: 550px;
+  overflow-y: auto;
+}
+.peopleList .person {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  text-align: left;
+  height: auto;
+  min-height: 64px;
+  white-space: normal;
+  gap: 1rem;
+}
+.person small,
+.peer small {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 400;
+  margin-top: 0.25rem;
+}
+.documents {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.facts strong {
+  display: block;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.facts span {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+.peerList {
+  max-height: 430px;
+  overflow-y: auto;
+}
+.peer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+.peer > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.peer button {
+  flex-shrink: 0;
+}
+.evidence article {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+.evidence {
+  max-height: 600px;
+  overflow-y: auto;
+}
+.evidence p {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.pagination {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+}
+.coverageGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+.yearDetails {
+  max-height: 450px;
+  overflow-y: auto;
+}
+.bars {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1.25rem 0;
+}
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) minmax(50px, 2fr) 80px;
+  gap: 0.6rem;
+  align-items: center;
+  font-size: 0.75rem;
+}
+.barRow > span {
+  overflow-wrap: anywhere;
+}
+.barRow strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.track {
+  background: var(--glass-bg);
+  height: 0.5rem;
+}
+.track > div {
+  height: 100%;
+  background: var(--accent);
+}
+.loading {
+  height: 240px;
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .peopleList {
+    max-height: 280px;
+  }
+  .peopleGrid,
+  .coverageGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .panel {
+    padding: 0.85rem;
+  }
+  .facts {
+    gap: 0.5rem;
+  }
+  .peer {
+    flex-wrap: wrap;
+  }
+  .barRow {
+    grid-template-columns: 75px minmax(35px, 1fr) 70px;
+  }
+}

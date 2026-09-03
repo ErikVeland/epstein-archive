@@ -1,5 +1,25 @@
 # Release Notes
 
+## 22.6.9 - 2026-09-04 - Evidence-first Analytics
+
+### Investigation workflow
+
+- Replace the oversized default graph and duplicate charts with People & evidence, Archive coverage, and Places views.
+- Prioritize canonical VIP and reviewed people. Exclude junk and quarantined identities, show missing document links, and open profiles without depending on the current global search slice.
+- Separate distinct linked documents, stored mentions, and relationship records. Inspect shared source documents for individual peer connections; relationships alone do not establish contact or wrongdoing.
+
+### Honest coverage and readable displays
+
+- Remove the misleading classification-equals-integrity badge and speculative gaps in the date chart. Classification does not establish ingestion or enrichment completion.
+- Show exact counts and selectable logarithmic or linear bars for unequal populations. Explain date fallback and flag differences between live and cached totals.
+- Keep loading, failed requests, empty results, and missing counts distinct. Add bounded node sizing to the shared network renderer.
+
+### Maps and operational scope
+
+- Replace the key-gated CARTO basemap with attributed OpenStreetMap tiles. Label airport fallback points, provide working record links and a location list, and report tile failures.
+- Add cached, typed read-only people and peer endpoints. No evidence, entity identities, or database schema are rewritten by this release.
+- Load investigation financial and forensic tools on demand to retain the existing bundle-size limit after removing the old analytics charts.
+
 ## 22.6.8 - 2026-09-04 - Timeline Player Paths
 
 ### Visual exploration

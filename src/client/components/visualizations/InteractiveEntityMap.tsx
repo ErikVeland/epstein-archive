@@ -1,37 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import Icon from '@client/components/common/Icon';
 import { apiClient } from '@client/services/apiClient';
 import { useScrollLock } from '@client/hooks/useScrollLock';
-import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
-import { Button } from '@client/design-system/lib';
+import { Button, Skeleton } from '@client/design-system/lib';
+import { mapLocationsSchema, airportLocationsSchema } from '@shared/contracts/analyticsMap';
+import type { AnalyticsMapLocation } from '@shared/dto/analyticsMap';
 import styles from './InteractiveEntityMap.module.css';
-
-// Fix for default marker icon issues
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
-
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-L.Marker.prototype.options.icon = DefaultIcon;
-
-interface MapEntity {
-  id: number | string;
-  label: string;
-  lat: number;
-  lng: number;
-  mentions: number;
-  risk_level: string;
-  risk_score: number;
-  type: string;
-}
 
 interface InteractiveEntityMapProps {
   className?: string;
@@ -39,27 +16,73 @@ interface InteractiveEntityMapProps {
   minRiskLevel?: number;
 }
 
-// Map Controller for auto-zoom
-const MapController: React.FC<{ entities: MapEntity[] }> = ({ entities }) => {
-  const map = useMap();
-
+function LocationCanvas({
+  locations,
+  onTileError,
+}: {
+  locations: AnalyticsMapLocation[];
+  onTileError: () => void;
+}) {
+  const element = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    map.setMinZoom(2);
-    map.setMaxBounds([
-      [-90, -180],
-      [90, 180],
-    ]);
-
-    if (entities.length > 0) {
-      const bounds = L.latLngBounds(entities.map((e) => [e.lat, e.lng]));
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 });
-    } else {
-      map.setView([20, 0], 2); // World view
+    if (!element.current) return;
+    // Own the map lifetime so Strict Mode can safely mount, clean up, and mount again.
+    const map = L.map(element.current, { minZoom: 0, maxZoom: 18, scrollWheelZoom: false }).setView(
+      [20, 0],
+      2,
+    );
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+      maxZoom: 19,
+    })
+      .on('tileerror', onTileError)
+      .addTo(map);
+    for (const location of locations) {
+      const popup = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = location.label;
+      const context = document.createElement('p');
+      context.textContent =
+        location.type === 'Airport'
+          ? 'Airport reference point, not evidence of a visit.'
+          : `${location.type} location record. Coordinates do not establish a visit.`;
+      const link = document.createElement('a');
+      link.href = location.type === 'Airport' ? '/flights' : `/entity/${location.id}`;
+      link.textContent =
+        location.type === 'Airport' ? 'Inspect flight records →' : 'Open profile →';
+      popup.append(title, context, link);
+      L.circleMarker([location.lat, location.lng], {
+        radius: 6,
+        color: '#ffffff',
+        weight: 2,
+        fillColor: '#0284c7',
+        fillOpacity: 1,
+      })
+        .bindPopup(popup)
+        .addTo(map);
     }
-  }, [map, entities]);
-
-  return null;
-};
+    if (locations.length)
+      map.fitBounds(L.latLngBounds(locations.map((location) => [location.lat, location.lng])), {
+        padding: [30, 30],
+        maxZoom: 8,
+      });
+    const resize = new ResizeObserver(() => map.invalidateSize());
+    resize.observe(element.current);
+    return () => {
+      resize.disconnect();
+      map.remove();
+    };
+  }, [locations, onTileError]);
+  return (
+    <div
+      ref={element}
+      className={styles.mapContainer}
+      style={{ height: 400 }}
+      aria-label="Archive location map"
+    />
+  );
+}
 
 export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
   className = '',
@@ -67,223 +90,84 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
   minRiskLevel = 0,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [tileError, setTileError] = useState(false);
+  const reportTileError = React.useCallback(() => setTileError(true), []);
   useScrollLock(isExpanded);
-
-  const {
-    data: entities = [],
-    isLoading,
-    isError,
-    error: queryError,
-    refetch,
-  } = useQuery<MapEntity[]>({
-    queryKey: ['map-entities', minRiskLevel],
+  const query = useQuery({
+    queryKey: ['analytics-map-locations', minRiskLevel],
     queryFn: async () => {
-      const res = await apiClient.get<MapEntity[]>(`/map/entities?minRisk=${minRiskLevel}`, {
-        useCache: true,
-      });
-
-      const entityRows = Array.isArray(res) ? res : [];
-      if (entityRows.length > 0) return entityRows;
-
-      // Real-data fallback: show airport locations from flight logs when entity geo coords are absent.
-      const airports = await apiClient.get<
-        Record<string, { lat: number; lng: number; city: string }>
-      >('/flights/airports', { useCache: true });
-
-      const airportEntities: MapEntity[] = Object.entries(airports || {}).map(([code, value]) => ({
+      const rows = mapLocationsSchema.parse(
+        await apiClient.get<unknown>(`/map/entities?minRisk=${minRiskLevel}`, { useCache: true }),
+      );
+      if (rows.length) return rows;
+      const airports = airportLocationsSchema.parse(
+        await apiClient.get<unknown>('/flights/airports', { useCache: true }),
+      );
+      return Object.entries(airports).map(([code, airport]) => ({
         id: `airport-${code}`,
-        label: `${code} (${value.city})`,
-        lat: Number(value.lat),
-        lng: Number(value.lng),
-        mentions: 0,
-        risk_level: 'LOW',
-        risk_score: 0,
+        label: `${code} (${airport.city})`,
+        lat: airport.lat,
+        lng: airport.lng,
         type: 'Airport',
       }));
-
-      if (airportEntities.length > 0) return airportEntities;
-
-      throw new Error('No geospatial coordinates available for entities or flights');
     },
+    staleTime: 60000,
   });
-
-  const loading = isLoading;
-  const error = isError
-    ? queryError instanceof Error
-      ? queryError.message
-      : 'Failed to load map data'
-    : null;
-  const fetchMapEntities = refetch;
-
-  const getMarkerIcon = (riskScore: number) => {
-    // Dynamic color based on risk
-    const color = riskScore >= 4 ? 'red' : riskScore >= 2 ? 'orange' : 'blue';
-
-    // Custom DIV icon for performant rendering
-    return L.divIcon({
-      className: 'custom-div-icon',
-      html: `<div style="
-        background-color: ${color};
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        border: 2px solid white;
-        box-shadow: 0 0 4px rgba(0,0,0,0.5);
-      "></div>`,
-      iconSize: [12, 12],
-      iconAnchor: [6, 6],
-    });
-  };
-
-  const mapContent = (
-    <div className={styles.mapShell}>
-      {loading && (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.spinner}></div>
-        </div>
-      )}
-
-      {error && (
-        <div className={styles.errorOverlay}>
-          <div className={styles.errorCard}>
-            <Icon name="AlertTriangle" className={styles.alertIconLg} />
-            <p className={styles.errorText}>{error}</p>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => void fetchMapEntities()}
-              className={styles.errorRetry}
-            >
-              Retry
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <ScopedErrorBoundary
-        fallback={
-          <div className={styles.fallback}>
-            <div className={styles.fallbackCard}>
-              <Icon name="AlertTriangle" className={styles.alertIconLg} />
-              <p className={styles.fallbackTitle}>Map Rendering Failed</p>
-              <p className={styles.fallbackBody}>Entity markers may be corrupted.</p>
-            </div>
-          </div>
-        }
-      >
-        <MapContainer
-          center={[20, 0]}
-          zoom={2}
-          maxBoundsViscosity={1.0}
-          className={styles.mapContainer}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          />
-
-          <MapController entities={entities} />
-
-          {entities.map((entity) => (
-            <Marker
-              key={entity.id}
-              position={[entity.lat, entity.lng]}
-              icon={getMarkerIcon(entity.risk_score)}
-              eventHandlers={{
-                click: () => {
-                  // Determine functionality
-                },
-              }}
-            >
-              <Popup className="custom-popup">
-                <div className={styles.popupCard}>
-                  <div className={styles.popupHeader}>
-                    <h4 className={styles.popupTitle}>{entity.label}</h4>
-                    <div
-                      className={`${styles.riskBadge} ${
-                        entity.risk_score >= 4 ? styles.riskBadgeHigh : styles.riskBadgeLow
-                      }`}
-                    >
-                      {entity.risk_level}
-                    </div>
-                  </div>
-
-                  <div className={styles.popupMeta}>
-                    <div className={styles.popupRow}>
-                      <Icon name="User" className={styles.popupIcon} />
-                      <span>{entity.type}</span>
-                    </div>
-                    <div className={styles.popupRow}>
-                      <Icon name="Shield" className={styles.popupIcon} />
-                      <span>{entity.mentions} Mentions</span>
-                    </div>
-                  </div>
-
-                  <Button
-                    variant="glass"
-                    size="sm"
-                    onClick={() => {
-                      if (typeof entity.id === 'number') onEntitySelect?.(entity.id);
-                    }}
-                    className={styles.profileButton}
-                  >
-                    View Profile <Icon name="Navigation" className={styles.buttonIcon} />
-                  </Button>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
-      </ScopedErrorBoundary>
-
-      {/* Stats Overlay */}
-      <div className={styles.statsOverlay}>
-        <div className={styles.statsRow}>
-          <Icon name="MapPin" className={styles.statsIcon} />
-          <span className={styles.statsValue}>{entities.length} Locations</span>
-        </div>
-        {entities.length >= 500 && <div className={styles.statsWarning}>Cap Reached (Top 500)</div>}
-      </div>
-    </div>
-  );
-
-  if (isExpanded) {
-    return (
-      <div className={styles.expandedShell}>
-        <div className={styles.expandedHeader}>
-          <h2 className={styles.expandedTitle}>
-            <Icon name="MapPin" className={styles.headerIcon} />
-            Global Entity Map
-          </h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(false)}
-            className={styles.collapseButton}
-          >
-            <Icon name="Minimize2" className={styles.headerIcon} />
-          </Button>
-        </div>
-        <div className={styles.expandedBody}>{mapContent}</div>
-      </div>
-    );
-  }
-
+  const locations = query.data ?? [];
   return (
-    <div className={`${styles.cardShell} ${className}`}>
-      <div className={styles.expandButtonWrap}>
+    <div className={`${isExpanded ? styles.expandedShell : styles.cardShell} ${className}`}>
+      <div className={styles.expandedHeader}>
+        <span>
+          {locations.length}{' '}
+          {locations.some((row) => row.type === 'Airport')
+            ? 'airport reference points · no entity coordinates available'
+            : 'entity location records'}
+        </span>
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setIsExpanded(true)}
-          className={styles.expandButton}
-          title="Expand Map"
-          aria-label="Expand map"
+          aria-label={isExpanded ? 'Collapse map' : 'Expand map'}
+          onClick={() => setIsExpanded(!isExpanded)}
         >
-          <Icon name="Maximize2" className={styles.expandIcon} />
+          {isExpanded ? 'Collapse' : 'Expand'}
         </Button>
       </div>
-      {mapContent}
+      {query.isLoading ? (
+        <Skeleton height={400} aria-label="Loading locations" />
+      ) : query.isError ? (
+        <div role="alert">
+          <p>Location data unavailable. No locations have been inferred.</p>
+          <Button onClick={() => void query.refetch()}>Retry locations</Button>
+        </div>
+      ) : !locations.length ? (
+        <p>No entity or airport coordinates are available.</p>
+      ) : (
+        <LocationCanvas locations={locations} onTileError={reportTileError} />
+      )}
+      {tileError && (
+        <p role="status">Some map tiles could not load. Use the location links below.</p>
+      )}
+      <details>
+        <summary>Location records ({locations.length})</summary>
+        <ul>
+          {locations.map((location) => (
+            <li key={location.id}>
+              <Link
+                to={location.type === 'Airport' ? '/flights' : `/entity/${location.id}`}
+                onClick={(event) => {
+                  if (location.type !== 'Airport' && onEntitySelect) {
+                    event.preventDefault();
+                    onEntitySelect(Number(location.id));
+                  }
+                }}
+              >
+                {location.label}
+              </Link>{' '}
+              · {location.type}
+            </li>
+          ))}
+        </ul>
+      </details>
     </div>
   );
 };

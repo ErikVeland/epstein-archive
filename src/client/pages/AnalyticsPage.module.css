@@ -1,7 +1,7 @@
 .hero {
-  margin-bottom: var(--space-12);
+  margin-bottom: 0;
   padding: var(--space-4);
-  padding-bottom: calc(var(--space-4) + 80px);
+  padding-bottom: 0;
 }
 
 @media (min-width: 768px) {

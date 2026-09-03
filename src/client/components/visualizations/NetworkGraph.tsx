@@ -88,7 +88,10 @@ const getRiskColor = (riskLevel: number): string => {
 const getNodeSize = (connectionCount: number, maxConnections: number): number => {
   const minSize = 8;
   const maxSize = 22;
-  const ratio = connectionCount / Math.max(maxConnections, 1);
+  const ratio =
+    Number.isFinite(connectionCount) && Number.isFinite(maxConnections)
+      ? Math.min(1, Math.max(0, connectionCount) / Math.max(maxConnections, 1))
+      : 0;
   return minSize + (maxSize - minSize) * Math.sqrt(ratio);
 };
 
@@ -272,7 +275,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         y: n.y || 0,
         vx: 0,
         vy: 0,
-        radius: getNodeSize(n.connectionCount || 0, 100) / 4,
+        radius:
+          getNodeSize(
+            n.connectionCount || 0,
+            Math.max(1, ...uniqueNodes.map((node) => node.connectionCount || 0)),
+          ) / 4,
         connectionCount: n.connectionCount || 0,
       } as GraphNode;
     });

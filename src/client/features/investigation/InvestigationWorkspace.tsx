@@ -12,12 +12,18 @@ import {
 import Icon from '@client/components/common/Icon';
 
 // Specialized Analytical Views
-import FinancialTransactionMapper from '@client/components/visualizations/FinancialTransactionMapper';
+const FinancialTransactionMapper = React.lazy(
+  () => import('@client/components/visualizations/FinancialTransactionMapper'),
+);
 import { ChainOfCustodyModal } from './ChainOfCustodyModal';
 import { NetworkNode, NetworkEdge } from '@client/components/visualizations/NetworkVisualization';
 import { InvestigationTimelineBuilder } from './InvestigationTimelineBuilder';
 import { InvestigationExportTools } from './InvestigationExportTools';
-import { ForensicAnalysisWorkspace } from './ForensicAnalysisWorkspace';
+const ForensicAnalysisWorkspace = React.lazy(() =>
+  import('./ForensicAnalysisWorkspace').then((module) => ({
+    default: module.ForensicAnalysisWorkspace,
+  })),
+);
 import { DataIntegrityPanel } from '@client/components/visualizations/DataIntegrityPanel';
 import { EvidencePacketExporter } from './EvidencePacketExporter';
 // These panels exist but are not currently rendered in the active workspace layout
@@ -1162,9 +1168,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <EvidenceNotebook investigationId={Number(selectedInvestigation.id)} />
               )}
               {activeTab === 'financial' && (
-                <FinancialTransactionMapper
-                  investigationId={useGlobalContext ? undefined : selectedInvestigation.id}
-                />
+                <React.Suspense fallback={<p role="status">Loading financial view…</p>}>
+                  <FinancialTransactionMapper
+                    investigationId={useGlobalContext ? undefined : selectedInvestigation.id}
+                  />
+                </React.Suspense>
               )}
               {activeTab === 'communications' && (
                 <CommunicationAnalysis
@@ -1192,13 +1200,15 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 />
               )}
               {activeTab === 'forensic' && (
-                <ForensicAnalysisWorkspace
-                  investigation={selectedInvestigation}
-                  evidence={evidenceItems}
-                  onEvidenceUpdate={setEvidenceItems}
-                  timelineEvents={timelineEvents}
-                  useGlobalContext={useGlobalContext}
-                />
+                <React.Suspense fallback={<p role="status">Loading forensic view…</p>}>
+                  <ForensicAnalysisWorkspace
+                    investigation={selectedInvestigation}
+                    evidence={evidenceItems}
+                    onEvidenceUpdate={setEvidenceItems}
+                    timelineEvents={timelineEvents}
+                    useGlobalContext={useGlobalContext}
+                  />
+                </React.Suspense>
               )}
               {activeTab === 'team' && (
                 <InvestigationTeamManagement

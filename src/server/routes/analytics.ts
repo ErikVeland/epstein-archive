@@ -8,8 +8,31 @@ import { analyticsRateLimiter } from '../middleware/rateLimit.js';
 import { cacheResponse } from '../middleware/cache.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logger } from '../services/Logger.js';
+import { analyticsPeopleRepository } from '../db/analyticsPeopleRepository.js';
+import {
+  analyticsPeopleSchema,
+  analyticsPeersSchema,
+} from '../../shared/contracts/analyticsPeople.js';
 
 const router = express.Router();
+
+router.get('/people', analyticsRateLimiter, cacheResponse(60), async (_req, res, next) => {
+  try {
+    res.json(analyticsPeopleSchema.parse(await analyticsPeopleRepository.people()));
+  } catch (error) {
+    next(error);
+  }
+});
+router.get('/people/:id/peers', analyticsRateLimiter, cacheResponse(60), async (req, res, next) => {
+  const id = Number(req.params.id);
+  if (!Number.isSafeInteger(id) || id <= 0)
+    return res.status(400).json({ error: 'Invalid entity ID' });
+  try {
+    res.json(analyticsPeersSchema.parse(await analyticsPeopleRepository.peers(id)));
+  } catch (error) {
+    next(error);
+  }
+});
 
 const TOP_CONNECTED_JUNK_PATTERNS: RegExp[] = [
   /\b(see attachment|attachment|attachmert)\b/i,

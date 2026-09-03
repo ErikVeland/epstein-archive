@@ -177,6 +177,7 @@ export * as financialQueries from './queries/__generated__/financial.js';
 export * as forensicQueries from './queries/__generated__/forensic.js';
 export * as relationshipsQueries from './queries/__generated__/relationships.js';
 export * as analyticsQueries from './queries/__generated__/analytics.js';
+export * as analyticsPeopleQueries from './queries/__generated__/analytics_people.js';
 export * as articlesQueries from './queries/__generated__/articles.js';
 export * as entityEvidenceQueries from './queries/__generated__/entity_evidence.js';
 export * as evidenceQueries from './queries/__generated__/evidence.js';
