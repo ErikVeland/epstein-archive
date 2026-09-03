@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "22.3.0",
+  "version": "22.3.1",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -58,6 +58,9 @@
     "black-book:enrich": "tsx scripts/enrich_black_book.ts",
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
     "media:provenance:backfill": "tsx scripts/backfill_extracted_media_provenance.ts",
+    "media:classification:backfill": "tsx scripts/backfill_media_visual_classification.ts",
+    "media:catalog:normalize": "tsx scripts/normalize_media_catalog.ts",
+    "media:release:enrich": "pnpm media:classification:backfill -- --apply --all && pnpm media:catalog:normalize -- --apply",
     "lint": "eslint . --ext .ts,.tsx",
     "precheck": "bash scripts/strict_prechecks.sh --full",
     "precheck:staged": "bash scripts/strict_prechecks.sh --staged",

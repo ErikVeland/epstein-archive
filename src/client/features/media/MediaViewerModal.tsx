@@ -35,6 +35,10 @@ interface MediaViewerModalProps {
   onEntityClick?: (person: { id: string | number; name?: string; [key: string]: unknown }) => void;
 }
 
+function humanizeMetadataValue(value: string): string {
+  return value.replaceAll('_', ' ').replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
 const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   images,
   initialIndex,
@@ -51,6 +55,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   const backLinkState = useBackLinkState();
   const { isAdmin } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
   const { addToast } = useToasts();
@@ -254,6 +259,13 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     provenanceValue && typeof provenanceValue === 'object' && !Array.isArray(provenanceValue)
       ? (provenanceValue as Record<string, unknown>)
       : null;
+  const catalogContextValue = metadata['catalog_context'];
+  const catalogContext =
+    catalogContextValue &&
+    typeof catalogContextValue === 'object' &&
+    !Array.isArray(catalogContextValue)
+      ? (catalogContextValue as Record<string, unknown>)
+      : null;
   const sourcePageValue = Number(metadata['source_page']);
   const sourcePage =
     Number.isInteger(sourcePageValue) && sourcePageValue > 0 ? sourcePageValue : null;
@@ -267,7 +279,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     provenance?.['status'] === 'exact_source_object';
   const visualClassification =
     typeof metadata['visual_classification'] === 'string'
-      ? metadata['visual_classification'].replaceAll('_', ' ')
+      ? humanizeMetadataValue(metadata['visual_classification'])
       : null;
   const aiDescription =
     typeof aiVisual?.['description'] === 'string' ? aiVisual['description'] : null;
@@ -276,6 +288,30 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     typeof aiVisual?.['reviewState'] === 'string' ? aiVisual['reviewState'] : 'unreviewed';
   const aiModel =
     typeof aiVisual?.['model'] === 'string' ? aiVisual['model'] : 'visual analysis pipeline';
+  const metadataSourceCollection =
+    typeof metadata['source_collection'] === 'string'
+      ? metadata['source_collection']
+      : typeof metadata['sourceCollection'] === 'string'
+        ? metadata['sourceCollection']
+        : null;
+  const sourceCollection = metadataSourceCollection || currentImage.albumName || null;
+  const priorCollection =
+    typeof catalogContext?.['previousAlbumName'] === 'string'
+      ? catalogContext['previousAlbumName']
+      : null;
+  const fallbackContext = `${visualClassification || 'Archival image'} catalogued${sourceCollection ? ` in ${sourceCollection}` : ' in the media archive'}.`;
+  const primaryDescription =
+    aiSummary || aiDescription || currentImage.description || fallbackContext;
+  const hasCaptureMetadata = Boolean(
+    currentImage.dateTaken ||
+    currentImage.cameraMake ||
+    currentImage.cameraModel ||
+    currentImage.lens ||
+    currentImage.focalLength ||
+    currentImage.aperture ||
+    currentImage.shutterSpeed ||
+    currentImage.iso,
+  );
 
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) return 'Unknown';
@@ -416,10 +452,10 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         variant="glass-container"
         className={cn(styles.sidebar, showSidebar ? styles.sidebarVisible : styles.sidebarHidden)}
       >
-        <Stack gap="xl" className={styles.sidebarContent}>
-          <Stack gap="md">
+        <Stack gap="lg" className={styles.sidebarContent}>
+          <Stack gap="md" className={styles.identityBlock}>
             <Flex justify="between" align="start">
-              <Stack gap="xs" style={{ flex: 1 }}>
+              <Stack gap="xs" className={styles.identityText}>
                 {isEditing ? (
                   <Stack gap="xs">
                     <LqText variant="xs" weight="bold" color="muted">
@@ -433,11 +469,11 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                     />
                   </Stack>
                 ) : (
-                  <Stack gap="0">
+                  <Stack gap="xs">
                     <LqText variant="body" weight="bold">
-                      {currentImage.title}
+                      {currentImage.title || currentImage.filename}
                     </LqText>
-                    <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                    <LqText variant="xxs" color="muted" className={styles.filenameText}>
                       {currentImage.filename}
                     </LqText>
                   </Stack>
@@ -468,13 +504,127 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             )}
           </Stack>
 
-          <Stack gap="md">
+          <Stack gap="sm" className={styles.primarySection}>
+            <Flex align="center" gap="sm">
+              <Box className={styles.sectionIcon}>
+                <Icon name="AlignLeft" size="sm" />
+              </Box>
+              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                Context
+              </LqText>
+            </Flex>
+            <Surface variant="glass-highlight" p="md" className={styles.contextCard}>
+              <Stack gap="sm">
+                <Flex gap="xs" align="center" wrap="wrap" className={styles.contextBadges}>
+                  {sourceCollection ? (
+                    <Badge tone="accent" label={sourceCollection} title="Current collection" />
+                  ) : null}
+                  {visualClassification ? (
+                    <Badge
+                      tone="neutral"
+                      label={visualClassification}
+                      title="Machine-assigned visual type"
+                    />
+                  ) : null}
+                  {aiDescription ? (
+                    <Badge
+                      tone={aiReviewState === 'accepted' ? 'success' : 'warning'}
+                      label={`AI · ${humanizeMetadataValue(aiReviewState)}`}
+                      title={
+                        aiReviewState === 'accepted'
+                          ? `Reviewed visual analysis from ${aiModel}`
+                          : `Unreviewed visual analysis from ${aiModel}`
+                      }
+                    />
+                  ) : null}
+                </Flex>
+                {isEditing ? (
+                  <TextArea
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    rows={5}
+                    className={styles.textarea}
+                  />
+                ) : (
+                  <LqText variant="small" color="muted" className={styles.contextText}>
+                    {primaryDescription}
+                  </LqText>
+                )}
+                {priorCollection && priorCollection !== sourceCollection ? (
+                  <LqText variant="xxs" color="muted">
+                    Previous collection: {priorCollection}
+                  </LqText>
+                ) : null}
+              </Stack>
+            </Surface>
+          </Stack>
+
+          {currentImage.documentId && (
+            <Stack gap="sm" className={styles.primarySection}>
+              <Flex align="center" gap="sm">
+                <Box className={styles.sectionIcon}>
+                  <Icon name="FileSearch" size="sm" />
+                </Box>
+                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                  Source record
+                </LqText>
+              </Flex>
+              <Surface variant="glass-highlight" p="md">
+                <Stack gap="sm">
+                  <Flex gap="xs" align="center" wrap="wrap">
+                    <Badge
+                      tone={sourceVerified ? 'success' : 'warning'}
+                      label={sourceVerified ? 'Source matched' : 'Location incomplete'}
+                      title={
+                        sourceVerified
+                          ? 'The extraction and source position match. This does not verify depicted people or events.'
+                          : 'The source document is known, but the exact PDF object position is incomplete.'
+                      }
+                    />
+                  </Flex>
+                  <Button
+                    variant="glass-highlight"
+                    size="sm"
+                    onClick={() =>
+                      navigate(
+                        `/documents/${encodeURIComponent(String(currentImage.documentId))}${sourcePage ? `?page=${sourcePage}` : ''}`,
+                        { state: backLinkState },
+                      )
+                    }
+                    className={styles.provenanceLink}
+                  >
+                    <Icon name="FileImage" size="sm" />
+                    <span className={styles.provenanceLinkText}>
+                      {currentImage.metadata?.['source_document']
+                        ? String(currentImage.metadata['source_document'])
+                        : `Document ID: ${currentImage.documentId}`}
+                    </span>
+                  </Button>
+                  <HIGSettingsGroup>
+                    {sourceCollection ? (
+                      <HIGSettingsRow label="Collection" value={sourceCollection} />
+                    ) : null}
+                    <HIGSettingsRow
+                      label="Page"
+                      value={sourcePage ? String(sourcePage) : 'Unknown'}
+                    />
+                    <HIGSettingsRow
+                      label="PDF object"
+                      value={sourceObject == null ? 'Unknown' : String(sourceObject)}
+                    />
+                  </HIGSettingsGroup>
+                </Stack>
+              </Surface>
+            </Stack>
+          )}
+
+          <Stack gap="sm" className={styles.indexSection}>
             <Flex align="center" gap="sm">
               <Box className={styles.sectionIcon}>
                 <Icon name="Tag" size="sm" />
               </Box>
               <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                Forensic Tags
+                Index terms
               </LqText>
             </Flex>
             <TagSelector
@@ -509,195 +659,88 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             }}
           />
 
-          <Stack gap="md">
-            <Flex align="center" gap="sm">
-              <Box className={styles.sectionIcon}>
-                <Icon name="FileImage" size="sm" />
-              </Box>
-              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                File Matrix
-              </LqText>
-            </Flex>
-            <HIGSettingsGroup>
-              <HIGSettingsRow label="Format" value={currentImage.format || 'Unknown'} />
-              <HIGSettingsRow label="Size" value={formatFileSize(currentImage.fileSize)} />
-              <HIGSettingsRow
-                label="Dimensions"
-                value={
-                  currentImage.width && currentImage.height
-                    ? `${currentImage.width}×${currentImage.height}`
-                    : 'Unknown'
-                }
-              />
-              <HIGSettingsRow
-                label="Added"
-                value={currentImage.dateAdded || currentImage.created_at || 'Unknown'}
-              />
-            </HIGSettingsGroup>
-          </Stack>
+          <Stack gap="sm" className={styles.technicalSection}>
+            <Button
+              variant="glass"
+              size="sm"
+              onClick={() => setShowTechnicalDetails((visible) => !visible)}
+              aria-expanded={showTechnicalDetails}
+              className={styles.technicalToggle}
+            >
+              <Icon name="SlidersHorizontal" size="sm" />
+              <span>Technical details</span>
+              <Icon name={showTechnicalDetails ? 'ChevronUp' : 'ChevronDown'} size="sm" />
+            </Button>
 
-          {currentImage.documentId && (
-            <Stack gap="md">
-              <Flex align="center" gap="sm">
-                <Box className={styles.sectionIcon}>
-                  <Icon name="Info" size="sm" />
-                </Box>
-                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                  Archival Provenance
-                </LqText>
-              </Flex>
-              <Surface variant="glass-highlight" p="md">
-                <Stack gap="sm">
-                  <LqText variant="xs" color="muted">
-                    {sourceVerified
-                      ? 'This file was matched to an embedded object in the preserved source PDF.'
-                      : 'This asset is linked to a source document, but its exact byte-level position is not verified.'}
-                  </LqText>
-                  <Flex gap="xs" align="center" wrap="wrap">
-                    <Badge
-                      tone={sourceVerified ? 'success' : 'warning'}
-                      label={sourceVerified ? 'SOURCE VERIFIED' : 'LOCATION INCOMPLETE'}
-                    />
-                    {visualClassification ? (
-                      <Badge tone="neutral" label={visualClassification.toUpperCase()} />
-                    ) : null}
-                  </Flex>
-                  <Button
-                    variant="glass-highlight"
-                    size="sm"
-                    onClick={() =>
-                      navigate(
-                        `/documents/${encodeURIComponent(String(currentImage.documentId))}${sourcePage ? `?page=${sourcePage}` : ''}`,
-                        { state: backLinkState },
-                      )
+            {showTechnicalDetails ? (
+              <Stack gap="md" className={styles.technicalContent}>
+                <HIGSettingsGroup>
+                  <HIGSettingsRow label="Format" value={currentImage.format || 'Unknown'} />
+                  <HIGSettingsRow label="Size" value={formatFileSize(currentImage.fileSize)} />
+                  <HIGSettingsRow
+                    label="Dimensions"
+                    value={
+                      currentImage.width && currentImage.height
+                        ? `${currentImage.width} × ${currentImage.height}`
+                        : 'Unknown'
                     }
-                    className={styles.provenanceLink}
-                  >
-                    <Icon name="FileImage" size="sm" />
-                    <span className={styles.provenanceLinkText}>
-                      {currentImage.metadata?.['source_document']
-                        ? String(currentImage.metadata['source_document'])
-                        : `Document ID: ${currentImage.documentId}`}
-                    </span>
-                  </Button>
-                  <HIGSettingsGroup>
-                    <HIGSettingsRow
-                      label="Page"
-                      value={sourcePage ? String(sourcePage) : 'Unknown'}
-                    />
-                    <HIGSettingsRow
-                      label="PDF object"
-                      value={sourceObject == null ? 'Unknown' : String(sourceObject)}
-                    />
+                  />
+                  <HIGSettingsRow
+                    label="Catalogued"
+                    value={formatDate(currentImage.dateAdded || currentImage.created_at)}
+                  />
+                  {sourceDocumentHash ? (
                     <HIGSettingsRow
                       label="Source hash"
-                      value={sourceDocumentHash ? `${sourceDocumentHash.slice(0, 16)}…` : 'Missing'}
+                      value={`${sourceDocumentHash.slice(0, 16)}…`}
+                      isMono
                     />
-                  </HIGSettingsGroup>
-                  {sourceVerified ? (
-                    <LqText variant="xxs" color="muted">
-                      Source verification confirms extraction and location only. It does not
-                      authenticate depicted people, dates, or events.
-                    </LqText>
                   ) : null}
-                </Stack>
-              </Surface>
-            </Stack>
-          )}
+                </HIGSettingsGroup>
 
-          <Stack gap="md">
-            <Flex align="center" gap="sm">
-              <Box className={styles.sectionIcon}>
-                <Icon name="Info" size="sm" />
-              </Box>
-              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                {aiDescription ? 'AI Visual Analysis' : 'Catalog Description'}
-              </LqText>
-            </Flex>
-            {isEditing ? (
-              <TextArea
-                value={editDesc}
-                onChange={(e) => setEditDesc(e.target.value)}
-                rows={4}
-                className={styles.textarea}
-              />
-            ) : (
-              <Stack gap="sm">
-                {aiDescription ? (
-                  <Flex gap="xs" align="center" wrap="wrap">
-                    <Badge
-                      tone={aiReviewState === 'accepted' ? 'success' : 'warning'}
-                      label={`AI · ${aiReviewState.toUpperCase()}`}
+                {hasCaptureMetadata ? (
+                  <HIGSettingsGroup>
+                    {currentImage.dateTaken ? (
+                      <HIGSettingsRow label="Captured" value={formatDate(currentImage.dateTaken)} />
+                    ) : null}
+                    {currentImage.cameraMake || currentImage.cameraModel ? (
+                      <HIGSettingsRow
+                        label="Camera"
+                        value={[currentImage.cameraMake, currentImage.cameraModel]
+                          .filter(Boolean)
+                          .join(' ')}
+                      />
+                    ) : null}
+                    {currentImage.lens ? (
+                      <HIGSettingsRow label="Lens" value={currentImage.lens} />
+                    ) : null}
+                    {currentImage.focalLength ? (
+                      <HIGSettingsRow label="Focal length" value={currentImage.focalLength} />
+                    ) : null}
+                    {currentImage.aperture ? (
+                      <HIGSettingsRow label="Aperture" value={currentImage.aperture} />
+                    ) : null}
+                    {currentImage.shutterSpeed ? (
+                      <HIGSettingsRow label="Shutter" value={currentImage.shutterSpeed} />
+                    ) : null}
+                    {currentImage.iso ? (
+                      <HIGSettingsRow label="ISO" value={String(currentImage.iso)} />
+                    ) : null}
+                  </HIGSettingsGroup>
+                ) : null}
+
+                {currentImage.latitude && currentImage.longitude ? (
+                  <Box className={styles.mapContainer}>
+                    <LocationMap
+                      latitude={currentImage.latitude}
+                      longitude={currentImage.longitude}
+                      title="Capture coordinates"
                     />
-                    <Badge tone="neutral" label={aiModel} />
-                  </Flex>
-                ) : null}
-                <LqText variant="xs" color="muted">
-                  {aiDescription || currentImage.description || 'No analytical summary provided.'}
-                </LqText>
-                {aiSummary && aiSummary !== aiDescription ? (
-                  <Surface variant="glass" p="sm">
-                    <Stack gap="xs">
-                      <LqText variant="xxs" weight="bold" color="muted">
-                        AI SUMMARY
-                      </LqText>
-                      <LqText variant="xs" color="muted">
-                        {aiSummary}
-                      </LqText>
-                    </Stack>
-                  </Surface>
-                ) : null}
-                {aiDescription && aiReviewState !== 'accepted' ? (
-                  <LqText variant="xxs" color="muted">
-                    This machine-generated description is searchable but has not been accepted by a
-                    human reviewer.
-                  </LqText>
+                  </Box>
                 ) : null}
               </Stack>
-            )}
+            ) : null}
           </Stack>
-
-          <Stack gap="md">
-            <Flex align="center" gap="sm">
-              <Box className={styles.sectionIcon}>
-                <Icon name="Camera" size="sm" />
-              </Box>
-              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                EXIF Intelligence
-              </LqText>
-            </Flex>
-            <HIGSettingsGroup>
-              <HIGSettingsRow label="Date Captured" value={formatDate(currentImage.dateTaken)} />
-              <HIGSettingsRow
-                label="Optics"
-                value={`${currentImage.cameraMake || ''} ${currentImage.cameraModel || 'Generic'}`}
-              />
-              <HIGSettingsRow
-                label="Resolution"
-                value={`${currentImage.width || 0} × ${currentImage.height || 0}`}
-              />
-            </HIGSettingsGroup>
-          </Stack>
-
-          {currentImage.latitude && currentImage.longitude && (
-            <Stack gap="md">
-              <Flex align="center" gap="sm">
-                <Box className={styles.sectionIcon}>
-                  <Icon name="MapPin" size="sm" />
-                </Box>
-                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                  Spatial Provenance
-                </LqText>
-              </Flex>
-              <Box className={styles.mapContainer}>
-                <LocationMap
-                  latitude={currentImage.latitude}
-                  longitude={currentImage.longitude}
-                  title="Capture Coordinates"
-                />
-              </Box>
-            </Stack>
-          )}
         </Stack>
       </Surface>
     </Box>,

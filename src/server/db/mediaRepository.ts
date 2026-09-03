@@ -2,7 +2,7 @@ import { mediaQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import { resolveCanonicalEntityId } from '../utils/id_utils.js';
-import { normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
+import { browsableVisualMediaWhereSql, normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
 
 export interface MediaItem {
   id: number;
@@ -603,19 +603,7 @@ export const mediaRepository = {
       );
     }
     if (filters?.excludeTextScans) {
-      whereParts.push(`
-        NOT (
-          (
-            m.has_text IS TRUE
-            OR m.metadata_json->>'is_text_only' = 'true'
-            OR m.file_path ILIKE '%Unconfirmed Claims%'
-            OR m.file_path ILIKE '%textify%'
-            OR m.file_path ILIKE '%_ocr%'
-            OR m.file_path ILIKE '%-ocr-%'
-            OR (m.metadata_json->>'is_document_extract' = 'true' AND LENGTH(COALESCE(m.title, '')) > 80)
-          ) IS TRUE
-        )
-      `);
+      whereParts.push(browsableVisualMediaWhereSql('m'));
     }
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
@@ -674,6 +662,7 @@ export const mediaRepository = {
           m.title,
           m.description,
           m.album_id as "albumId",
+          album.name as "albumName",
           m.is_sensitive as "isSensitive",
           m.verification_status as "verificationStatus",
           m.red_flag_rating as "redFlagRating",
@@ -696,6 +685,7 @@ export const mediaRepository = {
           COALESCE(tag_list.tags, '[]'::json) as tags
         FROM selected_media selected
         JOIN media_items m ON m.id = selected.id
+        LEFT JOIN media_albums album ON album.id = m.album_id
         LEFT JOIN documents source_document ON source_document.id = m.document_id
         LEFT JOIN LATERAL (
           SELECT
@@ -739,6 +729,7 @@ export const mediaRepository = {
       title: string | null;
       description: string | null;
       albumId: number | null;
+      albumName: string | null;
       isSensitive: boolean | null;
       verificationStatus: string | null;
       redFlagRating: number | null;

@@ -158,6 +158,7 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
               createdAt: item.createdAt || null,
               dateTaken: item.dateTaken || null,
               albumId: item.albumId || null,
+              albumName: item.albumName || null,
             }
           : item,
       ),

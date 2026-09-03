@@ -7,6 +7,7 @@ import { MediaService } from './MediaService.js';
 import { logger } from './Logger.js';
 import { dataPath } from '../utils/pathResolver.js';
 import {
+  calculateVisualStatsFromPixelSample,
   classifyExtractedVisual,
   outputNumberFromExtractedFilename,
   parsePdfImagesList,
@@ -142,10 +143,15 @@ export class MediaExtractionService {
     try {
       const buffer = fs.readFileSync(tempPath);
       const extractedObjectSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
-      const sharpImage = sharp(buffer);
-      const [imageMetadata, imageStats] = await Promise.all([
-        sharpImage.metadata(),
-        sharpImage.stats(),
+      const sharpImage = sharp(buffer).rotate();
+      const [imageMetadata, pixelSample] = await Promise.all([
+        sharpImage.clone().metadata(),
+        sharpImage
+          .clone()
+          .resize({ width: 192, height: 192, fit: 'inside', withoutEnlargement: true })
+          .removeAlpha()
+          .raw()
+          .toBuffer({ resolveWithObject: true }),
       ]);
 
       if (
@@ -156,16 +162,18 @@ export class MediaExtractionService {
         return false;
       }
 
-      const classification = classifyExtractedVisual({
-        width: imageMetadata.width,
-        height: imageMetadata.height,
-        entropy: imageStats.entropy,
-        channelMeans: imageStats.channels.map((channel) => channel.mean),
-        channelStdevs: imageStats.channels.map((channel) => channel.stdev),
+      const visualStats = calculateVisualStatsFromPixelSample({
+        data: pixelSample.data,
+        width: pixelSample.info.width,
+        height: pixelSample.info.height,
+        channels: pixelSample.info.channels,
+        originalWidth: imageMetadata.width,
+        originalHeight: imageMetadata.height,
       });
+      const classification = classifyExtractedVisual(visualStats);
       const averageStdev =
-        imageStats.channels.reduce((sum, channel) => sum + channel.stdev, 0) /
-        imageStats.channels.length;
+        visualStats.channelStdevs.reduce((sum, value) => sum + value, 0) /
+        visualStats.channelStdevs.length;
       const exactSourceMatch = Boolean(sourceObject && sourceDocumentSha256);
       const sourcePage = sourceObject?.page ?? 0;
       const objectNumber = sourceObject?.objectNumber ?? outputNumber;
@@ -226,7 +234,15 @@ export class MediaExtractionService {
         visual_classification_confidence: classification.confidence,
         visual_classification_method: classification.method,
         stdev: averageStdev,
-        entropy: imageStats.entropy,
+        entropy: visualStats.entropy,
+        visual_metrics: {
+          whitePixelRatio: visualStats.whitePixelRatio,
+          nearWhitePixelRatio: visualStats.nearWhitePixelRatio,
+          blackPixelRatio: visualStats.blackPixelRatio,
+          colorPixelRatio: visualStats.colorPixelRatio,
+          dominantColorRatio: visualStats.dominantColorRatio,
+          edgePixelRatio: visualStats.edgePixelRatio,
+        },
         provenance: {
           status: exactSourceMatch ? 'exact_source_object' : 'source_location_missing',
           sourceDocumentId: String(documentId),

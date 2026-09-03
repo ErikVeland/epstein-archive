@@ -27,6 +27,30 @@ export function normalMediaEvidenceWhereSql(alias: string): string {
 }
 
 /**
+ * Keeps document scans, low-information graphics, and unclassified PDF extracts out of the
+ * default visual browser.
+ * Unclassified standalone image records remain visible until the deterministic backfill labels
+ * them, while unclassified PDF objects fail closed because most legacy objects are full pages.
+ */
+export function browsableVisualMediaWhereSql(alias: string): string {
+  return `NOT (
+    COALESCE(${alias}.metadata_json->>'visual_classification', '') IN ('document_scan', 'graphic')
+    OR COALESCE(${alias}.metadata_json->>'source_file_status', '') = 'missing'
+    OR COALESCE(${alias}.metadata_json->>'is_text_only', '') = 'true'
+    OR COALESCE(${alias}.file_path, '') ILIKE '%textify%'
+    OR COALESCE(${alias}.file_path, '') ILIKE '%_ocr%'
+    OR COALESCE(${alias}.file_path, '') ILIKE '%-ocr-%'
+    OR (
+      (
+        COALESCE(${alias}.metadata_json->>'is_document_extract', '') = 'true'
+        OR COALESCE(${alias}.file_path, '') ILIKE '%/media/extracted/%'
+      )
+      AND COALESCE(${alias}.metadata_json->>'visual_classification', '') <> 'probable_photograph'
+    )
+  )`;
+}
+
+/**
  * Excludes document rows that are themselves marked as non-evidence or are backed by a media
  * item in a rebuttal collection. Media imports create both rows, so filtering only media_items
  * leaves the document mention available to entity evidence ranking.

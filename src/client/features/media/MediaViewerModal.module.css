@@ -237,8 +237,65 @@
 .sidebarContent {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
-  padding: var(--space-6);
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+
+.identityBlock {
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.identityText {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.filenameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primarySection,
+.indexSection,
+.technicalSection {
+  min-width: 0;
+}
+
+.contextCard {
+  min-width: 0;
+}
+
+.contextBadges {
+  min-width: 0;
+}
+
+.contextBadges > * {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contextText {
+  margin: 0;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.technicalToggle {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.technicalToggle span {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.technicalContent {
+  padding-top: var(--space-1);
 }
 
 .editSection,
@@ -481,11 +538,11 @@
 
 @media (min-width: 768px) {
   .mainPanelShifted {
-    margin-right: 20rem;
+    margin-right: 24rem;
   }
 
   .sidebar {
-    width: 20rem;
+    width: 24rem;
   }
 
   .sidebarCloseButton {
@@ -494,6 +551,12 @@
 }
 
 @media (max-width: 767px) {
+  .sidebarContent {
+    gap: var(--space-4);
+    padding: var(--space-4);
+    padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+  }
+
   .viewerContent {
     padding-bottom: calc(var(--space-20) + env(safe-area-inset-bottom, 0px));
   }

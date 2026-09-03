@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  browsableVisualMediaWhereSql,
   evidenceRoleForCollection,
   normalDocumentEvidenceWhereSql,
   normalMediaEvidenceWhereSql,
@@ -30,5 +31,14 @@ describe('media evidence scope', () => {
     expect(predicate).toContain('evidence_scope_media.document_id = document.id');
     expect(predicate).toContain('evidence_scope_media.file_path = document.file_path');
     expect(predicate).toContain('evidence_scope_document_album.id = evidence_scope_media.album_id');
+  });
+
+  it('hides scans and graphics and fails closed for unclassified PDF extracts', () => {
+    const predicate = browsableVisualMediaWhereSql('media');
+
+    expect(predicate).toContain("visual_classification', '') IN ('document_scan', 'graphic')");
+    expect(predicate).toContain("source_file_status', '') = 'missing'");
+    expect(predicate).toContain("file_path, '') ILIKE '%/media/extracted/%'");
+    expect(predicate).toContain("visual_classification', '') <> 'probable_photograph'");
   });
 });

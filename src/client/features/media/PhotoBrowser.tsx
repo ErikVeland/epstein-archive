@@ -266,6 +266,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     availableTags,
     availablePeople,
     libraryTotalCount,
+    browseableTotalCount,
+    totalCount,
     hasMore,
     pendingViewerIndex,
     setSelectedAlbum,
@@ -589,7 +591,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                   Images
                 </LqText>
                 <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
-                  Forensic Archive • {libraryTotalCount} Objects
+                  Forensic Archive • {totalCount} Browseable / {libraryTotalCount} Records
                 </LqText>
               </Stack>
             </Flex>
@@ -643,7 +645,11 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     variant={!excludeTextScans ? 'accent-solid' : 'glass'}
                     size="sm"
                     onClick={() => setExcludeTextScans(!excludeTextScans)}
-                    title={excludeTextScans ? 'Show Archival Scans' : 'Hide Archival Scans'}
+                    title={
+                      excludeTextScans
+                        ? 'Show all image objects'
+                        : 'Hide scans and low-information graphics'
+                    }
                   >
                     <Icon name="Image" size="sm" />
                   </Button>
@@ -729,8 +735,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               onSelectAlbum={setSelectedAlbum}
               isOpen={showAlbumDropdown}
               onToggle={() => setShowAlbumDropdown((v) => !v)}
-              totalItemCount={libraryTotalCount}
-              allLabel="All Photos"
+              totalItemCount={browseableTotalCount}
+              allLabel="Browseable Images"
               currentAlbumName={currentAlbum?.name}
             />
           </Box>
@@ -741,8 +747,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             albums={adaptedAlbums}
             selectedAlbum={selectedAlbum}
             onSelectAlbum={setSelectedAlbum}
-            totalItemCount={libraryTotalCount}
-            allLabel="All Photos"
+            totalItemCount={browseableTotalCount}
+            allLabel="Browseable Images"
           />
 
           <Stack grow className={styles.mainContent}>
@@ -774,7 +780,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             )}
 
             {/* Active Filters Display */}
-            {(selectedTag || selectedPerson) && (
+            {(selectedTag || selectedPerson || excludeTextScans) && (
               <Flex gap="sm" align="center" className={styles.activeFilters}>
                 <LqText
                   variant="xxxs"
@@ -800,12 +806,24 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     <Icon name="X" size="xs" />
                   </Button>
                 )}
+                {excludeTextScans && (
+                  <Button
+                    variant="glass-highlight"
+                    size="sm"
+                    onClick={() => setExcludeTextScans(false)}
+                    title="Include scans and low-information graphics"
+                  >
+                    <span>Scans &amp; graphics hidden</span>
+                    <Icon name="X" size="xs" />
+                  </Button>
+                )}
                 <Button
                   variant="glass"
                   size="sm"
                   onClick={() => {
                     setSelectedTag(null);
                     setSelectedPerson(null);
+                    setExcludeTextScans(false);
                   }}
                 >
                   Clear All
@@ -946,7 +964,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             style={css({ textTransform: 'uppercase' })}
             weight="bold"
           >
-            {images.length} Objects Indexed
+            {images.length} of {totalCount} Objects Loaded
           </LqText>
           <LqText
             variant="xs"

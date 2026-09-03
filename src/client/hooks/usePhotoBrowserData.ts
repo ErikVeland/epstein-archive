@@ -28,6 +28,7 @@ interface PhotoBrowserState {
   images: MediaImage[];
   availablePeople: PersonOption[];
   page: number;
+  totalCount: number;
   hasMore: boolean;
   loading: boolean;
   pendingViewerIndex: number | null;
@@ -41,7 +42,14 @@ type PhotoBrowserAction =
     }
   | { type: 'SET_AVAILABLE_PEOPLE'; availablePeople: PersonOption[] }
   | { type: 'FETCH_START'; append: boolean }
-  | { type: 'FETCH_SUCCESS'; images: MediaImage[]; page: number; hasMore: boolean; append: boolean }
+  | {
+      type: 'FETCH_SUCCESS';
+      images: MediaImage[];
+      page: number;
+      totalCount: number;
+      hasMore: boolean;
+      append: boolean;
+    }
   | { type: 'FETCH_ERROR'; append: boolean }
   | { type: 'CONSUME_PENDING_VIEWER_INDEX' }
   | { type: 'SET_PENDING_VIEWER_INDEX'; index: number | null }
@@ -98,6 +106,7 @@ function buildInitialState(): PhotoBrowserState {
     images: [],
     availablePeople: [],
     page: 1,
+    totalCount: 0,
     hasMore: true,
     loading: true,
     pendingViewerIndex: null,
@@ -149,6 +158,7 @@ function reducer(state: PhotoBrowserState, action: PhotoBrowserAction): PhotoBro
         loading: false,
         images: action.append ? [...state.images, ...action.images] : action.images,
         page: action.page,
+        totalCount: action.totalCount,
         hasMore: action.hasMore,
       };
     case 'FETCH_ERROR':
@@ -195,15 +205,36 @@ function buildImageQuery(filters: PhotoBrowserFilters, page: number): string {
 
 async function fetchLibraryTotalCount(): Promise<number> {
   try {
+    const response = await fetch(
+      '/api/media/images?page=1&limit=1&slim=true&excludeTextScans=false',
+    );
+    const totalHeader = response.headers.get('X-Total-Count');
+    const total = totalHeader ? Number.parseInt(totalHeader, 10) : 0;
+    if (response.ok && total > 0) return total;
+  } catch {
+    void 0;
+  }
+
+  try {
     const stats = await apiClient.get<MediaStats>('/media/stats', { cacheTtl: 60_000 });
     if (typeof stats?.totalImages === 'number' && stats.totalImages > 0) return stats.totalImages;
   } catch {
     void 0;
   }
+  return 0;
+}
 
-  const response = await fetch('/api/media/images?page=1&limit=1&slim=true');
-  const totalHeader = response.headers.get('X-Total-Count');
-  return totalHeader ? Number.parseInt(totalHeader, 10) || 0 : 0;
+async function fetchBrowseableTotalCount(): Promise<number> {
+  try {
+    const response = await fetch(
+      '/api/media/images?page=1&limit=1&slim=true&excludeTextScans=true',
+    );
+    const totalHeader = response.headers.get('X-Total-Count');
+    const total = totalHeader ? Number.parseInt(totalHeader, 10) : 0;
+    return response.ok && total > 0 ? total : 0;
+  } catch {
+    return 0;
+  }
 }
 
 export function usePhotoBrowserData() {
@@ -231,11 +262,13 @@ export function usePhotoBrowserData() {
   const { data: bootstrapData } = useQuery({
     queryKey: ['photo-browser-bootstrap'],
     queryFn: async () => {
-      const [albumsResult, tagsResult, totalResult] = await Promise.allSettled([
-        apiClient.get<Album[]>('/media/albums', { cacheTtl: 60_000 }),
-        apiClient.get<MediaTag[]>('/media/tags', { cacheTtl: 60_000 }),
-        fetchLibraryTotalCount(),
-      ]);
+      const [albumsResult, tagsResult, totalResult, browseableTotalResult] =
+        await Promise.allSettled([
+          apiClient.get<Album[]>('/media/albums', { cacheTtl: 60_000 }),
+          apiClient.get<MediaTag[]>('/media/tags', { cacheTtl: 60_000 }),
+          fetchLibraryTotalCount(),
+          fetchBrowseableTotalCount(),
+        ]);
       return {
         albums:
           albumsResult.status === 'fulfilled' && Array.isArray(albumsResult.value)
@@ -246,6 +279,8 @@ export function usePhotoBrowserData() {
             ? tagsResult.value.map((tag) => ({ ...tag, id: Number(tag.id) }))
             : ([] as MediaTag[]),
         libraryTotalCount: totalResult.status === 'fulfilled' ? totalResult.value : 0,
+        browseableTotalCount:
+          browseableTotalResult.status === 'fulfilled' ? browseableTotalResult.value : 0,
       };
     },
     staleTime: 60_000,
@@ -254,6 +289,7 @@ export function usePhotoBrowserData() {
   const albums = bootstrapData?.albums ?? [];
   const availableTags = bootstrapData?.availableTags ?? [];
   const libraryTotalCount = bootstrapData?.libraryTotalCount ?? 0;
+  const browseableTotalCount = bootstrapData?.browseableTotalCount ?? 0;
   const bootstrapLoaded = bootstrapData !== undefined;
 
   const runPageFetch = useCallback(
@@ -272,6 +308,7 @@ export function usePhotoBrowserData() {
             type: 'FETCH_SUCCESS',
             images: cachedPage.images,
             page,
+            totalCount: cachedPage.total ?? cachedPage.images.length,
             hasMore:
               cachedPage.total !== null
                 ? page * PAGE_SIZE < cachedPage.total
@@ -295,6 +332,7 @@ export function usePhotoBrowserData() {
           type: 'FETCH_SUCCESS',
           images: normalized,
           page,
+          totalCount: total ?? normalized.length,
           hasMore,
           append,
         });
@@ -445,6 +483,7 @@ export function usePhotoBrowserData() {
     albums,
     availableTags,
     libraryTotalCount,
+    browseableTotalCount,
     bootstrapLoaded,
     setSelectedAlbum,
     setSelectedTag,

@@ -29,6 +29,27 @@
   min-width: 0;
 }
 
+.activeContext {
+  display: -webkit-box;
+  margin: 0 var(--space-2) var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  overflow: hidden;
+  border-left: 2px solid var(--accent);
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.albumGroup {
+  margin-top: var(--space-3);
+}
+
+.groupLabel {
+  padding: 0 var(--space-3) var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 .albumBtn {
   width: 100%;
   padding: var(--space-2) var(--space-4);

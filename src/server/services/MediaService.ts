@@ -15,7 +15,10 @@ import archiver from 'archiver';
 import type { Pool, QueryResultRow } from 'pg';
 import { getApiPool } from '../db/runtime.js';
 import { logger } from './Logger.js';
-import { normalMediaEvidenceWhereSql } from '../db/mediaEvidenceScope.js';
+import {
+  browsableVisualMediaWhereSql,
+  normalMediaEvidenceWhereSql,
+} from '../db/mediaEvidenceScope.js';
 
 type UploadFile = {
   path: string;
@@ -62,17 +65,7 @@ export class MediaService {
   }
 
   private nonTextExtractPredicate(alias: string): string {
-    return `NOT (
-      (
-        COALESCE(${alias}.has_text, false) IS TRUE
-        OR ${alias}.metadata_json->>'is_text_only' = 'true'
-        OR ${alias}.file_path ILIKE '%Unconfirmed Claims%'
-        OR ${alias}.file_path ILIKE '%textify%'
-        OR ${alias}.file_path ILIKE '%_ocr%'
-        OR ${alias}.file_path ILIKE '%-ocr-%'
-        OR (${alias}.metadata_json->>'is_document_extract' = 'true' AND LENGTH(COALESCE(${alias}.title, '')) > 80)
-      ) IS TRUE
-    )`;
+    return browsableVisualMediaWhereSql(alias);
   }
 
   private mapRowToMediaImage(row: Record<string, unknown>): MediaImage {
@@ -185,7 +178,8 @@ export class MediaService {
        AND ${this.nonTextExtractPredicate('i')}
       LEFT JOIN media_items ci ON a.cover_image_id = ci.id::text
       GROUP BY a.id, ci.file_path
-      HAVING COUNT(i.id) > 0
+      -- A one-image collection adds navigation cost without adding a useful browse scope.
+      HAVING COUNT(i.id) > 1
       ORDER BY a.name
     `);
     return results.map((row) => ({ ...row, imageCount: Number(row['imageCount']) })) as Album[];

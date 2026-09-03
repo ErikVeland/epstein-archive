@@ -722,6 +722,8 @@ if [ "$DEPLOY_DB" = true ]; then
       pnpm db:migrate:pg
       echo 'Running document provenance backfill...'
       PROVENANCE_BACKFILL_MAX="${PROVENANCE_BACKFILL_MAX:-0}" pnpm provenance:backfill
+      echo 'Running media classification and catalog enrichment...'
+      pnpm media:release:enrich
       echo 'Syncing canonical VIP entity list before release verification...'
       pnpm db:sync-vip-entities
       echo 'Quarantining entity-quality pollution before release verification...'

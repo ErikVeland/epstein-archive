@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  calculateVisualStatsFromPixelSample,
   classifyExtractedVisual,
   outputNumberFromExtractedFilename,
   parsePdfImagesList,
@@ -49,5 +50,95 @@ page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-pp
         channelStdevs: [28, 27, 28],
       }),
     ).toMatchObject({ type: 'document_scan', hasText: true });
+  });
+
+  it('rejects colored forms and black redaction pages without rejecting photographs', () => {
+    const base = {
+      width: 816,
+      height: 1056,
+      channelMeans: [120, 120, 120],
+      colorPixelRatio: 0.5,
+      whitePixelRatio: 0.02,
+      edgePixelRatio: 0.1,
+    };
+
+    expect(
+      classifyExtractedVisual({
+        ...base,
+        entropy: 4.82,
+        channelStdevs: [47, 47, 47],
+        nearWhitePixelRatio: 0.02,
+        blackPixelRatio: 0.02,
+        dominantColorRatio: 0.61,
+      }),
+    ).toMatchObject({ type: 'document_scan', method: 'pixel-statistics-v4' });
+
+    expect(
+      classifyExtractedVisual({
+        ...base,
+        entropy: 1.44,
+        channelStdevs: [61, 61, 61],
+        nearWhitePixelRatio: 0.05,
+        blackPixelRatio: 0.93,
+        dominantColorRatio: 0.93,
+      }),
+    ).toMatchObject({ type: 'document_scan' });
+
+    expect(
+      classifyExtractedVisual({
+        ...base,
+        width: 769,
+        height: 1152,
+        entropy: 7.46,
+        channelStdevs: [59, 59, 59],
+        nearWhitePixelRatio: 0.02,
+        blackPixelRatio: 0.14,
+        dominantColorRatio: 0.15,
+      }),
+    ).toMatchObject({ type: 'probable_photograph' });
+
+    expect(
+      classifyExtractedVisual({
+        ...base,
+        width: 409,
+        height: 408,
+        entropy: 6.86,
+        channelStdevs: [94, 87, 84],
+        nearWhitePixelRatio: 0.24,
+        blackPixelRatio: 0.09,
+        dominantColorRatio: 0.23,
+        edgePixelRatio: 0.29,
+      }),
+    ).toMatchObject({ type: 'graphic' });
+
+    expect(
+      classifyExtractedVisual({
+        ...base,
+        width: 150,
+        height: 200,
+        entropy: 5.1,
+        channelStdevs: [31, 31, 31],
+        nearWhitePixelRatio: 0.82,
+        blackPixelRatio: 0.03,
+        dominantColorRatio: 0.67,
+        edgePixelRatio: 0.14,
+      }),
+    ).toMatchObject({ type: 'document_scan' });
+  });
+
+  it('derives stable page metrics from a raw RGB sample', () => {
+    const stats = calculateVisualStatsFromPixelSample({
+      data: Uint8Array.from([255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0]),
+      width: 2,
+      height: 2,
+      channels: 3,
+      originalWidth: 1200,
+      originalHeight: 1600,
+    });
+
+    expect(stats.whitePixelRatio).toBe(0.5);
+    expect(stats.blackPixelRatio).toBe(0.5);
+    expect(stats.width).toBe(1200);
+    expect(stats.height).toBe(1600);
   });
 });

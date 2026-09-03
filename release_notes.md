@@ -1,5 +1,29 @@
 # Release Notes
 
+## 22.3.1 - 2026-09-03 - Media Catalog Enrichment
+
+### Enriched media catalog
+
+- **The production image catalog now separates photographs from document scans and low-information graphics.** A deterministic classifier records the visual type, confidence, method, and measured image characteristics without treating machine output as source verification.
+- **Missing source files now have an explicit unavailable state.** The enrichment pass excludes stale media rows from normal browsing and stops retrying them while unexpected classifier errors still block the release.
+- **Every image and album now has readable catalog context.** The enrichment pass derives missing descriptions from source documents, pages, collections, visual types, and original filenames without inventing identities or events.
+- **Small and empty album fragments are consolidated.** One-image subject albums move into relevant parent collections with their original tags and prior album context preserved. Empty extraction albums are removed without deleting media items or source files.
+- **Existing visual AI work is available to media search.** Image records expose linked visual descriptions, model details, confidence, and review state while keeping AI interpretation separate from source provenance.
+
+### Media browsing and review
+
+- **Collections now use a clear hierarchy.** Source releases, curated subjects, and review material appear as separate groups on desktop and mobile, and the image browser omits albums with fewer than two visible images.
+- **The default image view removes scanned-page noise.** Researchers can still include scans and low-information graphics through an explicit archival-view control.
+- **Image details now lead with context and provenance.** The viewer shows collection, visual type, description, source position, index terms, and people before a collapsed technical-details section.
+- **The mobile collection picker is compact and opaque.** Long collection lists scroll inside a solid menu, selected collections show concise context, and background content no longer reduces legibility.
+
+### Production data operations
+
+- **The database deployment now runs the media enrichment pass.** Each production release classifies unprocessed images, normalizes catalog context, and then runs the existing database certification gates.
+- **The enrichment commands are repeatable.** Already classified records are skipped, catalog merges are idempotent, and the catalog cleanup runs in a transaction.
+
+---
+
 ## 22.3.0 - 2026-09-02 - Mobile Reader and Release Integrity
 
 ### Mobile document experience

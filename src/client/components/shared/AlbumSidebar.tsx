@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Flex, LqText, Stack, HIGStackRow } from '@client/design-system/lib';
 import type { MediaAlbum } from '@client/hooks/useMediaBrowser';
+import { groupMediaAlbums } from './mediaAlbumPresentation';
 import styles from './AlbumSidebar.module.css';
 
 interface AlbumSidebarProps {
@@ -18,11 +19,14 @@ export const AlbumSidebar: React.FC<AlbumSidebarProps> = ({
   totalItemCount,
   allLabel,
 }) => {
+  const albumGroups = groupMediaAlbums(albums);
+  const activeAlbum = albums.find((album) => album.id === selectedAlbum);
+
   return (
     <Box className={styles.sidebar}>
       <Flex align="center" gap="sm" px="sm" className={styles.sidebarHeader}>
         <LqText variant="xs" weight="bold" color="muted" style={{ textTransform: 'uppercase' }}>
-          Archive Tranches
+          Collections
         </LqText>
       </Flex>
 
@@ -35,15 +39,35 @@ export const AlbumSidebar: React.FC<AlbumSidebarProps> = ({
           isActive={selectedAlbum === null}
         />
 
-        {albums.map((album) => (
-          <HIGStackRow
-            key={album.id}
-            icon="Folder"
-            title={album.name}
-            subtitle={`${album.itemCount || 0} Items`}
-            onClick={() => onSelectAlbum(album.id)}
-            isActive={selectedAlbum === album.id}
-          />
+        {activeAlbum?.description ? (
+          <LqText variant="xxs" color="muted" className={styles.activeContext}>
+            {activeAlbum.description}
+          </LqText>
+        ) : null}
+
+        {albumGroups.map((group) => (
+          <Stack gap="xs" className={styles.albumGroup} key={group.key}>
+            <LqText
+              variant="xxxs"
+              weight="bold"
+              color="muted"
+              className={styles.groupLabel}
+              title={group.description}
+            >
+              {group.label}
+            </LqText>
+            {group.albums.map((album) => (
+              <Box key={album.id} title={album.description}>
+                <HIGStackRow
+                  icon="Folder"
+                  title={album.name}
+                  subtitle={`${album.itemCount || 0} Items`}
+                  onClick={() => onSelectAlbum(album.id)}
+                  isActive={selectedAlbum === album.id}
+                />
+              </Box>
+            ))}
+          </Stack>
         ))}
       </Stack>
     </Box>
