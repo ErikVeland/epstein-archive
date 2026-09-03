@@ -102,20 +102,24 @@ const faqs = [
       'The Epstein Archive is a centralized, searchable database of documents related to the Jeffrey Epstein investigation. It consolidates evidence from multiple sources, including unsealed court documents, police reports, and flight logs.',
   },
   {
-    question: "What are the 'DOJ Datasets'?",
+    question: 'What does a connection in the archive mean?',
     answer:
-      'These are large volumes of evidence released by the Department of Justice. Epstein Archive now hosts the acquired source corpus directly. Search indexing and AI enrichment continue in the background.',
+      'A connection is a research lead derived from shared documents, mentions, dates, or other source-linked signals. It does not by itself prove contact, knowledge, participation, or a crime.',
   },
   {
-    question: "Why are there so many recent documents (past Epstein's death)?",
+    question: 'Can AI determine who committed a crime?',
     answer:
-      'The investigation into the network remained active long after 2019. These documents primarily pertain to the prosecution of Ghislaine Maxwell, ongoing civil litigation by survivors, and internal corporate investigations.',
+      'No. AI can help locate, transcribe, cluster, and compare evidence. Only admissible evidence tested through a fair legal process can establish criminal responsibility.',
   },
   {
-    question: 'Why are some documents redacted?',
+    question: 'Could the records still support new criminal cases?',
     answer:
-      'Redactions protect the privacy of victims, innocent third parties, and ongoing investigations. Our system analyzes redaction levels to give context on what is hid' +
-      'den.',
+      'Potentially. Relevant categories can include trafficking, conspiracy, obstruction, evidence tampering, perjury, and financial facilitation. A viable case still requires admissible proof of every element, jurisdiction, and an applicable limitations period.',
+  },
+  {
+    question: 'How does the archive protect survivors?',
+    answer:
+      'The archive preserves official redactions, limits sensitive media, separates machine-generated leads from verified facts, and asks researchers not to identify or harass victims and survivors.',
   },
 ];
 
@@ -130,6 +134,7 @@ const STAGE_LABELS: Record<string, string> = {
   'extracted-dates': 'Dates',
   'media-extraction': 'Media extract',
   'ai-enrichment': 'AI enrichment',
+  'ai-ocr-cleanup': 'AI OCR cleanup',
   'face-ingest': 'Faces',
   'graph-relations': 'Relations',
   'graph-timeline': 'Timeline',
@@ -184,10 +189,13 @@ export const AboutPage: React.FC = () => {
   const [stats, setStats] = useState({
     documents: 0,
     entities: 0,
+    relationships: 0,
+    mentions: 0,
+    documentsWithMetadata: 0,
+    entitiesWithDocuments: 0,
     blackBook: 0,
     media: 0,
     albums: 0,
-    documentsFixed: 0,
   });
 
   const [documentSources, setDocumentSources] = useState<SourceStat[]>([]);
@@ -218,10 +226,13 @@ export const AboutPage: React.FC = () => {
       setStats({
         documents: Number(statsRes.totalDocuments || 0),
         entities: Number(statsRes.totalEntities || 0),
+        relationships: Number(statsRes.totalRelationships || 0),
+        mentions: Number(statsRes.totalMentions || 0),
+        documentsWithMetadata: Number(statsRes.documentsWithMetadata || 0),
+        entitiesWithDocuments: Number(statsRes.entitiesWithDocuments || 0),
         blackBook: Number(blackBookRes.total || 0),
         media: Number(mediaRes.totalImages || 0),
         albums: Number(mediaRes.totalAlbums || 0),
-        documentsFixed: Number(statsRes.documentsFixed || 0),
       });
 
       if (statsRes.collectionStats) {
@@ -394,7 +405,7 @@ export const AboutPage: React.FC = () => {
       total = pipelineStatus.enrichment.total;
       percent = pipelineStatus.enrichment.percent;
       stageTitle = 'AI Enrichment (AI)';
-      stageSubtext = 'AI OCR repair, summaries, document-level semantic artifacts';
+      stageSubtext = 'Generating reviewable summaries and document-level semantic artifacts';
     } else if (pipelineStatus?.vlm) {
       processed = pipelineStatus.vlm.processed;
       total = pipelineStatus.vlm.total;
@@ -442,7 +453,7 @@ export const AboutPage: React.FC = () => {
       <div className={s.header}>
         <h1 className={s.pageTitle}>About the Epstein Archive</h1>
         <p className={s.pageSubtitle}>
-          Making government documents accessible through advanced search and analysis
+          Source-linked evidence, searchable at scale and separated from machine interpretation
         </p>
       </div>
 
@@ -453,15 +464,16 @@ export const AboutPage: React.FC = () => {
           <h2 className={s.sectionTitle}>What is this?</h2>
         </div>
         <p className={s.bodyText}>
-          The Epstein Archive is a comprehensive, searchable database of publicly released court
-          documents, depositions, and evidence related to the Jeffrey Epstein case. Our mission is
-          to make government information more accessible to journalists, researchers, and the
-          public.
+          The Epstein Archive preserves and indexes publicly released court records, government
+          disclosures, correspondence, exhibits, media, and other records connected to the Jeffrey
+          Epstein investigations. It gives journalists, researchers, survivors, and the public a
+          direct route from a search result or connection back to its source document.
         </p>
         <p className={s.bodyText}>
-          This is not a "client list" or conspiracy theory database. It is a forensic analysis tool
-          built on actual court records, applying advanced natural language processing to extract
-          entities, relationships, and patterns from thousands of pages of legal documents.
+          This is not a “client list,” and it does not infer guilt from association. The system uses
+          OCR, entity extraction, source provenance, document dates, visual classification, and
+          relationship signals to help people find material for human review. Machine-generated text
+          and links remain distinct from verified facts and legal findings.
         </p>
       </section>
 
@@ -482,49 +494,85 @@ export const AboutPage: React.FC = () => {
               {stats.documents.toLocaleString()}
             </p>
             <p className={s.statDescription}>
-              Court documents, depositions, emails, and exhibits from multiple sources
+              Source records across court, government, estate, email, and evidence collections
             </p>
             <div className={s.statDivider}>
               <p className={s.statRepairLabel}>
-                <Icon name="Shield" size="xs" /> AI Semantic Repair
+                <Icon name="Database" size="xs" /> Structured metadata
               </p>
-              <p className={s.statRepairCount}>{stats.documentsFixed.toLocaleString()}</p>
-              <p className={s.statRepairNote}>Fixed &amp; Refined for Readability</p>
+              <p className={s.statRepairCount}>{stats.documentsWithMetadata.toLocaleString()}</p>
+              <p className={s.statRepairNote}>Documents with extracted metadata</p>
             </div>
           </div>
 
           <div className={s.statCard}>
             <h3 className={s.statCardHeader}>
               <Icon name="Users" size="md" className={s.iconSuccess} />
-              Entities
+              Candidate entities
             </h3>
             <p className={`${s.statValue} ${s.statValueSuccess}`}>
               {stats.entities.toLocaleString()}
             </p>
             <p className={s.statDescription}>
-              People, organisations, and locations extracted from documents
+              Raw names, organisations, places, roles, and OCR fragments awaiting consolidation
+            </p>
+            <div className={s.statDivider}>
+              <p className={s.statRepairLabel}>
+                <Icon name="FileText" size="xs" /> Evidence-linked
+              </p>
+              <p className={s.statRepairCount}>{stats.entitiesWithDocuments.toLocaleString()}</p>
+              <p className={s.statRepairNote}>Candidates linked to one or more records</p>
+            </div>
+          </div>
+
+          <div className={s.statCard}>
+            <h3 className={s.statCardHeader}>
+              <Icon name="Phone" size="md" className={s.iconAccent} />
+              Evidence mentions
+            </h3>
+            <p className={`${s.statValue} ${s.statValueAccent}`}>
+              {stats.mentions.toLocaleString()}
+            </p>
+            <p className={s.statDescription}>
+              Source-positioned entity mentions used for search and corroboration
+            </p>
+          </div>
+
+          <div className={s.statCard}>
+            <h3 className={s.statCardHeader}>
+              <Icon name="Image" size="lg" className={s.iconWarning} />
+              Connection signals
+            </h3>
+            <p className={`${s.statValue} ${s.statValueWarning}`}>
+              {stats.relationships.toLocaleString()}
+            </p>
+            <p className={s.statDescription}>
+              Candidate links derived from shared evidence. These are leads, not findings of fact.
+            </p>
+          </div>
+
+          <div className={s.statCard}>
+            <h3 className={s.statCardHeader}>
+              <Icon name="Image" size="lg" className={s.iconWarning} />
+              Browseable images
+            </h3>
+            <p className={`${s.statValue} ${s.statValueWarning}`}>{stats.media.toLocaleString()}</p>
+            <p className={s.statDescription}>
+              Photographs and useful visual evidence across {stats.albums.toLocaleString()} curated
+              collections. Page scans stay hidden by default.
             </p>
           </div>
 
           <div className={s.statCard}>
             <h3 className={s.statCardHeader}>
               <Icon name="Phone" size="md" className={s.iconAccent} />
-              Black Book
+              Address-book records
             </h3>
             <p className={`${s.statValue} ${s.statValueAccent}`}>
               {stats.blackBook.toLocaleString()}
             </p>
-            <p className={s.statDescription}>Contact entries from Epstein's address book</p>
-          </div>
-
-          <div className={s.statCard}>
-            <h3 className={s.statCardHeader}>
-              <Icon name="Image" size="lg" className={s.iconWarning} />
-              Media
-            </h3>
-            <p className={`${s.statValue} ${s.statValueWarning}`}>{stats.media.toLocaleString()}</p>
             <p className={s.statDescription}>
-              Images across {stats.albums.toLocaleString()} categorised albums
+              Structured contact records currently available through the Black Book browser
             </p>
           </div>
         </div>
@@ -537,10 +585,10 @@ export const AboutPage: React.FC = () => {
             <span className={s.verifiedBadge}>Verified Sources</span>
           </div>
           <p className={s.sourcesNote}>
-            Redaction percentages below combine what the government released with what our pipeline
-            can safely recover via automated unredaction and OCR. Collections like the Black Book,
-            Flight Logs, and DOJ VOL00001 FBI raid evidence are effectively fully readable, while
-            later DOJ discovery volumes remain heavily censored despite technical improvements.
+            Counts come from the live database. Redaction labels describe the released source
+            material and are collection-level estimates, not text recovered behind official
+            redactions. The archive preserves those redactions. OCR only transcribes visible
+            content.
           </p>
 
           {/* Mobile Card View (< md) */}
@@ -690,17 +738,18 @@ export const AboutPage: React.FC = () => {
           <div className={s.analysisHeaderText}>
             <h2 className={s.analysisTitle}>The Epstein Files: Analysis</h2>
             <p className={s.analysisMeta}>
-              What Documents Exist and What They Prove | Updated May 8, 2026
+              What Documents Exist, What Enrichment Adds, and What It Cannot Prove | Updated Sep 3,
+              2026
             </p>
           </div>
         </div>
 
         <div className={s.articleBody}>
           <p className={s.articleLead}>
-            The criminal enterprise of Jeffrey Epstein has created one of the most persistent myths
-            in modern American history: the existence of a singular, definitive "Client List." A
-            forensic examination of the investigative materials available as of late 2025 reveals a
-            different reality.
+            The source corpus is not a singular, definitive “client list.” It is a large set of
+            records created for different purposes, at different times, by different authors. Each
+            source can establish only what it records, and machine enrichment cannot increase its
+            legal weight.
           </p>
 
           <h3 className={s.articleH3}>What Documents Actually Exist</h3>
@@ -721,56 +770,50 @@ export const AboutPage: React.FC = () => {
 
           <h4 className={s.articleH4}>The Black Book</h4>
           <p className={s.articleP}>
-            A compilation of phone numbers and addresses. It represents the infrastructure of
-            Epstein's social climbing. Inclusion indicates Epstein had their contact info, not that
-            they were "clients."
+            A compilation of phone numbers and addresses. Inclusion shows that contact information
+            was recorded. It does not establish the nature of a relationship or any person's
+            conduct.
           </p>
 
           <h4 className={s.articleH4}>The Birthday Book</h4>
           <p className={s.articleP}>
-            Released in Sept 2025 by House Oversight. A gift for Epstein's 50th birthday containing
-            photos, notes, and ephemera. It offers insight into his social intimacy with the elite
-            after initial concerns had arisen.
+            A collection of photographs, notes, and ephemera assembled for Epstein's 50th birthday.
+            It can document authorship, presentation, and social context when those details can be
+            authenticated against the source.
           </p>
 
           <h4 className={s.articleH4}>The Estate Emails (2009-2019)</h4>
           <p className={s.articleP}>
-            A massive cache of 23,000+ pages released in Nov 2025. These cover the post-conviction
-            era, revealing who remained in his orbit. Key exchanges include Epstein describing Trump
-            as "the dog that hasn't barked," and routine correspondence with figures like Larry
-            Summers and Noam Chomsky.
+            Correspondence from the post-conviction period. Email headers, participants, quoted
+            text, attachments, and dates can be compared across messages, but identity and context
+            must be checked in the original record.
           </p>
 
           <h4 className={s.articleH4}>DOJ Discovery (VOL00001)</h4>
           <p className={s.articleP}>
-            Ingested Dec 21, 2025. This volume contains 3,158 raw digital evidence files seized
-            during the July 2019 FBI raid of Epstein's Manhattan mansion. It includes unredacted
-            images, metadata, and financial records that were previously held under seal.
+            A mixed digital-evidence collection that includes images and document records. The
+            archive retains available file metadata and provenance so an extracted object can be
+            traced back to its source position.
           </p>
 
           <h4 className={s.articleH4}>DOJ Discovery (VOL00002-8)</h4>
           <p className={s.articleP}>
-            Subsequent volumes contain heavily redacted document productions. Unlike Vol 1's raw
-            digital evidence, these volumes consist primarily of procedural documents and
-            correspondence where most substantive content has been blacked out under privacy
-            protective orders.
+            Later volumes contain document productions with varied formats and redaction levels. OCR
+            makes visible text searchable. It does not reveal text hidden by an official redaction.
           </p>
 
           <h4 className={s.articleH4}>DOJ Data Sets 9-12 (2026)</h4>
           <p className={s.articleP}>
-            The latest release comprises over 1.3 million documents from the post-Maxwell trial era.
-            This massive tranche includes "Data Set 12" (DOJ VOL00012). The acquired source files
-            are now hosted directly by Epstein Archive and available through their original-document
-            routes. Search indexing remains in progress, followed by intelligence analysis and
-            quality reruns through our <strong>Semantic Repair Pipeline</strong> and{' '}
-            <strong>Hardened Entity Engine</strong> to improve OCR quality, purge junk data, and
-            strengthen entity-role extraction.
+            These large releases account for much of the current corpus. Available source files are
+            served through original-document routes. Ingestion, search indexing, and quality reruns
+            remain measurable stages rather than assumed completion. Enrichment preserves source
+            text and separates unreviewed output from verified evidence.
             {pipelineOverview && (
               <>
                 {' '}
                 The current archive contains{' '}
-                <strong>{pipelineOverview.ingested.toLocaleString()}</strong> verified files across
-                the new tranches.
+                <strong>{pipelineOverview.ingested.toLocaleString()}</strong> ingested records
+                across the new tranches.
               </>
             )}
           </p>
@@ -1085,187 +1128,249 @@ export const AboutPage: React.FC = () => {
             )}
           </div>
 
-          <h3 className={s.articleH3}>Key Discoveries from DOJ Datasets</h3>
+          <h3 className={s.articleH3}>What the Enriched Corpus Exposes</h3>
 
           <div className={s.discoveryGrid}>
-            {/* Dataset 9 */}
             <div className={`soft-glass-inset ${s.discoveryCard}`}>
               <div className={s.discoveryCardHeader}>
-                <h4 className={s.discoveryCardTitle}>Dataset 9</h4>
-                <span className={s.redactionBadgeWarning}>29% Redacted</span>
+                <h4 className={s.discoveryCardTitle}>Source-positioned mentions</h4>
+                <span className={s.redactionBadgeSuccess}>Live count</span>
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
                   <Icon name="FileText" size="sm" className={s.iconAccent} />
-                  <span className={s.textSecondary}>35 prosecutorial files</span>
+                  <span className={s.textSecondary}>
+                    {stats.mentions.toLocaleString()} mentions
+                  </span>
                 </div>
                 <p className={s.discoveryCardText}>
-                  High-value DOJ files from US Attorney SDNY with an average of 4,490 words per
-                  document. Lowest redaction rate indicates maximum transparency for prosecutorial
-                  materials.
+                  Search can move from a person, organisation, place, or role to the documents and
+                  source positions where the term appears. A mention is not proof of identity or
+                  conduct.
                 </p>
               </div>
             </div>
 
-            {/* Dataset 10 */}
             <div className={`soft-glass-inset ${s.discoveryCard}`}>
               <div className={s.discoveryCardHeader}>
-                <h4 className={s.discoveryCardTitle}>Dataset 10</h4>
-                <span className={s.redactionBadgeDanger}>48% Redacted</span>
+                <h4 className={s.discoveryCardTitle}>Cross-document connections</h4>
+                <span className={s.redactionBadgeSuccess}>Research leads</span>
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
-                  <Icon name="FileText" size="sm" className={s.iconAccent} />
-                  <span className={s.textSecondary}>8,497 financial documents</span>
+                  <Icon name="Network" size="sm" className={s.iconAccent} />
+                  <span className={s.textSecondary}>
+                    {stats.relationships.toLocaleString()} candidate signals
+                  </span>
                 </div>
                 <p className={s.discoveryCardText}>
-                  <strong className={s.textSecondary}>Deutsche Bank statements and invoices</strong>{' '}
-                  with extensive mentions of Jes Staley (698 docs) and Lesley Groff (601 docs).
-                  Reveals detailed financial transaction patterns and service charges across Epstein
-                  properties.
+                  Repeated co-occurrence can reveal records worth comparing across collections. The
+                  graph does not establish that two people met, agreed, knew about a crime, or are
+                  the same person.
                 </p>
               </div>
             </div>
 
-            {/* Dataset 11 */}
             <div className={`soft-glass-inset ${s.discoveryCard}`}>
               <div className={s.discoveryCardHeader}>
-                <h4 className={s.discoveryCardTitle}>Dataset 11</h4>
-                <span className={s.redactionBadgeDanger}>52% Redacted</span>
+                <h4 className={s.discoveryCardTitle}>Verified visual evidence</h4>
+                <span className={s.redactionBadgeSuccess}>Source linked</span>
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
-                  <Icon name="FileText" size="sm" className={s.iconAccent} />
-                  <span className={s.textSecondary}>4,721 multimedia files</span>
+                  <Icon name="Image" size="sm" className={s.iconAccent} />
+                  <span className={s.textSecondary}>
+                    {stats.media.toLocaleString()} browseable images
+                  </span>
                 </div>
                 <p className={s.discoveryCardText}>
-                  Video evidence, images, and short documents (avg 248 words). Highest redaction
-                  rate reflects sensitive nature of visual evidence requiring privacy protection.
+                  The media browser prioritises photographs and useful visual exhibits. It hides
+                  scanned text pages and low-information graphics by default while preserving their
+                  document and page provenance.
                 </p>
               </div>
             </div>
 
-            {/* Dataset 12 */}
             <div className={`soft-glass-inset ${s.discoveryCard}`}>
               <div className={s.discoveryCardHeader}>
-                <h4 className={s.discoveryCardTitle}>Dataset 12</h4>
-                <span className={s.redactionBadgeSuccess}>Ingested + Enriched</span>
+                <h4 className={s.discoveryCardTitle}>Reviewable AI work</h4>
+                <span className={s.redactionBadgeWarning}>Not source evidence</span>
               </div>
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
-                  <Icon name="FileText" size="sm" className={s.iconAccent} />
-                  <span className={s.textSecondary}>202 investigative documents</span>
+                  <Icon name="Shield" size="sm" className={s.iconAccent} />
+                  <span className={s.textSecondary}>
+                    {(pipelineStatus?.ai_artifacts?.total || 0).toLocaleString()} stored artifacts
+                  </span>
                 </div>
                 <p className={s.discoveryCardText}>
-                  Subject referrals including "Leon Black/Additional HT Subject Referral" and DOJ
-                  case correspondence. This smaller tranche is fully ingested and included in the
-                  current enrichment corpus.
+                  Summaries, visual descriptions, and OCR cleanups carry model, prompt, input,
+                  output, confidence, provenance, and review metadata. They never replace the source
+                  record automatically.
                 </p>
-              </div>
-            </div>
-
-            {/* Overall Statistics */}
-            <div className={`soft-glass-accent ${s.crossDatasetCard}`}>
-              <h4 className={s.crossDatasetTitle}>Cross-Dataset Analysis (13,455 Documents)</h4>
-              <div className={s.crossDatasetGrid}>
-                <div className={s.crossDatasetStat}>
-                  <div className={`${s.crossDatasetValue} ${s.statValueAccent}`}>6,669</div>
-                  <div className={s.crossDatasetLabel}>Communications Documents (50%)</div>
-                </div>
-                <div className={s.crossDatasetStat}>
-                  <div className={`${s.crossDatasetValue} ${s.statValueSuccess}`}>3,928</div>
-                  <div className={s.crossDatasetLabel}>Financial Records (29%)</div>
-                </div>
-                <div className={s.crossDatasetStat}>
-                  <div className={`${s.crossDatasetValue} ${s.statValueAccent}`}>2,091</div>
-                  <div className={s.crossDatasetLabel}>Location References (16%)</div>
-                </div>
-                <div className={s.crossDatasetStat}>
-                  <div className={`${s.crossDatasetValue} ${s.statValueWarning}`}>1,212</div>
-                  <div className={s.crossDatasetLabel}>Flight-Related (9%)</div>
-                </div>
               </div>
             </div>
           </div>
 
           <div className={`soft-glass-accent ${s.learnedBox}`}>
             <h4 className={s.learnedTitle}>
-              <Icon name="Info" size="md" />
-              What We Learned
+              <Icon name="Search" size="md" />
+              High-value lines of inquiry
             </h4>
             <ul className={s.learnedList}>
               <li>
-                <strong className={s.textPrimary}>Deutsche Bank connection</strong>: Jes Staley's
-                name appears in 698 documents, revealing extensive financial oversight
+                <strong className={s.textPrimary}>Corroboration:</strong> compare independent
+                records that place the same event, person, property, payment, or communication in
+                context.
               </li>
               <li>
-                <strong className={s.textPrimary}>Operational network</strong>: Lesley Groff
-                coordinated transactions across 601 documents
+                <strong className={s.textPrimary}>Operational pathways:</strong> trace scheduling,
+                recruitment, travel, property access, staffing, and payments across source
+                collections.
               </li>
               <li>
-                <strong className={s.textPrimary}>Geographic footprint</strong>: 2,091 location
-                references spanning Palm Beach, Little St James, Manhattan, and Paris
+                <strong className={s.textPrimary}>Institutional interfaces:</strong> identify
+                records involving banks, companies, professional advisers, and public agencies for
+                closer review.
               </li>
               <li>
-                <strong className={s.textPrimary}>Communication patterns</strong>: Half of all DOJ
-                documents contain email, message, or call records
+                <strong className={s.textPrimary}>Contradictions and gaps:</strong> compare
+                testimony, dates, logs, and correspondence while preserving uncertainty and official
+                redactions.
               </li>
             </ul>
             <div className={s.learnedFooter}>
-              <a href="/faq" className={s.learnedLink}>
-                <Icon name="Info" size="sm" />
-                Read Frequently Asked Questions
-              </a>
+              <Link to="/investigations" className={s.learnedLink}>
+                <Icon name="Search" size="sm" />
+                Build a source-linked investigation
+              </Link>
             </div>
           </div>
 
           <Surface className={s.legalPanel}>
             <h3 className={s.legalPanelTitle}>
-              <Icon name="Shield" size="lg" className={s.iconSuccess} />
-              Legal Thresholds: Association vs. Complicity
+              <Icon name="Scale" size="lg" className={s.iconSuccess} />
+              From Archive Signal to Legal Case
             </h3>
 
             <div className={s.legalThresholdGrid}>
-              {/* Mere Presence */}
               <div className={`soft-glass-inset ${s.thresholdCard}`}>
-                <div className={`${s.thresholdBadge} ${s.thresholdBadgeNeutral}`}>
-                  Mere Presence
+                <div className={`${s.thresholdBadge} ${s.thresholdBadgeNeutral}`}>Association</div>
+                <p className={s.thresholdText}>
+                  A name, address-book entry, flight, photograph, or shared document does not prove
+                  a crime.
+                </p>
+              </div>
+
+              <div className={`soft-glass-inset ${s.thresholdCard}`}>
+                <div className={`${s.thresholdBadge} ${s.thresholdBadgeWarning}`}>
+                  Corroboration
                 </div>
                 <p className={s.thresholdText}>
-                  Being at a scene (e.g., flight) without participating is not a crime.
+                  Independent records can strengthen a lead when identity, time, place, and source
+                  are verified.
                 </p>
               </div>
 
-              {/* Complicity */}
               <div className={`soft-glass-inset ${s.thresholdCard}`}>
-                <div className={`${s.thresholdBadge} ${s.thresholdBadgeWarning}`}>Complicity</div>
+                <div className={`${s.thresholdBadge} ${s.thresholdBadgeDanger}`}>
+                  Criminal proof
+                </div>
                 <p className={s.thresholdText}>
-                  Requires proof of specific intent to aid the trafficking.
+                  Prosecutors must prove each charged element with admissible evidence beyond a
+                  reasonable doubt.
                 </p>
-              </div>
-
-              {/* Conspiracy */}
-              <div className={`soft-glass-inset ${s.thresholdCard}`}>
-                <div className={`${s.thresholdBadge} ${s.thresholdBadgeDanger}`}>Conspiracy</div>
-                <p className={s.thresholdText}>Requires proof of an agreement to commit a crime.</p>
               </div>
             </div>
 
             <div className={`soft-glass-accent ${s.dojFindings}`}>
-              <h4 className={s.dojFindingsTitle}>DOJ Findings (July 2025)</h4>
+              <h4 className={s.dojFindingsTitle}>Potential avenues for lawful investigation</h4>
               <p className={s.dojFindingsText}>
-                Concluded that while many powerful men associated with Epstein, obtaining evidence
-                sufficient for federal prosecution of third parties remains legally distinct from
-                proving social association.
+                Depending on the evidence and jurisdiction, records may be relevant to sex
+                trafficking, conspiracy, obstruction, evidence tampering, perjury, false statements,
+                financial facilitation, or related civil claims. Federal law permits prosecution of
+                a section 1591 offence without a limitations period. This archive cannot decide
+                whether any person should be charged.
+              </p>
+              <p className={s.dojFindingsText}>
+                Read the governing federal provisions:{' '}
+                <a
+                  href="https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title18-section1591"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.inlineLink}
+                >
+                  18 U.S.C. § 1591
+                </a>
+                ,{' '}
+                <a
+                  href="https://uscode.house.gov/view.xhtml?edition=prelim&num=0&req=granuleid%3AUSC-prelim-title18-section1594"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.inlineLink}
+                >
+                  § 1594
+                </a>
+                ,{' '}
+                <a
+                  href="https://uscode.house.gov/view.xhtml?edition=prelim&req=granuleid%3AUSC-prelim-title18-section3299"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.inlineLink}
+                >
+                  § 3299
+                </a>
+                , and{' '}
+                <a
+                  href="https://uscode.house.gov/view.xhtml?req=%28title%3A18+section%3A1519+edition%3Aprelim%29"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.inlineLink}
+                >
+                  § 1519
+                </a>
+                .
               </p>
             </div>
 
             <p className={s.legalNote}>
-              <strong className={`${s.textSecondary} ${s.notItalic}`}>How we use this:</strong>{' '}
-              These legal thresholds directly inform our <strong>Red Flag Index</strong>. Entities
-              with mere "Flight Log" appearances receive a low risk score (1-2), while those with
-              sworn testimony alleging participation or specific knowledge are flagged with higher
-              risk scores (4-5).
+              <strong className={`${s.textSecondary} ${s.notItalic}`}>
+                Accountability and limits:
+              </strong>{' '}
+              The Justice Department's{' '}
+              <a
+                href="https://www.justice.gov/usao-sdny/programs/victim-witness-services/united-states-v-jeffrey-epstein-19-cr-490-rmb"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.inlineLink}
+              >
+                case record
+              </a>{' '}
+              documents Jeffrey Epstein's 2008 state conviction and 2019 federal charges; the
+              federal charges were not adjudicated before his death. Ghislaine Maxwell's{' '}
+              <a
+                href="https://www.justice.gov/usao-sdny/pr/statement-us-attorney-damian-williams-verdict-us-v-ghislaine-maxwell"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.inlineLink}
+              >
+                2021 federal conviction
+              </a>{' '}
+              is a legal outcome. The archive does not label an uncharged person a perpetrator
+              because an algorithm found their name. The Justice Department's own{' '}
+              <a
+                href="https://www.justice.gov/archives/opa/pr/statement-doj-office-professional-responsibility-report-jeffrey-epstein-2006-2008"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={s.inlineLink}
+              >
+                professional-responsibility review
+              </a>{' '}
+              found poor judgment in the 2006–2008 federal resolution. It also found that victims
+              were not treated with the expected forthrightness and sensitivity. Evidence
+              fragmentation, secrecy, redactions, jurisdiction, witness safety, time, and proof
+              requirements can all obstruct accountability. They do not erase the need for a lawful,
+              survivor-centred investigation.
             </p>
           </Surface>
         </div>
@@ -1350,12 +1455,13 @@ export const AboutPage: React.FC = () => {
       <Surface as="section" variant="panel" className={s.whatsNextSection}>
         <div className={s.sectionHeader}>
           <Icon name="Image" size="xl" className={s.iconAccent} />
-          <h2 className={s.sectionTitle}>Full Source Corpus Hosted</h2>
+          <h2 className={s.sectionTitle}>Acquired Source Corpus</h2>
         </div>
         <p className={s.bodyText}>
-          Epstein Archive now hosts all acquired source files for the currently tracked DOJ and
-          media collections. Original PDFs and images resolve from the archive without depending on
-          the source agency remaining online. Search indexing and AI enrichment are still running.
+          Epstein Archive serves acquired source files for the tracked DOJ and media collections
+          when an asset is available. Original-document routes keep the searchable record connected
+          to its PDF, image, or other source object. Search indexing and AI enrichment are still
+          running.
         </p>
         <p className={s.bodyText}>
           As new documents are released through legal proceedings, FOIA requests, and court
@@ -1595,9 +1701,9 @@ export const AboutPage: React.FC = () => {
             trafficking. Conspiracy requires proof of an agreement. Association is not guilt.
           </p>
           <p>
-            <strong>Source documents:</strong> All data is derived from publicly available court
-            documents, government releases, and verified sources. We do not make claims beyond what
-            is documented in the source material.
+            <strong>Source documents:</strong> Records retain their reported source collection and
+            available provenance. Researchers must verify source authenticity, identity, context,
+            and extracted text before relying on a result.
           </p>
           <p>
             <strong>Consult professionals:</strong> This tool makes government information more
@@ -1645,7 +1751,7 @@ export const AboutPage: React.FC = () => {
 
       {/* Footer */}
       <div className={s.pageFooter}>
-        <p>Last updated: Feb 2, 2026</p>
+        <p>Last updated: Sep 3, 2026</p>
         <p>Built with transparency and accountability in mind</p>
       </div>
     </div>

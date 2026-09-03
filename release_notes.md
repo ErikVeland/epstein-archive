@@ -1,5 +1,32 @@
 # Release Notes
 
+## 22.5.0 - 2026-09-03 - Evidence Enrichment and Accountability
+
+### Enriched evidence corpus
+
+- **The About page now reports the live archive instead of obsolete release-day claims.** It distinguishes source records, structured metadata, evidence mentions, candidate entities, connection signals, curated visual evidence, and AI artifacts.
+- **Researchers can see what enrichment adds.** Source-positioned mentions, cross-document signals, verified visual evidence, summaries, and safe OCR cleanup are described with their provenance and review limits.
+- **The archive states its present data-quality limits.** Candidate entities can include OCR fragments and unresolved aliases, connection signals are leads rather than findings, collection counts can change during ingestion, and official redactions remain intact.
+
+### Accountability and legal context
+
+- **The release replaces unsupported named-person rankings with defensible lines of inquiry.** Researchers are directed toward corroborated timelines, operational pathways, institutional interfaces, and contradictions that can be checked against source records.
+- **Potential legal avenues are described without declaring guilt.** The About and FAQ pages explain how trafficking, conspiracy, obstruction, evidence tampering, perjury, false statements, financial facilitation, and civil claims depend on admissible evidence, jurisdiction, and the elements of each claim.
+- **Legal references now link to primary sources.** The public guidance links to the governing federal statutes and the Justice Department's professional-responsibility findings on the 2006–2008 federal resolution.
+- **Victims and survivors remain central.** The archive explains why public accountability must preserve official redactions, avoid identifying or harassing survivors, and never turn an algorithmic score into an accusation.
+
+### About and FAQ experience
+
+- **The About page explains the archive in plain language.** It separates source evidence from machine interpretation and explains what a mention, relationship, visual classification, and AI artifact can and cannot establish.
+- **The FAQ now answers eighteen practical and ethical questions.** New guidance covers changing totals, DOJ datasets, graph connections, identity ambiguity, AI limits, safe OCR cleanup, media filtering, possible cases, limitations periods, charging barriers, verification, downloads, and reporting unsafe output.
+- **Old hard-coded discovery claims are removed.** Public statistics now come from live APIs, and collection redaction labels are identified as estimates rather than recovered hidden text.
+
+### Pipeline and release integrity
+
+- **Safe enrichment remains additive and reviewable.** EXO OCR cleanup and other AI outputs stay separate from raw and canonical evidence, retain model and source metadata, and never establish criminal responsibility.
+- **Visual processing remains restricted to verified photographs.** Scanned pages stay out of the default media view and use OCR rather than VLM analysis.
+- **This release records scope honestly.** It publishes the application and public interpretation layer over the already promoted media catalog; ongoing local AI artifacts are not described as production evidence until a separate, verified data promotion completes.
+
 ## 22.3.9 - 2026-09-03 - OCR Duplicate Single-Flight
 
 ### EXO throughput
