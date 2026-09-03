@@ -113,6 +113,8 @@ module.exports = {
         EXO_THROTTLE_ON_USER_ACTIVITY: 'true',
         EXO_USER_IDLE_THRESHOLD_MS: '120000',
         EXO_ACTIVE_REQUEST_DELAY_MS: '30000',
+        // Keep the resumable redaction scan from starving later enrichment stages.
+        REDACTION_BACKFILL_MAX: '5000',
       },
     },
   ],

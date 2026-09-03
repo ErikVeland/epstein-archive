@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.6.2 - 2026-09-04 - Pipeline Fairness and Restart
+
+### Continuous processing
+
+- **Production deploys now start or restart the unified evidence pipeline after the application passes its readiness gate.** New pipeline stages no longer require a separate manual PM2 start after release.
+- **Redaction analysis yields to the rest of the enrichment pipeline.** Each cycle processes at most 5,000 resumable redaction documents before summaries, OCR cleanup, media, graph, and analytics stages get their turn.
+- **The background worker definition is saved after deployment.** PM2 can restore the bounded pipeline after a host restart.
+
 ## 22.6.1 - 2026-09-04 - Portable Pipeline Runtime
 
 ### Deployment reliability

@@ -145,6 +145,17 @@ fi
 # 4. Verify Process Health
 pm2 describe epstein-archive | grep -q "online" || (echo "❌ Process failed to start (crashed immediately)" && exit 1)
 echo "✅ Application started successfully."
+
+# 5. Keep the resumable evidence pipeline on the promoted source version.
+echo "Starting or restarting unified evidence pipeline..."
+if pm2 describe unified-pipeline >/dev/null 2>&1; then
+  pm2 restart ecosystem.config.cjs --only unified-pipeline --update-env
+else
+  pm2 start ecosystem.config.cjs --only unified-pipeline
+fi
+pm2 describe unified-pipeline | grep -q "online" || (echo "❌ Unified pipeline failed to start" && exit 1)
+pm2 save
+echo "✅ Unified evidence pipeline is online."
 CMD
 }
 
