@@ -25,6 +25,14 @@
   opacity: 0.8;
 }
 
+a.logoArea,
+a.logoArea:visited,
+a.logoArea:hover,
+a.logoArea:focus-visible,
+a.logoArea:active {
+  text-decoration: none;
+}
+
 .actionsArea {
   display: flex;
   align-items: center;

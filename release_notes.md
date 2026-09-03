@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.6.10 - 2026-09-04 - Consistent Redacted Wordmark
+
+### Logo presentation
+
+- Remove the home-link underline in resting, hovered, focused, active, and visited logo states on desktop and mobile.
+- Use the same lettering for the resting wordmark and alternate-title reveals. Preserve character widths under redaction bars instead of switching between plain text and fixed-width letters.
+- Retain the existing redaction and alternate-title sequence. Keep a stable accessible name while visual letters animate.
+
 ## 22.6.9 - 2026-09-04 - Evidence-first Analytics
 
 ### Investigation workflow

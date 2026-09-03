@@ -200,6 +200,9 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
           className={letterClasses}
           style={{ transition: isGlitching ? 'none' : 'all 0.05s' }}
         >
+          <span className={styles.glyphSizer} aria-hidden="true">
+            {char}
+          </span>
           {isRedacted && !isGlitching ? (
             <span className={styles.redactedBlock}>█</span>
           ) : (
@@ -225,6 +228,8 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
       <div className={styles.textContainer}>
         <h1
           className={styles.title}
+          aria-label={text}
+          data-animating={isAnimating}
           style={{
             transform: globalGlitch
               ? `translateX(${(Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 4)}px) skewX(${(Math.random() > 0.5 ? 1 : -1) * Math.random() * 5}deg)`
@@ -234,7 +239,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
               : 'none',
           }}
         >
-          {isAnimating ? renderText() : <span className={styles.staticText}>{currentText}</span>}
+          <span aria-hidden="true">{renderText()}</span>
         </h1>
       </div>
     </div>

@@ -109,21 +109,26 @@
 
 .space {
   display: inline-block;
-  width: 7px;
+  width: 0.35em;
 }
 
 .letter {
   display: inline-block;
-  width: 10.6px;
   text-align: center;
   position: relative;
 }
 
+.glyphSizer {
+  visibility: hidden;
+}
+
 .redactedBlock {
   display: inline-block;
-  color: #01030a;
+  position: absolute;
+  inset: 0;
+  color: transparent;
   background: #02040a;
-  padding: 0 2px;
+  padding: 0;
   border-radius: 1px;
   /* Glow bursts in with the glitch, then fades to clean black */
   animation: redactSettle 700ms cubic-bezier(0.25, 0, 0.5, 1) forwards;
@@ -152,7 +157,8 @@
 
 /* Base char — positioning context for CA pseudo-elements */
 .normalChar {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: inline-block;
   color: var(--text-strong, #ffffff);
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
@@ -166,11 +172,6 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
-}
-
-.staticText {
-  color: var(--text-strong, #ffffff);
-  text-shadow: 0 0.35rem 1rem rgba(226, 232, 240, 0.14);
 }
 
 /* ── Main glitch on the letter container ──────────────────────────────── */
@@ -351,10 +352,6 @@
     font-size: 0.84rem;
     letter-spacing: 0.055em;
   }
-
-  .letter {
-    width: 8.4px;
-  }
 }
 
 @media (max-width: 340px) {
@@ -376,9 +373,5 @@
   .title {
     font-size: 0.78rem;
     letter-spacing: 0.04em;
-  }
-
-  .letter {
-    width: 7.8px;
   }
 }
