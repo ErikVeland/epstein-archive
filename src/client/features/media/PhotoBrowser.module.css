@@ -103,46 +103,6 @@
   background: transparent;
 }
 
-.loadingOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: var(--z-raised);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--bg-dark) 50%, transparent);
-  backdrop-filter: blur(6px);
-  pointer-events: none;
-}
-
-.loadingSpinner,
-.inlineLoader {
-  border-radius: 9999px;
-  border-top: 2px solid var(--accent);
-  border-bottom: 2px solid var(--accent);
-  border-left: 2px solid transparent;
-  border-right: 2px solid transparent;
-  animation: photo-browser-spin 1s linear infinite;
-}
-
-.loadingSpinner {
-  width: 2rem;
-  height: 2rem;
-}
-
-.inlineLoaderWrap {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: var(--z-raised);
-}
-
-.inlineLoader {
-  width: 1.25rem;
-  height: 1.25rem;
-  filter: drop-shadow(var(--glass-shadow));
-}
-
 .warningBanner {
   display: flex;
   align-items: flex-start;
@@ -231,6 +191,51 @@
   min-height: 360px;
   overflow: hidden;
   background: transparent;
+}
+
+.loadingGrid {
+  --photo-skeleton-height: 150px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+  align-content: start;
+  height: 100%;
+  padding: var(--space-4);
+  overflow: hidden;
+}
+
+.loadingCard {
+  min-height: 190px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.loadingStatus {
+  grid-column: 1 / -1;
+  min-height: var(--control-height-compact);
+  color: var(--text-muted);
+}
+
+.loadingMeta {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .loadingGrid {
+    --photo-skeleton-height: 112px;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+
+  .loadingCard {
+    min-height: 150px;
+  }
 }
 
 .emptyState {
@@ -527,12 +532,6 @@
 
   .gridCard:hover .titleOverlay {
     opacity: 1;
-  }
-}
-
-@keyframes photo-browser-spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 

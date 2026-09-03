@@ -1,5 +1,23 @@
 # Release Notes
 
+## 22.6.3 - 2026-09-04 - Media Browser First Paint and Interest Ranking
+
+### Faster first paint
+
+- **The image browser now shows a responsive card skeleton while its first page loads.** The content area no longer appears empty while the API and thumbnails are pending.
+- **Visible thumbnails start immediately.** The initial grid and list rows bypass deferred intersection loading, while later images remain lazy loaded to protect bandwidth and scrolling performance.
+- **Restored scroll positions are limited to loaded rows.** A saved offset can no longer place the virtualized browser beyond page one and leave the viewport blank until the user scrolls.
+
+### Evidence-backed discovery
+
+- **Media interest is the default image order.** The ranking combines curator rating, linked people, completed visual analysis, source verification, photographic classification, and descriptive context.
+- **The ranking remains transparent and optional.** Media interest appears in the sort control, and users can still sort by added date, capture date, name, or file size.
+- **The main view still excludes scans and low-information graphics by default.** Interest ranking applies to the browseable visual corpus instead of promoting text-only PDF pages.
+
+### Verification
+
+- **Repository tests protect the interest-order contract.** The checks verify each evidence signal and the deterministic newest-first tie breaker.
+
 ## 22.6.2 - 2026-09-04 - Pipeline Fairness and Restart
 
 ### Continuous processing

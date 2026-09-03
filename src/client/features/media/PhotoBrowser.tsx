@@ -18,6 +18,7 @@ import {
   Button,
   SearchField,
   Select,
+  Skeleton,
   cn,
 } from '@client/design-system/lib';
 import AutoSizer from '@client/components/common/AutoSizer';
@@ -70,11 +71,43 @@ interface ItemData {
   formatFileSize: (b: number | string | undefined) => string;
 }
 
+const PhotoBrowserSkeleton: React.FC = () => (
+  <div className={styles.loadingGrid} aria-label="Loading images" aria-busy="true">
+    <Flex align="center" gap="sm" className={styles.loadingStatus} role="status">
+      <Icon name="Image" size="sm" />
+      <LqText variant="xxs" color="muted">
+        Loading images…
+      </LqText>
+    </Flex>
+    {Array.from({ length: 12 }, (_, index) => (
+      <Surface key={index} variant="glass-strong" className={styles.loadingCard}>
+        <Skeleton
+          height="var(--photo-skeleton-height)"
+          style={{ borderRadius: 0, backgroundColor: 'var(--glass-bg-highlight)' }}
+        />
+        <div className={styles.loadingMeta}>
+          <Skeleton
+            variant="text"
+            width="68%"
+            style={{ backgroundColor: 'var(--glass-bg-highlight)' }}
+          />
+          <Skeleton
+            variant="text"
+            width="42%"
+            style={{ backgroundColor: 'var(--glass-bg-highlight)' }}
+          />
+        </div>
+      </Surface>
+    ))}
+  </div>
+);
+
 const MediaThumbnail: React.FC<{
   image: MediaImage;
   className: string;
   compact?: boolean;
-}> = ({ image, className, compact = false }) => {
+  eager?: boolean;
+}> = ({ image, className, compact = false, eager = false }) => {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -102,6 +135,7 @@ const MediaThumbnail: React.FC<{
       src={`/api/media/images/${image.id}/thumbnail`}
       alt={image.title}
       className={className}
+      eager={eager}
       onError={() => setFailed(true)}
     />
   );
@@ -146,7 +180,7 @@ const GridCell = React.memo(
           )}
 
           <SensitiveContent isSensitive={img.isSensitive} className={styles.mediaSurface}>
-            <MediaThumbnail image={img} className={styles.gridImage} />
+            <MediaThumbnail image={img} className={styles.gridImage} eager={index < 12} />
           </SensitiveContent>
 
           <Box className={styles.titleOverlay}>
@@ -199,7 +233,12 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
 
           <Box className={styles.listThumb}>
             <SensitiveContent isSensitive={img.isSensitive} className={styles.mediaSurface}>
-              <MediaThumbnail image={img} className={styles.listThumbImage} compact />
+              <MediaThumbnail
+                image={img}
+                className={styles.listThumbImage}
+                compact
+                eager={index < 8}
+              />
             </SensitiveContent>
           </Box>
 
@@ -663,6 +702,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     value={sortField}
                     onChange={(e) => setSortField(e.target.value as SortField)}
                     options={[
+                      { value: 'interest', label: 'Media interest' },
                       { value: 'date_added', label: 'Added' },
                       { value: 'date_taken', label: 'Taken' },
                       { value: 'filename', label: 'Name' },
@@ -752,12 +792,6 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           />
 
           <Stack grow className={styles.mainContent}>
-            {loading && images.length === 0 && (
-              <Flex align="center" justify="center" className={styles.loadingOverlay}>
-                <Box className={styles.loadingSpinner} />
-              </Flex>
-            )}
-
             {/* Forensic Warning Banners */}
             {selectedAlbum && currentAlbum?.name.match(/Fake|Unconfirmed/i) && (
               <Surface variant="glass-strong" className={styles.warningBanner}>
@@ -832,7 +866,9 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             )}
 
             <Box className={styles.browserViewport} onClick={handleGridClick}>
-              {!loading && images.length === 0 ? (
+              {loading && images.length === 0 ? (
+                <PhotoBrowserSkeleton />
+              ) : images.length === 0 ? (
                 <EmptyCorpus
                   icon="Image"
                   title="No Images Found"
@@ -857,6 +893,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                       const columnWidth = (availableWidth - gap * (columnCount - 1)) / columnCount;
                       const rowCount = Math.ceil(images.length / columnCount);
                       const rowHeight = columnWidth / 1.5 + 40;
+                      const maxScrollOffset = Math.max(0, rowCount * (rowHeight + gap) - height);
+                      const initialScrollTop = Math.min(restoredScrollOffset, maxScrollOffset);
 
                       const itemData = {
                         images,
@@ -874,7 +912,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                           columnCount={columnCount}
                           columnWidth={columnWidth + gap}
                           height={height}
-                          initialScrollTop={restoredScrollOffset}
+                          initialScrollTop={initialScrollTop}
                           rowCount={rowCount}
                           rowHeight={rowHeight + gap}
                           width={width}
@@ -910,7 +948,10 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                       return (
                         <List
                           height={height}
-                          initialScrollOffset={restoredScrollOffset}
+                          initialScrollOffset={Math.min(
+                            restoredScrollOffset,
+                            Math.max(0, images.length * 84 - height),
+                          )}
                           itemCount={images.length}
                           itemSize={84}
                           width={width}

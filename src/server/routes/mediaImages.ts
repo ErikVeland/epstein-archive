@@ -69,7 +69,18 @@ const mediaImagesQuerySchema = z.object({
     tagId: z.coerce.number().int().positive().optional(),
     personId: z.coerce.number().int().positive().optional(),
     documentId: z.coerce.number().int().positive().optional(),
-    sortField: z.string().optional(),
+    sortField: z
+      .enum([
+        'interest',
+        'date_added',
+        'date_taken',
+        'filename',
+        'file_size',
+        'title',
+        'date',
+        'rating',
+      ])
+      .optional(),
     sortOrder: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
     slim: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional(),
     verificationStatus: z.string().optional(),
@@ -127,6 +138,7 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
         | 'title'
         | 'date'
         | 'rating'
+        | 'interest'
         | undefined,
       sortOrder,
       fileType: 'image',

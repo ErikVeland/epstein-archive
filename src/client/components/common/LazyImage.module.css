@@ -17,5 +17,31 @@
 }
 
 .loading {
-  opacity: 0;
+  opacity: 1;
+  background:
+    linear-gradient(
+      100deg,
+      transparent 20%,
+      color-mix(in srgb, var(--text-muted) 12%, transparent) 45%,
+      transparent 70%
+    ),
+    var(--lq-surface-3);
+  background-size: 220% 100%;
+  animation: lazy-image-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading {
+    animation: none;
+  }
+}
+
+@keyframes lazy-image-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+
+  to {
+    background-position: -120% 0;
+  }
 }

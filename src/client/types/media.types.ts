@@ -95,7 +95,7 @@ export interface ImageFilter {
 }
 
 export interface ImageSort {
-  field: 'date_taken' | 'date_added' | 'filename' | 'file_size' | 'title';
+  field: 'interest' | 'date_taken' | 'date_added' | 'filename' | 'file_size' | 'title';
   order: 'asc' | 'desc';
 }
 

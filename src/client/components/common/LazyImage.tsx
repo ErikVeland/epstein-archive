@@ -8,6 +8,7 @@ const loadedImageCache = new Set<string>();
 interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   placeholderSrc?: string;
   threshold?: number;
+  eager?: boolean;
 }
 
 export const LazyImage: React.FC<LazyImageProps> = ({
@@ -15,6 +16,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   alt,
   placeholderSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
   threshold = 0.1,
+  eager = false,
   className,
   onError,
   ...props
@@ -22,7 +24,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   // Check if this image was already loaded (prevents flicker on re-render)
   const wasAlreadyLoaded = src ? loadedImageCache.has(src) : false;
   const [isLoaded, setIsLoaded] = useState(wasAlreadyLoaded);
-  const [isInView, setIsInView] = useState(wasAlreadyLoaded);
+  const [isInView, setIsInView] = useState(wasAlreadyLoaded || eager);
   const imgRef = useRef<HTMLImageElement>(null);
 
   // Use shared IntersectionObserver instead of creating one per image
@@ -60,7 +62,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
 
   // If src changes and it's already cached, immediately show it
   const [shouldAnimate] = useState(!wasAlreadyLoaded);
-  const resolvedSrc = isInView || wasAlreadyLoaded ? src : placeholderSrc;
+  const resolvedSrc = eager || isInView || wasAlreadyLoaded ? src : placeholderSrc;
   const resolvedLoaded = isLoaded || wasAlreadyLoaded;
 
   return (
@@ -68,7 +70,8 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       ref={imgRef}
       src={resolvedSrc}
       alt={alt}
-      loading="lazy"
+      loading={eager ? 'eager' : 'lazy'}
+      fetchPriority={eager ? 'high' : 'auto'}
       decoding="async"
       onLoad={handleLoad}
       onError={handleError}

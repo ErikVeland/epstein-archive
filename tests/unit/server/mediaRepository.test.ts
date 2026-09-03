@@ -27,4 +27,25 @@ describe('mediaRepository.getMediaItems', () => {
     expect(sqlCombined).toContain('f2.media_item_id::text = m.id::text');
     expect(sqlCombined).toContain('f.media_item_id::text = m.id::text');
   });
+
+  it('ranks the photo browser by evidence-backed media interest', async () => {
+    queryMock.mockReset();
+    queryMock.mockResolvedValueOnce({ rows: [{ total: 0 }] }).mockResolvedValueOnce({ rows: [] });
+
+    const { mediaRepository } = await import('../../../src/server/db/mediaRepository');
+    await mediaRepository.getMediaItemsPaginated(1, 24, {
+      fileType: 'image',
+      excludeTextScans: true,
+      sortBy: 'interest',
+      sortOrder: 'desc',
+    });
+
+    expect(queryMock).toHaveBeenCalledTimes(2);
+    const listSql = String(queryMock.mock.calls[1]?.[0] ?? '');
+    expect(listSql).toContain('COALESCE(m.red_flag_rating, 0) * 20');
+    expect(listSql).toContain('SELECT interest_people.media_item_id::text');
+    expect(listSql).toContain("m.metadata_json->'ai_visual'->>'description'");
+    expect(listSql).toContain("m.verification_status = 'source_verified'");
+    expect(listSql).toContain(') DESC, m.created_at DESC, m.id DESC');
+  });
 });

@@ -496,7 +496,15 @@ export const mediaRepository = {
       minRedFlagRating?: number;
       fileType?: string; // 'image' or 'audio' or mimetype
       albumId?: number;
-      sortBy?: 'title' | 'date' | 'rating' | 'date_added' | 'date_taken' | 'filename' | 'file_size';
+      sortBy?:
+        | 'interest'
+        | 'title'
+        | 'date'
+        | 'rating'
+        | 'date_added'
+        | 'date_taken'
+        | 'filename'
+        | 'file_size';
       sortOrder?: 'asc' | 'desc';
       transcriptQuery?: string;
       hasPeople?: boolean;
@@ -608,19 +616,36 @@ export const mediaRepository = {
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
-    const countRes = await pool.query(
-      `
-        SELECT COUNT(DISTINCT m.id) AS total
-        FROM media_items m
-        ${whereSql}
-      `,
-      queryParams,
-    );
-    const total = Number((countRes.rows[0] as { total?: unknown })?.total || 0);
-
     const sortOrder = filters?.sortOrder === 'asc' ? 'ASC' : 'DESC';
     let orderBySql = `m.red_flag_rating DESC, m.created_at DESC`;
-    if (filters?.sortBy === 'title') {
+    if (filters?.sortBy === 'interest') {
+      orderBySql = `(
+        COALESCE(m.red_flag_rating, 0) * 20
+        + CASE
+            WHEN m.id IN (
+              SELECT interest_people.media_item_id::text
+              FROM media_item_people interest_people
+            ) THEN 30 ELSE 0
+          END
+        + CASE
+            WHEN COALESCE(m.metadata_json->'ai_visual'->>'description', '') <> ''
+              OR COALESCE(m.metadata_json->'ai_visual'->>'summary', '') <> ''
+            THEN 15 ELSE 0
+          END
+        + CASE
+            WHEN m.verification_status = 'source_verified' THEN 12
+            WHEN m.verification_status = 'verified' THEN 10
+            ELSE 0
+          END
+        + CASE
+            WHEN COALESCE(m.metadata_json->>'visual_classification', '') = 'probable_photograph'
+            THEN 8 ELSE 0
+          END
+        + CASE
+            WHEN COALESCE(m.description, '') <> '' THEN 4 ELSE 0
+          END
+      ) ${sortOrder}, m.created_at DESC, m.id DESC`;
+    } else if (filters?.sortBy === 'title') {
       orderBySql = `LOWER(COALESCE(m.title, '')) ${sortOrder}, m.created_at DESC`;
     } else if (filters?.sortBy === 'date' || filters?.sortBy === 'date_added') {
       orderBySql = `m.created_at ${sortOrder}, m.id DESC`;
@@ -640,8 +665,12 @@ export const mediaRepository = {
     listParams.push(offset);
     const offsetParam = `$${listParams.length}`;
 
-    const listRes = await pool.query(
-      `
+    const countQuery = `
+      SELECT COUNT(DISTINCT m.id) AS total
+      FROM media_items m
+      ${whereSql}
+    `;
+    const listQuery = `
         WITH selected_media AS (
           SELECT m.id
           FROM media_items m
@@ -713,9 +742,12 @@ export const mediaRepository = {
           WHERE mt.media_item_id::text = m.id::text
         ) tag_list ON true
         ORDER BY ${orderBySql}
-      `,
-      listParams,
-    );
+      `;
+    const [countRes, listRes] = await Promise.all([
+      pool.query(countQuery, queryParams),
+      pool.query(listQuery, listParams),
+    ]);
+    const total = Number((countRes.rows[0] as { total?: unknown })?.total || 0);
     interface MediaListRow {
       id: string | number;
       entityId: string | null;

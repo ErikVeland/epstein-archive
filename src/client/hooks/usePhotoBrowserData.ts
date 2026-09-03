@@ -4,7 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@client/services/apiClient';
 import { Album, MediaImage, MediaStats, MediaTag } from '@client/types/media.types';
 
-export type PhotoSortField = 'date_added' | 'date_taken' | 'filename' | 'file_size' | 'title';
+export type PhotoSortField =
+  | 'interest'
+  | 'date_added'
+  | 'date_taken'
+  | 'filename'
+  | 'file_size'
+  | 'title';
 export type PhotoSortOrder = 'asc' | 'desc';
 
 interface PersonOption {
@@ -98,7 +104,7 @@ function buildInitialState(): PhotoBrowserState {
       selectedTag: parseNumericParam(params.get('tagId')),
       selectedPerson: parseNumericParam(params.get('personId')),
       hasPeopleOnly: params.get('hasPeople') === 'true',
-      sortField: 'date_added',
+      sortField: 'interest',
       sortOrder: 'desc',
       searchQuery: '',
       excludeTextScans: params.get('excludeTextScans') !== 'false', // Default to true
