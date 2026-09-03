@@ -68,6 +68,9 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
       } else {
         setContextSearchTerm(searchParam);
       }
+    } else if (!searchParam && params.has('source') && contextSearchTerm) {
+      if (onSearchTermChange) onSearchTermChange('');
+      else setContextSearchTerm('');
     }
   }, [contextSearchTerm, onSearchTermChange, setContextSearchTerm]);
 
@@ -104,16 +107,29 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   }
   const availableCollections = useMemo<Array<{ id: string; name: string }>>(() => [], []);
 
-  const [filters, setFilters] = useState<BrowseFilters>({
-    fileType: [],
-    dateRange: {},
-    entities: [],
-    categories: [],
-    redFlagLevel: { min: 0, max: 5 },
-    confidentiality: [],
-    source: [],
-    includeMedia: false,
-    excludedFileTypes: DEFAULT_EXCLUDED_TYPES,
+  const [filters, setFilters] = useState<BrowseFilters>(() => {
+    const params =
+      typeof window === 'undefined'
+        ? new URLSearchParams()
+        : new URLSearchParams(window.location.search);
+    const sourceParam = params.get('source');
+    const includeMedia = params.get('includeMedia') === 'true';
+    return {
+      fileType: [],
+      dateRange: {},
+      entities: [],
+      categories: [],
+      redFlagLevel: { min: 0, max: 5 },
+      confidentiality: [],
+      source: sourceParam
+        ? sourceParam
+            .split(',')
+            .map((source) => source.trim())
+            .filter(Boolean)
+        : [],
+      includeMedia,
+      excludedFileTypes: includeMedia ? [] : DEFAULT_EXCLUDED_TYPES,
+    };
   });
 
   const documentContainerRef = useRef<HTMLDivElement>(null);
@@ -255,9 +271,15 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const applyTrancheFilter = useCallback(
     (trancheValue: string) => {
       const option = DOJ_TRANCHE_OPTIONS.find((entry) => entry.value === trancheValue);
-      handleFilterChange('source', option ? option.sources : []);
+      const sources = option ? option.sources : [];
+      handleFilterChange('source', sources);
+      const params = new URLSearchParams(window.location.search);
+      if (sources.length > 0) params.set('source', sources.join(','));
+      else params.delete('source');
+      const query = params.toString();
+      navigate(`${window.location.pathname}${query ? `?${query}` : ''}`, { replace: true });
     },
-    [handleFilterChange],
+    [handleFilterChange, navigate],
   );
 
   const handleExcludedTypeToggle = (fileType: string) => {

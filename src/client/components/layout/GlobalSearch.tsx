@@ -8,6 +8,7 @@ import { Box, Button, SearchField, Select, TextInput } from '@client/design-syst
 import { apiClient, type SearchMode } from '@client/services/apiClient';
 import type { SemanticCapabilityDto } from '@shared/dto/connections';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
+import { downloadOriginalDocument } from '@client/utils/documentDownload';
 import { Person } from '@client/types';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
@@ -99,12 +100,7 @@ const GlobalSearch: React.FC = () => {
   useScrollLock(!!selectedResult || (isMobile && searchTerm.length > 2));
 
   const handleDownload = (id: string, filename: string) => {
-    const a = document.createElement('a');
-    a.href = `/api/documents/${encodeURIComponent(String(id))}/file`;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    downloadOriginalDocument(id, filename);
   };
 
   const { data: stats = null } = useQuery<Record<string, unknown> | null>({

@@ -11,9 +11,11 @@ import { RedactionPlaceholder } from './RedactionPlaceholder';
 import { WikiLink } from '@client/components/common/WikiLink';
 import { Button, SearchField, Surface } from '@client/design-system/lib';
 import styles from './DocumentViewer.module.css';
+import { getOriginalDocumentUrl } from '@client/utils/documentDownload';
 
 interface DocumentViewerProps {
   evidence: {
+    id: string | number;
     title: string;
     extractedText: string;
     contentRefined?: string;
@@ -304,19 +306,15 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
             {copied ? 'Copied' : 'Copy'}
           </Button>
 
-          {(evidence.sourcePath || evidence.metadata?.source_original_url) && (
-            <Button asChild variant="ghost" size="sm" className={styles.iconButton}>
-              <a
-                href={evidence.sourcePath || evidence.metadata.source_original_url}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Download Original"
-              >
-                <Icon name="Download" className={styles.buttonIcon} />
-              </a>
-            </Button>
-          )}
+          <Button asChild variant="ghost" size="sm" className={styles.iconButton}>
+            <a
+              href={getOriginalDocumentUrl(evidence.id, { download: true })}
+              download
+              title="Download Original"
+            >
+              <Icon name="Download" className={styles.buttonIcon} />
+            </a>
+          </Button>
 
           {redactionSummary.length > 0 && (
             <div className={styles.redactionGroup}>

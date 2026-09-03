@@ -89,7 +89,7 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
 
   const downloadPDF = () => {
     const link = document.createElement('a');
-    link.href = `/api/media/pdf?filePath=${encodeURIComponent(filePath)}`;
+    link.href = `/api/media/pdf?filePath=${encodeURIComponent(filePath)}&download=1`;
     link.download = title + '.pdf';
     document.body.appendChild(link);
     link.click();

@@ -36,6 +36,10 @@ import { isVisualMediaItem } from '@client/utils/evidenceUtils';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import type { ProvenanceDocument } from './ProvenancePanel';
 import type { SearchPassageResultDto } from '@shared/dto/search';
+import {
+  downloadOriginalDocument as triggerOriginalDocumentDownload,
+  getOriginalDocumentUrl as buildOriginalDocumentUrl,
+} from '@client/utils/documentDownload';
 
 import { Button, NativeSelect, cn } from '@client/design-system/lib';
 
@@ -641,14 +645,14 @@ export const DocumentModal: React.FC<Props> = ({
 
   const getOriginalDocumentUrl = (): string | null => {
     const targetDocumentId = addressedPassage?.documentId || id;
-    const params = new URLSearchParams({ variant: 'original' });
 
     if (passageId) {
       if (!addressedPassage?.assetSha256) return null;
-      params.set('assetSha256', addressedPassage.assetSha256);
     }
 
-    return `/api/documents/${encodeURIComponent(String(targetDocumentId))}/file?${params.toString()}`;
+    return buildOriginalDocumentUrl(targetDocumentId, {
+      assetSha256: passageId ? addressedPassage?.assetSha256 : undefined,
+    });
   };
 
   const downloadOriginalDocument = () => {
@@ -659,12 +663,11 @@ export const DocumentModal: React.FC<Props> = ({
     }
 
     setBlockedCitationDownloadId(null);
-    const link = document.createElement('a');
-    link.href = sourceUrl;
-    link.download = `${doc.fileName || 'original-document'}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    triggerOriginalDocumentDownload(
+      addressedPassage?.documentId || id,
+      doc.fileName || 'original-document',
+      passageId ? addressedPassage?.assetSha256 : undefined,
+    );
   };
 
   const openOriginalDocument = () => {

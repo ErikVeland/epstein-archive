@@ -8,9 +8,11 @@ import Icon from '@client/components/common/Icon';
 import styles from './EmailViewer.module.css';
 
 import { Button } from '@client/design-system/lib';
+import { getOriginalDocumentUrl } from '@client/utils/documentDownload';
 
 interface EmailViewerProps {
   evidence: {
+    id: string | number;
     extractedText: string;
     metadata: {
       from?: string;
@@ -55,19 +57,15 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
       <div className={styles.emailHeader}>
         <div className={styles.subjectRow}>
           <h2 className={styles.subject}>{metadata.subject || 'No Subject'}</h2>
-          {metadata.source_original_url && (
-            <a
-              href={metadata.source_original_url}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.downloadLink}
-              title="Download original email"
-            >
-              <Icon name="Download" size="sm" />
-              Original
-            </a>
-          )}
+          <a
+            href={getOriginalDocumentUrl(evidence.id, { download: true })}
+            download
+            className={styles.downloadLink}
+            title="Download original email"
+          >
+            <Icon name="Download" size="sm" />
+            Original
+          </a>
         </div>
 
         <div className={styles.metaStack}>

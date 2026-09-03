@@ -9,9 +9,11 @@ import Icon from '@client/components/common/Icon';
 import styles from './ImageViewer.module.css';
 
 import { Button } from '@client/design-system/lib';
+import { getOriginalDocumentUrl } from '@client/utils/documentDownload';
 
 interface ImageViewerProps {
   evidence: {
+    id: string | number;
     sourcePath: string;
     originalFilename: string;
     extractedText?: string;
@@ -56,9 +58,14 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
           </Button>
         </div>
 
-        <Button unstyled className={styles.downloadButton}>
-          <Icon name="Download" className={styles.downloadIcon} />
-          Download Image
+        <Button asChild unstyled className={styles.downloadButton}>
+          <a
+            href={getOriginalDocumentUrl(evidence.id, { download: true })}
+            download={evidence.originalFilename}
+          >
+            <Icon name="Download" className={styles.downloadIcon} />
+            Download Image
+          </a>
         </Button>
       </div>
 

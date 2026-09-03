@@ -17,7 +17,6 @@ interface SourceStat {
   count: number;
   documentCount?: number;
   link?: string | null;
-  search?: string | null;
   impact?: string;
   impactColor?: string;
   redactionColor?: string;
@@ -184,6 +183,16 @@ const getImpactChipClass = (color: string): string => {
   }
 };
 
+const documentsForSources = (...sources: string[]): string => {
+  const params = new URLSearchParams({ source: sources.join(','), includeMedia: 'true' });
+  return `/documents?${params.toString()}`;
+};
+
+const ABOUT_PEOPLE = {
+  'Jeffrey Epstein': '1',
+  'Ghislaine Maxwell': '2',
+} as const;
+
 export const AboutPage: React.FC = () => {
   const backLinkState = useBackLinkState();
   const [stats, setStats] = useState({
@@ -240,25 +249,21 @@ export const AboutPage: React.FC = () => {
           Array.isArray(statsRes.collectionStats) ? statsRes.collectionStats : []
         ).map((src) => {
           const source = asRecord(src);
-          let link: string | null = null;
-          let search: string | null = asString(source.title);
+          const title = asString(source.title);
+          let link = documentsForSources(title);
 
-          if (asString(source.title).includes('Black Book')) {
+          if (title.includes('Black Book')) {
             link = '/blackbook';
-            search = null;
-          } else if (asString(source.title).includes('Flight Logs')) {
-            search = 'Flight Log';
           } else if (
-            asString(source.title).includes('Video') ||
-            asString(source.title).includes('Media') ||
-            asString(source.title).includes('Testimony')
+            title.includes('Video') ||
+            title.includes('Media') ||
+            title.includes('Testimony')
           ) {
             link = '/media';
-            search = null;
           }
 
           return {
-            title: asString(source.title),
+            title,
             count: asNumber(source.count, 0),
             documentCount: asNumber(source.documentCount ?? source.count, 0),
             impact: asString(source.impact, 'Reference'),
@@ -266,7 +271,6 @@ export const AboutPage: React.FC = () => {
             redactionColor: asString(source.redactionColor, 'green'),
             redactionStatus: asString(source.redactionStatus, 'Minimal redactions'),
             link,
-            search,
           };
         });
         setDocumentSources(enhancedStats);
@@ -279,6 +283,16 @@ export const AboutPage: React.FC = () => {
       console.error('Failed to fetch about page stats', e);
     }
   }, []);
+
+  const personLink = (name: keyof typeof ABOUT_PEOPLE) => (
+    <Link
+      to={`/entity/${encodeURIComponent(ABOUT_PEOPLE[name])}`}
+      state={backLinkState}
+      className={s.inlineLink}
+    >
+      {name}
+    </Link>
+  );
 
   const fetchPipelineStatus = useCallback(async () => {
     try {
@@ -461,9 +475,10 @@ export const AboutPage: React.FC = () => {
         </div>
         <p className={s.bodyText}>
           The Epstein Archive preserves and indexes publicly released court records, government
-          disclosures, correspondence, exhibits, media, and other records connected to the Jeffrey
-          Epstein investigations. It gives journalists, researchers, survivors, and the public a
-          direct route from a search result or connection back to its source document.
+          disclosures, correspondence, exhibits, media, and other records connected to the{' '}
+          {personLink('Jeffrey Epstein')} investigations. It gives journalists, researchers,
+          survivors, and the public a direct route from a search result or connection back to its
+          source document.
         </p>
         <p className={s.bodyText}>
           This is not a “client list,” and it does not infer guilt from association. The system uses
@@ -592,7 +607,15 @@ export const AboutPage: React.FC = () => {
             {documentSources.map((source, idx) => (
               <div key={idx} className={s.sourceCard}>
                 <div className={s.sourceCardTop}>
-                  <h4 className={s.sourceCardTitle}>{source.title}</h4>
+                  <h4 className={s.sourceCardTitle}>
+                    <Link
+                      to={source.link || '/documents'}
+                      state={backLinkState}
+                      className={s.sourceTitleLink}
+                    >
+                      {source.title}
+                    </Link>
+                  </h4>
                   <span
                     className={`${s.impactChip} ${getImpactChipClass(source.impactColor ?? 'slate')}`}
                   >
@@ -615,19 +638,13 @@ export const AboutPage: React.FC = () => {
                   </div>
 
                   <div className={s.sourceCardActions}>
-                    {source.link ? (
-                      <a href={source.link} className={s.viewBtn}>
-                        <Icon name="Eye" size="sm" /> View
-                      </a>
-                    ) : (
-                      <Link
-                        to={`/documents?search=${encodeURIComponent(source.search || '')}`}
-                        state={backLinkState}
-                        className={s.viewBtn}
-                      >
-                        <Icon name="Eye" size="sm" /> View
-                      </Link>
-                    )}
+                    <Link
+                      to={source.link || '/documents'}
+                      state={backLinkState}
+                      className={s.viewBtn}
+                    >
+                      <Icon name="Eye" size="sm" /> <span>View</span>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -649,7 +666,15 @@ export const AboutPage: React.FC = () => {
               <tbody className={s.tableBody}>
                 {documentSources.map((source, idx) => (
                   <tr key={idx}>
-                    <td className={s.tdTitle}>{source.title}</td>
+                    <td className={s.tdTitle}>
+                      <Link
+                        to={source.link || '/documents'}
+                        state={backLinkState}
+                        className={s.sourceTitleLink}
+                      >
+                        {source.title}
+                      </Link>
+                    </td>
 
                     <td className={s.tdCount}>{source.documentCount?.toLocaleString() || '—'}</td>
                     <td className={s.tdNoWrap}>
@@ -671,24 +696,17 @@ export const AboutPage: React.FC = () => {
                     </td>
                     <td className={s.tdActions}>
                       <div className={s.tableActions}>
-                        {source.link ? (
-                          <a href={source.link} className={s.viewBtn}>
-                            <Icon name="Eye" size="sm" />
-                            View
-                          </a>
-                        ) : (
-                          <Link
-                            to={`/documents?search=${encodeURIComponent(source.search || '')}`}
-                            state={backLinkState}
-                            className={s.viewBtn}
-                          >
-                            <Icon name="Eye" size="sm" />
-                            View
-                          </Link>
-                        )}
+                        <Link
+                          to={source.link || '/documents'}
+                          state={backLinkState}
+                          className={s.viewBtn}
+                        >
+                          <Icon name="Eye" size="sm" />
+                          <span>View</span>
+                        </Link>
                         {source.title === 'Unredacted Black Book' && (
                           <a
-                            href="/api/downloads/release/black-book"
+                            href="/api/media/pdf?filePath=data%2Foriginals%2FJeffrey%20Epstein%27s%20Black%20Book.pdf&download=1"
                             download
                             className={s.downloadBtn}
                             title="Download Original"
@@ -698,7 +716,7 @@ export const AboutPage: React.FC = () => {
                         )}
                         {source.title === 'Flight Logs' && (
                           <a
-                            href="/api/downloads/release/flight-logs"
+                            href="/api/media/pdf?filePath=data%2Foriginals%2FEPSTEIN%20FLIGHT%20LOGS%20UNREDACTED.pdf&download=1"
                             download
                             className={s.downloadBtn}
                             title="Download Original"
@@ -706,17 +724,6 @@ export const AboutPage: React.FC = () => {
                             <Icon name="Download" size="sm" />
                           </a>
                         )}
-                        {source.title !== 'Unredacted Black Book' &&
-                          source.title !== 'Flight Logs' && (
-                            <Button
-                              unstyled
-                              disabled
-                              className={s.downloadBtnDisabled}
-                              title="Download not available"
-                            >
-                              <Icon name="Download" size="sm" />
-                            </Button>
-                          )}
                       </div>
                     </td>
                   </tr>
@@ -756,7 +763,15 @@ export const AboutPage: React.FC = () => {
             evidentiary value.
           </p>
 
-          <h4 className={s.articleH4}>The Flight Logs</h4>
+          <h4 className={s.articleH4}>
+            <Link
+              to={documentsForSources('Flight Logs')}
+              state={backLinkState}
+              className={s.articleSourceLink}
+            >
+              The Flight Logs
+            </Link>
+          </h4>
           <p className={s.articleP}>
             Pilot-recorded manifests for Epstein's private aircraft fleet. These are logistical
             records, not criminal ledgers. The presence of a name establishes only presence, not
@@ -764,41 +779,98 @@ export const AboutPage: React.FC = () => {
             corroborating testimony.
           </p>
 
-          <h4 className={s.articleH4}>The Black Book</h4>
+          <h4 className={s.articleH4}>
+            <Link to="/blackbook" state={backLinkState} className={s.articleSourceLink}>
+              The Black Book
+            </Link>
+          </h4>
           <p className={s.articleP}>
             A compilation of phone numbers and addresses. Inclusion shows that contact information
             was recorded. It does not establish the nature of a relationship or any person's
             conduct.
           </p>
 
-          <h4 className={s.articleH4}>The Birthday Book</h4>
+          <h4 className={s.articleH4}>
+            <Link
+              to={documentsForSources('Birthday Book')}
+              state={backLinkState}
+              className={s.articleSourceLink}
+            >
+              The Birthday Book
+            </Link>
+          </h4>
           <p className={s.articleP}>
             A collection of photographs, notes, and ephemera assembled for Epstein's 50th birthday.
             It can document authorship, presentation, and social context when those details can be
             authenticated against the source.
           </p>
 
-          <h4 className={s.articleH4}>The Estate Emails (2009-2019)</h4>
+          <h4 className={s.articleH4}>
+            <Link
+              to={documentsForSources('Epstein Estate Documents - Seventh Production')}
+              state={backLinkState}
+              className={s.articleSourceLink}
+            >
+              The Estate Emails (2009-2019)
+            </Link>
+          </h4>
           <p className={s.articleP}>
             Correspondence from the post-conviction period. Email headers, participants, quoted
             text, attachments, and dates can be compared across messages, but identity and context
             must be checked in the original record.
           </p>
 
-          <h4 className={s.articleH4}>DOJ Discovery (VOL00001)</h4>
+          <h4 className={s.articleH4}>
+            <Link
+              to={documentsForSources('DOJ Discovery VOL00001')}
+              state={backLinkState}
+              className={s.articleSourceLink}
+            >
+              DOJ Discovery (VOL00001)
+            </Link>
+          </h4>
           <p className={s.articleP}>
             A mixed digital-evidence collection that includes images and document records. The
             archive retains available file metadata and provenance so an extracted object can be
             traced back to its source position.
           </p>
 
-          <h4 className={s.articleH4}>DOJ Discovery (VOL00002-8)</h4>
+          <h4 className={s.articleH4}>
+            <Link
+              to={documentsForSources(
+                'DOJ Discovery VOL00002',
+                'DOJ Discovery VOL00003',
+                'DOJ Discovery VOL00004',
+                'DOJ Discovery VOL00005',
+                'DOJ Discovery VOL00006',
+                'DOJ Discovery VOL00007',
+                'DOJ Discovery VOL00008',
+              )}
+              state={backLinkState}
+              className={s.articleSourceLink}
+            >
+              DOJ Discovery (VOL00002-8)
+            </Link>
+          </h4>
           <p className={s.articleP}>
             Later volumes contain document productions with varied formats and redaction levels. OCR
             makes visible text searchable. It does not reveal text hidden by an official redaction.
           </p>
 
-          <h4 className={s.articleH4}>DOJ Data Sets 9-12 (2026)</h4>
+          <h4 className={s.articleH4}>
+            <Link
+              to={documentsForSources(
+                'DOJ Data Set 9',
+                'DOJ Data Set 10',
+                'DOJ Data Set 11',
+                'DOJ Data Set 12',
+              )}
+              state={backLinkState}
+              className={s.articleSourceLink}
+            >
+              DOJ Data Sets 9-12 (2026)
+            </Link>
+          </h4>
           <p className={s.articleP}>
             These large releases account for much of the current corpus. Available source files are
             served through original-document routes. Ingestion, search indexing, and quality reruns
@@ -1342,8 +1414,9 @@ export const AboutPage: React.FC = () => {
               >
                 case record
               </a>{' '}
-              documents Jeffrey Epstein's 2008 state conviction and 2019 federal charges; the
-              federal charges were not adjudicated before his death. Ghislaine Maxwell's{' '}
+              documents {personLink('Jeffrey Epstein')}'s 2008 state conviction and 2019 federal
+              charges; the federal charges were not adjudicated before his death.{' '}
+              {personLink('Ghislaine Maxwell')}'s{' '}
               <a
                 href="https://www.justice.gov/usao-sdny/pr/statement-us-attorney-damian-williams-verdict-us-v-ghislaine-maxwell"
                 target="_blank"

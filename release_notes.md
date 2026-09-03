@@ -1,5 +1,29 @@
 # Release Notes
 
+## 22.5.2 - 2026-09-03 - Archive Navigation and Original Downloads
+
+### Source navigation
+
+- **About-page source actions now apply exact collection filters.** A source name no longer becomes a full-text query. The Document Browser opens the complete selected tranche, including its archived media records, and keeps the source filter in the URL.
+- **Every referenced tranche is directly linked.** Source titles, View actions, and the corpus descriptions lead to the relevant collection, Black Book, or media browser.
+- **Named archive subjects link to their profiles.** The About page resolves canonical Jeffrey Epstein and Ghislaine Maxwell records and links mentions to their evidence profiles.
+
+### Archive downloads
+
+- **Original-document downloads use one canonical client path.** Document modals, global search, evidence pages, file browsing, and text, email, and image viewers now request the preserved original variant consistently.
+- **The server enforces downloads as attachments.** Local files, pinned evidence assets, remote source fallbacks, and generated email originals return a safe filename and an explicit attachment disposition when requested.
+- **The About-page source downloads no longer point to missing routes.** The Black Book and flight-log controls serve the preserved PDFs, and non-functional disabled download icons have been removed.
+- **Legacy PDF downloads now request attachment delivery.** The media PDF endpoint preserves inline viewing while returning an attachment with the source filename for download actions.
+- **Verified files remain accessible from isolated deployment worktrees.** File serving permits the already root-validated corpus path even when a parent staging directory begins with a dot.
+
+### Interface repair
+
+- **The About-page View action has a complete button style.** Mobile and desktop controls now have consistent sizing, contrast, hover, and keyboard-focus states.
+
+### Verification
+
+- **Route tests cover exact source filtering and attachment delivery.** URL tests also protect original-variant, encoded-document-ID, and SHA-256-pinned download contracts.
+
 ## 22.5.1 - 2026-09-03 - Truthful Pipeline Progress
 
 ### Status accuracy

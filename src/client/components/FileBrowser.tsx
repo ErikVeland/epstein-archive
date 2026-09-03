@@ -5,6 +5,7 @@ import { CloseButton } from './common/CloseButton';
 import { cn } from '@client/utils/cn';
 import styles from './FileBrowser.module.css';
 import { apiClient } from '@client/services/apiClient';
+import { getOriginalDocumentUrl } from '@client/utils/documentDownload';
 import {
   Flex,
   Surface,
@@ -233,9 +234,9 @@ const FileBrowser: React.FC = () => {
       return;
     }
 
-    const downloadPath =
-      file.path ||
-      (file.id ? `/api/documents/${encodeURIComponent(file.id)}/file?variant=original` : '');
+    const downloadPath = file.id
+      ? getOriginalDocumentUrl(file.id, { download: true })
+      : file.path || '';
     if (!downloadPath) {
       return;
     }

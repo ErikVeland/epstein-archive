@@ -28,6 +28,7 @@ import { Box } from '@client/design-system/components/layout/Box';
 import { Grid } from '@client/design-system/components/layout/Grid';
 import { LqText } from '@client/design-system/components/typography/Text';
 import { MobileStackHeader } from '@client/components/layout/MobileStackHeader';
+import { downloadOriginalDocument } from '@client/utils/documentDownload';
 import styles from './EvidenceDetail.module.css';
 
 import { Button, HIGSettingsGroup, HIGSettingsRow, HIGStackRow } from '@client/design-system/lib';
@@ -187,11 +188,7 @@ export function EvidenceDetail() {
 
   const handleDownload = () => {
     if (!evidence) return;
-    window.open(
-      `/api/documents/${encodeURIComponent(String(evidence.id))}/file?variant=original`,
-      '_blank',
-      'noopener,noreferrer',
-    );
+    downloadOriginalDocument(evidence.id, evidence.originalFilename);
   };
 
   if (loading) {

@@ -42,6 +42,12 @@ const ASSET_PROXY_TIMEOUT_MS = 30_000;
 const verifiedAssetCache = new Map<string, string>();
 const VERIFIED_ASSET_CACHE_LIMIT = 1_024;
 
+export function attachmentDisposition(filename: string): string {
+  const basename = path.basename(filename || 'original-document').replace(/[\r\n]/g, '');
+  const ascii = basename.replace(/[^\x20-\x7e]/g, '_').replace(/["\\]/g, '_');
+  return `attachment; filename="${ascii || 'original-document'}"; filename*=UTF-8''${encodeURIComponent(basename)}`;
+}
+
 interface ByteRange {
   end: number;
   start: number;
@@ -645,6 +651,9 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
   try {
     const { id } = req.params;
     const variant = String(req.query.variant || 'dirty').toLowerCase();
+    const forceDownload = ['1', 'true', 'attachment'].includes(
+      String(req.query.download || req.query.disposition || '').toLowerCase(),
+    );
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
@@ -703,6 +712,19 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
 
     const docAny = doc as unknown as Record<string, unknown>;
     const metadata = (docAny.metadata || {}) as Record<string, unknown>;
+    const responseFilename = String(
+      pinnedAsset?.file_name || doc.fileName || docAny.file_name || `document-${id}`,
+    );
+    const setContentDisposition = (fallbackPath?: string): void => {
+      const filename =
+        responseFilename || (fallbackPath ? path.basename(fallbackPath) : 'document');
+      res.setHeader(
+        'Content-Disposition',
+        forceDownload
+          ? attachmentDisposition(filename)
+          : `inline; filename="${filename.replace(/["\r\n]/g, '')}"`,
+      );
+    };
     const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value);
     const firstNonUrl = (values: unknown[]): string => {
       for (const candidate of values) {
@@ -975,10 +997,7 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
         ].join('\r\n');
 
         res.setHeader('Content-Type', 'message/rfc822; charset=utf-8');
-        res.setHeader(
-          'Content-Disposition',
-          `inline; filename="${String(doc.fileName || `email-${id}.eml`).replace(/"/g, '')}"`,
-        );
+        setContentDisposition();
         return res.status(200).send(eml);
       }
 
@@ -1036,7 +1055,7 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
           const contentRange = upstream.headers.get('content-range');
 
           res.status(upstream.status);
-          res.setHeader('Content-Disposition', 'inline');
+          setContentDisposition();
           res.setHeader('X-Asset-Proxy', 'true');
           if (v !== primaryVariant) res.setHeader('X-Asset-Fallback', 'true');
           if (contentType) res.setHeader('Content-Type', contentType);
@@ -1062,7 +1081,7 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
       });
     }
 
-    res.setHeader('Content-Disposition', 'inline');
+    setContentDisposition(finalFileResult.absolutePath);
     if (pinnedAsset) {
       let fileHandle: FileHandle | null = null;
       const closeFileHandle = async (): Promise<void> => {
@@ -1161,7 +1180,7 @@ router.get('/:id/file', documentFileLimiter, validate(documentIdSchema), async (
       res.setHeader('X-Asset-Fallback', 'true');
     }
 
-    return res.sendFile(finalFileResult.absolutePath, (err) => {
+    return res.sendFile(finalFileResult.absolutePath, { dotfiles: 'allow' }, (err) => {
       if (err) next(err);
     });
   } catch (error) {

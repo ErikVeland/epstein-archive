@@ -3,13 +3,15 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getDocumentLineage = vi.fn();
+const getDocumentById = vi.fn();
+const getDocuments = vi.fn();
 
 process.env.JWT_SECRET = 'test-secret-for-documents-routes';
 
 vi.mock('../server/db/documentsRepository.js', () => ({
   documentsRepository: {
-    getDocuments: vi.fn(),
-    getDocumentById: vi.fn(),
+    getDocuments,
+    getDocumentById,
     getRelatedDocuments: vi.fn(),
   },
 }));
@@ -54,6 +56,8 @@ describe('documentsRoutes lineage endpoint', async () => {
 
   beforeEach(() => {
     getDocumentLineage.mockReset();
+    getDocumentById.mockReset();
+    getDocuments.mockReset();
   });
 
   it('returns lineage payload for a valid document id', async () => {
@@ -80,5 +84,36 @@ describe('documentsRoutes lineage endpoint', async () => {
 
     expect(response.status).toBe(404);
     expect(response.body.error).toMatch(/lineage/i);
+  });
+
+  it('passes a source collection as an exact filter instead of full-text search', async () => {
+    getDocuments.mockResolvedValue({ documents: [], total: 0, page: 1, pageSize: 50 });
+
+    const response = await request(buildApp()).get('/api/documents?source=Court%20Case%20Evidence');
+
+    expect(response.status).toBe(200);
+    expect(getDocuments).toHaveBeenCalledWith(
+      1,
+      50,
+      expect.objectContaining({ source: 'Court Case Evidence', search: undefined }),
+    );
+  });
+
+  it('forces an attachment filename for original-document downloads', async () => {
+    getDocumentById.mockResolvedValue({
+      id: 42,
+      fileName: 'source-email.eml',
+      evidenceType: 'email',
+      content: 'Archived email body',
+      metadata: { subject: 'Archived message' },
+    });
+
+    const response = await request(buildApp()).get(
+      '/api/documents/42/file?variant=original&download=1',
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers['content-disposition']).toContain('attachment;');
+    expect(response.headers['content-disposition']).toContain('source-email.eml');
   });
 });

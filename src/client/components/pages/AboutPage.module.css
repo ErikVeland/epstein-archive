@@ -336,16 +336,54 @@
 
 /* Shared action buttons */
 .viewBtn {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
   gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, var(--glass-border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--glass-bg));
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.viewBtn:hover {
+  border-color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 20%, var(--glass-bg));
+  transform: translateY(-1px);
+}
+
+.viewBtn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.sourceTitleLink,
+.articleSourceLink {
+  color: inherit;
+  text-decoration-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.sourceTitleLink:hover,
+.articleSourceLink:hover {
+  color: var(--accent-primary);
+  text-decoration-color: currentColor;
 }
 
 .downloadBtn {
   justify-content: center;
-}
-
-.downloadBtnDisabled {
-  justify-content: center;
-  cursor: not-allowed;
 }
 
 /* Status dot / impact chip shared */

@@ -13,6 +13,7 @@ const router = Router();
 const pdfQuerySchema = z.object({
   query: z.object({
     filePath: z.string().min(1),
+    download: z.enum(['1', 'true']).optional(),
   }),
 });
 
@@ -33,7 +34,11 @@ router.get('/pdf', mediaStreamLimiter, validate(pdfQuerySchema), async (req, res
       return res.status(403).json({ error: 'Access denied' });
     }
     res.type('application/pdf');
-    return res.sendFile(canonical);
+    if (req.query.download) {
+      const filename = path.basename(canonical).replace(/["\r\n]/g, '') || 'document.pdf';
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    }
+    return res.sendFile(canonical, { dotfiles: 'allow' });
   } catch (error) {
     next(error);
   }
