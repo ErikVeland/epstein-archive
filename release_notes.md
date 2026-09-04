@@ -1,5 +1,24 @@
 # Release Notes
 
+## 22.6.13 - 2026-09-04 - Evidence Review and Security Release
+
+### Evidence review
+
+- Publish the property listings, Black Book identity review, player timeline, source-led analytics and financial review described in releases 22.6.6 through 22.6.12.
+- Include the consistent redacted logo and stable FAQ carousel height.
+
+### Security and operations
+
+- Update archive extraction, image processing, routing, HTML sanitisation and compatible dependencies to patched releases.
+- Separate the SSH administrator from the deployment runtime account. Require verified SSH host keys and retain runtime privilege restrictions.
+- Pause automatic production deployment while revoked CI credentials are replaced. Manual workflow dispatch requires a pinned host key; local deployment retains CI and release gates.
+- Keep original evidence and AI review boundaries intact. Host cleanup does not establish that the compromised host is clean.
+
+### Database
+
+- Include the versioned property-media relationship table and reviewed-identity lookup index, with their matching schema baseline.
+- Restore the subject property's historic address only for the exact source-verified parcel match.
+
 ## 22.6.12 - 2026-09-04 - Source-led Financial Review
 
 ### Financial evidence

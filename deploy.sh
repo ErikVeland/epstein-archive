@@ -13,12 +13,16 @@ if [ -f ".env.deploy.local" ]; then
 fi
 
 # Configuration
-PRODUCTION_USER="${EPSTEIN_PROD_SSH_USER:-svc_epstein}"
+PRODUCTION_USER="${EPSTEIN_PROD_RUNTIME_USER:-svc_epstein}"
+SSH_USER="${EPSTEIN_PROD_SSH_USER:-$PRODUCTION_USER}"
 PRODUCTION_HOST="${EPSTEIN_PROD_HOST:-}"
 PRODUCTION_PATH="${EPSTEIN_PROD_PATH:-/home/${PRODUCTION_USER}/epstein-archive}"
 REMOTE_HOME="/home/${PRODUCTION_USER}"
 SSH_KEY_PATH="${EPSTEIN_PROD_SSH_KEY_PATH:-$HOME/.ssh/id_epstein_prod_ed25519}"
-SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=60 -o ServerAliveCountMax=10)
+SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o ServerAliveInterval=60 -o ServerAliveCountMax=10)
+if [ -n "${EPSTEIN_PROD_KNOWN_HOSTS_PATH:-}" ]; then
+  SSH_OPTS+=(-o "UserKnownHostsFile=$EPSTEIN_PROD_KNOWN_HOSTS_PATH")
+fi
 PUBLIC_ORIGIN="${EPSTEIN_PUBLIC_ORIGIN:-https://epstein.academy}"
 CANARY_PORT="${EPSTEIN_CANARY_PORT:-3013}"
 RELEASE_METADATA_BASE_REF=""
@@ -37,7 +41,16 @@ log_error() { echo -e "${RED}❌ $1${NC}"; }
 require_cmd() { command -v "$1" >/dev/null 2>&1 || { log_error "Required command not found: $1"; exit 1; }; }
 require_file() { [ -f "$1" ] || { log_error "Required file not found: $1"; exit 1; }; }
 require_env() { [ -n "${!1:-}" ] || { log_error "Required environment variable not set: $1"; exit 1; }; }
-remote_ssh() { ssh "${SSH_OPTS[@]}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$@"; }
+remote_ssh() {
+  if [ "$SSH_USER" = "$PRODUCTION_USER" ]; then
+    ssh "${SSH_OPTS[@]}" "${SSH_USER}@${PRODUCTION_HOST}" "$@"
+  else
+    local runtime_quoted command_quoted
+    printf -v runtime_quoted '%q' "$PRODUCTION_USER"
+    printf -v command_quoted '%q' "$*"
+    ssh "${SSH_OPTS[@]}" "${SSH_USER}@${PRODUCTION_HOST}" "sudo -n -H -u $runtime_quoted bash -c $command_quoted"
+  fi
+}
 
 ensure_local_git_identity() {
   local current_name current_email fallback_name fallback_email
@@ -642,8 +655,8 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
     fi
 
     log_step "Building locally to verify integrity..."
-    # Schema hash check requires a live DB; the remote cert gate performs the authoritative check.
-    SKIP_SCHEMA_HASH_CHECK=true pnpm build:prod
+    # Both local and remote schema gates must pass.
+    pnpm build:prod
 
     # CRITICAL GATE: Catch bundle-level initialization errors (ReferenceError, TDZ)
     # that only appear after minification.
@@ -657,7 +670,7 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
     log_warning "origin/main advanced during local gates; re-running build gates after rebase."
     RELEASE_METADATA_BASE_REF="$(git rev-parse HEAD^)"
     verify_release_metadata
-    SKIP_SCHEMA_HASH_CHECK=true pnpm build:prod
+    pnpm build:prod
     pnpm test:bundle-smoke:only
   fi
 

@@ -1,8 +1,8 @@
 name: Production Deploy
 
 on:
-  push:
-    branches: [main]
+  # Automatic deployment is paused after incident key revocation.
+  # Restore it only after provisioning a restricted CI deployment identity.
   workflow_dispatch:
 
 permissions:
@@ -68,12 +68,16 @@ jobs:
         shell: bash
         env:
           PROD_SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          PROD_KNOWN_HOSTS: ${{ secrets.PROD_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
+          test -n "$PROD_SSH_PRIVATE_KEY"
+          test -n "$PROD_KNOWN_HOSTS"
           install -m 700 -d "$HOME/.ssh"
           printf '%s\n' "$PROD_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_epstein_prod_ed25519"
           chmod 600 "$HOME/.ssh/id_epstein_prod_ed25519"
-          ssh-keyscan -H "${{ secrets.PROD_HOST || '194.195.248.217' }}" >> "$HOME/.ssh/known_hosts"
+          printf '%s\n' "$PROD_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Deploy to production
         env:
