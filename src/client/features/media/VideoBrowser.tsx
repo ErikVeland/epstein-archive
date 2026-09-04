@@ -1,3 +1,4 @@
+import { getDojNativeSourceUrl } from '@shared/utils/dojNativeSource';
 import React, { useState, useCallback, useMemo } from 'react';
 import { FixedSizeGrid as Grid, GridChildComponentProps, areEqual } from 'react-window';
 import { createPortal } from 'react-dom';
@@ -725,6 +726,8 @@ export const VideoBrowser: React.FC = () => {
               <Box className={styles.playerModalFrame}>
                 <VideoPlayer
                   key={selectedItem.id}
+                  sourceUrl={getDojNativeSourceUrl(selectedItem.metadata)}
+                  remoteSourceOnly={selectedItem.metadata?.storage_policy === 'doj_remote'}
                   src={`/api/media/video/${selectedItem.id}/stream`}
                   title={selectedItem.title}
                   transcript={selectedItem.metadata.transcript as unknown as TranscriptSegment[]}

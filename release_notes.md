@@ -1,5 +1,24 @@
 # Release Notes
 
+## 22.6.15 - 2026-09-04 - Native DOJ Corpus Pipeline and Storage Fallback
+
+### Archive access
+
+- Add an official DOJ link to native audio and video players. Missing local streams redirect only to validated DOJ EFTA file URLs.
+- Keep native files above 25 MiB in the local archive and use DOJ links on the server. Retain source identifiers, checksums, catalogue entries and available extracted text.
+
+### Processing and provenance
+
+- Add a scoped, resumable native-file worker with hash verification, timestamped transcription chunks and extraction of spreadsheet values and formulas, including hidden worksheets.
+- Support an optional Apple-native MLX runtime with pinned local model files and recorded model hashes.
+- Preserve original bytes and raw machine transcripts. Track failures, files with no audio and downstream analysis separately. Transcripts remain unreviewed.
+- Include older native records that had empty text despite a completed ingestion status.
+
+### Release operations
+
+- Add versioned native media bundles with dry-run import, source-hash document matching and active asset verification. Hard-link staged assets to avoid a second server copy.
+- Preserve existing canonical text and reject source, asset and media identity conflicts. This release adds no database migration.
+
 ## 22.6.14 - 2026-09-04 - Investigation Workspace and Mobile Workflows
 
 ### Investigation workflow

@@ -10,6 +10,8 @@ import styles from './VideoPlayer.module.css';
 
 interface VideoPlayerProps {
   src: string;
+  sourceUrl?: string | null;
+  remoteSourceOnly?: boolean;
   title: string;
   transcript?: TranscriptSegment[];
   chapters?: Chapter[];
@@ -24,6 +26,8 @@ interface VideoPlayerProps {
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   src,
+  sourceUrl,
+  remoteSourceOnly = false,
   title,
   transcript = [],
   chapters = [],
@@ -361,11 +365,22 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 {title}
               </h3>
               <p className={styles.subtitle}>
-                {chapters.length > 0 ? `${chapters.length} chapters` : 'Video Recording'}
+                {remoteSourceOnly
+                  ? 'Large file hosted by DOJ. Use the DOJ link to open it.'
+                  : chapters.length > 0
+                    ? `${chapters.length} chapters`
+                    : 'Video Recording'}
               </p>
             </div>
           </div>
           <div className={styles.headerActions}>
+            {sourceUrl && (
+              <Button asChild variant="secondary" size="sm">
+                <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+                  Open file at DOJ
+                </a>
+              </Button>
+            )}
             <Button unstyled onClick={handleShare} className={styles.iconButton} title="Copy link">
               {showCopied ? (
                 <Icon name="Check" size="sm" className={styles.successIcon} />
@@ -459,7 +474,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <div className={styles.playerFrame}>
             <video
               ref={videoRef}
-              src={src}
+              src={remoteSourceOnly ? undefined : src}
               className={styles.video}
               onTimeUpdate={handleTimeUpdate}
               onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}

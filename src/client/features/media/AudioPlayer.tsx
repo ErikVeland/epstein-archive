@@ -23,6 +23,8 @@ export interface Chapter {
 
 interface AudioPlayerProps {
   src: string;
+  sourceUrl?: string | null;
+  remoteSourceOnly?: boolean;
   title: string;
   transcript?: TranscriptSegment[];
   chapters?: Chapter[];
@@ -39,6 +41,8 @@ interface AudioPlayerProps {
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   src,
+  sourceUrl,
+  remoteSourceOnly = false,
   title,
   transcript = [],
   onClose,
@@ -277,11 +281,20 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   {title}
                 </LqText>
                 <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
-                  Forensic Signal Log
+                  {remoteSourceOnly
+                    ? 'Large file hosted by DOJ. Use the DOJ link to open it.'
+                    : 'Forensic Signal Log'}
                 </LqText>
               </Stack>
             </Flex>
             <Flex align="center" gap="sm">
+              {sourceUrl && (
+                <Button asChild variant="secondary" size="sm">
+                  <a href={sourceUrl} target="_blank" rel="noopener noreferrer">
+                    Open file at DOJ
+                  </a>
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={handleShare}>
                 <Icon name="Share2" size="sm" />
               </Button>
@@ -521,7 +534,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       <audio
         ref={audioRef}
-        src={src}
+        src={remoteSourceOnly ? undefined : src}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
         onEnded={() => setIsPlaying(false)}

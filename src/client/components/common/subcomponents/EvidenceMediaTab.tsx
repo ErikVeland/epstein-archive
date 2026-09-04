@@ -1,3 +1,4 @@
+import { getDojNativeSourceUrl } from '@shared/utils/dojNativeSource';
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
@@ -343,6 +344,8 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
               </div>
             ) : selectedCategory === 'audio' ? (
               <AudioPlayer
+                sourceUrl={getDojNativeSourceUrl(finalSelectedItem.metadata)}
+                remoteSourceOnly={finalSelectedItem.metadata?.storage_policy === 'doj_remote'}
                 src={
                   finalSelectedItem.fullUrl ||
                   finalSelectedItem.url ||
@@ -358,6 +361,8 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
               />
             ) : selectedCategory === 'videos' ? (
               <VideoPlayer
+                sourceUrl={getDojNativeSourceUrl(finalSelectedItem.metadata)}
+                remoteSourceOnly={finalSelectedItem.metadata?.storage_policy === 'doj_remote'}
                 src={
                   finalSelectedItem.fullUrl ||
                   finalSelectedItem.url ||

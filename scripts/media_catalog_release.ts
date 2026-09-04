@@ -1301,6 +1301,11 @@ async function verifyRelease(options: CliOptions): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  if (process.argv.includes('--native')) {
+    const { runNativeRelease } = await import('./native_corpus_release.js');
+    await runNativeRelease();
+    return;
+  }
   const options = parseOptions();
   if (options.command === 'audit') await auditSourceAssets(options);
   else if (options.command === 'export') await exportRelease(options);

@@ -1,3 +1,4 @@
+import { getDojNativeSourceUrl } from '@shared/utils/dojNativeSource';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -632,6 +633,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
               <Box className={styles.playerModalFrame}>
                 <AudioPlayer
                   key={selectedItem.id}
+                  sourceUrl={getDojNativeSourceUrl(selectedItem.metadata)}
+                  remoteSourceOnly={selectedItem.metadata?.storage_policy === 'doj_remote'}
                   src={`/api/media/audio/${selectedItem.id}/stream`}
                   title={selectedItem.title}
                   transcript={selectedItem.metadata?.transcript}

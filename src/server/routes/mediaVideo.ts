@@ -8,6 +8,7 @@ import { findFirstExistingPath } from '../utils/pathResolver.js';
 import path from 'path';
 import { ThumbnailService } from '../services/ThumbnailService.js';
 import { avListQuerySchema, makeAvListHandler, mediaIdParamSchema } from './mediaShared.js';
+import { getDojNativeSourceUrl } from '../../shared/utils/dojNativeSource.js';
 
 const router = Router();
 
@@ -71,7 +72,11 @@ router.get(
       if (!item) return res.status(404).json({ error: 'Video item not found' });
 
       const resolvedPath = findFirstExistingPath([String(item.filePath || '')]);
-      if (!resolvedPath) return res.status(404).json({ error: 'Video file not found on disk' });
+      if (!resolvedPath) {
+        const sourceUrl = getDojNativeSourceUrl(item.metadata);
+        if (sourceUrl) return res.redirect(307, sourceUrl);
+        return res.status(404).json({ error: 'Video file not found on disk' });
+      }
 
       if (item.fileType) res.type(String(item.fileType));
       return res.sendFile(resolvedPath);
