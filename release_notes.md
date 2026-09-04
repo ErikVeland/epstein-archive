@@ -1,5 +1,19 @@
 # Release Notes
 
+## 22.6.16 - 2026-09-04 - Populated Document Browser and Source Highlights
+
+### Document browsing
+
+- Load the document catalogue without a search, including when a document selection already exists. Avoid applying a score filter when the full range is selected.
+- Add a responsive carousel of selected Maxwell interviews, the signed proffer agreement, DOJ oversight records and official correspondence. Resolve each selection against its source collection and filename.
+- Keep highlights independent of search and filters, with direct document navigation, swipe support and previous/next controls.
+
+### Reliability
+
+- Return a retryable service error when document listing times out instead of reporting a successful empty archive. Allow up to 15 seconds and expose retry controls.
+- Align the default sort with the existing catalogue index to avoid a full-table sort. Keep prepared query names distinct for each sort mode.
+- Reuse shared interface primitives and add a shared carousel with reduced-motion support. No database migration or source-file changes.
+
 ## 22.6.15 - 2026-09-04 - Native DOJ Corpus Pipeline and Storage Fallback
 
 ### Archive access

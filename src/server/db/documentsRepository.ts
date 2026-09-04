@@ -246,7 +246,7 @@ export const documentsRepository = {
                 ? `file_size ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC`
                 : sortBy === 'significance'
                   ? `significance_score DESC NULLS LAST, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC`
-                  : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
+                  : `red_flag_rating ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC NULLS LAST`;
 
     // Support indexed content search directly in the document browser.
     const docsSql = `
@@ -390,7 +390,7 @@ export const documentsRepository = {
 
     const pool = getApiPool();
     const docsRes = await pool.query({
-      name: 'documents.getDocuments.list',
+      name: `documents.getDocuments.list.${sortBy}.${sortOrder}`,
       text: docsSql,
       values: [
         search ? `%${search}%` : null,

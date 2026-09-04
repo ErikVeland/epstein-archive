@@ -1,0 +1,9 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.reason {
+  flex: 1;
+}

@@ -1,0 +1,24 @@
+.carousel {
+  min-width: 0;
+  margin-block: var(--space-6);
+}
+.track {
+  display: flex;
+  gap: var(--space-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-block: var(--space-4);
+}
+.track:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.slide {
+  flex: 0 0 min(85%, 22rem);
+  min-width: 0;
+  scroll-snap-align: start;
+  display: flex;
+}
+.slide > * {
+  width: 100%;
+}

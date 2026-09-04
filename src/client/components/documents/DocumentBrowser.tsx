@@ -10,6 +10,7 @@ import { useFilters } from '@client/contexts/useFilters';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import { DocumentBrowserHeader } from './DocumentBrowserHeader';
 import { DocumentBrowserFilters } from './DocumentBrowserFilters';
+import { DocumentHighlights } from './DocumentHighlights';
 import { DocumentList } from './DocumentList';
 import { useDocumentBrowserData } from '@client/hooks/useDocumentBrowserData';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
@@ -231,6 +232,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     isError,
     error,
     searchMeta,
+    retry,
   } = useDocumentBrowserData({
     effectiveSearchTerm,
     globalTimeRange: globalFilters.timeRange,
@@ -339,6 +341,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           searchMeta={searchMeta}
         />
 
+        <DocumentHighlights onOpen={openDocumentRoute} />
+
         <AnimatePresence>
           {showFilters && (
             <motion.div
@@ -385,6 +389,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           handleHoverStart={handleHoverStart}
           handleHoverEnd={handleHoverEnd}
           isFetching={isFetching}
+          onRetry={retry}
           isError={isError}
           error={error}
           currentPage={currentPage}

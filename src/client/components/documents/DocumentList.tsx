@@ -26,6 +26,7 @@ interface DocumentListProps {
   handleHoverEnd: () => void;
   isFetching: boolean;
   isError?: boolean;
+  onRetry?: () => void;
   error?: unknown;
   currentPage: number;
   totalDocuments: number;
@@ -47,6 +48,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   handleHoverEnd,
   isFetching,
   isError,
+  onRetry,
   error,
   currentPage,
   totalDocuments,
@@ -74,6 +76,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             <Icon name="FileText" className={styles.emptyIcon} color="danger" />
           </Box>
         }
+        actions={onRetry ? <Button onClick={onRetry}>Retry loading documents</Button> : undefined}
         title="Error Loading Documents"
         description={
           error instanceof Error ? error.message : 'Failed to fetch document data from the server.'

@@ -99,6 +99,33 @@ describe('documentsRoutes lineage endpoint', async () => {
     );
   });
 
+  it('loads the catalogue without requiring a search term', async () => {
+    getDocuments.mockResolvedValue({ documents: [{ id: '42' }], total: 1, page: 1, pageSize: 50 });
+    const response = await request(buildApp()).get('/api/documents');
+    expect(response.status).toBe(200);
+    expect(response.body.documents).toHaveLength(1);
+    expect(getDocuments).toHaveBeenCalledWith(
+      1,
+      50,
+      expect.objectContaining({ search: undefined }),
+    );
+  });
+
+  it('returns a retryable failure instead of a successful empty list on timeout', async () => {
+    const timeout = await import('../server/utils/asyncTimeout.js');
+    const spy = vi.spyOn(timeout, 'withTimeoutFallback').mockResolvedValueOnce(null);
+    getDocuments.mockResolvedValue({ documents: [], total: 0 });
+    try {
+      const response = await request(buildApp()).get('/api/documents');
+      expect(response.status).toBe(503);
+      expect(response.headers['retry-after']).toBe('5');
+      expect(response.body.error.code).toBe('DOCUMENTS_TIMEOUT');
+      expect(response.body.total).toBeUndefined();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('forces an attachment filename for original-document downloads', async () => {
     getDocumentById.mockResolvedValue({
       id: 42,

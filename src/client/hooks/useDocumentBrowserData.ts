@@ -6,7 +6,7 @@ import { apiClient, type SearchMode } from '@client/services/apiClient';
 const str = (v: unknown, fallback = ''): string =>
   typeof v === 'string' ? v : v != null ? String(v) : fallback;
 
-const mapApiDocumentToDocument = (doc: Record<string, unknown>): Document => {
+export const mapApiDocumentToDocument = (doc: Record<string, unknown>): Document => {
   const meta =
     doc.metadata && typeof doc.metadata === 'object'
       ? (doc.metadata as Record<string, unknown>)
@@ -99,7 +99,6 @@ export function useDocumentBrowserData({
   filters,
   itemsPerPage,
   hideLowCredibility,
-  selectedDocumentId,
   searchMode,
 }: UseDocumentBrowserDataOptions) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -154,6 +153,7 @@ export function useDocumentBrowserData({
     isFetching,
     isError,
     error,
+    refetch,
   } = useQuery({
     queryKey: ['documents', queryKey, currentPage],
     queryFn: async () => {
@@ -172,7 +172,10 @@ export function useDocumentBrowserData({
           source: filters.source && filters.source.length > 0 ? filters.source : undefined,
           startDate: effectiveStart ?? undefined,
           endDate: effectiveEnd ?? undefined,
-          redFlagLevel: filters.redFlagLevel,
+          redFlagLevel:
+            filters.redFlagLevel?.min === 0 && filters.redFlagLevel?.max === 5
+              ? undefined
+              : filters.redFlagLevel,
           collectionId: filters.collectionId,
           fileType: filters.fileType,
           includeMedia: filters.includeMedia,
@@ -192,7 +195,6 @@ export function useDocumentBrowserData({
         searchMeta: result.searchMeta,
       };
     },
-    enabled: !selectedDocumentId,
     staleTime: 30_000,
     placeholderData: (prev) => prev,
   });
@@ -221,5 +223,6 @@ export function useDocumentBrowserData({
     isError,
     error,
     searchMeta,
+    retry: () => void refetch(),
   };
 }

@@ -238,19 +238,10 @@ const isWithinRoot = (candidate: string, root: string): boolean => {
   return candidate === root || candidate.startsWith(`${root}${path.sep}`);
 };
 
-const emptyDocumentsList = (page: number, limit: number) => ({
-  documents: [],
-  total: 0,
-  page,
-  pageSize: limit,
-  totalPages: 0,
-});
-
-const withDocumentsListTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
-  withTimeoutFallback(promise, fallback, {
-    timeoutMs: 5_000,
-    onTimeout: () =>
-      logger.warn('[Documents] list query timed out; returning degraded empty response'),
+const withDocumentsListTimeout = async <T>(promise: Promise<T>): Promise<T | null> =>
+  withTimeoutFallback<T | null>(promise, null, {
+    timeoutMs: 15_000,
+    onTimeout: () => logger.warn('[Documents] list query timed out'),
   });
 
 // GET /api/documents
@@ -329,16 +320,17 @@ router.get(
       const result = cursor
         ? await withDocumentsListTimeout(
             documentsRepository.getDocumentsCursor(cursor, limit, filters),
-            {
-              documents: [],
-              total: 0,
-              meta: { total: 0, limit, hasMore: false, nextCursor: null },
-            },
           )
-        : await withDocumentsListTimeout(
-            documentsRepository.getDocuments(page, limit, filters),
-            emptyDocumentsList(page, limit),
-          );
+        : await withDocumentsListTimeout(documentsRepository.getDocuments(page, limit, filters));
+      if (result === null) {
+        res.setHeader('Retry-After', '5');
+        return res.status(503).json({
+          error: {
+            code: 'DOCUMENTS_TIMEOUT',
+            message: 'Documents are taking longer to load. Please retry.',
+          },
+        });
+      }
 
       if (cursor && 'meta' in result) {
         const { meta } = result as {
