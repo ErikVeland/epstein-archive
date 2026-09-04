@@ -17,10 +17,10 @@ const SWIPE_THRESHOLD = 60;
 
 interface MobileBoardViewProps {
   investigationId: string;
+  editable?: boolean;
 }
 
 type AddSheetState = { column: Column } | null;
-type MoveSheetState = { cardTitle: string } | null;
 
 interface CreateHypothesisResponse {
   id: string | number;
@@ -28,13 +28,7 @@ interface CreateHypothesisResponse {
   status: string;
 }
 
-function HypothesisList({
-  hypotheses,
-  onMove,
-}: {
-  hypotheses: Hypothesis[];
-  onMove: (title: string) => void;
-}) {
+function HypothesisList({ hypotheses }: { hypotheses: Hypothesis[] }) {
   if (hypotheses.length === 0) return <div className={styles.emptyState}>No hypotheses yet</div>;
   return (
     <>
@@ -44,11 +38,6 @@ function HypothesisList({
           <div className={styles.cardMeta}>
             <span className={styles.badge}>{h.status}</span>
           </div>
-          <div className={styles.cardActions}>
-            <Button unstyled className={styles.cardBtn} onClick={() => onMove(h.title)}>
-              Move
-            </Button>
-          </div>
         </div>
       ))}
     </>
@@ -57,10 +46,12 @@ function HypothesisList({
 
 function EvidenceList({
   evidence,
-  onMove,
+  onAddToNarrative,
+  editable,
 }: {
   evidence: EvidenceItem[];
-  onMove: (title: string) => void;
+  onAddToNarrative: (evidenceId: string) => void;
+  editable: boolean;
 }) {
   if (evidence.length === 0) return <div className={styles.emptyState}>No evidence yet</div>;
   return (
@@ -72,15 +63,17 @@ function EvidenceList({
             <span className={styles.badge}>{ev.type}</span>
             <span className={styles.badge}>{ev.relevance}</span>
           </div>
-          <div className={styles.cardActions}>
-            <Button
-              unstyled
-              className={styles.cardBtn}
-              onClick={() => onMove(ev.title ?? 'Untitled')}
-            >
-              Move
-            </Button>
-          </div>
+          {editable && (
+            <div className={styles.cardActions}>
+              <Button
+                unstyled
+                className={styles.cardBtn}
+                onClick={() => onAddToNarrative(String(ev.id))}
+              >
+                Add to narrative
+              </Button>
+            </div>
+          )}
         </div>
       ))}
     </>
@@ -89,10 +82,12 @@ function EvidenceList({
 
 function NarrativeList({
   items,
-  onMove,
+  onRemove,
+  editable,
 }: {
   items: EvidenceItem[];
-  onMove: (title: string) => void;
+  onRemove: (evidenceId: string) => void;
+  editable: boolean;
 }) {
   if (items.length === 0) return <div className={styles.emptyState}>No narrative items yet</div>;
   return (
@@ -103,33 +98,52 @@ function NarrativeList({
           <div className={styles.cardMeta}>
             <span className={styles.badge}>{ev.type}</span>
           </div>
-          <div className={styles.cardActions}>
-            <Button
-              unstyled
-              className={styles.cardBtn}
-              onClick={() => onMove(ev.title ?? 'Untitled')}
-            >
-              Move
-            </Button>
-          </div>
+          {editable && (
+            <div className={styles.cardActions}>
+              <Button unstyled className={styles.cardBtn} onClick={() => onRemove(String(ev.id))}>
+                Remove from narrative
+              </Button>
+            </div>
+          )}
         </div>
       ))}
     </>
   );
 }
 
-export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
+export function MobileBoardView({ investigationId, editable = true }: MobileBoardViewProps) {
   const [activeColumn, setActiveColumn] = useState<Column>('hypotheses');
   const [addSheet, setAddSheet] = useState<AddSheetState>(null);
-  const [moveSheet, setMoveSheet] = useState<MoveSheetState>(null);
   const [addTitle, setAddTitle] = useState('');
   const [saving, setSaving] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const touchStartX = useRef(0);
   const colIndex = COLUMNS.indexOf(activeColumn);
 
-  const { hypotheses, evidence, notebook, loadingShell, setHypotheses } =
+  const { hypotheses, evidence, notebook, loadingShell, setHypotheses, setNotebook } =
     useInvestigationBoard(investigationId);
+
+  const updateNarrative = useCallback(
+    async (evidenceId: string, shouldInclude: boolean) => {
+      const numericId = Number(evidenceId);
+      if (!Number.isFinite(numericId) || saving) return;
+      const updated = shouldInclude
+        ? [...notebook.filter((id) => id !== numericId), numericId]
+        : notebook.filter((id) => id !== numericId);
+      setSaving(true);
+      setAddError(null);
+      try {
+        await apiClient.updateInvestigationNotebook(investigationId, { order: updated });
+        setNotebook(updated);
+      } catch (error) {
+        console.error('Narrative update failed:', error);
+        setAddError('The narrative could not be updated. Please try again.');
+      } finally {
+        setSaving(false);
+      }
+    },
+    [investigationId, notebook, saving, setNotebook],
+  );
 
   // Narrative column: evidence items ordered by notebook
   const narrativeItems = notebook
@@ -195,52 +209,66 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
 
   const renderCards = () => {
     if (loadingShell) return <div className={styles.loadingState}>Loading...</div>;
-    if (activeColumn === 'hypotheses')
-      return (
-        <HypothesisList
-          hypotheses={hypotheses}
-          onMove={(title) => setMoveSheet({ cardTitle: title })}
-        />
-      );
+    if (activeColumn === 'hypotheses') return <HypothesisList hypotheses={hypotheses} />;
     if (activeColumn === 'evidence')
       return (
-        <EvidenceList evidence={evidence} onMove={(title) => setMoveSheet({ cardTitle: title })} />
+        <EvidenceList
+          evidence={evidence.filter((item) => !notebook.includes(Number(item.id)))}
+          editable={editable}
+          onAddToNarrative={(id) => void updateNarrative(id, true)}
+        />
       );
     return (
       <NarrativeList
         items={narrativeItems}
-        onMove={(title) => setMoveSheet({ cardTitle: title })}
+        editable={editable}
+        onRemove={(id) => void updateNarrative(id, false)}
       />
     );
   };
 
   return (
     <div className={styles.root} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className={styles.columnTabs}>
+      <div className={styles.columnTabs} role="tablist" aria-label="Board columns">
         {COLUMNS.map((col) => (
           <Button
             unstyled
             key={col}
             className={`${styles.columnTab} ${activeColumn === col ? styles.columnTabActive : ''}`}
             onClick={() => setActiveColumn(col)}
+            role="tab"
+            aria-selected={activeColumn === col}
+            aria-controls={`mobile-board-${col}`}
           >
             {COLUMN_LABELS[col]}
           </Button>
         ))}
       </div>
 
-      <div className={styles.columnContent}>
+      <div
+        className={styles.columnContent}
+        id={`mobile-board-${activeColumn}`}
+        role="tabpanel"
+        aria-label={COLUMN_LABELS[activeColumn]}
+      >
+        {addError !== null && (
+          <div className={styles.errorMsg} role="alert">
+            {addError}
+          </div>
+        )}
         {renderCards()}
-        <Button
-          className={styles.addBtn}
-          variant="glass"
-          onClick={() => {
-            setAddSheet({ column: activeColumn });
-            setAddError(null);
-          }}
-        >
-          + Add to {COLUMN_LABELS[activeColumn]}
-        </Button>
+        {editable && activeColumn === 'hypotheses' && (
+          <Button
+            className={styles.addBtn}
+            variant="glass"
+            onClick={() => {
+              setAddSheet({ column: activeColumn });
+              setAddError(null);
+            }}
+          >
+            + Add hypothesis
+          </Button>
+        )}
       </div>
 
       {addSheet !== null && (
@@ -273,25 +301,6 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
             value={addTitle}
             onChange={(ev) => setAddTitle(ev.target.value)}
           />
-        </SheetDialog>
-      )}
-
-      {moveSheet !== null && (
-        <SheetDialog
-          open
-          onOpenChange={(open: boolean) => {
-            if (!open) setMoveSheet(null);
-          }}
-          title="Move Card"
-          footer={
-            <Button className={styles.sheetFooterButton} onClick={() => setMoveSheet(null)}>
-              OK
-            </Button>
-          }
-        >
-          <p className={styles.sheetNote}>
-            Full card editing and moving between columns is available on desktop.
-          </p>
         </SheetDialog>
       )}
     </div>

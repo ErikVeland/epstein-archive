@@ -57,9 +57,13 @@ export const mapInvestigationListItemDto = (
   row: Record<string, unknown>,
 ): InvestigationListItemDto => ({
   id: Number(row.id || 0),
+  uuid: typeof row.uuid === 'string' ? row.uuid : null,
   title: String(row.title ?? ''),
   description: typeof row.description === 'string' ? row.description : null,
+  ownerId:
+    typeof (row.ownerId ?? row.owner_id) === 'string' ? String(row.ownerId ?? row.owner_id) : null,
   status: String(row.status ?? 'active'),
+  scope: typeof row.scope === 'string' ? row.scope : null,
   priority: String(row.priority ?? 'medium'),
   createdAt: String(row.createdAt ?? row.created_at ?? ''),
   updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),

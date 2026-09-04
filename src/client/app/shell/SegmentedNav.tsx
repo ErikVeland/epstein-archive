@@ -33,16 +33,7 @@ export function SegmentedNav(props: {
   const canShowAttract = useMemo(() => {
     try {
       const shown = localStorage.getItem('investigate_attract_shown') === 'true';
-      const hasSeenInvestigationOnboarding =
-        localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
-      const hasSeenBoardOnboarding = localStorage.getItem('board_onboarding_seen') === 'true';
-      return (
-        !shown &&
-        !attractShown &&
-        !props.shouldShowOnboarding &&
-        hasSeenInvestigationOnboarding &&
-        hasSeenBoardOnboarding
-      );
+      return !shown && !attractShown && !props.shouldShowOnboarding;
     } catch {
       return false;
     }
@@ -72,19 +63,9 @@ export function SegmentedNav(props: {
   useEffect(() => {
     try {
       const dismissed = localStorage.getItem('investigate_popover_dismissed') === 'true';
-      const hasSeenInvestigationOnboarding =
-        localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
-      const hasSeenBoardOnboarding = localStorage.getItem('board_onboarding_seen') === 'true';
       const isMobile = window.innerWidth < 768;
 
-      if (
-        !dismissed &&
-        props.activeTab === 'people' &&
-        !props.shouldShowOnboarding &&
-        hasSeenInvestigationOnboarding &&
-        hasSeenBoardOnboarding &&
-        !isMobile
-      ) {
+      if (!dismissed && props.activeTab === 'people' && !props.shouldShowOnboarding && !isMobile) {
         const timer = setTimeout(() => setInvestigatePopoverOpen(true), 1200);
         return () => clearTimeout(timer);
       }

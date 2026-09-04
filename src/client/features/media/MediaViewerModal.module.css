@@ -129,7 +129,7 @@
 .navButton {
   position: absolute;
   top: 50%;
-  z-index: var(--z-raised);
+  z-index: var(--z-above);
   padding: var(--space-2);
   border-radius: 9999px;
   transform: translateY(-50%);

@@ -33,9 +33,12 @@ export interface InvestigativeLeadDto {
 
 export interface InvestigationListItemDto {
   id: number;
+  uuid: string | null;
   title: string;
   description: string | null;
+  ownerId: string | null;
   status: string;
+  scope: string | null;
   priority: string;
   createdAt: string;
   updatedAt: string;

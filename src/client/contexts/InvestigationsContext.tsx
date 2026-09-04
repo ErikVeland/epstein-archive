@@ -10,6 +10,9 @@ import React, {
 import { Investigation } from '@client/types/investigation';
 import { useAuth } from './AuthContext';
 import { useApiStatus } from './ApiStatusContext';
+import { apiClient } from '@client/services/apiClient';
+import { trackInvestigationEvent } from '@client/utils/investigationTelemetry';
+import { mapApiInvestigation } from '@client/domains/investigations/investigations.model';
 import {
   buildInvestigationEvidencePayload,
   type InvestigationEvidenceItem as InvestigationItem,
@@ -60,49 +63,8 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
     setIsLoading(true);
     setError(null);
     try {
-      const resp = await fetch('/api/investigations');
-      if (!resp.ok) {
-        const body = await resp.text().catch(() => '');
-        throw new Error(`Failed to load investigations (${resp.status})${body ? `: ${body}` : ''}`);
-      }
-      const payload: unknown = await resp.json();
-      const data =
-        typeof payload === 'object' && payload !== null
-          ? (payload as { data?: unknown })
-          : { data: [] };
-      const rows = Array.isArray(data.data) ? (data.data as Array<Record<string, unknown>>) : [];
-      const mapped: Investigation[] = rows.map((inv) => ({
-        id: String(inv.id),
-        title: String(inv.title || ''),
-        description: String(inv.description || ''),
-        hypothesis: String(inv.scope || ''),
-        status:
-          inv.status === 'open'
-            ? 'active'
-            : inv.status === 'in_review'
-              ? 'review'
-              : inv.status === 'closed'
-                ? 'published'
-                : ('archived' as Investigation['status']),
-        createdAt: new Date(String(inv.created_at || '')),
-        updatedAt: new Date(String(inv.updated_at || '')),
-        team: (inv.team as Investigation['team']) || [
-          {
-            id: String(inv.owner_id || ''),
-            name: String(inv.owner_name || 'Investigation Owner'),
-            email: String(inv.owner_email || ''),
-            role: 'lead' as const,
-            permissions: ['read', 'write', 'admin'],
-            joinedAt: new Date(String(inv.created_at || '')),
-            organization: String(inv.owner_organization || ''),
-            expertise: [],
-          },
-        ],
-        leadInvestigator: String(inv.owner_id || ''),
-        permissions: [],
-        tags: [],
-        priority: 'medium' as const,
-      }));
+      const payload = await apiClient.getInvestigations();
+      const mapped: Investigation[] = payload.data.map(mapApiInvestigation);
       setInvestigations(mapped);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load investigations';
@@ -125,25 +87,19 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
     async (
       data: Omit<Investigation, 'id' | 'createdAt' | 'updatedAt' | 'team' | 'permissions' | 'tags'>,
     ): Promise<Investigation | null> => {
+      if (!user || (user.role !== 'admin' && user.role !== 'investigator')) {
+        setError('Sign in with an investigator account to create a case.');
+        return null;
+      }
       setIsLoading(true);
       setError(null);
       try {
-        const resp = await fetch('/api/investigations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: data.title,
-            description: data.description,
-            ownerId: user?.id,
-            scope: data.hypothesis,
-          }),
+        const inv = await apiClient.createInvestigation({
+          title: data.title,
+          description: data.description,
+          scope: data.hypothesis,
         });
-
-        if (!resp.ok) {
-          throw new Error('Failed to create investigation');
-        }
-
-        const inv = await resp.json();
+        if (!inv) throw new Error('The server did not return the new case.');
         await loadInvestigations(); // Refresh the list
 
         const newInvestigation: Investigation = {
@@ -159,8 +115,8 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
                 : inv.status === 'closed'
                   ? 'published'
                   : 'archived',
-          createdAt: new Date(inv.created_at),
-          updatedAt: new Date(inv.updated_at),
+          createdAt: new Date(inv.createdAt),
+          updatedAt: new Date(inv.updatedAt),
           team: [
             {
               id: user?.id || '',
@@ -168,7 +124,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
               email: user?.email || '',
               role: 'lead',
               permissions: ['read', 'write', 'admin'],
-              joinedAt: new Date(inv.created_at),
+              joinedAt: new Date(inv.createdAt),
               organization: '',
               expertise: [],
               status: 'active',
@@ -199,28 +155,30 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
       item: InvestigationItem,
       relevance: 'high' | 'medium' | 'low',
     ) => {
+      if (!user || (user.role !== 'admin' && user.role !== 'investigator')) {
+        const message = 'Sign in with an investigator account to add evidence.';
+        setError(message);
+        throw new Error(message);
+      }
       setError(null);
       try {
         const evidencePayload = buildInvestigationEvidencePayload(item, relevance);
 
         // Call the API to persist
-        const response = await fetch(`/api/investigations/${investigationId}/evidence`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(evidencePayload),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to add evidence: ${response.statusText}`);
-        }
-
-        const result = await response.json();
+        const result = await apiClient.post<{ id: string | number }>(
+          `/investigations/${encodeURIComponent(investigationId)}/evidence`,
+          evidencePayload,
+        );
 
         // Dispatch a custom event for other components to listen to
         const event = new CustomEvent('investigation-item-added', {
           detail: { investigationId, item, relevance, evidenceId: result.id },
         });
         window.dispatchEvent(event);
+        trackInvestigationEvent('investigation_evidence_added', {
+          caseId: investigationId,
+          metadata: { evidenceType: item.type || 'unknown', relevance },
+        });
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Failed to add item to investigation';
@@ -229,7 +187,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
         throw err; // Re-throw so UI can handle
       }
     },
-    [],
+    [user],
   );
 
   useEffect(() => {

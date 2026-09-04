@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { validate } from '../middleware/validate.js';
 import { z } from 'zod';
 import { investigationsRepository } from '../db/investigationsRepository.js';
@@ -53,6 +53,7 @@ router.get('/:id/timeline-events', validate(numericIdParamSchema), async (req, r
 router.post(
   '/:id/timeline-events',
   authenticateRequest,
+  requireRole('investigator'),
   validate(timelineEventSchema),
   async (req, res, next) => {
     try {
@@ -68,6 +69,7 @@ router.post(
 router.patch(
   '/:id/timeline-events/:eventId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(updateTimelineEventSchema),
   async (req, res, next) => {
     try {
@@ -84,6 +86,7 @@ router.patch(
 router.delete(
   '/:id/timeline-events/:eventId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(updateTimelineEventSchema),
   async (req, res, next) => {
     try {

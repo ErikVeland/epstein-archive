@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { validate } from '../middleware/validate.js';
 import { z } from 'zod';
 import { investigationsRepository } from '../db/investigationsRepository.js';
@@ -37,7 +37,7 @@ const notebookSchema = z.object({
     id: z.coerce.number().int(),
   }),
   body: z.object({
-    order: z.array(z.string()).optional(),
+    order: z.array(z.coerce.number().int()).optional(),
     annotations: z.array(z.unknown()).optional(),
   }),
 });
@@ -107,6 +107,7 @@ router.get(
 router.put(
   '/:id/notebook',
   authenticateRequest,
+  requireRole('investigator'),
   validate(notebookSchema),
   async (req, res, next) => {
     try {

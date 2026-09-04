@@ -10,6 +10,8 @@ interface MobileBottomNavProps {
   onSetActiveDest: (dest: ActiveDest) => void;
   onCapture: () => void;
   onMore: () => void;
+  canCapture: boolean;
+  canViewBoard: boolean;
 }
 
 export function MobileBottomNav({
@@ -17,6 +19,8 @@ export function MobileBottomNav({
   onSetActiveDest,
   onCapture,
   onMore,
+  canCapture,
+  canViewBoard,
 }: MobileBottomNavProps) {
   return (
     <nav className={styles.nav} aria-label="Investigation navigation">
@@ -24,9 +28,9 @@ export function MobileBottomNav({
         unstyled
         className={`${styles.slot} ${activeDest === 'board' ? styles.slotActive : ''}`}
         onClick={() => onSetActiveDest('board')}
-        aria-label="Board"
+        aria-label={canViewBoard ? 'Board' : 'Sign in to open the board'}
       >
-        <Icon name="LayoutDashboard" size="md" />
+        <Icon name={canViewBoard ? 'LayoutDashboard' : 'Lock'} size="md" />
         <span className={styles.label}>Board</span>
       </Button>
 
@@ -41,8 +45,13 @@ export function MobileBottomNav({
       </Button>
 
       <div className={styles.fabSlot}>
-        <Button unstyled className={styles.fab} onClick={onCapture} aria-label="Capture evidence">
-          <Icon name="Plus" size="lg" />
+        <Button
+          unstyled
+          className={styles.fab}
+          onClick={onCapture}
+          aria-label={canCapture ? 'Capture evidence' : 'Sign in to add evidence'}
+        >
+          <Icon name={canCapture ? 'Plus' : 'LogIn'} size="lg" />
         </Button>
       </div>
 

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { evidenceRepository } from '../db/evidenceRepository.js';
 import { validate } from '../middleware/validate.js';
 
@@ -66,6 +66,7 @@ router.get('/evidence/:entityId', validate(entityIdParamSchema), async (req, res
 router.post(
   '/add-evidence',
   authenticateRequest,
+  requireRole('investigator'),
   validate(addEvidenceSchema),
   async (req, res, next) => {
     try {
@@ -86,23 +87,29 @@ router.post(
   },
 );
 
-router.post('/add-media', authenticateRequest, validate(addMediaSchema), async (req, res, next) => {
-  try {
-    const { investigationId, mediaItemId, notes, relevance } = req.body;
-    const result = await evidenceRepository.addMediaToInvestigation(
-      investigationId,
-      mediaItemId,
-      notes,
-      relevance,
-    );
-    res.json({ success: true, ...result });
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message === 'Media not found') {
-      return res.status(404).json({ error: 'Media not found' });
+router.post(
+  '/add-media',
+  authenticateRequest,
+  requireRole('investigator'),
+  validate(addMediaSchema),
+  async (req, res, next) => {
+    try {
+      const { investigationId, mediaItemId, notes, relevance } = req.body;
+      const result = await evidenceRepository.addMediaToInvestigation(
+        investigationId,
+        mediaItemId,
+        notes,
+        relevance,
+      );
+      res.json({ success: true, ...result });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message === 'Media not found') {
+        return res.status(404).json({ error: 'Media not found' });
+      }
+      next(error);
     }
-    next(error);
-  }
-});
+  },
+);
 
 /**
  * POST /api/investigation/add-snippet
@@ -111,6 +118,7 @@ router.post('/add-media', authenticateRequest, validate(addMediaSchema), async (
 router.post(
   '/add-snippet',
   authenticateRequest,
+  requireRole('investigator'),
   validate(addSnippetSchema),
   async (req, res, next) => {
     try {
@@ -138,6 +146,7 @@ router.post(
 router.delete(
   '/remove-evidence/:investigationEvidenceId',
   authenticateRequest,
+  requireRole('investigator'),
   async (req, res, next) => {
     try {
       const { investigationEvidenceId } = req.params as { investigationEvidenceId: string };

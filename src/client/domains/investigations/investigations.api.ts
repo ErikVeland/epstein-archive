@@ -5,14 +5,15 @@ import type {
 } from '@shared/dto/investigations';
 
 export interface InvestigationSummaryDto {
-  id: string;
+  id: string | number;
+  uuid?: string | null;
   title: string;
-  description?: string;
+  description?: string | null;
   status?: string;
   createdAt?: string;
   updatedAt?: string;
-  ownerId?: string;
-  scope?: string;
+  ownerId?: string | null;
+  scope?: string | null;
 }
 
 export interface InvestigationNotebookDto {
@@ -40,7 +41,6 @@ export const investigationsApi = {
   create: async (payload: {
     title: string;
     description?: string;
-    ownerId: string;
     scope?: string;
   }): Promise<Record<string, unknown>> => {
     return (await apiClient.createInvestigation(payload)) as unknown as Record<string, unknown>;

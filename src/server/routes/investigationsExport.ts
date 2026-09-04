@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import type { AuthRequest } from '../auth/middleware.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { validate } from '../middleware/validate.js';
 import { z } from 'zod';
 import archiver from 'archiver';
@@ -301,6 +301,7 @@ router.get(
 router.post(
   '/import-report',
   authenticateRequest,
+  requireRole('investigator'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const authReq = req as AuthRequest;

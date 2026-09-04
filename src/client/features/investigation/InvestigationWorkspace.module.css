@@ -535,6 +535,26 @@
   border-color: rgba(59, 130, 246, 0.2);
 }
 
+.advancedNav {
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--glass-border);
+  padding-top: var(--space-2);
+}
+
+.advancedNav summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.advancedNav summary:hover {
+  color: var(--text-primary);
+}
+
 .navIcon {
   width: 1.25rem;
   height: 1.25rem;
@@ -1735,13 +1755,33 @@
 }
 
 .invCardInteractive {
+  position: relative;
   border: 1px solid var(--lq-surface-3);
   transition: all 0.2s ease;
-  cursor: pointer;
 }
 
 .invCardInteractive:hover {
   border-color: var(--lq-accent);
+}
+
+.invCardButton {
+  display: block;
+  width: 100%;
+  min-height: 100%;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.invCardDelete {
+  position: absolute;
+  z-index: 1;
+  top: var(--space-6);
+  right: var(--space-6);
+}
+
+.createDialog {
+  width: min(32rem, calc(100vw - 2rem));
 }
 
 .tabButton {

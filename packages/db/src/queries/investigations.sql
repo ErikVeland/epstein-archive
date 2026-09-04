@@ -56,8 +56,8 @@ WHERE uuid = :uuid!;
 DELETE FROM investigations WHERE id = :id!;
 
 /* @name createInvestigation */
-INSERT INTO investigations (title, description, owner_id)
-VALUES (:title!, :description, :ownerId!)
+INSERT INTO investigations (title, description, owner_id, scope)
+VALUES (:title!, :description, :ownerId!, :scope)
 RETURNING id;
 
 /* @name updateInvestigation */

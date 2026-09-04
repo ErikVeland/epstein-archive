@@ -180,6 +180,26 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     }
   };
 
+  const exportSignalData = () => {
+    if (!analysis) return;
+    const blob = new Blob(
+      [
+        JSON.stringify(
+          { documentId, generatedAt: new Date().toISOString(), analysis, metrics },
+          null,
+          2,
+        ),
+      ],
+      { type: 'application/json' },
+    );
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `document-${documentId}-signal-data.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   const getEntityIcon = (type: DetectedEntity['type']): IconName => {
     switch (type) {
       case 'person':
@@ -448,7 +468,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                   </LqText>
                                 </Flex>
                               </Stack>
-                              <Button variant="secondary" size="sm" onClick={() => {}}>
+                              <Button variant="secondary" size="sm" onClick={exportSignalData}>
                                 <Icon name="Download" size="xs" /> Export Signal Data
                               </Button>
                             </Stack>

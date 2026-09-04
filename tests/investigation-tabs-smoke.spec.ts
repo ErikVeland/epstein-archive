@@ -46,9 +46,8 @@ test.describe('Investigation workspace — tab smoke tests', () => {
 
       await page.goto(`/investigations/${investigationId}?tab=${tab}`);
 
-      // The "Investigation Board" nav button is always present once the workspace mounts —
-      // its visibility confirms the SPA routed correctly and the workspace rendered.
-      await expect(page.getByRole('button', { name: 'Investigation Board' })).toBeVisible({
+      // The public-access label confirms the case loaded without relying on an edit-only view.
+      await expect(page.getByText(/Public case/i).first()).toBeVisible({
         timeout: 15000,
       });
 

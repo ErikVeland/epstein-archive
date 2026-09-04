@@ -67,6 +67,7 @@ import adminRoutes from './server/routes/adminRoutes.js';
 import memoryRoutes from './server/routes/memoryRoutes.js';
 import dataQualityRoutes from './server/routes/dataQualityRoutes.js';
 import vitalsRoutes from './server/routes/vitalsRoutes.js';
+import productEventsRoutes from './server/routes/productEventsRoutes.js';
 import sitemapRouter from './server/routes/sitemap.js';
 import entitiesRoutes from './server/routes/entitiesRoutes.js';
 import searchRoutes from './server/routes/searchRoutes.js';
@@ -339,7 +340,11 @@ export class App {
       const method = _req.method.toUpperCase();
       const isReadOnly = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
 
-      if (!isReadOnly && toobusy()) {
+      const loadSheddingDisabled =
+        process.env.DISABLE_EVENT_LOOP_SHED === '1' ||
+        process.env.DISABLE_EVENT_LOOP_SHED === 'true';
+
+      if (!loadSheddingDisabled && !isReadOnly && toobusy()) {
         if (_req.path.startsWith('/api/')) {
           return res.status(503).json({ error: 'Server Too Busy' });
         }
@@ -738,6 +743,7 @@ export class App {
     router.use('/memory', memoryRoutes);
     router.use('/data-quality', dataQualityRoutes);
     router.use('/vitals', vitalsRoutes);
+    router.use('/product-events', productEventsRoutes);
 
     // API 404 — must be last on the router, before the SPA fallback.
     // Prevents unknown /api/* paths from returning HTML to API clients.

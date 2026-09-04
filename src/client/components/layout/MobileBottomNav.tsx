@@ -15,6 +15,7 @@ const NAV_ITEMS: BottomNavItem[] = [
 
 export function MobileBottomNav({ className }: MobileBottomNavProps) {
   const location = useLocation();
+  const isInvestigationWorkspace = /^\/investigations\/[^/]+/.test(location.pathname);
   const activeId = location.pathname.startsWith('/documents')
     ? 'documents'
     : location.pathname.startsWith('/evidence')
@@ -37,6 +38,8 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
       window.dispatchEvent(event);
     }
   };
+
+  if (isInvestigationWorkspace) return null;
 
   return (
     <BottomNav items={NAV_ITEMS} activeId={activeId} onAction={handleNav} className={className} />

@@ -21,7 +21,6 @@ export const investigationActions = {
     const investigation = await investigationsApi.create({
       title: args.title,
       description: args.description,
-      ownerId: args.ownerId,
       scope: args.scope,
     });
 

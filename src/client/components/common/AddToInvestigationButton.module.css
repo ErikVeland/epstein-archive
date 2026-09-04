@@ -47,8 +47,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
 .triggerIcon:hover {
@@ -88,6 +88,8 @@
   color: var(--text-primary);
   border-radius: var(--radius-sm);
   transition: filter var(--duration-fast) var(--easing-liquid);
+  min-width: 2.75rem;
+  min-height: 2.75rem;
 }
 
 .triggerQuick:hover {
@@ -175,8 +177,14 @@
 
 .panel {
   overflow: hidden;
-  width: 100%;
+  width: min(28rem, calc(100vw - 2rem));
   max-width: 28rem;
+}
+
+.relevanceFieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 /* Modal header */

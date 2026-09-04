@@ -2,22 +2,25 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Investigation, Investigator } from '@client/types/investigation';
 import Icon, { IconName } from '@client/components/common/Icon';
 import { useToasts } from '@client/components/common/useToasts';
-import { useScrollLock } from '@client/hooks/useScrollLock';
-import { CloseButton } from '@client/components/common/CloseButton';
 // UI Library
 import styles from './InvestigationTeamManagement.module.css';
 import {
   Badge,
   Box,
   Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   FileInput,
   Flex,
   Grid,
-  Input,
   LqText,
   Select,
   Stack,
   Surface,
+  TextInput,
   cn,
 } from '@client/design-system/lib';
 const css = <T,>(style: T) => style;
@@ -37,6 +40,7 @@ interface LocalTeamSnapshot {
 }
 
 const STORAGE_PREFIX = 'investigation-team-local:';
+const TEAM_ROLES = new Set<TeamRole>(['lead', 'researcher', 'analyst', 'reviewer', 'external']);
 
 const rolePermissions: Record<TeamRole, string[]> = {
   lead: ['read', 'write', 'admin'],
@@ -47,11 +51,11 @@ const rolePermissions: Record<TeamRole, string[]> = {
 };
 
 const roleNotes: Record<TeamRole, string> = {
-  lead: 'Global authority. Managed role assignments and destructive case actions.',
-  researcher: 'Signal ingestion. Capability to add/edit evidence and timeline stream.',
-  analyst: 'Forensic computation. Authorization for analytics and status derivation.',
-  reviewer: 'Quality assurance. Read-only access with deep annotation capabilities.',
-  external: 'Observation buffer. Limited exposure for shared tactical review.',
+  lead: 'Person coordinating the case.',
+  researcher: 'Person finding and organizing source records.',
+  analyst: 'Person reviewing patterns and evidence.',
+  reviewer: 'Person checking accuracy and conclusions.',
+  external: 'Outside contact included for planning.',
 };
 
 export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementProps> = ({
@@ -65,8 +69,6 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState<TeamRole>('researcher');
   const { addToast } = useToasts();
-
-  useScrollLock(showAddModal);
 
   const ensureLead = useCallback(
     (members: Investigator[]): Investigator[] => {
@@ -175,6 +177,57 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
     });
   };
 
+  const exportLocalTeam = () => {
+    const snapshot: LocalTeamSnapshot = {
+      team: team.map((member) => ({ ...member, joinedAt: member.joinedAt.toISOString() })),
+      updatedAt: new Date().toISOString(),
+      storage: 'local-device',
+    };
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `case-${investigation.id}-local-team.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    addToast({ text: 'Local team list exported.', type: 'success' });
+  };
+
+  const importLocalTeam = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text()) as unknown;
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        !Array.isArray((parsed as LocalTeamSnapshot).team)
+      ) {
+        throw new Error('The file does not contain a local team list.');
+      }
+      const imported = (parsed as LocalTeamSnapshot).team.map((member) => {
+        if (
+          !member ||
+          typeof member.id !== 'string' ||
+          typeof member.name !== 'string' ||
+          typeof member.email !== 'string' ||
+          !TEAM_ROLES.has(member.role as TeamRole)
+        ) {
+          throw new Error('The team list contains an invalid profile.');
+        }
+        return { ...member, joinedAt: new Date(member.joinedAt) } as Investigator;
+      });
+      applyTeamUpdate(imported);
+      addToast({ text: 'Local team list imported.', type: 'success' });
+    } catch (error) {
+      addToast({
+        text: error instanceof Error ? error.message : 'The team list could not be imported.',
+        type: 'error',
+      });
+    }
+  };
+
   const getRoleIcon = (role: TeamRole): IconName => {
     if (role === 'lead') return 'Crown';
     if (role === 'analyst') return 'ShieldCheck';
@@ -191,7 +244,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
             <Flex align="center" gap="md">
               <Icon name="Users" size="lg" className={styles.autoGen278} />
               <LqText variant="h1" weight="bold">
-                Operational Unit Controls
+                Local team list
               </LqText>
             </Flex>
             <LqText
@@ -201,21 +254,26 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
               weight="bold"
               mt="xs"
             >
-              Asset Governance • Local Profile Orchestration
+              Planning aid for this browser only
             </LqText>
           </Stack>
           <Flex gap="md">
             <Button variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
-              <Icon name="UserPlus" size="sm" className={styles.mr2} /> Add Agent
+              <Icon name="UserPlus" size="sm" className={styles.mr2} /> Add profile
             </Button>
-            <Button variant="ghost" onClick={() => {}} className={styles.autoGen279}>
+            <Button variant="ghost" onClick={exportLocalTeam} className={styles.autoGen279}>
               <Icon name="Download" size="sm" className={styles.mr2} /> Export JSON
             </Button>
             <label className={styles.autoGen280}>
               <Button variant="ghost" className={styles.autoGen281}>
                 <Icon name="Upload" size="sm" className={styles.mr2} /> Import JSON
               </Button>
-              <FileInput className={styles.autoGen282} />
+              <FileInput
+                className={styles.autoGen282}
+                accept="application/json,.json"
+                onChange={(event) => void importLocalTeam(event)}
+                aria-label="Import local team list"
+              />
             </label>
           </Flex>
         </Flex>
@@ -229,11 +287,11 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
               <Icon name="HardDrive" size="xl" className={styles.autoGen284} />
               <Stack gap="xxs">
                 <LqText variant="small" weight="bold">
-                  Local Persistence Cluster
+                  Stored on this device
                 </LqText>
                 <LqText variant="xs" color="muted">
-                  Agent profiles are contained within the browser's local sandbox. Cross-device
-                  synchronization requires manual JSON transfer.
+                  These profiles do not invite users or grant access. They are saved only in this
+                  browser. Use JSON export and import to move the list to another device.
                 </LqText>
               </Stack>
             </Flex>
@@ -253,11 +311,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                     >
                       {role}
                     </LqText>
-                    <Badge
-                      variant={role === 'lead' ? 'error' : 'accent'}
-                      label={role === 'lead' ? 'ROOT' : 'USER'}
-                      size="sm"
-                    />
+                    <Badge variant={role === 'lead' ? 'error' : 'accent'} label="LOCAL" size="sm" />
                   </Flex>
                   <LqText variant="xs" color="muted" lineHeight="relaxed">
                     {roleNotes[role]}
@@ -282,7 +336,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                 color="muted"
                 style={css({ textTransform: 'uppercase' })}
               >
-                Active Agent Roster
+                Local profiles
               </LqText>
               <Box grow className={styles.autoGen287} />
             </Flex>
@@ -323,7 +377,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                           {member.email}
                         </LqText>
                         <LqText variant="xs" color="muted">
-                          Extraction Stream Joined: {member.joinedAt.toLocaleDateString()}
+                          Added {member.joinedAt.toLocaleDateString()}
                         </LqText>
                       </Stack>
                     </Flex>
@@ -355,7 +409,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                         <Flex align="center" gap="sm" className={styles.autoGen290}>
                           <Icon name="Settings" size="xs" className={styles.autoGen291} />
                           <LqText variant="xs" color="muted" weight="bold">
-                            ROOT PROFILE PROTECTED
+                            Lead profile
                           </LqText>
                         </Flex>
                       )}
@@ -368,105 +422,71 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
         </Stack>
       </Box>
 
-      {/* Add Agent Modal */}
-      {showAddModal && (
-        <Box className={styles.autoGen292} onClick={() => setShowAddModal(false)}>
-          <Surface
-            variant="panel"
-            width={500}
-            p="xl"
-            className={styles.autoGen293}
-            onClick={(e) => e.stopPropagation()}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add a local profile</DialogTitle>
+            <DialogDescription>
+              This planning profile stays in this browser. It does not invite a user or grant
+              access.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              addMember();
+            }}
           >
-            <Stack gap="xl">
-              <Flex justify="between" align="center">
-                <Stack gap="none">
-                  <LqText variant="h3" weight="bold">
-                    Agent Initialization
-                  </LqText>
-                  <LqText variant="xs" color="muted">
-                    Configure local operative profile.
-                  </LqText>
-                </Stack>
-                <CloseButton onClick={() => setShowAddModal(false)} />
-              </Flex>
-
-              <Stack gap="lg">
-                <Stack gap="xs">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    CODENAME / DISPLAY NAME
-                  </LqText>
-                  <Input
-                    style={css({
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    })}
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Agent Identification..."
-                  />
-                </Stack>
-                <Stack gap="xs">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    COMMUNICATION VECTOR (EMAIL)
-                  </LqText>
-                  <Input
-                    style={css({
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    })}
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="agent@epstein-archive.live"
-                  />
-                </Stack>
-                <Stack gap="xs">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    OPERATIONAL MODALITY (ROLE)
-                  </LqText>
-                  <Select
-                    size="sm"
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value as TeamRole)}
-                    options={[
-                      { value: 'researcher', label: 'Researcher' },
-                      { value: 'analyst', label: 'Analyst' },
-                      { value: 'reviewer', label: 'Reviewer' },
-                      { value: 'external', label: 'External' },
-                    ]}
-                  />
-                </Stack>
+            <Stack gap="lg">
+              <TextInput
+                id="local-team-name"
+                label="Display name"
+                required
+                autoFocus
+                value={newName}
+                onChange={(event) => setNewName(event.target.value)}
+                placeholder="Name"
+              />
+              <TextInput
+                id="local-team-email"
+                label="Email"
+                type="email"
+                required
+                value={newEmail}
+                onChange={(event) => setNewEmail(event.target.value)}
+                placeholder="name@example.com"
+              />
+              <Stack gap="xs">
+                <label htmlFor="local-team-role">Role label</label>
+                <Select
+                  id="local-team-role"
+                  size="sm"
+                  value={newRole}
+                  onChange={(event) => setNewRole(event.target.value as TeamRole)}
+                  options={[
+                    { value: 'researcher', label: 'Researcher' },
+                    { value: 'analyst', label: 'Analyst' },
+                    { value: 'reviewer', label: 'Reviewer' },
+                    { value: 'external', label: 'External' },
+                  ]}
+                />
               </Stack>
-
-              <Flex justify="end" gap="md" pt="lg" className={styles.autoGen294}>
-                <Button variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>
-                  Abort
+              <Flex justify="end" gap="sm" wrap="wrap">
+                <Button type="button" variant="ghost" onClick={() => setShowAddModal(false)}>
+                  Cancel
                 </Button>
                 <Button
-                  variant="secondary"
-                  onClick={addMember}
+                  type="submit"
+                  variant="primary"
                   disabled={!newName.trim() || !newEmail.trim()}
                 >
-                  Initialize Asset
+                  Add profile
                 </Button>
               </Flex>
             </Stack>
-          </Surface>
-        </Box>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

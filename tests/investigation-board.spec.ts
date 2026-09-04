@@ -35,10 +35,7 @@ test.describe('Investigation Board', () => {
 
     await page.goto(`/investigations/${investigationId}?tab=board`);
 
-    // Workspace mounted — the nav button visibility confirms workspace rendered
-    await expect(
-      page.locator('button').filter({ hasText: 'Investigation Board' }).first(),
-    ).toBeVisible({
+    await expect(page.getByText(/Public case/i).first()).toBeVisible({
       timeout: 15000,
     });
 
@@ -51,11 +48,18 @@ test.describe('Investigation Board', () => {
       .isVisible({ timeout: 5000 })
       .catch(() => false);
     const hasEmptyState = await page
-      .locator('text=/No active theories defined/i')
+      .locator('text=/No hypotheses yet/i')
+      .isVisible({ timeout: 5000 })
+      .catch(() => false);
+    const hasAccessGate = await page
+      .getByText('Investigator access required')
       .isVisible({ timeout: 5000 })
       .catch(() => false);
 
-    expect(hasHypothesisColumn || hasEmptyState, 'Board should be in terminal state').toBeTruthy();
+    expect(
+      hasHypothesisColumn || hasEmptyState || hasAccessGate,
+      'Board should be in a terminal state',
+    ).toBeTruthy();
   });
 
   test('hypothesis creation round-trip: add button → form → appears in board', async ({
@@ -64,6 +68,9 @@ test.describe('Investigation Board', () => {
     isMobile,
   }) => {
     test.skip(isMobile, 'Desktop workspace smoke — mobile uses a different shell');
+    const username = process.env.PW_INVESTIGATOR_USERNAME;
+    const password = process.env.PW_INVESTIGATOR_PASSWORD;
+    test.skip(!username || !password, 'Investigator credentials are required for write tests');
     const investigationId = await resolveFirstInvestigation(request);
     if (!investigationId) {
       expect(true, 'No investigations available').toBeFalsy();
@@ -76,12 +83,12 @@ test.describe('Investigation Board', () => {
       window.localStorage.setItem('hasSeenInvestigationOnboarding', 'true');
     });
 
-    await page.goto(`/investigations/${investigationId}?tab=board`);
-    await expect(
-      page.locator('button').filter({ hasText: 'Investigation Board' }).first(),
-    ).toBeVisible({
-      timeout: 15000,
-    });
+    const returnTo = `/investigations/${investigationId}?tab=board`;
+    await page.goto(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+    await page.getByLabel('Username').fill(username!);
+    await page.getByLabel('Password').fill(password!);
+    await page.getByRole('button', { name: 'Sign In' }).click();
+    await expect(page).toHaveURL(new RegExp(`/investigations/${investigationId}\\?tab=board`));
     await expect(page.locator('text="Theories & Hypotheses"')).toBeVisible({ timeout: 10000 });
 
     // The add-hypothesis button uses data-testid for robust selection
@@ -89,8 +96,7 @@ test.describe('Investigation Board', () => {
     await expect(addBtn).toBeVisible({ timeout: 5000 });
     await addBtn.click();
 
-    // Inline form appears with "Theoretical Designation..." placeholder
-    const titleInput = page.getByPlaceholder('Theoretical Designation...');
+    const titleInput = page.getByLabel('Hypothesis title');
     await expect(titleInput).toBeVisible({ timeout: 5000 });
 
     const hypothesisTitle = `E2E Hypothesis ${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
@@ -102,8 +108,7 @@ test.describe('Investigation Board', () => {
       { timeout: 10000 },
     );
 
-    // Submit via the "Initialize" button
-    await page.locator('button').filter({ hasText: 'Initialize' }).first().click();
+    await page.getByRole('button', { name: 'Add hypothesis' }).click();
 
     const createResp = await createRespPromise;
     expect(createResp.ok(), `Hypothesis POST failed: ${createResp.status()}`).toBeTruthy();

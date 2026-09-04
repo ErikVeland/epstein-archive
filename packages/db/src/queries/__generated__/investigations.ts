@@ -295,6 +295,7 @@ export const deleteInvestigation = new PreparedQuery<
 export interface ICreateInvestigationParams {
   description?: string | null | void;
   ownerId: string;
+  scope?: string | null | void;
   title: string;
 }
 
@@ -310,26 +311,27 @@ export interface ICreateInvestigationQuery {
 }
 
 const createInvestigationIR: any = {
-  usedParamSet: { title: true, description: true, ownerId: true },
+  usedParamSet: { title: true, description: true, ownerId: true, scope: true },
   params: [
-    { name: 'title', required: true, transform: { type: 'scalar' }, locs: [{ a: 66, b: 72 }] },
+    { name: 'title', required: true, transform: { type: 'scalar' }, locs: [{ a: 73, b: 79 }] },
     {
       name: 'description',
       required: false,
       transform: { type: 'scalar' },
-      locs: [{ a: 75, b: 86 }],
+      locs: [{ a: 82, b: 93 }],
     },
-    { name: 'ownerId', required: true, transform: { type: 'scalar' }, locs: [{ a: 89, b: 97 }] },
+    { name: 'ownerId', required: true, transform: { type: 'scalar' }, locs: [{ a: 96, b: 104 }] },
+    { name: 'scope', required: false, transform: { type: 'scalar' }, locs: [{ a: 107, b: 112 }] },
   ],
   statement:
-    'INSERT INTO investigations (title, description, owner_id)\nVALUES (:title!, :description, :ownerId!)\nRETURNING id',
+    'INSERT INTO investigations (title, description, owner_id, scope)\nVALUES (:title!, :description, :ownerId!, :scope)\nRETURNING id',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * INSERT INTO investigations (title, description, owner_id)
- * VALUES (:title!, :description, :ownerId!)
+ * INSERT INTO investigations (title, description, owner_id, scope)
+ * VALUES (:title!, :description, :ownerId!, :scope)
  * RETURNING id
  * ```
  */

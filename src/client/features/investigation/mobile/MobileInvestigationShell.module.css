@@ -19,6 +19,7 @@
 }
 
 .invTitle {
+  margin: 0;
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -28,7 +29,7 @@
   flex: 1;
 }
 
-.notifBtn {
+.backBtn {
   background: none;
   border: none;
   cursor: pointer;
@@ -38,6 +39,14 @@
   justify-content: center;
   width: 2.75rem;
   height: 2.75rem;
+  flex-shrink: 0;
+}
+
+.accessState {
+  min-width: 2.75rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: right;
 }
 
 .content {
@@ -53,4 +62,10 @@
   flex-direction: column;
   gap: var(--space-4);
   padding-bottom: var(--space-4);
+}
+
+.toolLoading {
+  padding: var(--space-8);
+  color: var(--text-muted);
+  text-align: center;
 }

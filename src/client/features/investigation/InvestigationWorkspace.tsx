@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@client/contexts/AuthContext';
 import {
@@ -11,48 +11,19 @@ import {
 } from '@client/types/investigation';
 import Icon from '@client/components/common/Icon';
 
-// Specialized Analytical Views
-const FinancialTransactionMapper = React.lazy(
-  () => import('@client/components/visualizations/FinancialTransactionMapper'),
-);
 import { ChainOfCustodyModal } from './ChainOfCustodyModal';
-import { NetworkNode, NetworkEdge } from '@client/components/visualizations/NetworkVisualization';
-import { InvestigationTimelineBuilder } from './InvestigationTimelineBuilder';
-import { InvestigationExportTools } from './InvestigationExportTools';
-const ForensicAnalysisWorkspace = React.lazy(() =>
-  import('./ForensicAnalysisWorkspace').then((module) => ({
-    default: module.ForensicAnalysisWorkspace,
-  })),
-);
-import { DataIntegrityPanel } from '@client/components/visualizations/DataIntegrityPanel';
-import { EvidencePacketExporter } from './EvidencePacketExporter';
-// These panels exist but are not currently rendered in the active workspace layout
-// They are preserved as imports for future use
-import { InvestigationTasksPanel } from './InvestigationTasksPanel';
-
-import { InvestigationEvidencePanel } from './InvestigationEvidencePanel';
-import { InvestigationActivityFeed } from './InvestigationActivityFeed';
-import { InvestigationCaseFolder } from './InvestigationCaseFolder';
-import { EvidenceNotebook } from './EvidenceNotebook';
-import { HypothesisTestingFramework } from './HypothesisTestingFramework';
-import { InvestigationTeamManagement } from './InvestigationTeamManagement';
-import { InvestigationBoard } from './InvestigationBoard';
-import { InvestigationLeadsPanel } from './InvestigationLeadsPanel';
-import { SubjectDossierPanel } from './SubjectDossierPanel';
-import { CommunicationAnalysis } from './CommunicationAnalysis';
-import { IcebergIntelligence } from './IcebergIntelligence';
+import type {
+  NetworkNode,
+  NetworkEdge,
+} from '@client/components/visualizations/NetworkVisualization';
 import { DocumentModal } from '@client/components/documents/DocumentModal';
 import { EvidenceModal } from '@client/components/common/EvidenceModal';
 import { AnimatedSegmentedControl } from '@client/components/common/AnimatedSegmentedControl';
 
 // Hooks & Services
 import { useToasts } from '@client/components/common/useToasts';
-import { useInvestigationOnboarding } from '@client/hooks/useInvestigationOnboarding';
 import { useScrollLock } from '@client/hooks/useScrollLock';
-import { useIsMobile } from '@client/hooks/useIsMobile';
-import { MobileInvestigationShell } from './mobile/MobileInvestigationShell';
-import { InvestigationOnboarding } from './InvestigationOnboarding';
-import { NetworkVisualization } from '@client/components/visualizations/NetworkVisualization';
+import { useMediaQuery } from '@client/hooks/useResponsive';
 
 import { CreateRelationshipModal as _CreateRelationshipModal2 } from '@client/components/entities/CreateRelationshipModal';
 import { apiClient } from '@client/services/apiClient';
@@ -67,6 +38,7 @@ import {
 import type { InvestigationCaseEvidenceItemDto } from '@shared/dto/investigations';
 import { PerformanceMonitor } from '@client/utils/performanceMonitor';
 import { getCaseFolderEvidenceReturnPath } from './investigationRouteUtils';
+import { trackInvestigationEvent } from '@client/utils/investigationTelemetry';
 
 // UI Library
 import {
@@ -80,17 +52,107 @@ import {
   DialogTitle,
   Flex,
   Grid,
-  Input,
   LqText,
   Stack,
   Surface,
-  TextArea,
+  Textarea,
+  TextInput,
   cn,
 } from '@client/design-system/lib';
 import styles from './InvestigationWorkspace.module.css';
 import { CloseButton as _CloseButton } from '@client/components/common/CloseButton';
 
+const FinancialTransactionMapper = lazy(
+  () => import('@client/components/visualizations/FinancialTransactionMapper'),
+);
+const InvestigationTimelineBuilder = lazy(() =>
+  import('./InvestigationTimelineBuilder').then((module) => ({
+    default: module.InvestigationTimelineBuilder,
+  })),
+);
+const InvestigationExportTools = lazy(() =>
+  import('./InvestigationExportTools').then((module) => ({
+    default: module.InvestigationExportTools,
+  })),
+);
+const ForensicAnalysisWorkspace = lazy(() =>
+  import('./ForensicAnalysisWorkspace').then((module) => ({
+    default: module.ForensicAnalysisWorkspace,
+  })),
+);
+const DataIntegrityPanel = lazy(() =>
+  import('@client/components/visualizations/DataIntegrityPanel').then((module) => ({
+    default: module.DataIntegrityPanel,
+  })),
+);
+const EvidencePacketExporter = lazy(() =>
+  import('./EvidencePacketExporter').then((module) => ({ default: module.EvidencePacketExporter })),
+);
+const InvestigationTasksPanel = lazy(() =>
+  import('./InvestigationTasksPanel').then((module) => ({
+    default: module.InvestigationTasksPanel,
+  })),
+);
+const InvestigationEvidencePanel = lazy(() =>
+  import('./InvestigationEvidencePanel').then((module) => ({
+    default: module.InvestigationEvidencePanel,
+  })),
+);
+const InvestigationActivityFeed = lazy(() =>
+  import('./InvestigationActivityFeed').then((module) => ({
+    default: module.InvestigationActivityFeed,
+  })),
+);
+const InvestigationCaseFolder = lazy(() => import('./InvestigationCaseFolder'));
+const EvidenceNotebook = lazy(() =>
+  import('./EvidenceNotebook').then((module) => ({ default: module.EvidenceNotebook })),
+);
+const HypothesisTestingFramework = lazy(() =>
+  import('./HypothesisTestingFramework').then((module) => ({
+    default: module.HypothesisTestingFramework,
+  })),
+);
+const InvestigationTeamManagement = lazy(() =>
+  import('./InvestigationTeamManagement').then((module) => ({
+    default: module.InvestigationTeamManagement,
+  })),
+);
+const InvestigationBoard = lazy(() =>
+  import('./InvestigationBoard').then((module) => ({ default: module.InvestigationBoard })),
+);
+const InvestigationLeadsPanel = lazy(() =>
+  import('./InvestigationLeadsPanel').then((module) => ({
+    default: module.InvestigationLeadsPanel,
+  })),
+);
+const SubjectDossierPanel = lazy(() =>
+  import('./SubjectDossierPanel').then((module) => ({ default: module.SubjectDossierPanel })),
+);
+const CommunicationAnalysis = lazy(() =>
+  import('./CommunicationAnalysis').then((module) => ({ default: module.CommunicationAnalysis })),
+);
+const IcebergIntelligence = lazy(() =>
+  import('./IcebergIntelligence').then((module) => ({ default: module.IcebergIntelligence })),
+);
+const NetworkVisualization = lazy(() =>
+  import('@client/components/visualizations/NetworkVisualization').then((module) => ({
+    default: module.NetworkVisualization,
+  })),
+);
+const MobileInvestigationShell = lazy(() =>
+  import('./mobile/MobileInvestigationShell').then((module) => ({
+    default: module.MobileInvestigationShell,
+  })),
+);
+
 const css = <T,>(style: T) => style;
+
+const PanelLoadingState = () => (
+  <Flex align="center" justify="center" minH="12rem" role="status" aria-live="polite">
+    <Icon name="Loader2" className="animate-spin" size="lg" />
+    <span className="sr-only">Loading case view</span>
+  </Flex>
+);
 
 // --- Type Helpers & Normalizers ---
 
@@ -136,18 +198,21 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   onInvestigationSelect,
   currentUser,
 }) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isAuthenticated, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { addToast } = useToasts();
-  const isMobile = useIsMobile();
-  const [showImportModal, setShowImportModal] = useState(false);
+  const isMobile = useMediaQuery('(max-width: 1023px)');
+  const canEditInvestigations =
+    isAuthenticated && (user?.role === 'admin' || user?.role === 'investigator');
 
   const {
     investigations,
     selectedInvestigation,
     setSelectedInvestigation,
     isLoading,
+    error: investigationError,
+    clearError: clearInvestigationError,
     loadInvestigations,
     loadInvestigation: loadInvestigationFromDomain,
     createInvestigation: createInvestigationFromDomain,
@@ -157,6 +222,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   });
 
   const [showNewInvestigationModal, setShowNewInvestigationModal] = useState(false);
+  const [creationError, setCreationError] = useState<string | null>(null);
   const [newInvestigation, setNewInvestigation] = useState({
     title: '',
     description: '',
@@ -237,7 +303,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       'intelligence',
       'casefolder',
     ];
-    return tab && validTabs.includes(tab) ? tab : 'iceberg';
+    return tab && validTabs.includes(tab) ? tab : 'overview';
   }, [location.search]);
 
   const activeTab = getActiveTab();
@@ -247,8 +313,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       const params = new URLSearchParams(location.search);
       params.set('tab', tab);
       navigate(`${location.pathname}?${params.toString()}`);
+      trackInvestigationEvent('investigation_view_opened', {
+        caseId: selectedInvestigation ? String(selectedInvestigation.id) : undefined,
+        metadata: { view: tab },
+      });
     },
-    [location.pathname, location.search, navigate],
+    [location.pathname, location.search, navigate, selectedInvestigation],
   );
 
   // --- Data Loading ---
@@ -268,10 +338,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         const { investigation, raw: inv } = loaded;
 
         const shareId = inv.uuid || inv.id;
-        navigate(`/investigations/${shareId}`, { replace: true });
+        const nextPathname = `/investigations/${shareId}`;
+        if (location.pathname !== nextPathname) {
+          navigate(`${nextPathname}${location.search}`, { replace: true });
+        }
 
         try {
-          const timelineData = await investigationsApi.getTimelineEvents(String(id));
+          const timelineData = await investigationsApi.getTimelineEvents(String(investigation.id));
           const events = ((timelineData as RawTimelineEvent[]) || []).map((e) => ({
             id: String(e.id),
             title: e.title,
@@ -301,7 +374,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         console.error('Investigation load error:', error);
       }
     },
-    [loadInvestigationFromDomain, navigate, onInvestigationSelect],
+    [
+      loadInvestigationFromDomain,
+      location.pathname,
+      location.search,
+      navigate,
+      onInvestigationSelect,
+    ],
   );
 
   const loadEvidenceItems = useCallback(async (targetInvestigationId: string) => {
@@ -459,22 +538,52 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     }
   };
 
+  const openCreateInvestigation = () => {
+    if (!canEditInvestigations) {
+      const returnTo = `${location.pathname}${location.search}`;
+      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+      return;
+    }
+    setCreationError(null);
+    setShowNewInvestigationModal(true);
+    trackInvestigationEvent('investigation_create_started');
+  };
+
   const createInvestigation = async () => {
-    if (!newInvestigation.title || !newInvestigation.description) return;
+    const title = newInvestigation.title.trim();
+    if (!title) {
+      setCreationError('Enter a case title.');
+      return;
+    }
+    if (!canEditInvestigations) {
+      setCreationError('Sign in with an investigator account to create a case.');
+      return;
+    }
+    setCreationError(null);
     try {
       const created = await createInvestigationFromDomain({
-        title: newInvestigation.title,
-        description: newInvestigation.description,
-        hypothesis: newInvestigation.hypothesis,
+        title,
+        description: newInvestigation.description.trim() || undefined,
+        hypothesis: newInvestigation.hypothesis.trim() || undefined,
       });
       setSelectedInvestigation(created.investigation);
       if (onInvestigationSelect) onInvestigationSelect(created.investigation);
       const shareId = created.raw['uuid'] || created.raw['id'];
-      if (shareId) navigate(`/investigations/${shareId}`, { replace: true });
+      if (shareId) navigate(`/investigations/${shareId}?tab=overview`, { replace: true });
       await loadInvestigations();
       setShowNewInvestigationModal(false);
-    } catch (_error) {
-      addToast({ text: 'Creation failed.', type: 'error' });
+      setNewInvestigation({
+        title: '',
+        description: '',
+        hypothesis: '',
+        priority: 'medium',
+        dueDate: '',
+      });
+      addToast({ text: 'Case created.', type: 'success' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Case creation failed.';
+      setCreationError(message);
+      addToast({ text: message, type: 'error' });
     }
   };
 
@@ -526,8 +635,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     openEvidence: handleCaseFolderEvidenceClick,
     addToast,
   });
-
-  const { hasSeenOnboarding, markOnboardingAsSeen } = useInvestigationOnboarding();
 
   // --- Render Helpers ---
 
@@ -660,8 +767,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         </Stack>
 
         <Flex gap="sm" wrap="wrap">
-          <Button variant="secondary" size="sm" onClick={() => navigateToTab('casefolder')}>
-            Add Evidence
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={
+              canEditInvestigations ? () => navigateToTab('casefolder') : openCreateInvestigation
+            }
+          >
+            {canEditInvestigations ? 'Add evidence' : 'Investigator sign-in'}
           </Button>
           <Button
             variant={exportReady ? 'primary' : 'glass'}
@@ -687,121 +800,114 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   return (
     <Box fullHeight flex direction="column" className={styles.root}>
-      {/* Unified Premium Header */}
-      <Surface variant="glass" p="lg" className={styles.headerSurface}>
-        <Flex direction="column" gap="lg" px="xl" py="lg">
-          <Flex align="center" gap="xs" className={styles.breadcrumbs}>
-            <LqText
-              variant="xs"
-              color="muted"
-              onClick={() => navigate('/')}
-              style={css({ cursor: 'pointer', opacity: 0.7 })}
-            >
-              Home
-            </LqText>
-            <Icon name="ArrowRight" size="xs" className={styles.iconMuted} />
-            <LqText variant="xs" color="muted" weight="bold">
-              Investigations
-            </LqText>
-          </Flex>
-
-          {selectedInvestigation ? (
-            <Flex justify="between" align="center" fullWidth>
-              <Stack gap="none">
-                <LqText variant="bombastic" className={styles.headerTitle}>
-                  Investigation
+      {/* The selected-case header is owned by the mobile shell on small screens. */}
+      {(!selectedInvestigation || !isMobile) && (
+        <Surface variant="glass" p="lg" className={styles.headerSurface}>
+          <Flex direction="column" gap="lg" px="xl" py="lg">
+            <Flex align="center" gap="xs" className={styles.breadcrumbs}>
+              <Button unstyled type="button" onClick={() => navigate('/')}>
+                <LqText variant="xs" color="muted" style={css({ opacity: 0.7 })}>
+                  Home
                 </LqText>
-                <LqText
-                  variant="symbolic"
-                  color="secondary"
-                  weight="bold"
-                  className="tracking-symbolic"
-                >
-                  Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
-                </LqText>
-              </Stack>
+              </Button>
+              <Icon name="ArrowRight" size="xs" className={styles.iconMuted} />
+              <LqText variant="xs" color="muted" weight="bold">
+                Investigations
+              </LqText>
+            </Flex>
 
-              <Flex direction="column" align="end" gap="sm">
-                <Stack gap="xs" align="end">
-                  <span
-                    className={styles.scopeLabelText}
-                    style={{ fontSize: '0.65rem', letterSpacing: '0.1em' }}
-                  >
-                    SCOPE
-                  </span>
-                  <AnimatedSegmentedControl
-                    compact
-                    minItemWidth="6rem"
-                    ariaLabel="Exploration Scope"
-                    options={[
-                      { value: 'case', label: 'This Case Only', icon: 'Briefcase' },
-                      { value: 'global', label: 'Global Archive', icon: 'Globe' },
-                    ]}
-                    value={useGlobalContext ? 'global' : 'case'}
-                    onChange={(val) => setUseGlobalContext(val === 'global')}
-                  />
+            {selectedInvestigation ? (
+              <Flex justify="between" align="center" fullWidth>
+                <Stack gap="none">
+                  <LqText as="h1" variant="h2" className={styles.headerTitle}>
+                    {selectedInvestigation.title}
+                  </LqText>
+                  <LqText variant="small" color="secondary">
+                    Public case · {canEditInvestigations ? 'Editable' : 'Read-only'}
+                  </LqText>
                 </Stack>
-                <Flex align="center" gap="sm">
-                  <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
-                    <Icon name="Flag" size="sm" className={styles.iconWarning} /> Tasks
-                  </Button>
-                  <Button variant="glass" size="sm" onClick={() => setShowLeadsPanel(true)}>
-                    <Icon name="Crosshair" size="sm" className={styles.iconWarning} /> Leads
-                  </Button>
-                  <Button variant="glass" size="sm" onClick={() => setShowDossierPanel(true)}>
-                    <Icon name="User" size="sm" className={styles.iconAccent} /> Subject
-                  </Button>
-                  <Button variant="primary" size="sm" onClick={() => setShowImportModal(true)}>
-                    <Icon name="Upload" size="sm" /> Import Report
+
+                <Flex direction="column" align="end" gap="sm">
+                  <Stack gap="xs" align="end">
+                    <span
+                      className={styles.scopeLabelText}
+                      style={{ fontSize: '0.65rem', letterSpacing: '0.1em' }}
+                    >
+                      SCOPE
+                    </span>
+                    <AnimatedSegmentedControl
+                      compact
+                      minItemWidth="6rem"
+                      ariaLabel="Exploration Scope"
+                      options={[
+                        { value: 'case', label: 'This Case Only', icon: 'Briefcase' },
+                        { value: 'global', label: 'Global Archive', icon: 'Globe' },
+                      ]}
+                      value={useGlobalContext ? 'global' : 'case'}
+                      onChange={(val) => setUseGlobalContext(val === 'global')}
+                    />
+                  </Stack>
+                  <Flex align="center" gap="sm">
+                    {canEditInvestigations && (
+                      <>
+                        <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
+                          <Icon name="Flag" size="sm" className={styles.iconWarning} /> Tasks
+                        </Button>
+                        <Button variant="glass" size="sm" onClick={() => setShowLeadsPanel(true)}>
+                          <Icon name="Crosshair" size="sm" className={styles.iconWarning} /> Leads
+                        </Button>
+                      </>
+                    )}
+                    <Button variant="glass" size="sm" onClick={() => setShowDossierPanel(true)}>
+                      <Icon name="User" size="sm" className={styles.iconAccent} /> Subject
+                    </Button>
+                  </Flex>
+                </Flex>
+              </Flex>
+            ) : (
+              <Flex
+                justify="between"
+                align="start"
+                gap="lg"
+                fullWidth
+                className={styles.heroTitleRow}
+              >
+                <Box className={styles.heroTitleBlock}>
+                  <LqText as="h1" variant="h1" weight="bold" className={styles.heroTitle}>
+                    Investigations
+                  </LqText>
+                  <LqText variant="xs" color="secondary" className={styles.heroSubtitle}>
+                    Collect public archive sources, test a question, and build a clear evidence
+                    trail.
+                  </LqText>
+                </Box>
+
+                <Flex direction="column" align="end" gap="md" className={styles.heroActions}>
+                  <LqText variant="xs" color="muted" className={styles.heroCountLabel}>
+                    {investigations.filter((i) => i.status === 'active').length} active of{' '}
+                    {investigations.length.toLocaleString()} public cases
+                  </LqText>
+                  <Button variant="primary" size="md" onClick={openCreateInvestigation}>
+                    <Icon name={canEditInvestigations ? 'Plus' : 'LogIn'} size="md" />{' '}
+                    {canEditInvestigations ? 'New case' : 'Investigator sign-in'}
                   </Button>
                 </Flex>
               </Flex>
-            </Flex>
-          ) : (
-            <Flex
-              justify="between"
-              align="start"
-              gap="lg"
-              fullWidth
-              className={styles.heroTitleRow}
-            >
-              <Box className={styles.heroTitleBlock}>
-                <LqText as="h1" variant="h1" weight="bold" className={styles.heroTitle}>
-                  Investigations
-                </LqText>
-                <LqText variant="xs" color="secondary" className={styles.heroSubtitle}>
-                  High-signal case orchestration, evidence chaining, and collaborative analysis
-                  across the archive.
-                </LqText>
-              </Box>
-
-              <Flex direction="column" align="end" gap="md" className={styles.heroActions}>
-                <LqText variant="xs" color="muted" className={styles.heroCountLabel}>
-                  {investigations.filter((i) => i.status === 'active').length} active of{' '}
-                  {investigations.length.toLocaleString()} total investigations
-                </LqText>
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={() => setShowNewInvestigationModal(true)}
-                >
-                  <Icon name="Plus" size="md" /> New Investigation
-                </Button>
-              </Flex>
-            </Flex>
-          )}
-        </Flex>
-      </Surface>
+            )}
+          </Flex>
+        </Surface>
+      )}
 
       {/* Dashboard View */}
       {!selectedInvestigation && (
         <Box grow p="xl" className={cn(styles.scrollArea, styles.dashboard)}>
           <Stack gap="xl" className={styles.dashboardContent}>
             <Grid cols={{ sm: 1, md: 2 }} gap="xl" className={styles.dashboardActions}>
-              <Surface
-                variant="glass-highlight"
+              <Button
+                unstyled
+                type="button"
                 className={styles.actionCard}
-                onClick={() => setShowNewInvestigationModal(true)}
+                onClick={openCreateInvestigation}
               >
                 <Stack p="xl" align="center" textAlign="center" gap="md">
                   <Box className={styles.actionIconBox}>
@@ -813,14 +919,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       weight="black"
                       style={css({ textTransform: 'uppercase', letterSpacing: '0.05em' })}
                     >
-                      Initiate
+                      {canEditInvestigations ? 'Create a case' : 'Investigator sign-in'}
                     </LqText>
                     <LqText variant="symbolic" color="muted">
-                      Strategic Focus Phase
+                      {canEditInvestigations
+                        ? 'Start with a focused question'
+                        : 'Sign in to create and edit cases'}
                     </LqText>
                   </Stack>
                 </Stack>
-              </Surface>
+              </Button>
 
               <Surface variant="glass" className={cn(styles.actionCard, styles.statsCombinedCard)}>
                 <Stack p="xl" align="center" textAlign="center" gap="md">
@@ -848,11 +956,39 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               <Flex align="center" gap="md">
                 <Icon name="Microscope" size="lg" className={styles.iconAccent} />
                 <LqText variant="h3" weight="bold" className={styles.recentSectionTitle}>
-                  Recent Analytical Records
+                  Public cases
                 </LqText>
               </Flex>
 
-              {investigations.length === 0 ? (
+              {investigationError ? (
+                <Surface variant="glass" p="xl" role="alert">
+                  <Flex
+                    direction="column"
+                    align="center"
+                    gap="md"
+                    style={css({ textAlign: 'center' })}
+                  >
+                    <Icon name="AlertTriangle" size="lg" className={styles.iconWarning} />
+                    <Stack gap="xs" align="center">
+                      <LqText variant="body" weight="bold">
+                        Cases are unavailable
+                      </LqText>
+                      <LqText variant="small" color="muted">
+                        {investigationError}
+                      </LqText>
+                    </Stack>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        clearInvestigationError();
+                        void loadInvestigations();
+                      }}
+                    >
+                      Retry
+                    </Button>
+                  </Flex>
+                </Surface>
+              ) : investigations.length === 0 ? (
                 <Surface variant="glass" p="xxl">
                   <Flex
                     direction="column"
@@ -866,13 +1002,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                         Start with a focused question
                       </LqText>
                       <LqText variant="small" color="muted" className={styles.emptyStateText}>
-                        Create an investigation, add the first source document or subject, then use
-                        the readiness panel to move toward export.
+                        Create a public case, add a source document or subject, and then record what
+                        the source supports.
                       </LqText>
                     </Stack>
                     <Flex gap="sm" wrap="wrap" justify="center">
-                      <Button variant="primary" onClick={() => setShowNewInvestigationModal(true)}>
-                        <Icon name="Plus" size="sm" /> New Investigation
+                      <Button variant="primary" onClick={openCreateInvestigation}>
+                        <Icon name={canEditInvestigations ? 'Plus' : 'LogIn'} size="sm" />{' '}
+                        {canEditInvestigations ? 'New case' : 'Investigator sign-in'}
                       </Button>
                       <Button variant="secondary" onClick={() => navigate('/documents')}>
                         <Icon name="Search" size="sm" /> Browse Documents
@@ -888,50 +1025,53 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       variant="glass"
                       p="lg"
                       className={styles.invCardInteractive}
-                      onClick={() => loadInvestigation(inv.id)}
                     >
-                      <Stack style={css({ height: '100%' })}>
-                        <Box p="lg">
-                          <Flex justify="between" mb="md">
-                            {getStatusBadge(inv.status)}
-                            {(isAdmin || inv.leadInvestigator === currentUser.id) && (
-                              <Button
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setPurgeTargetId(String(inv.id));
-                                }}
-                              >
-                                <Icon name="XCircle" size="sm" />
-                              </Button>
-                            )}
-                          </Flex>
-                          <Stack gap="sm" className={styles.invCardBody}>
-                            <LqText variant="body" weight="bold" className={styles.invTitle}>
-                              {inv.title}
-                            </LqText>
-                            <LqText variant="xs" color="muted" className={styles.invDesc}>
-                              {inv.description}
-                            </LqText>
-                          </Stack>
-                        </Box>
-                        <Surface variant="glass-highlight" mt="auto">
-                          <Flex justify="between" p="md">
-                            <Flex align="center" gap="xs">
-                              <Icon name="User" size="xs" className={styles.iconAccent} />
-                              <LqText variant="xs" weight="bold">
-                                {inv.leadInvestigator}
-                              </LqText>
+                      {(isAdmin || inv.leadInvestigator === currentUser.id) && (
+                        <Button
+                          iconOnly
+                          variant="ghost"
+                          className={styles.invCardDelete}
+                          aria-label={`Remove ${inv.title}`}
+                          onClick={() => setPurgeTargetId(String(inv.id))}
+                        >
+                          <Icon name="XCircle" size="sm" />
+                        </Button>
+                      )}
+                      <Button
+                        unstyled
+                        type="button"
+                        className={styles.invCardButton}
+                        onClick={() => void loadInvestigation(inv.id)}
+                      >
+                        <Stack style={css({ height: '100%' })}>
+                          <Box p="lg">
+                            <Flex justify="between" mb="md">
+                              {getStatusBadge(inv.status)}
                             </Flex>
-                            <Flex align="center" gap="xs">
-                              <Icon name="Calendar" size="xs" className={styles.iconMuted} />
+                            <Stack gap="sm" className={styles.invCardBody}>
+                              <LqText variant="body" weight="bold" className={styles.invTitle}>
+                                {inv.title}
+                              </LqText>
+                              <LqText variant="xs" color="muted" className={styles.invDesc}>
+                                {inv.description || 'No description provided.'}
+                              </LqText>
+                            </Stack>
+                          </Box>
+                          <Surface variant="glass-highlight" mt="auto">
+                            <Flex justify="between" p="md">
                               <LqText variant="xs" color="muted">
-                                {new Date(inv.createdAt).toLocaleDateString()}
+                                Public case
                               </LqText>
+                              <Flex align="center" gap="xs">
+                                <Icon name="Calendar" size="xs" className={styles.iconMuted} />
+                                <LqText variant="xs" color="muted">
+                                  {new Date(inv.createdAt).toLocaleDateString()}
+                                </LqText>
+                              </Flex>
                             </Flex>
-                          </Flex>
-                        </Surface>
-                      </Stack>
+                          </Surface>
+                        </Stack>
+                      </Button>
                     </Surface>
                   ))}
                 </Grid>
@@ -943,14 +1083,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
       {/* Investigation Workspace Layout (Mobile) */}
       {selectedInvestigation && isMobile && (
-        <MobileInvestigationShell
-          currentUser={currentUser}
-          selectedInvestigation={selectedInvestigation}
-          timelineEvents={timelineEvents}
-          evidenceItems={evidenceItems}
-          investigationId={String(selectedInvestigation.id)}
-          onInvestigationSelect={onInvestigationSelect}
-        />
+        <Suspense fallback={<PanelLoadingState />}>
+          <MobileInvestigationShell
+            currentUser={currentUser}
+            selectedInvestigation={selectedInvestigation}
+            timelineEvents={timelineEvents}
+            evidenceItems={evidenceItems}
+            investigationId={String(selectedInvestigation.id)}
+            onInvestigationSelect={onInvestigationSelect}
+          />
+        </Suspense>
       )}
 
       {/* Investigation Workspace Layout (Restored Flex) */}
@@ -979,53 +1121,92 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     className={styles.shareButton}
                   >
                     <Icon name="Share2" size="sm" />{' '}
-                    {shareCopied ? 'Access Token Copied' : 'Share Investigation'}
+                    {shareCopied ? 'Public link copied' : 'Copy public link'}
                   </Button>
+                  <LqText variant="xxxs" color="muted">
+                    Anyone with this link can view the case.
+                  </LqText>
                 </Stack>
 
                 {renderCaseReadinessPanel(true)}
 
-                <Stack gap="xs" className={styles.nav}>
-                  {[
-                    { id: 'board', label: 'Investigation Board', iconName: 'LayoutDashboard' },
-                    { id: 'iceberg', label: 'Iceberg Intelligence', iconName: 'Layers' },
-                    { id: 'intelligence', label: 'Discovery Intelligence', iconName: 'Cpu' },
-                    { id: 'overview', label: 'Intelligence Overview', iconName: 'Search' },
-                    { id: 'activity', label: 'Activity Log', iconName: 'Activity' },
-                    { id: 'casefolder', label: 'Primary Evidence Folder', iconName: 'FolderOpen' },
-                    { id: 'evidence', label: 'Evidence Matrix', iconName: 'FileText' },
-                    { id: 'hypotheses', label: 'Hypothesis Framework', iconName: 'Target' },
-                    { id: 'notebook', label: 'Analyst Notebook', iconName: 'FileText' },
-                    { id: 'financial', label: 'Financial Correlator', iconName: 'DollarSign' },
-                    { id: 'timeline', label: 'Event Chronology', iconName: 'Calendar' },
-                    { id: 'communications', label: 'Comms Analysis', iconName: 'MessageSquare' },
-                    { id: 'forensic', label: 'Forensic Workbench', iconName: 'Microscope' },
-                    { id: 'team', label: 'Asset Management', iconName: 'Users' },
-                    { id: 'analytics', label: 'Signal Intelligence', iconName: 'BarChart3' },
-                    { id: 'export', label: 'Final Report / Export', iconName: 'Download' },
-                  ].map((t) => (
-                    <Button
-                      key={t.id}
-                      variant={activeTab === t.id ? 'accent-solid' : 'ghost'}
-                      onClick={() => navigateToTab(t.id)}
-                      className={cn(
-                        styles.navButton,
-                        activeTab === t.id ? styles.navButtonActive : '',
-                      )}
-                    >
-                      <Flex align="center" gap="md" grow>
-                        <Icon name={t.iconName} size="sm" className={styles.navIcon} />
-                        <LqText
-                          variant="small"
-                          className={styles.navLabel}
-                          weight={activeTab === t.id ? 'bold' : 'medium'}
-                        >
-                          {t.label}
-                        </LqText>
-                      </Flex>
-                    </Button>
-                  ))}
-                </Stack>
+                <nav aria-label="Case sections">
+                  <Stack gap="xs" className={styles.nav}>
+                    {[
+                      { id: 'overview', label: 'Overview', iconName: 'Search' },
+                      { id: 'casefolder', label: 'Evidence', iconName: 'FolderOpen' },
+                      ...(canEditInvestigations
+                        ? [
+                            { id: 'board', label: 'Board', iconName: 'LayoutDashboard' },
+                            { id: 'notebook', label: 'Notes', iconName: 'FileText' },
+                          ]
+                        : []),
+                      { id: 'timeline', label: 'Timeline', iconName: 'Calendar' },
+                      { id: 'export', label: 'Export', iconName: 'Download' },
+                    ].map((t) => (
+                      <Button
+                        key={t.id}
+                        variant={activeTab === t.id ? 'accent-solid' : 'ghost'}
+                        onClick={() => navigateToTab(t.id)}
+                        className={cn(
+                          styles.navButton,
+                          activeTab === t.id ? styles.navButtonActive : '',
+                        )}
+                      >
+                        <Flex align="center" gap="md" grow>
+                          <Icon name={t.iconName} size="sm" className={styles.navIcon} />
+                          <LqText
+                            variant="small"
+                            className={styles.navLabel}
+                            weight={activeTab === t.id ? 'bold' : 'medium'}
+                          >
+                            {t.label}
+                          </LqText>
+                        </Flex>
+                      </Button>
+                    ))}
+                    <details className={styles.advancedNav}>
+                      <summary>Advanced tools</summary>
+                      <Stack gap="xs" mt="xs">
+                        {[
+                          ...(canEditInvestigations
+                            ? [
+                                { id: 'hypotheses', label: 'Hypotheses', iconName: 'Target' },
+                                { id: 'team', label: 'Team', iconName: 'Users' },
+                              ]
+                            : []),
+                          { id: 'intelligence', label: 'Discovery', iconName: 'Layers' },
+                          { id: 'financial', label: 'Financial links', iconName: 'DollarSign' },
+                          {
+                            id: 'communications',
+                            label: 'Communications',
+                            iconName: 'MessageSquare',
+                          },
+                          { id: 'forensic', label: 'Forensic tools', iconName: 'Microscope' },
+                          { id: 'analytics', label: 'Analytics', iconName: 'BarChart3' },
+                          { id: 'activity', label: 'Activity', iconName: 'Activity' },
+                        ].map((t) => (
+                          <Button
+                            key={t.id}
+                            variant={activeTab === t.id ? 'accent-solid' : 'ghost'}
+                            onClick={() => navigateToTab(t.id)}
+                            className={cn(
+                              styles.navButton,
+                              activeTab === t.id ? styles.navButtonActive : '',
+                            )}
+                          >
+                            <Flex align="center" gap="md" grow>
+                              <Icon name={t.iconName} size="sm" className={styles.navIcon} />
+                              <LqText variant="small" className={styles.navLabel}>
+                                {t.label}
+                              </LqText>
+                            </Flex>
+                          </Button>
+                        ))}
+                      </Stack>
+                    </details>
+                  </Stack>
+                </nav>
               </Stack>
             </Surface>
           </Box>
@@ -1033,352 +1214,384 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           {/* Main Content Area (Restored Flow) */}
           <Box grow className={styles.mainContent}>
             <Box p="xl" className={styles.scrollArea}>
-              {activeTab === 'board' && (
-                <InvestigationBoard investigationId={selectedInvestigation.id} />
-              )}
-              {activeTab === 'iceberg' && (
-                <IcebergIntelligence
-                  investigationId={selectedInvestigation.id}
-                  onOpenDocument={(documentId) => setCaseFolderDocumentId(String(documentId))}
-                />
-              )}
-              {activeTab === 'intelligence' && (
-                <IcebergIntelligence
-                  investigationId={selectedInvestigation.id}
-                  onOpenDocument={(documentId) => setCaseFolderDocumentId(String(documentId))}
-                />
-              )}
-              {activeTab === 'overview' && (
-                <Stack gap="xl">
-                  <LqText variant="h3" weight="bold" className={styles.tabTitle}>
-                    <Icon
-                      name="Search"
-                      size="md"
-                      className={styles.iconAccent}
-                      style={css({ marginRight: '0.75rem', verticalAlign: 'middle' })}
-                    />
-                    Intelligence Overview
-                  </LqText>
-                  <Grid cols={{ sm: 1, lg: 2 }} gap="xl" className={styles.overviewGrid}>
-                    <Surface variant="glass-highlight" p="xl" className={styles.infoBox}>
-                      <Stack gap="md">
-                        <LqText
-                          variant="xs"
-                          weight="bold"
-                          className={styles.infoLabel}
-                          style={css({ color: 'var(--lq-accent-3)' })}
-                        >
-                          Primary Hypothesis
+              <Suspense fallback={<PanelLoadingState />}>
+                {!canEditInvestigations &&
+                ['board', 'notebook', 'hypotheses', 'team', 'forensic', 'export'].includes(
+                  activeTab,
+                ) ? (
+                  <Surface variant="glass" p="xl" role="status">
+                    <Stack gap="md" align="start">
+                      <Icon name="Lock" size="lg" className={styles.iconMuted} />
+                      <Stack gap="xs">
+                        <LqText variant="h3" weight="bold">
+                          Investigator access required
                         </LqText>
-                        <LqText variant="small" className={styles.infoText}>
-                          {selectedInvestigation.hypothesis}
+                        <LqText variant="small" color="muted">
+                          This case is public to view. Editing, notes, analysis, and export require
+                          an investigator account.
                         </LqText>
                       </Stack>
-                    </Surface>
-                    <Surface variant="glass-highlight" p="xl" className={styles.infoBox}>
-                      <Stack gap="md">
-                        <LqText
-                          variant="xs"
-                          weight="bold"
-                          className={styles.infoLabel}
-                          style={css({ color: 'var(--lq-accent-3)' })}
-                        >
-                          Operational Status
-                        </LqText>
-                        <Flex gap="md" align="center" className={styles.statusRow}>
-                          {getStatusBadge(selectedInvestigation.status)}
-                          {getPriorityBadge(selectedInvestigation.priority)}
-                        </Flex>
-                        {selectedInvestigation.dueDate && (
-                          <Flex align="center" gap="sm" mt="xs">
-                            <Icon name="Clock" size="sm" className={styles.iconMuted} />
-                            <LqText variant="xs" color="muted">
-                              Target Completion:{' '}
-                              {new Date(selectedInvestigation.dueDate).toLocaleDateString()}
-                            </LqText>
-                          </Flex>
-                        )}
-                      </Stack>
-                    </Surface>
-                  </Grid>
-                  <DataIntegrityPanel
-                    stats={{
-                      entitiesWithDocuments: dbStats.entitiesWithDocuments,
-                      totalEntities: dbStats.totalEntities,
-                      documentsWithMetadata: dbStats.documentsWithMetadata,
-                      totalDocuments: dbStats.totalDocuments,
-                      lastRefresh: new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC',
-                    }}
-                  />
-                  {renderCaseReadinessPanel()}
-                  {evidenceItems.length === 0 && (
-                    <Surface variant="glass" p="xl" className={styles.nextActionPanel}>
-                      <Flex gap="lg" align="center" justify="between" wrap="wrap">
-                        <Stack gap="xs">
-                          <LqText variant="body" weight="bold">
-                            Build the first packet item
-                          </LqText>
-                          <LqText variant="xs" color="muted">
-                            This case has no evidence yet. Start from the case folder or document
-                            browser so export/report tools have material to package.
-                          </LqText>
-                        </Stack>
-                        <Flex gap="sm" wrap="wrap">
-                          <Button variant="primary" onClick={() => navigateToTab('casefolder')}>
-                            Open Case Folder
-                          </Button>
-                          <Button variant="secondary" onClick={() => navigate('/documents')}>
-                            Search Archive
-                          </Button>
-                        </Flex>
-                      </Flex>
-                    </Surface>
-                  )}
-                </Stack>
-              )}
-              {activeTab === 'activity' && (
-                <InvestigationActivityFeed investigationId={selectedInvestigation.id} />
-              )}
-              {activeTab === 'casefolder' && (
-                <InvestigationCaseFolder
-                  investigationId={selectedInvestigation.id}
-                  onEvidenceClick={handleCaseFolderEvidenceClick}
-                  deepLinkedEvidenceId={deepLinkedEvidenceId}
-                  caseFolderData={caseFolder || undefined}
-                  caseFolderLoading={caseFolderLoading}
-                  caseFolderError={caseFolderError}
-                  onReloadCaseFolder={reloadCaseFolder}
-                />
-              )}
-              {activeTab === 'evidence' && (
-                <InvestigationEvidencePanel
-                  investigationId={selectedInvestigation.id}
-                  onChainOfCustody={setCustodyEvidenceId}
-                />
-              )}
-              {activeTab === 'hypotheses' && (
-                <HypothesisTestingFramework
-                  investigationId={selectedInvestigation.id}
-                  initialHypothesis={selectedInvestigation.hypothesis}
-                  evidenceItems={evidenceItems}
-                  onHypothesesUpdate={(u) => setHypotheses(u as Hypothesis[])}
-                />
-              )}
-              {activeTab === 'notebook' && (
-                <EvidenceNotebook investigationId={Number(selectedInvestigation.id)} />
-              )}
-              {activeTab === 'financial' && (
-                <React.Suspense fallback={<p role="status">Loading financial view…</p>}>
-                  <FinancialTransactionMapper
-                    investigationId={useGlobalContext ? undefined : selectedInvestigation.id}
-                  />
-                </React.Suspense>
-              )}
-              {activeTab === 'communications' && (
-                <CommunicationAnalysis
-                  investigation={selectedInvestigation}
-                  evidence={evidenceItems}
-                  onOpenCaseFolder={() => navigateToTab('casefolder')}
-                />
-              )}
-              {activeTab === 'timeline' && (
-                <InvestigationTimelineBuilder
-                  investigation={selectedInvestigation}
-                  events={timelineEvents}
-                  evidence={evidenceItems}
-                  hypotheses={hypotheses}
-                  onEventsUpdate={setTimelineEvents}
-                  onSaveEvent={async (e) => {
-                    void e;
-                  }}
-                  onDeleteEvent={async (id) => {
-                    void id;
-                  }}
-                  onOpenSource={(ev) => {
-                    void ev;
-                  }}
-                />
-              )}
-              {activeTab === 'forensic' && (
-                <React.Suspense fallback={<p role="status">Loading forensic view…</p>}>
-                  <ForensicAnalysisWorkspace
-                    investigation={selectedInvestigation}
-                    evidence={evidenceItems}
-                    onEvidenceUpdate={setEvidenceItems}
-                    timelineEvents={timelineEvents}
-                    useGlobalContext={useGlobalContext}
-                  />
-                </React.Suspense>
-              )}
-              {activeTab === 'team' && (
-                <InvestigationTeamManagement
-                  investigation={selectedInvestigation}
-                  currentUser={currentUser}
-                  onTeamUpdate={setSelectedInvestigation}
-                />
-              )}
-              {activeTab === 'analytics' && (
-                <Box fullHeight style={css({ minHeight: '600px' })}>
-                  {isNetworkLoading ? (
-                    <Flex align="center" justify="center" h="100%">
-                      <Icon name="Loader2" className="animate-spin text-primary" size="xl" />
-                    </Flex>
-                  ) : (
-                    <NetworkVisualization nodes={networkNodes} edges={networkEdges} height={700} />
-                  )}
-                </Box>
-              )}
-              {activeTab === 'export' && (
-                <Stack gap="xl">
-                  <LqText variant="h3" weight="bold">
-                    Export & Forensic Publication
-                  </LqText>
-                  <InvestigationExportTools
-                    investigation={selectedInvestigation}
-                    evidence={evidenceItems}
-                    timelineEvents={timelineEvents}
-                    hypotheses={hypotheses}
-                    annotations={annotations}
-                  />
-                  <Surface variant="glass" p="xl">
-                    <Stack gap="md">
-                      <LqText variant="body" weight="bold">
-                        Forensic Intelligence Summary
-                      </LqText>
-                      <LqText variant="xs" color="muted">
-                        Compress all investigative signal data into an encrypted evidence packet.
-                      </LqText>
-                      <EvidencePacketExporter
-                        investigationId={selectedInvestigation.id}
-                        investigationTitle={selectedInvestigation.title}
-                        evidence={evidenceItems}
-                        timelineEvents={timelineEvents}
-                        hypotheses={hypotheses}
-                        annotations={annotations}
-                        onExport={(f, _) =>
-                          addToast({ text: `Export complete: ${f.toUpperCase()}`, type: 'success' })
-                        }
-                      />
+                      <Button variant="primary" onClick={openCreateInvestigation}>
+                        <Icon name="LogIn" size="sm" /> Investigator sign-in
+                      </Button>
                     </Stack>
                   </Surface>
-                </Stack>
-              )}
+                ) : (
+                  <>
+                    {activeTab === 'board' && (
+                      <InvestigationBoard investigationId={selectedInvestigation.id} />
+                    )}
+                    {activeTab === 'iceberg' && (
+                      <IcebergIntelligence
+                        investigationId={selectedInvestigation.id}
+                        onOpenDocument={(documentId) => setCaseFolderDocumentId(String(documentId))}
+                      />
+                    )}
+                    {activeTab === 'intelligence' && (
+                      <IcebergIntelligence
+                        investigationId={selectedInvestigation.id}
+                        onOpenDocument={(documentId) => setCaseFolderDocumentId(String(documentId))}
+                      />
+                    )}
+                    {activeTab === 'overview' && (
+                      <Stack gap="xl">
+                        <LqText variant="h3" weight="bold" className={styles.tabTitle}>
+                          <Icon
+                            name="Search"
+                            size="md"
+                            className={styles.iconAccent}
+                            style={css({ marginRight: '0.75rem', verticalAlign: 'middle' })}
+                          />
+                          Intelligence Overview
+                        </LqText>
+                        <Grid cols={{ sm: 1, lg: 2 }} gap="xl" className={styles.overviewGrid}>
+                          <Surface variant="glass-highlight" p="xl" className={styles.infoBox}>
+                            <Stack gap="md">
+                              <LqText
+                                variant="xs"
+                                weight="bold"
+                                className={styles.infoLabel}
+                                style={css({ color: 'var(--lq-accent-3)' })}
+                              >
+                                Primary Hypothesis
+                              </LqText>
+                              <LqText variant="small" className={styles.infoText}>
+                                {selectedInvestigation.hypothesis}
+                              </LqText>
+                            </Stack>
+                          </Surface>
+                          <Surface variant="glass-highlight" p="xl" className={styles.infoBox}>
+                            <Stack gap="md">
+                              <LqText
+                                variant="xs"
+                                weight="bold"
+                                className={styles.infoLabel}
+                                style={css({ color: 'var(--lq-accent-3)' })}
+                              >
+                                Operational Status
+                              </LqText>
+                              <Flex gap="md" align="center" className={styles.statusRow}>
+                                {getStatusBadge(selectedInvestigation.status)}
+                                {getPriorityBadge(selectedInvestigation.priority)}
+                              </Flex>
+                              {selectedInvestigation.dueDate && (
+                                <Flex align="center" gap="sm" mt="xs">
+                                  <Icon name="Clock" size="sm" className={styles.iconMuted} />
+                                  <LqText variant="xs" color="muted">
+                                    Target Completion:{' '}
+                                    {new Date(selectedInvestigation.dueDate).toLocaleDateString()}
+                                  </LqText>
+                                </Flex>
+                              )}
+                            </Stack>
+                          </Surface>
+                        </Grid>
+                        <DataIntegrityPanel
+                          stats={{
+                            entitiesWithDocuments: dbStats.entitiesWithDocuments,
+                            totalEntities: dbStats.totalEntities,
+                            documentsWithMetadata: dbStats.documentsWithMetadata,
+                            totalDocuments: dbStats.totalDocuments,
+                            lastRefresh:
+                              new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC',
+                          }}
+                        />
+                        {renderCaseReadinessPanel()}
+                        {evidenceItems.length === 0 && (
+                          <Surface variant="glass" p="xl" className={styles.nextActionPanel}>
+                            <Flex gap="lg" align="center" justify="between" wrap="wrap">
+                              <Stack gap="xs">
+                                <LqText variant="body" weight="bold">
+                                  Build the first packet item
+                                </LqText>
+                                <LqText variant="xs" color="muted">
+                                  This case has no evidence yet. Start from the case folder or
+                                  document browser so export/report tools have material to package.
+                                </LqText>
+                              </Stack>
+                              <Flex gap="sm" wrap="wrap">
+                                <Button
+                                  variant="primary"
+                                  onClick={() => navigateToTab('casefolder')}
+                                >
+                                  Open Case Folder
+                                </Button>
+                                <Button variant="secondary" onClick={() => navigate('/documents')}>
+                                  Search Archive
+                                </Button>
+                              </Flex>
+                            </Flex>
+                          </Surface>
+                        )}
+                      </Stack>
+                    )}
+                    {activeTab === 'activity' && (
+                      <InvestigationActivityFeed investigationId={selectedInvestigation.id} />
+                    )}
+                    {activeTab === 'casefolder' && (
+                      <InvestigationCaseFolder
+                        investigationId={selectedInvestigation.id}
+                        onEvidenceClick={handleCaseFolderEvidenceClick}
+                        deepLinkedEvidenceId={deepLinkedEvidenceId}
+                        caseFolderData={caseFolder || undefined}
+                        caseFolderLoading={caseFolderLoading}
+                        caseFolderError={caseFolderError}
+                        onReloadCaseFolder={reloadCaseFolder}
+                      />
+                    )}
+                    {activeTab === 'evidence' && (
+                      <InvestigationEvidencePanel
+                        investigationId={selectedInvestigation.id}
+                        onChainOfCustody={setCustodyEvidenceId}
+                      />
+                    )}
+                    {activeTab === 'hypotheses' && (
+                      <HypothesisTestingFramework
+                        investigationId={selectedInvestigation.id}
+                        initialHypothesis={selectedInvestigation.hypothesis}
+                        evidenceItems={evidenceItems}
+                        onHypothesesUpdate={(u) => setHypotheses(u as Hypothesis[])}
+                      />
+                    )}
+                    {activeTab === 'notebook' && (
+                      <EvidenceNotebook investigationId={Number(selectedInvestigation.id)} />
+                    )}
+                    {activeTab === 'financial' && (
+                      <FinancialTransactionMapper
+                        investigationId={useGlobalContext ? undefined : selectedInvestigation.id}
+                      />
+                    )}
+                    {activeTab === 'communications' && (
+                      <CommunicationAnalysis
+                        investigation={selectedInvestigation}
+                        evidence={evidenceItems}
+                        onOpenCaseFolder={() => navigateToTab('casefolder')}
+                      />
+                    )}
+                    {activeTab === 'timeline' && (
+                      <InvestigationTimelineBuilder
+                        investigation={selectedInvestigation}
+                        events={timelineEvents}
+                        evidence={evidenceItems}
+                        hypotheses={hypotheses}
+                        onEventsUpdate={setTimelineEvents}
+                        onSaveEvent={async (e) => {
+                          void e;
+                        }}
+                        onDeleteEvent={async (id) => {
+                          void id;
+                        }}
+                        onOpenSource={(ev) => {
+                          void ev;
+                        }}
+                      />
+                    )}
+                    {activeTab === 'forensic' && (
+                      <ForensicAnalysisWorkspace
+                        investigation={selectedInvestigation}
+                        evidence={evidenceItems}
+                        onEvidenceUpdate={setEvidenceItems}
+                        timelineEvents={timelineEvents}
+                        useGlobalContext={useGlobalContext}
+                      />
+                    )}
+                    {activeTab === 'team' && (
+                      <InvestigationTeamManagement
+                        investigation={selectedInvestigation}
+                        currentUser={currentUser}
+                        onTeamUpdate={setSelectedInvestigation}
+                      />
+                    )}
+                    {activeTab === 'analytics' && (
+                      <Box fullHeight style={css({ minHeight: '600px' })}>
+                        {isNetworkLoading ? (
+                          <Flex align="center" justify="center" h="100%">
+                            <Icon name="Loader2" className="animate-spin text-primary" size="xl" />
+                          </Flex>
+                        ) : (
+                          <NetworkVisualization
+                            nodes={networkNodes}
+                            edges={networkEdges}
+                            height={700}
+                          />
+                        )}
+                      </Box>
+                    )}
+                    {activeTab === 'export' && (
+                      <Stack gap="xl">
+                        <LqText variant="h3" weight="bold">
+                          Export & Forensic Publication
+                        </LqText>
+                        <InvestigationExportTools
+                          investigation={selectedInvestigation}
+                          evidence={evidenceItems}
+                          timelineEvents={timelineEvents}
+                          hypotheses={hypotheses}
+                          annotations={annotations}
+                        />
+                        <Surface variant="glass" p="xl">
+                          <Stack gap="md">
+                            <LqText variant="body" weight="bold">
+                              Forensic Intelligence Summary
+                            </LqText>
+                            <LqText variant="xs" color="muted">
+                              Compress all investigative signal data into an encrypted evidence
+                              packet.
+                            </LqText>
+                            <EvidencePacketExporter
+                              investigationId={selectedInvestigation.id}
+                              investigationTitle={selectedInvestigation.title}
+                              evidence={evidenceItems}
+                              timelineEvents={timelineEvents}
+                              hypotheses={hypotheses}
+                              annotations={annotations}
+                              onExport={(f, _) => {
+                                trackInvestigationEvent('investigation_export_completed', {
+                                  caseId: String(selectedInvestigation.id),
+                                  metadata: { format: f },
+                                });
+                                addToast({
+                                  text: `Export complete: ${f.toUpperCase()}`,
+                                  type: 'success',
+                                });
+                              }}
+                            />
+                          </Stack>
+                        </Surface>
+                      </Stack>
+                    )}
+                  </>
+                )}
+              </Suspense>
             </Box>
           </Box>
         </Flex>
       )}
 
-      {/* Unified Modal Suite (Simplified styles via Liquid Glass) */}
-      {showNewInvestigationModal && (
-        <Box className={styles.modalOverlay} onClick={() => setShowNewInvestigationModal(false)}>
-          <Box className={styles.modalBackdrop} />
-          <Surface
-            variant="panel"
-            width={480}
-            p="xxxl"
-            className={styles.modalPanel}
-            onClick={(e) => e.stopPropagation()}
+      <Dialog
+        open={showNewInvestigationModal}
+        onOpenChange={(open) => {
+          setShowNewInvestigationModal(open);
+          if (!open) setCreationError(null);
+        }}
+      >
+        <DialogContent className={styles.createDialog}>
+          <DialogHeader>
+            <DialogTitle>Create a public case</DialogTitle>
+            <DialogDescription>
+              Give the case a clear question and scope. You can add evidence after you create it.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void createInvestigation();
+            }}
           >
-            <Stack gap="xl">
-              <Stack gap="xs">
-                <LqText variant="h2" weight="bold">
-                  Initialize Analytical Track
+            <Stack gap="lg">
+              <Surface variant="glass-highlight" p="md" role="note">
+                <LqText variant="small">
+                  Cases are public. Do not add private, confidential, or personal contact data.
                 </LqText>
-                <LqText
-                  variant="xs"
-                  color="muted"
-                  style={css({ textTransform: 'uppercase' })}
-                  weight="bold"
-                >
-                  Strategic Archive Penetration Protocol
+              </Surface>
+              <TextInput
+                id="investigation-title"
+                label="Case title"
+                required
+                autoFocus
+                placeholder="Example: Payments linked to Property X"
+                value={newInvestigation.title}
+                invalid={creationError !== null && !newInvestigation.title.trim()}
+                onChange={(event) => {
+                  setCreationError(null);
+                  setNewInvestigation({ ...newInvestigation, title: event.target.value });
+                }}
+              />
+              <Textarea
+                id="investigation-question"
+                label="Question or hypothesis (optional)"
+                rows={3}
+                placeholder="What are you trying to confirm or disprove?"
+                value={newInvestigation.hypothesis}
+                onChange={(event) =>
+                  setNewInvestigation({ ...newInvestigation, hypothesis: event.target.value })
+                }
+              />
+              <Textarea
+                id="investigation-description"
+                label="Context (optional)"
+                rows={3}
+                placeholder="Add background, boundaries, or a short plan."
+                value={newInvestigation.description}
+                onChange={(event) =>
+                  setNewInvestigation({ ...newInvestigation, description: event.target.value })
+                }
+              />
+              {creationError && (
+                <LqText variant="small" color="danger" role="alert">
+                  {creationError}
                 </LqText>
-              </Stack>
-              <Stack gap="lg">
-                <Stack gap="xs">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    TITLE
-                  </LqText>
-                  <Input
-                    style={css({
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    })}
-                    placeholder="Brief case title..."
-                    value={newInvestigation.title}
-                    onChange={(e) =>
-                      setNewInvestigation({ ...newInvestigation, title: e.target.value })
-                    }
-                  />
-                </Stack>
-                <Stack gap="xs">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    BRIEF DESCRIPTION
-                  </LqText>
-                  <TextArea
-                    style={css({
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                      resize: 'none',
-                    })}
-                    rows={3}
-                    placeholder="Initial goals and scope..."
-                    value={newInvestigation.description}
-                    onChange={(e) =>
-                      setNewInvestigation({ ...newInvestigation, description: e.target.value })
-                    }
-                  />
-                </Stack>
-              </Stack>
-              <Flex gap="md" mt="md" justify="end">
-                <Button variant="ghost" onClick={() => setShowNewInvestigationModal(false)}>
-                  Cancel Phase
-                </Button>
+              )}
+              <Flex gap="sm" justify="end" wrap="wrap">
                 <Button
-                  variant="secondary"
-                  onClick={createInvestigation}
-                  disabled={!newInvestigation.title}
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowNewInvestigationModal(false)}
                 >
-                  Initiate
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" disabled={!newInvestigation.title.trim()}>
+                  Create case
                 </Button>
               </Flex>
             </Stack>
-          </Surface>
-        </Box>
-      )}
+          </form>
+        </DialogContent>
+      </Dialog>
 
-      {selectedInvestigation && showLeadsPanel && (
-        <InvestigationLeadsPanel
-          investigationId={selectedInvestigation.id}
-          onClose={() => setShowLeadsPanel(false)}
-        />
-      )}
+      <Suspense fallback={<PanelLoadingState />}>
+        {selectedInvestigation && showLeadsPanel && (
+          <InvestigationLeadsPanel
+            investigationId={selectedInvestigation.id}
+            onClose={() => setShowLeadsPanel(false)}
+          />
+        )}
 
-      {selectedInvestigation && showTasksPanel && (
-        <InvestigationTasksPanel
-          investigationId={selectedInvestigation.id}
-          onClose={() => setShowTasksPanel(false)}
-        />
-      )}
+        {selectedInvestigation && showTasksPanel && (
+          <InvestigationTasksPanel
+            investigationId={selectedInvestigation.id}
+            onClose={() => setShowTasksPanel(false)}
+          />
+        )}
 
-      {selectedInvestigation && showDossierPanel && (
-        <SubjectDossierPanel
-          investigationId={selectedInvestigation.id}
-          onClose={() => setShowDossierPanel(false)}
-          onOpenDocument={setCaseFolderDocumentId}
-        />
-      )}
+        {selectedInvestigation && showDossierPanel && (
+          <SubjectDossierPanel
+            investigationId={selectedInvestigation.id}
+            onClose={() => setShowDossierPanel(false)}
+            onOpenDocument={setCaseFolderDocumentId}
+          />
+        )}
+      </Suspense>
 
       {caseFolderDocumentId && (
         <DocumentModal id={caseFolderDocumentId} onClose={closeCaseFolderDocumentModal} />
@@ -1395,30 +1608,6 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           evidenceId={custodyEvidenceId}
           onClose={() => setCustodyEvidenceId(null)}
         />
-      )}
-
-      {/* Onboarding Overlay (Rendered last for correct stacking) */}
-      {showImportModal && (
-        <Box className={styles.importOverlay} onClick={() => setShowImportModal(false)}>
-          <Surface p="xl" variant="glass-strong" style={css({ maxWidth: 500 })}>
-            <Stack gap="md">
-              <LqText variant="h3">Import Forensic Records</LqText>
-              <LqText variant="body" color="muted">
-                The high-speed JSON/PDF migration corridor is active. Select your source DOJ volume.
-              </LqText>
-              <Flex justify="end" gap="sm">
-                <Button variant="ghost" onClick={() => setShowImportModal(false)}>
-                  Cancel
-                </Button>
-                <Button variant="primary">Authenticate & Ingest</Button>
-              </Flex>
-            </Stack>
-          </Surface>
-        </Box>
-      )}
-
-      {!hasSeenOnboarding && !selectedInvestigation && (
-        <InvestigationOnboarding onComplete={markOnboardingAsSeen} onSkip={markOnboardingAsSeen} />
       )}
 
       <Dialog

@@ -105,12 +105,18 @@ export const investigationsRepository = {
     };
   },
 
-  createInvestigation: async (data: { title: string; description?: string; ownerId: string }) => {
+  createInvestigation: async (data: {
+    title: string;
+    description?: string;
+    ownerId: string;
+    scope?: string;
+  }) => {
     const result = await investigationsQueries.createInvestigation.run(
       {
         title: data.title,
         description: data.description || null,
         ownerId: data.ownerId,
+        scope: data.scope || null,
       },
       getApiPool(),
     );

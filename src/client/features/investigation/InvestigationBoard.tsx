@@ -4,7 +4,6 @@ import Icon from '@client/components/common/Icon';
 import { EvidenceItem, Hypothesis } from '@client/types/investigation';
 import { apiClient } from '@client/services/apiClient';
 import { DocumentModal } from '@client/components/documents/DocumentModal';
-import { BoardOnboarding } from './BoardOnboarding';
 import { useInvestigationBoard } from '@client/domains/investigations';
 
 // UI Library
@@ -14,11 +13,12 @@ import {
   Box,
   Button,
   Flex,
-  Input,
   LqText,
+  Select,
   Skeleton,
   Stack,
   Surface,
+  TextInput,
   Textarea,
 } from '@client/design-system/lib';
 const css = <T,>(style: T) => style;
@@ -78,24 +78,12 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
   const [showHypothesisModal, setShowHypothesisModal] = useState(false);
   const [newHypothesisTitle, setNewHypothesisTitle] = useState('');
   const [newHypothesisDesc, setNewHypothesisDesc] = useState('');
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    const seen = localStorage.getItem('board_onboarding_seen');
-    const investigationOnboardingSeen =
-      localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
-    return !seen && investigationOnboardingSeen;
-  });
 
   const evidenceRef = useRef<HTMLDivElement | null>(null);
   const hypothesesRef = useRef<HTMLDivElement | null>(null);
 
   const evidenceVirtual = useVirtualWindow(evidence.length, 88);
   const hypothesesVirtual = useVirtualWindow(hypotheses.length, 134);
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    localStorage.setItem('board_onboarding_seen', 'true');
-  };
 
   useEffect(() => {
     const node = evidenceRef.current;
@@ -160,19 +148,18 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
     }
   };
 
-  const handleDropOnHypothesis = async (hypothesisId: string) => {
-    if (!draggedEvidence) return;
+  const linkEvidenceToHypothesis = async (hypothesisId: string, evidenceItem: EvidenceItem) => {
     try {
       await apiClient.post(
         `/investigations/${investigationId}/hypotheses/${hypothesisId}/evidence`,
-        { evidenceId: draggedEvidence.id, relevance: 'supporting' },
+        { evidenceId: evidenceItem.id, relevance: 'supporting' },
       );
       setHypotheses((prev: Hypothesis[]) =>
         prev.map((h: Hypothesis) =>
           String(h.id) === String(hypothesisId)
             ? ({
                 ...h,
-                evidenceIds: [...(h.evidenceIds || []), draggedEvidence.id],
+                evidenceIds: [...(h.evidenceIds || []), evidenceItem.id],
               } as Hypothesis)
             : h,
         ),
@@ -181,6 +168,25 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
       console.error(err);
     }
     setDraggedEvidence(null);
+  };
+
+  const handleDropOnHypothesis = async (hypothesisId: string) => {
+    if (!draggedEvidence) return;
+    await linkEvidenceToHypothesis(hypothesisId, draggedEvidence);
+  };
+
+  const addEvidenceToNarrative = async (evidenceItem: EvidenceItem) => {
+    const evidenceId = Number(evidenceItem.id);
+    if (!Number.isFinite(evidenceId)) return;
+    const updated = [...notebook.filter((id) => id !== evidenceId), evidenceId];
+    await apiClient.updateInvestigationNotebook(investigationId, { order: updated });
+    setNotebook(updated);
+  };
+
+  const removeEvidenceFromNarrative = async (evidenceId: number) => {
+    const updated = notebook.filter((id) => id !== evidenceId);
+    await apiClient.updateInvestigationNotebook(investigationId, { order: updated });
+    setNotebook(updated);
   };
 
   return (
@@ -199,7 +205,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               <Flex align="center" gap="md">
                 <Icon name="Layers" size="md" className={styles.autoGen151} />
                 <LqText variant="small" weight="bold">
-                  Mission Control Board
+                  Case board
                 </LqText>
               </Flex>
               <LqText
@@ -208,15 +214,15 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                 style={css({ textTransform: 'uppercase' })}
                 weight="bold"
               >
-                Strategic Evidence Orchestration Layer
+                Connect evidence to hypotheses and order the case narrative
               </LqText>
             </Stack>
             <Box className={styles.autoGen152}>
               <Flex gap="md" align="center" className={styles.autoGen153}>
                 <Icon name="Activity" size="sm" className={styles.autoGen154} />
-                <LqText variant="xs">Connection: Synchronized</LqText>
+                <LqText variant="xs">Case data loaded</LqText>
                 <LqText variant="xs" color="muted" ml="md">
-                  Payload: {evidenceTotal} Signals Detected
+                  {evidenceTotal} evidence items
                 </LqText>
               </Flex>
             </Box>
@@ -225,7 +231,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
             variant="secondary"
             onClick={() => window.open(`/api/investigations/${investigationId}/briefing`, '_blank')}
           >
-            <Icon name="Download" size="sm" className={styles.mr2} /> Export Strategic Briefing
+            <Icon name="Download" size="sm" className={styles.mr2} /> Export briefing
           </Button>
         </Flex>
       </Surface>
@@ -254,31 +260,25 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
             {showHypothesisModal && (
               <Box p="lg" className={styles.autoGen159}>
                 <Stack gap="md">
-                  <Input
-                    style={css({
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    })}
-                    placeholder="Theoretical Designation..."
+                  <TextInput
+                    id="board-hypothesis-title"
+                    label="Hypothesis title"
+                    placeholder="Enter a focused, testable statement"
                     value={newHypothesisTitle}
                     onChange={(e) => setNewHypothesisTitle(e.target.value)}
                     autoFocus
                   />
                   <Textarea
-                    placeholder="Narrative description..."
+                    id="board-hypothesis-description"
+                    label="Context (optional)"
+                    placeholder="Explain what would support or contradict it"
                     rows={2}
                     value={newHypothesisDesc}
                     onChange={(e) => setNewHypothesisDesc(e.target.value)}
                   />
                   <Flex justify="end" gap="sm">
                     <Button variant="ghost" size="sm" onClick={() => setShowHypothesisModal(false)}>
-                      Abort
+                      Cancel
                     </Button>
                     <Button
                       variant="secondary"
@@ -286,7 +286,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                       onClick={handleCreateHypothesis}
                       disabled={!newHypothesisTitle.trim()}
                     >
-                      Initialize
+                      Add hypothesis
                     </Button>
                   </Flex>
                 </Stack>
@@ -304,7 +304,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                 <Stack align="center" justify="center" p="xxxl" gap="md">
                   <Icon name="Search" size="xl" className={styles.autoGen161} />
                   <LqText variant="xs" color="muted" style={css({ textAlign: 'center' })}>
-                    No active theories defined. Initialize a hypothesis to begin correlation.
+                    No hypotheses yet. Add one to start testing the evidence.
                   </LqText>
                 </Stack>
               ) : (
@@ -360,7 +360,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               <Flex align="center" gap="md">
                 <Icon name="FileText" size="md" className={styles.autoGen167} />
                 <LqText variant="xs" weight="bold" style={css({ textTransform: 'uppercase' })}>
-                  Evidence Matrix
+                  Evidence
                 </LqText>
               </Flex>
               <LqText variant="xs" color="muted" weight="bold">
@@ -379,7 +379,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                 <Stack align="center" justify="center" p="xxxl" gap="md">
                   <Icon name="FileText" size="xl" className={styles.autoGen169} />
                   <LqText variant="xs" color="muted" style={css({ textAlign: 'center' })}>
-                    Storage buffer clear. Add signals from the database to populate.
+                    No evidence has been added to this case.
                   </LqText>
                 </Stack>
               ) : (
@@ -398,7 +398,6 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                         setDraggedEvidence(e);
                         ev.dataTransfer.setData('application/json', JSON.stringify(e));
                       }}
-                      onClick={() => setViewingEvidence(e)}
                     >
                       <Flex gap="md" align="center">
                         <Icon name="GripVertical" size="sm" className={styles.autoGen171} />
@@ -412,6 +411,37 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                           <Box mt="xs">
                             <Badge variant="glass" label={e.type.toUpperCase()} size="sm" />
                           </Box>
+                          <Flex gap="sm" mt="sm" wrap="wrap">
+                            <Button size="sm" variant="ghost" onClick={() => setViewingEvidence(e)}>
+                              Open record
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => void addEvidenceToNarrative(e)}
+                            >
+                              Add to narrative
+                            </Button>
+                            {hypotheses.length > 0 && (
+                              <Select
+                                size="sm"
+                                aria-label={`Link ${e.title} to a hypothesis`}
+                                value=""
+                                onChange={(event) => {
+                                  if (event.target.value) {
+                                    void linkEvidenceToHypothesis(event.target.value, e);
+                                  }
+                                }}
+                                options={[
+                                  { value: '', label: 'Link to hypothesis…' },
+                                  ...hypotheses.map((hypothesis) => ({
+                                    value: String(hypothesis.id),
+                                    label: hypothesis.title,
+                                  })),
+                                ]}
+                              />
+                            )}
+                          </Flex>
                         </Stack>
                       </Flex>
                     </Surface>
@@ -431,7 +461,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
             <Flex align="center" gap="md" p="lg" className={styles.autoGen173}>
               <Icon name="BookOpen" size="md" className={styles.autoGen174} />
               <LqText variant="xs" weight="bold" style={css({ textTransform: 'uppercase' })}>
-                Strategic Workspace Narrative
+                Case narrative
               </LqText>
             </Flex>
 
@@ -455,8 +485,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                       Narrative Sequencer
                     </LqText>
                     <LqText variant="xs" color="muted" mt="sm">
-                      Drag evidence signals from the pool to construct a sequential chain of proof
-                      for the case briefing.
+                      Add evidence from the evidence column to build the case narrative.
                     </LqText>
                   </Surface>
                 </Box>
@@ -480,6 +509,13 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                             <LqText variant="xs" color="muted" lineHeight="relaxed">
                               {ev.description}
                             </LqText>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => void removeEvidenceFromNarrative(Number(id))}
+                            >
+                              Remove from narrative
+                            </Button>
                           </Stack>
                         ) : (
                           <Skeleton height={40} />
@@ -493,7 +529,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                       color="muted"
                       style={css({ textAlign: 'center', padding: 'var(--lq-space-lg) 0' })}
                     >
-                      Hydrating high-fidelity signal metrics...
+                      Loading full evidence details…
                     </LqText>
                   )}
                 </Stack>
@@ -507,14 +543,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
         <DocumentModal id={String(viewingEvidence.id)} onClose={() => setViewingEvidence(null)} />
       )}
 
-      <AnimatePresence>
-        {showOnboarding && (
-          <BoardOnboarding
-            onComplete={handleOnboardingComplete}
-            onSkip={handleOnboardingComplete}
-          />
-        )}
-      </AnimatePresence>
+      <AnimatePresence></AnimatePresence>
     </Box>
   );
 };

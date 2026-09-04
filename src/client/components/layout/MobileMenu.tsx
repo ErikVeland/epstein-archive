@@ -32,11 +32,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     if (typeof window === 'undefined') return false;
     const shown = localStorage.getItem('investigate_attract_shown') === 'true';
     const firstRunCompleted = localStorage.getItem('firstRunOnboardingCompleted') === 'true';
-    const investigationOnboardingSeen =
-      localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
-    const boardOnboardingSeen = localStorage.getItem('board_onboarding_seen') === 'true';
-
-    return !shown && firstRunCompleted && investigationOnboardingSeen && boardOnboardingSeen;
+    return !shown && firstRunCompleted;
   });
 
   const { isAdmin } = useAuth();

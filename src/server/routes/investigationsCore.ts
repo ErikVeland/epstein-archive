@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import type { AuthRequest } from '../auth/middleware.js';
 import { investigationsRepository } from '../db/investigationsRepository.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { mapInvestigationListItemDto } from '../mappers/investigationsDtoMapper.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
@@ -35,6 +35,7 @@ const createInvestigationSchema = z.object({
   body: z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
+    scope: z.string().optional(),
     // ownerId is intentionally excluded — always derived from the authenticated user
   }),
 });
@@ -104,16 +105,18 @@ router.get('/by-title', validate(getByTitleSchema), async (req, res, next) => {
 router.post(
   '/',
   authenticateRequest,
+  requireRole('investigator'),
   validate(createInvestigationSchema),
   async (req, res, next) => {
     try {
-      const { title, description } = req.body;
+      const { title, description, scope } = req.body;
       const ownerId = (req as AuthRequest).user?.id as string;
 
       const investigation = await investigationsRepository.createInvestigation({
         title,
         description,
         ownerId,
+        scope,
       });
 
       res.status(201).json(investigation);
@@ -162,6 +165,7 @@ router.get('/:id/stats', validate(idParamSchema), async (req, res, next) => {
 router.put(
   '/:id',
   authenticateRequest,
+  requireRole('investigator'),
   validate(updateInvestigationSchema),
   async (req, res, next) => {
     try {
@@ -198,6 +202,7 @@ router.put(
 router.delete(
   '/:id',
   authenticateRequest,
+  requireRole('investigator'),
   validate(numericIdParamSchema),
   async (req, res, next) => {
     try {

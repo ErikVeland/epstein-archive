@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { authenticateRequest, type AuthRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole, type AuthRequest } from '../auth/middleware.js';
 import { validate } from '../middleware/validate.js';
 import { icebergRepository } from '../db/icebergRepository.js';
 import { rejectOffset } from '../utils/paginationGuards.js';
@@ -81,6 +81,7 @@ router.get('/leads/:leadId', validate(icebergLeadDetailSchema), async (req, res,
 router.post(
   '/leads/:leadId/save',
   authenticateRequest,
+  requireRole('investigator'),
   validate(saveLeadSchema),
   async (req, res, next) => {
     try {

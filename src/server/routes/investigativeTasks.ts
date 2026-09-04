@@ -87,44 +87,56 @@ router.get('/:id', validate(taskIdParamSchema), async (req, res, next) => {
 });
 
 // Create a new task
-router.post('/', authenticateRequest, validate(createTaskSchema), async (req, res, next) => {
-  try {
-    const data = req.body;
-    const newTask = await taskService.createTask({
-      investigationId: data.investigationId,
-      title: data.title,
-      description: data.description,
-      priority: data.priority,
-      assignedTo: data.assignedTo,
-      dueDate: data.dueDate,
-      createdById: (req as { user?: { id?: string } }).user?.id || 'system',
-      evidenceIds: data.evidenceIds,
-      relatedEntities: data.relatedEntities,
-    });
+router.post(
+  '/',
+  authenticateRequest,
+  requireRole('investigator'),
+  validate(createTaskSchema),
+  async (req, res, next) => {
+    try {
+      const data = req.body;
+      const newTask = await taskService.createTask({
+        investigationId: data.investigationId,
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        assignedTo: data.assignedTo,
+        dueDate: data.dueDate,
+        createdById: (req as { user?: { id?: string } }).user?.id || 'system',
+        evidenceIds: data.evidenceIds,
+        relatedEntities: data.relatedEntities,
+      });
 
-    res.status(201).json(newTask);
-  } catch (error) {
-    next(error);
-  }
-});
+      res.status(201).json(newTask);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // Update a task
-router.put('/:id', authenticateRequest, validate(taskIdParamSchema), async (req, res, next) => {
-  try {
-    const taskId = Number(req.params.id as string);
-    const updates = req.body;
+router.put(
+  '/:id',
+  authenticateRequest,
+  requireRole('investigator'),
+  validate(taskIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const taskId = Number(req.params.id as string);
+      const updates = req.body;
 
-    const updatedTask = await taskService.updateTask(taskId, updates);
+      const updatedTask = await taskService.updateTask(taskId, updates);
 
-    if (!updatedTask) {
-      return res.status(404).json({ error: 'Task not found' });
+      if (!updatedTask) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+
+      res.json(updatedTask);
+    } catch (error) {
+      next(error);
     }
-
-    res.json(updatedTask);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Delete a task
 router.delete(
@@ -185,6 +197,7 @@ router.get(
 router.patch(
   '/:id/progress',
   authenticateRequest,
+  requireRole('investigator'),
   validate(updateProgressSchema),
   async (req, res, next) => {
     try {

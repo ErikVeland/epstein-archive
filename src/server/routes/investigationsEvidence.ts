@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import type { AuthRequest } from '../auth/middleware.js';
 import { investigationsRepository } from '../db/investigationsRepository.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { validate } from '../middleware/validate.js';
 import { z } from 'zod';
 import {
@@ -168,6 +168,7 @@ router.get('/:id/evidence', validate(evidenceParamsSchema), async (req, res, nex
 router.post(
   '/:id/evidence',
   authenticateRequest,
+  requireRole('investigator'),
   validate(addEvidenceSchema),
   async (req, res, next) => {
     try {
@@ -200,6 +201,7 @@ router.get(
 router.post(
   '/:id/evidence/:evidenceId/annotations',
   authenticateRequest,
+  requireRole('investigator'),
   validate(evidenceAnnotationCreateSchema),
   async (req, res, next) => {
     try {
@@ -244,6 +246,7 @@ router.post(
 router.put(
   '/:id/evidence/:evidenceId/annotations/:annotationId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(evidenceAnnotationUpdateSchema),
   async (req, res, next) => {
     try {
@@ -284,6 +287,7 @@ router.put(
 router.delete(
   '/:id/evidence/:evidenceId/annotations/:annotationId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(evidenceAnnotationDeleteSchema),
   async (req, res, next) => {
     try {
@@ -343,6 +347,7 @@ router.get('/:id/hypotheses', validate(numericIdParamSchema), async (req, res, n
 router.post(
   '/:id/hypotheses',
   authenticateRequest,
+  requireRole('investigator'),
   validate(createHypothesisSchema),
   async (req, res, next) => {
     try {
@@ -362,6 +367,7 @@ router.post(
 router.put(
   '/:id/hypotheses/:hypId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(updateHypothesisSchema),
   async (req, res, next) => {
     try {
@@ -379,6 +385,7 @@ router.put(
 router.delete(
   '/:id/hypotheses/:hypId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(updateHypothesisSchema),
   async (req, res, next) => {
     try {
@@ -395,6 +402,7 @@ router.delete(
 router.post(
   '/:id/hypotheses/:hypId/evidence',
   authenticateRequest,
+  requireRole('investigator'),
   validate(hypothesisEvidenceSchema),
   async (req, res, next) => {
     try {
@@ -415,6 +423,7 @@ router.post(
 router.delete(
   '/:id/hypotheses/:hypId/evidence/:evidenceId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(removeHypothesisEvidenceSchema),
   async (req, res, next) => {
     try {

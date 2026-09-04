@@ -2,6 +2,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { Investigation, Investigator } from '@client/types/investigation';
 import { investigationsApi } from '../investigations.api';
 import { mapApiInvestigation } from '../investigations.model';
+import { trackInvestigationEvent } from '@client/utils/investigationTelemetry';
 
 interface UseInvestigationListOptions {
   currentUser?: Investigator;
@@ -17,18 +18,25 @@ export const useInvestigationList = (options: UseInvestigationListOptions = {}) 
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [selectedInvestigation, setSelectedInvestigation] = useState<Investigation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadInvestigations = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await investigationsApi.list();
       const mapped = (data?.data || []).map(mapApiInvestigation);
       setInvestigations(mapped);
+      trackInvestigationEvent('investigation_list_loaded', {
+        metadata: { caseCount: mapped.length },
+      });
       return mapped;
     } catch (error) {
       console.error('Error loading investigations:', error);
-      onErrorRef.current?.('Failed to load investigations');
-      return [];
+      const message = 'Cases could not be loaded. Please try again.';
+      setError(message);
+      onErrorRef.current?.(message);
+      return null;
     } finally {
       setIsLoading(false);
     }
@@ -36,14 +44,18 @@ export const useInvestigationList = (options: UseInvestigationListOptions = {}) 
 
   const loadInvestigation = useCallback(async (id: string) => {
     setIsLoading(true);
+    setError(null);
     try {
       const inv = await investigationsApi.getById(id);
       const mapped = mapApiInvestigation(inv);
       setSelectedInvestigation(mapped);
+      trackInvestigationEvent('investigation_case_opened', { caseId: mapped.id });
       return { investigation: mapped, raw: inv };
     } catch (error) {
       console.error('Error loading investigation:', error);
-      onErrorRef.current?.('Failed to load investigation');
+      const message = 'This case could not be loaded. Please try again.';
+      setError(message);
+      onErrorRef.current?.(message);
       return null;
     } finally {
       setIsLoading(false);
@@ -56,12 +68,12 @@ export const useInvestigationList = (options: UseInvestigationListOptions = {}) 
       const created = await investigationsApi.create({
         title: payload.title,
         description: payload.description,
-        ownerId: currentUserId,
         scope: payload.hypothesis,
       });
       const mapped = mapApiInvestigation(created);
       setSelectedInvestigation(mapped);
       setInvestigations((prev) => [mapped, ...prev.filter((item) => item.id !== mapped.id)]);
+      trackInvestigationEvent('investigation_created', { caseId: mapped.id });
       return { investigation: mapped, raw: created };
     },
     [currentUserId],
@@ -73,6 +85,8 @@ export const useInvestigationList = (options: UseInvestigationListOptions = {}) 
     selectedInvestigation,
     setSelectedInvestigation,
     isLoading,
+    error,
+    clearError: () => setError(null),
     loadInvestigations,
     loadInvestigation,
     createInvestigation,

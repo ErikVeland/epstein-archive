@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { investigationsRepository } from '../db/investigationsRepository.js';
 import { logger } from '../services/Logger.js';
 import { InvestigativeLeadRow } from '../db/rowTypes.js';
@@ -74,43 +74,50 @@ router.get('/', async (req, res, next) => {
 });
 
 // POST create a lead
-router.post('/', authenticateRequest, validate(createLeadSchema), async (req, res, next) => {
-  try {
-    const investigationId = Number(req.params.id);
-    const {
-      title,
-      description,
-      status = 'open',
-      priority = 'medium',
-      source_document_id,
-      source_efta_ref,
-      assigned_to,
-      resolution_notes,
-    } = req.body as z.infer<typeof createLeadSchema>['body'];
+router.post(
+  '/',
+  authenticateRequest,
+  requireRole('investigator'),
+  validate(createLeadSchema),
+  async (req, res, next) => {
+    try {
+      const investigationId = Number(req.params.id);
+      const {
+        title,
+        description,
+        status = 'open',
+        priority = 'medium',
+        source_document_id,
+        source_efta_ref,
+        assigned_to,
+        resolution_notes,
+      } = req.body as z.infer<typeof createLeadSchema>['body'];
 
-    const result = await investigationsRepository.createLead(investigationId, {
-      title,
-      description,
-      status,
-      priority,
-      source_document_id,
-      source_efta_ref,
-      assigned_to,
-      created_by: 'system',
-      resolution_notes,
-    });
+      const result = await investigationsRepository.createLead(investigationId, {
+        title,
+        description,
+        status,
+        priority,
+        source_document_id,
+        source_efta_ref,
+        assigned_to,
+        created_by: 'system',
+        resolution_notes,
+      });
 
-    logger.info({ investigationId, title }, 'Investigation lead created');
-    res.status(201).json(mapInvestigativeLeadDto(result));
-  } catch (err) {
-    next(err);
-  }
-});
+      logger.info({ investigationId, title }, 'Investigation lead created');
+      res.status(201).json(mapInvestigativeLeadDto(result));
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 // PATCH update a lead
 router.patch(
   '/:leadId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(updateLeadSchema),
   async (req, res, next) => {
     try {
@@ -147,6 +154,7 @@ router.patch(
 router.delete(
   '/:leadId',
   authenticateRequest,
+  requireRole('investigator'),
   validate(deleteLeadSchema),
   async (req, res, next) => {
     try {

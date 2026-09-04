@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '@client/components/common/Icon';
 import { EvidenceItem } from '@client/types/investigation';
+import { apiClient } from '@client/services/apiClient';
 
 // UI Library
 import styles from './HypothesisTestingFramework.module.css';
@@ -102,13 +103,15 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   });
 
   const [hypothesesSeeded, setHypothesesSeeded] = useState(false);
+  const [operationError, setOperationError] = useState<string | null>(null);
 
   const { data: fetchedHypotheses } = useQuery({
     queryKey: ['investigation-hypotheses', investigationId],
     queryFn: async () => {
-      const response = await fetch(`/api/investigations/${investigationId}/hypotheses`);
-      if (!response.ok) return null;
-      const data = await response.json();
+      const data = await apiClient.get<RawHypothesis[]>(
+        `/investigations/${encodeURIComponent(investigationId)}/hypotheses`,
+        { useCache: false },
+      );
       return (data || []) as RawHypothesis[];
     },
     enabled: Boolean(investigationId),
@@ -174,35 +177,54 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
     hypotheses.length,
   ]);
 
-  const createHypothesis = () => {
+  const createHypothesis = async () => {
     if (!newHypothesis.title.trim()) return;
-    const hyp: Hypothesis = {
-      id: `hyp-${crypto.randomUUID()}`,
-      investigationId,
-      title: newHypothesis.title,
-      description: newHypothesis.description,
-      status: 'draft',
-      confidence: 50,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: 'CurrentUser',
-      evidenceLinks: [],
-      revisions: [],
-      evidence: [],
-      relatedHypotheses: [],
-    };
-    const updated = [...hypotheses, hyp];
-    setHypotheses(updated);
-    setActiveHypothesis(hyp);
-    setShowNewForm(false);
-    setNewHypothesis({ title: '', description: '' });
-    onHypothesesUpdate(updated);
+    setOperationError(null);
+    try {
+      const created = await apiClient.post<{ id: string | number }>(
+        `/investigations/${encodeURIComponent(investigationId)}/hypotheses`,
+        { title: newHypothesis.title.trim(), description: newHypothesis.description.trim() },
+      );
+      const hyp: Hypothesis = {
+        id: `hyp-${created.id}`,
+        investigationId,
+        title: newHypothesis.title.trim(),
+        description: newHypothesis.description.trim(),
+        status: 'draft',
+        confidence: 50,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'CurrentUser',
+        evidenceLinks: [],
+        revisions: [],
+        evidence: [],
+        relatedHypotheses: [],
+      };
+      const updated = [...hypotheses, hyp];
+      setHypotheses(updated);
+      setActiveHypothesis(hyp);
+      setShowNewForm(false);
+      setNewHypothesis({ title: '', description: '' });
+      onHypothesesUpdate(updated);
+    } catch (error) {
+      console.error('Hypothesis creation failed:', error);
+      setOperationError('The hypothesis could not be created. Please try again.');
+    }
   };
 
   const updateStatus = (
     id: string,
     status: 'draft' | 'testing' | 'supported' | 'refuted' | 'revised',
   ) => {
+    const hypothesisId = id.replace(/^hyp-/, '');
+    void apiClient
+      .put(`/investigations/${encodeURIComponent(investigationId)}/hypotheses/${hypothesisId}`, {
+        status,
+      })
+      .catch((error) => {
+        console.error('Hypothesis status update failed:', error);
+        setOperationError('The status could not be saved. Please try again.');
+      });
     const updated = hypotheses.map((h) =>
       h.id === id ? { ...h, status, updatedAt: new Date() } : h,
     );
@@ -212,8 +234,19 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
     onHypothesesUpdate(updated);
   };
 
-  const linkEvidence = (id: string) => {
+  const linkEvidence = async (id: string) => {
     if (!linkData.evidenceId) return;
+    setOperationError(null);
+    try {
+      await apiClient.post(
+        `/investigations/${encodeURIComponent(investigationId)}/hypotheses/${id.replace(/^hyp-/, '')}/evidence`,
+        { evidenceId: Number(linkData.evidenceId), relevance: linkData.relevance },
+      );
+    } catch (error) {
+      console.error('Evidence link failed:', error);
+      setOperationError('The evidence link could not be saved. Please try again.');
+      return;
+    }
     const link: EvidenceLink = {
       id: `link-${crypto.randomUUID()}`,
       evidenceId: linkData.evidenceId,
@@ -236,6 +269,33 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
     setLinkingEvidence({ ...linkingEvidence, [id]: false });
     setLinkData({ evidenceId: '', relevance: 'supporting', weight: 5, notes: '' });
     onHypothesesUpdate(updated);
+  };
+
+  const unlinkEvidence = async (hypothesisId: string, evidenceId: string) => {
+    setOperationError(null);
+    try {
+      await apiClient.delete(
+        `/investigations/${encodeURIComponent(investigationId)}/hypotheses/${hypothesisId.replace(/^hyp-/, '')}/evidence/${encodeURIComponent(evidenceId)}`,
+      );
+      const updated = hypotheses.map((hypothesis) =>
+        hypothesis.id === hypothesisId
+          ? {
+              ...hypothesis,
+              evidenceLinks: hypothesis.evidenceLinks.filter(
+                (link) => link.evidenceId !== evidenceId,
+              ),
+            }
+          : hypothesis,
+      );
+      setHypotheses(updated);
+      const nextActive =
+        updated.find((hypothesis) => hypothesis.id === activeHypothesis?.id) || null;
+      setActiveHypothesis(nextActive);
+      onHypothesesUpdate(updated);
+    } catch (error) {
+      console.error('Evidence unlink failed:', error);
+      setOperationError('The evidence link could not be removed. Please try again.');
+    }
   };
 
   return (
@@ -265,6 +325,13 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
 
       <Box p="xl">
         <Stack gap="xl">
+          {operationError && (
+            <Surface variant="glass-highlight" p="md" role="alert">
+              <LqText variant="small" color="danger">
+                {operationError}
+              </LqText>
+            </Surface>
+          )}
           {/* New Hypothesis Entry */}
           {showNewForm && (
             <Surface variant="glass-highlight" p="xl" className={styles.autoGen134}>
@@ -307,7 +374,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                   <Button
                     variant="secondary"
                     size="sm"
-                    onClick={createHypothesis}
+                    onClick={() => void createHypothesis()}
                     disabled={!newHypothesis.title.trim()}
                   >
                     Establish Hypothesis
@@ -505,7 +572,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                 <Button
                                   variant="secondary"
                                   size="sm"
-                                  onClick={() => linkEvidence(h.id)}
+                                  onClick={() => void linkEvidence(h.id)}
                                 >
                                   Establish Correlation
                                 </Button>
@@ -570,7 +637,8 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                           variant="ghost"
                                           size="sm"
                                           className={styles.autoGen142}
-                                          onClick={() => {}}
+                                          aria-label={`Remove ${ev?.title || 'evidence'} from hypothesis`}
+                                          onClick={() => void unlinkEvidence(h.id, link.evidenceId)}
                                         >
                                           <Icon name="Trash2" size="xs" />
                                         </Button>

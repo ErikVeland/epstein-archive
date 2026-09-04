@@ -1,35 +1,5 @@
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 120;
-  display: flex;
-  align-items: flex-end;
-}
-
-.sheet {
-  width: 100%;
-  background: var(--glass-bg-strong);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding-bottom: env(safe-area-inset-bottom);
-  overflow: hidden;
-}
-
-.dragHandle {
-  width: 36px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 2px;
-  margin: 0.75rem auto;
-}
-
-.title {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 0 1rem 0.75rem;
+.toolList {
+  padding: 0;
 }
 
 .row {

@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Select, Surface, TextInput, Textarea } from '@client/design-system/lib';
+import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  Select,
+  Surface,
+  TextInput,
+  Textarea,
+} from '@client/design-system/lib';
 import { Investigation } from '@client/types/investigation';
 import Icon from './Icon';
 import { useInvestigations } from '@client/contexts/InvestigationsContext';
-import { CloseButton } from './CloseButton';
+import { useAuth } from '@client/contexts/AuthContext';
 import s from './AddToInvestigationButton.module.css';
 
 interface AddToInvestigationItem {
@@ -40,6 +52,9 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   defaultInvestigationId,
   stopPropagation = false,
 }) => {
+  const { isAuthenticated, user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const {
     investigations: contextInvestigations,
     addToInvestigation,
@@ -60,6 +75,19 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
   // Use investigations from context if not provided via props
   const investigations = propInvestigations || contextInvestigations;
+  const canEditInvestigations =
+    isAuthenticated && (user?.role === 'admin' || user?.role === 'investigator');
+
+  const openPicker = (event: React.SyntheticEvent) => {
+    maybeStopPropagation(event);
+    if (!canEditInvestigations) {
+      const returnTo = `${location.pathname}${location.search}`;
+      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+      return;
+    }
+    if (!hasInvestigations) setIsCreatingNew(true);
+    setShowModal(true);
+  };
 
   // Set default investigation
   useEffect(() => {
@@ -78,6 +106,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   };
 
   const handleAddToInvestigation = async () => {
+    if (!canEditInvestigations) return;
     if (!selectedInvestigationId && !isCreatingNew) return;
     if (isCreatingNew && !newTitle.trim()) return;
 
@@ -123,6 +152,11 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   };
 
   const handleQuickAdd = async () => {
+    if (!canEditInvestigations) {
+      const returnTo = `${location.pathname}${location.search}`;
+      navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
+      return;
+    }
     if (!selectedInvestigationId) {
       if (!hasInvestigations) setIsCreatingNew(true);
       setShowModal(true);
@@ -181,34 +215,31 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       {variant === 'button' && (
         <Button
           type="button"
-          onClick={(event) => {
-            maybeStopPropagation(event);
-            if (!hasInvestigations) setIsCreatingNew(true);
-            setShowModal(true);
-          }}
+          onClick={openPicker}
           variant="primary"
           size={size}
           className={`${s.triggerButton} ${className}`}
-          title="Add to Investigation"
+          title={canEditInvestigations ? 'Add to investigation' : 'Sign in to add to a case'}
         >
           <Icon name="Plus" size="sm" />
-          {hasInvestigations ? 'Add to Investigation' : 'Create Case + Add'}
+          {canEditInvestigations
+            ? hasInvestigations
+              ? 'Add to case'
+              : 'Create case and add'
+            : 'Sign in to add'}
         </Button>
       )}
 
       {variant === 'icon' && (
         <Button
           type="button"
-          onClick={(event) => {
-            maybeStopPropagation(event);
-            if (!hasInvestigations) setIsCreatingNew(true);
-            setShowModal(true);
-          }}
+          onClick={openPicker}
           iconOnly
           variant="ghost"
           size="sm"
           className={`${s.triggerIcon} ${className}`}
-          title="Add to Investigation"
+          title={canEditInvestigations ? 'Add to investigation' : 'Sign in to add to a case'}
+          aria-label={canEditInvestigations ? 'Add to investigation' : 'Sign in to add to a case'}
         >
           <Icon name="Plus" size="sm" />
         </Button>
@@ -218,17 +249,13 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
         <div className={s.dropdownWrapper}>
           <Button
             type="button"
-            onClick={(event) => {
-              maybeStopPropagation(event);
-              if (!hasInvestigations) setIsCreatingNew(true);
-              setShowModal(true);
-            }}
+            onClick={openPicker}
             variant="ghost"
             size={size}
             className={`${s.triggerDropdown} ${className}`}
           >
             <Icon name="Plus" size="sm" />
-            <span>Add to Investigation</span>
+            <span>{canEditInvestigations ? 'Add to case' : 'Sign in to add'}</span>
           </Button>
         </div>
       )}
@@ -244,7 +271,8 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
           variant="glass"
           size="sm"
           className={`${s.triggerQuick} ${className}`}
-          title="Add to Investigation"
+          title={canEditInvestigations ? 'Add to investigation' : 'Sign in to add to a case'}
+          aria-label={canEditInvestigations ? 'Add to investigation' : 'Sign in to add to a case'}
         >
           {isLoading ? <div className={s.quickSpinner} /> : <Icon name="Plus" />}
         </Button>
@@ -252,145 +280,145 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
       {/* Toast notification */}
       {toast && (
-        <div className={`${s.toast} ${toast.kind === 'success' ? s.toastSuccess : s.toastError}`}>
+        <div
+          role={toast.kind === 'error' ? 'alert' : 'status'}
+          aria-live="polite"
+          className={`${s.toast} ${toast.kind === 'success' ? s.toastSuccess : s.toastError}`}
+        >
           {toast.message}
         </div>
       )}
 
-      {/* Modal */}
-      {showModal && (
-        <div className={`${s.overlay} app-backdrop`}>
-          <Surface variant="glass-strong" className={s.panel}>
-            <div className={s.modalHeader}>
-              <div className={s.modalHeaderInner}>
-                <div className={s.modalTitleRow}>
-                  <Icon name={ItemIcon} size="sm" color="info" />
-                  <h3 className={s.modalTitle}>Add to Investigation</h3>
-                </div>
-                <CloseButton
-                  onClick={() => setShowModal(false)}
-                  size="sm"
-                  label="Close add to investigation"
-                />
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className={s.panel}>
+          <DialogHeader>
+            <DialogTitle>Add to a case</DialogTitle>
+            <DialogDescription>
+              Choose where to save this {item.type} and how relevant it is.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className={s.modalBody}>
+            {/* Item Preview */}
+            <Surface variant="panel" className={s.itemPreview}>
+              <div className={s.itemPreviewHeader}>
+                <Icon name={ItemIcon} color="gray" />
+                <h4 className={s.itemTitle}>{item.title}</h4>
               </div>
+              <p className={s.itemDescription}>{item.description}</p>
+              <div className={s.itemTypeBadge}>
+                <span className={s.itemTypeLabel}>{item.type}</span>
+              </div>
+            </Surface>
+
+            {/* Investigation Selection or Creation */}
+            <div>
+              <div className={s.sectionLabel}>
+                <span className={s.labelText}>
+                  {isCreatingNew ? 'New case details' : 'Select a case'}
+                </span>
+                <Button
+                  type="button"
+                  onClick={() => setIsCreatingNew(!isCreatingNew || !hasInvestigations)}
+                  disabled={!hasInvestigations}
+                  variant="ghost"
+                  size="sm"
+                  className={s.toggleModeBtn}
+                >
+                  {!hasInvestigations
+                    ? 'No cases yet'
+                    : isCreatingNew
+                      ? 'Select existing...'
+                      : '+ Create new'}
+                </Button>
+              </div>
+
+              {isCreatingNew || !hasInvestigations ? (
+                <div className={s.createFields}>
+                  <TextInput
+                    id="new-case-title"
+                    label="Case title"
+                    type="text"
+                    placeholder="Enter a clear title"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    density="compact"
+                    autoFocus
+                  />
+                  <Textarea
+                    id="new-case-description"
+                    label="Context (optional)"
+                    placeholder="Description (optional)"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    density="compact"
+                  />
+                </div>
+              ) : (
+                <Select
+                  id="investigation-select"
+                  aria-label="Select a case"
+                  value={selectedInvestigationId}
+                  onChange={(e) => setSelectedInvestigationId(e.target.value)}
+                  size="sm"
+                  options={[
+                    { value: '', label: 'Choose an investigation...' },
+                    ...investigations.map((inv) => ({ value: inv.id, label: inv.title })),
+                  ]}
+                />
+              )}
             </div>
 
-            <div className={s.modalBody}>
-              {/* Item Preview */}
-              <Surface variant="panel" className={s.itemPreview}>
-                <div className={s.itemPreviewHeader}>
-                  <Icon name={ItemIcon} color="gray" />
-                  <h4 className={s.itemTitle}>{item.title}</h4>
-                </div>
-                <p className={s.itemDescription}>{item.description}</p>
-                <div className={s.itemTypeBadge}>
-                  <span className={s.itemTypeLabel}>{item.type}</span>
-                </div>
-              </Surface>
-
-              {/* Investigation Selection or Creation */}
-              <div>
-                <div className={s.sectionLabel}>
-                  <label className={s.labelText}>
-                    {isCreatingNew ? 'New Investigation Details' : 'Select Investigation'}
-                  </label>
+            {/* Relevance Selection */}
+            <fieldset className={s.relevanceFieldset}>
+              <legend className={s.relevanceLabel}>Evidence relevance</legend>
+              <div className={s.relevanceGrid}>
+                {(['high', 'medium', 'low'] as const).map((rel) => (
                   <Button
+                    key={rel}
                     type="button"
-                    onClick={() => setIsCreatingNew(!isCreatingNew || !hasInvestigations)}
-                    disabled={!hasInvestigations}
+                    onClick={() => setRelevance(rel)}
                     variant="ghost"
                     size="sm"
-                    className={s.toggleModeBtn}
+                    className={`${s.relevanceBtn} ${
+                      relevance === rel ? getRelevanceClass(rel) : s.relevanceBtnOff
+                    }`}
                   >
-                    {!hasInvestigations
-                      ? 'No cases yet'
-                      : isCreatingNew
-                        ? 'Select existing...'
-                        : '+ Create new'}
+                    {rel.charAt(0).toUpperCase() + rel.slice(1)}
                   </Button>
-                </div>
-
-                {isCreatingNew || !hasInvestigations ? (
-                  <div className={s.createFields}>
-                    <TextInput
-                      type="text"
-                      placeholder="Investigation Title"
-                      value={newTitle}
-                      onChange={(e) => setNewTitle(e.target.value)}
-                      density="compact"
-                      autoFocus
-                    />
-                    <Textarea
-                      placeholder="Description (optional)"
-                      value={newDescription}
-                      onChange={(e) => setNewDescription(e.target.value)}
-                      density="compact"
-                    />
-                  </div>
-                ) : (
-                  <Select
-                    value={selectedInvestigationId}
-                    onChange={(e) => setSelectedInvestigationId(e.target.value)}
-                    size="sm"
-                    options={[
-                      { value: '', label: 'Choose an investigation...' },
-                      ...investigations.map((inv) => ({ value: inv.id, label: inv.title })),
-                    ]}
-                  />
-                )}
+                ))}
               </div>
+            </fieldset>
+          </div>
 
-              {/* Relevance Selection */}
-              <div>
-                <label className={s.relevanceLabel}>Evidence Relevance</label>
-                <div className={s.relevanceGrid}>
-                  {(['high', 'medium', 'low'] as const).map((rel) => (
-                    <Button
-                      key={rel}
-                      type="button"
-                      onClick={() => setRelevance(rel)}
-                      variant="ghost"
-                      size="sm"
-                      className={`${s.relevanceBtn} ${
-                        relevance === rel ? getRelevanceClass(rel) : s.relevanceBtnOff
-                      }`}
-                    >
-                      {rel.charAt(0).toUpperCase() + rel.slice(1)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className={s.modalFooter}>
-              <Button
-                type="button"
-                onClick={() => setShowModal(false)}
-                variant="ghost"
-                size="sm"
-                className={s.footerCancelBtn}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                onClick={handleAddToInvestigation}
-                disabled={
-                  (!selectedInvestigationId && !isCreatingNew) ||
-                  (isCreatingNew && !newTitle.trim()) ||
-                  isLoading
-                }
-                variant="primary"
-                size="sm"
-                className={s.footerSubmitBtn}
-              >
-                {isLoading && <div className={s.submitSpinner} />}
-                {isLoading ? 'Adding...' : isCreatingNew ? 'Create & Add' : 'Add to Investigation'}
-              </Button>
-            </div>
-          </Surface>
-        </div>
-      )}
+          <div className={s.modalFooter}>
+            <Button
+              type="button"
+              onClick={() => setShowModal(false)}
+              variant="ghost"
+              size="sm"
+              className={s.footerCancelBtn}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAddToInvestigation}
+              disabled={
+                (!selectedInvestigationId && !isCreatingNew) ||
+                (isCreatingNew && !newTitle.trim()) ||
+                isLoading
+              }
+              variant="primary"
+              size="sm"
+              className={s.footerSubmitBtn}
+            >
+              {isLoading && <div className={s.submitSpinner} />}
+              {isLoading ? 'Adding...' : isCreatingNew ? 'Create & Add' : 'Add to Investigation'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

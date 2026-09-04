@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Surface } from '@client/design-system/components/surfaces/Surface';
 import { Flex } from '@client/design-system/components/layout/Flex';
 import { Box } from '@client/design-system/components/layout/Box';
@@ -29,6 +29,13 @@ export const LoginPage: React.FC = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigateAfterSignIn = useCallback(() => {
+    const requestedPath = new URLSearchParams(location.search).get('returnTo');
+    const safePath =
+      requestedPath?.startsWith('/') && !requestedPath.startsWith('//') ? requestedPath : '/';
+    navigate(safePath, { replace: true });
+  }, [location.search, navigate]);
 
   const handleVerifyInvite = useCallback(
     async (token: string) => {
@@ -81,7 +88,7 @@ export const LoginPage: React.FC = () => {
       }
 
       login(data.user, data.accessToken);
-      navigate('/');
+      navigateAfterSignIn();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Guest login failed');
     } finally {
@@ -112,7 +119,7 @@ export const LoginPage: React.FC = () => {
       }
 
       login(data.user, data.accessToken);
-      navigate('/');
+      navigateAfterSignIn();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
@@ -162,7 +169,7 @@ export const LoginPage: React.FC = () => {
       );
 
       login(verifyData.user, verifyData.accessToken);
-      navigate('/');
+      navigateAfterSignIn();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Passkey login failed');
     } finally {
@@ -243,14 +250,19 @@ export const LoginPage: React.FC = () => {
           Investigator Portal
         </LqText>
 
-        {error && <Box className={styles.errorBanner}>{error}</Box>}
+        {error && (
+          <Box className={styles.errorBanner} role="alert">
+            {error}
+          </Box>
+        )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           <Box>
-            <LqText as="label" variant="small" color="muted" className={styles.label}>
+            <label htmlFor="login-username" className={styles.label}>
               Username
-            </LqText>
+            </label>
             <Input
+              id="login-username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -260,14 +272,16 @@ export const LoginPage: React.FC = () => {
           </Box>
 
           <Box>
-            <LqText as="label" variant="small" color="muted" className={styles.label}>
+            <label htmlFor="login-password" className={styles.label}>
               Password
-            </LqText>
+            </label>
             <Input
+              id="login-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input}
+              required
             />
           </Box>
 
@@ -372,7 +386,7 @@ export const LoginPage: React.FC = () => {
                     disabled={passkeyLoading}
                     onClick={() => {
                       setShowPostInviteModal(false);
-                      navigate('/');
+                      navigateAfterSignIn();
                     }}
                     style={{
                       padding: 'var(--space-2) var(--space-4)',
@@ -403,7 +417,7 @@ export const LoginPage: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setShowPostInviteModal(false);
-                    navigate('/');
+                    navigateAfterSignIn();
                   }}
                   className={styles.submitButton}
                   style={{ width: 'auto', padding: 'var(--space-2) var(--space-6)' }}

@@ -1369,7 +1369,6 @@ class ApiClient {
   async createInvestigation(body: {
     title: string;
     description?: string;
-    ownerId: string;
     scope?: string;
     collaboratorIds?: string[];
   }): Promise<z.infer<typeof investigationDetailResponseSchema>> {
