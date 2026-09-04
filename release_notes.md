@@ -1,5 +1,26 @@
 # Release Notes
 
+## 22.6.14 - 2026-09-04 - Investigation Workspace and Mobile Workflows
+
+### Investigation workflow
+
+- Restore the investigation workspace updates, including case navigation, evidence collection, board views, hypothesis review and team management.
+- Simplify first-run guidance around searching the archive, checking original sources and building a case.
+- Retain lazy-loaded analytical panels and repair the merge conflict that broke the workspace layout.
+
+### Mobile and presentation
+
+- Update mobile investigation navigation, the board layout and the additional-tools drawer.
+- Refine the add-to-investigation interaction and media viewer styling.
+- Include optimised logo and social-preview assets.
+
+### Access, data and operations
+
+- Require the investigator role for the updated investigation write routes and align client access handling.
+- Carry investigation scope through creation queries, generated query types and shared contracts. These query changes do not add a database migration.
+- Add rate-limited, validated investigation workflow telemetry and browser regression coverage for access and mobile navigation.
+- Include the evidence-review, dependency and deployment-security changes documented in 22.6.13. This release does not claim a new enriched-data export or production asset synchronisation.
+
 ## 22.6.13 - 2026-09-04 - Evidence Review and Security Release
 
 ### Evidence review
