@@ -41,7 +41,7 @@ export const mockHealthyApi = async (page: Page) => {
     durationMs: 1,
   };
 
-  await page.route('**/api/health/ready', (route) => json(route, readinessPayload));
+  await page.route('**/api/health/ready**', (route) => json(route, readinessPayload));
   await page.route('**/api/health', (route) =>
     json(route, {
       status: 'ok',
@@ -82,6 +82,18 @@ const subjectsFixture = {
 
 const entityFixture = {
   id: FIXTURE_ENTITY_ID,
+  name: 'Ada Lovelace',
+  entityType: 'Person',
+  secondaryRoles: [],
+  files: 3,
+  contexts: [],
+  likelihoodScore: 'MEDIUM',
+  redFlagScore: 2,
+  redFlagPeppers: '',
+  redFlagDescription: 'Fixture rating',
+  connectionsToEpstein: '',
+  timelineEvents: [],
+  networkConnections: [],
   fullName: 'Ada Lovelace',
   primaryRole: 'Analyst',
   bio: 'Fixture-backed bio',
@@ -265,6 +277,9 @@ const messageBodyFixture = {
 };
 
 export const mockPeopleEntityApis = async (page: Page) => {
+  await page.route(/\/api\/entities(?:\?.*)?$/, (route) =>
+    json(route, { data: [entityFixture], total: 1, page: 1, pageSize: 24, totalPages: 1 }),
+  );
   await page.route('**/api/subjects**', (route) => json(route, subjectsFixture));
   await page.route(`**/api/entities/${FIXTURE_ENTITY_ID}/evidence**`, (route) =>
     json(route, entityEvidenceFixture),

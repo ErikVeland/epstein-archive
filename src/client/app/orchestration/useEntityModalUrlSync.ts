@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { DocRecord } from '@client/components/documents/DocumentModal';
-import type { Person, Photo } from '@client/types';
-import type { EntityByIdResponse } from '@client/types/api';
+import type { Person } from '@client/types';
+import type { EntityDetailDto } from '@shared/dto/entities';
+import { apiClient } from '@client/services/apiClient';
+import { mapEntityDetailToPerson } from '@client/mappers/entityMapper';
 
 type LocationLike = { pathname: string; search: string };
 
@@ -36,16 +38,15 @@ export function useEntityModalUrlSync(params: {
   }, [location.pathname]);
 
   const needsEntityFetch = useMemo(
-    () => !!urlEntityId && (!selectedPerson || selectedPerson.id !== urlEntityId),
+    () => !!urlEntityId && (!selectedPerson || String(selectedPerson.id) !== String(urlEntityId)),
     [urlEntityId, selectedPerson],
   );
 
-  const { data: urlEntityData } = useQuery<EntityByIdResponse | null>({
+  const { data: urlEntityData } = useQuery<EntityDetailDto | null>({
     queryKey: ['urlEntity', urlEntityId],
     queryFn: async () => {
       if (!urlEntityId) return null;
-      const res = await fetch(`/api/entities/${urlEntityId}`);
-      return (await res.json()) as EntityByIdResponse;
+      return apiClient.getEntity(String(urlEntityId));
     },
     enabled: apiEnabled && needsEntityFetch,
     staleTime: 60_000,
@@ -73,69 +74,16 @@ export function useEntityModalUrlSync(params: {
       clearClosingEntityModal();
       return;
     }
-    if (urlEntityData?.id && (!selectedPerson || selectedPerson.id !== urlEntityData.id)) {
-      const photos: Photo[] = Array.isArray(urlEntityData.photos)
-        ? (urlEntityData.photos as unknown[])
-            .map((p) => {
-              const rec = p as Record<string, unknown>;
-              const id = rec.id ?? rec.photo_id ?? rec.media_id;
-              const filePath = rec.filePath ?? rec.file_path ?? rec.path ?? rec.url;
-              if (typeof id !== 'string' && typeof id !== 'number') return null;
-              if (typeof filePath !== 'string') return null;
-              return { id: String(id), filePath };
-            })
-            .filter((v): v is Photo => v !== null)
-        : [];
-
-      const blackBookEntries = Array.isArray(urlEntityData.blackBookEntry)
-        ? (urlEntityData.blackBookEntry as Array<Record<string, unknown>>)
-            .map((rec) => {
-              const id = rec.id;
-              if (typeof id !== 'number') return null;
-              return {
-                id,
-                phoneNumbers: Array.isArray(rec.phoneNumbers)
-                  ? (rec.phoneNumbers as string[])
-                  : undefined,
-                emailAddresses: Array.isArray(rec.emailAddresses)
-                  ? (rec.emailAddresses as string[])
-                  : undefined,
-                addresses: Array.isArray(rec.addresses) ? (rec.addresses as string[]) : undefined,
-                entryText: typeof rec.entryText === 'string' ? rec.entryText : undefined,
-                notes: typeof rec.notes === 'string' ? rec.notes : undefined,
-                entryCategory:
-                  typeof rec.entryCategory === 'string' ? rec.entryCategory : undefined,
-                documentId: typeof rec.documentId === 'number' ? rec.documentId : undefined,
-              };
-            })
-            .filter((v) => v !== null)
-        : undefined;
-
-      const person: Person = {
-        id: urlEntityData.id,
-        name: urlEntityData.fullName || 'Unknown',
-        fullName: urlEntityData.fullName || 'Unknown',
-        role: urlEntityData.primaryRole || 'Unknown',
-        mentions: urlEntityData.mentions || urlEntityData.mention_count || 0,
-        redFlagRating: urlEntityData.redFlagRating ?? 0,
-        files: urlEntityData.documentCount || urlEntityData.document_count || 0,
-        contexts: [],
-        evidenceTypes: urlEntityData.evidenceTypes || [],
-        significantPassages: [],
-        likelihoodScore: urlEntityData.likelihoodLevel || 'MEDIUM',
-        fileReferences: [],
-        bio: urlEntityData.bio || urlEntityData.description,
-        birthDate: urlEntityData.birthDate,
-        deathDate: urlEntityData.deathDate,
-        photos,
-        blackBookEntries,
-        entityType: urlEntityData.entityType || urlEntityData.type,
-        redFlagDescription: urlEntityData.redFlagDescription,
-      };
-      setSelectedPerson(person);
+    if (
+      urlEntityData?.id &&
+      String(urlEntityData.id) === String(urlEntityId) &&
+      (!selectedPerson || String(selectedPerson.id) !== String(urlEntityData.id))
+    ) {
+      setSelectedPerson(mapEntityDetailToPerson(urlEntityData));
     }
   }, [
     urlEntityData,
+    urlEntityId,
     selectedPerson,
     setSelectedPerson,
     closingEntityModal,

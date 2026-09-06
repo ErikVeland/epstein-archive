@@ -933,10 +933,18 @@ export const entitiesRepository = {
 
     if (!entity) return null;
 
-    const mentionCandidates = await runQuery<
-      { entityId: number; limit: number },
-      Record<string, unknown>
-    >(entitiesQueries.getEntityMentions, { entityId, limit: 100 }, getApiPool());
+    const [mentionCandidates, relationships] = await Promise.all([
+      runQuery<{ entityId: number; limit: number }, Record<string, unknown>>(
+        entitiesQueries.getEntityMentions,
+        { entityId, limit: 100 },
+        getApiPool(),
+      ),
+      runQuery<{ entityId: number }, Record<string, unknown>>(
+        entitiesQueries.getEntityRelationships,
+        { entityId },
+        getApiPool(),
+      ),
+    ]);
     const mentionDocumentIds = mentionCandidates.map((mention) => String(mention.document_id));
     const allowedMentionDocuments =
       mentionDocumentIds.length === 0
@@ -953,11 +961,6 @@ export const entitiesRepository = {
     );
     const mentions = mentionCandidates.filter((mention) =>
       allowedMentionDocumentIds.has(String(mention.document_id)),
-    );
-    const relationships = await runQuery<{ entityId: number }, Record<string, unknown>>(
-      entitiesQueries.getEntityRelationships,
-      { entityId },
-      getApiPool(),
     );
 
     return {

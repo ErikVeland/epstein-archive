@@ -22,16 +22,6 @@ import type { EntityRow } from '../db/rowTypes.js';
 import { rejectDeepOffset, LIST_LIMIT_CAP, SEARCH_LIMIT_CAP } from '../utils/paginationGuards.js';
 
 const router = express.Router();
-const ENTITY_DETAIL_TIMEOUT_MS = 5_000;
-
-const withEntityDetailTimeout = async <T>(promise: Promise<T>, fallback: T): Promise<T> =>
-  Promise.race([
-    promise,
-    new Promise<T>((resolve) => {
-      setTimeout(() => resolve(fallback), ENTITY_DETAIL_TIMEOUT_MS);
-    }),
-  ]);
-
 router.use('/subjects', subjectsRouter);
 
 router.get('/', validate(entitiesQuerySchema), async (req, res, next) => {
@@ -124,24 +114,7 @@ router.get('/search', validate(searchSchema), async (req, res, next) => {
 
 router.get('/:id', validate(entityIdParamSchema), async (req, res, next) => {
   try {
-    const entity = await withEntityDetailTimeout<unknown>(
-      entitiesRepository.getEntityById(req.params.id),
-      {
-        id: req.params.id,
-        name: 'Unknown',
-        fullName: 'Unknown',
-        entity_type: 'Person',
-        primary_role: 'Unknown',
-        contexts: [],
-        evidenceTypes: [],
-        fileReferences: [],
-        timelineEvents: [],
-        networkConnections: [],
-        blackBookEntries: [],
-        photos: [],
-        significant_passages: [],
-      },
-    );
+    const entity = await entitiesRepository.getEntityById(req.params.id);
     if (!entity) return res.status(404).json({ error: 'Entity not found' });
     return res.json(mapEntityDetailDto(entity as unknown as Record<string, unknown>));
   } catch (error) {

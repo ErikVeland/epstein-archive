@@ -1,5 +1,20 @@
 # Release Notes
 
+## 22.6.17 - 2026-09-06 - Restore Entity Profile Loading
+
+### Entity profiles
+
+- Remove the five-second fallback that replaced slow entity requests with a successful but empty “Unknown” profile.
+- Load mentions and relationships concurrently while preserving the real entity response.
+- Validate entity detail responses and use the shared profile mapper for direct links. Preserve document counts, evidence passages and Black Book entries.
+- Compare entity identifiers consistently and prevent stale responses from opening a different profile.
+
+### Reliability and validation
+
+- Show an error dialog with a retry action when a profile request fails instead of displaying empty profile data.
+- Add regression coverage for requests exceeding five seconds, missing entities, query failures, profile navigation and retry recovery.
+- This release changes application code only. It adds no database migration, extracted-media promotion or access-policy change.
+
 ## 22.6.16 - 2026-09-04 - Populated Document Browser and Source Highlights
 
 ### Document browsing

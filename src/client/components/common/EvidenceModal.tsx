@@ -9,6 +9,8 @@ import { useScrollLock } from '@client/hooks/useScrollLock';
 import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
 import { TabItem } from './Tabs';
 import { LiquidSheet } from './LiquidSheet';
+import { SheetDialog } from './SheetDialog';
+import { TailoredErrorFallback } from './TailoredErrorFallback';
 import { useIsMobile } from '@client/hooks/useResponsive';
 
 // Subcomponents
@@ -178,7 +180,6 @@ interface EntityDetails {
   bio: string;
   description?: string;
   mentions: number;
-  likelihoodLevel: string;
   redFlagRating: number;
   fileReferences: Record<string, unknown>[];
   significantPassages: SignificantPassage[];
@@ -286,10 +287,15 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     [navigate, location.pathname, location.search],
   );
 
-  const { data: entity, isLoading: loading } = useQuery<EntityDetails>({
+  const {
+    data: entity,
+    isLoading: loading,
+    isError,
+    refetch,
+  } = useQuery<EntityDetails>({
     queryKey: ['entity', entityId],
     queryFn: async () => {
-      return (await apiClient.get(`/entities/${entityId}`)) as EntityDetails;
+      return (await apiClient.getEntity(entityId)) as EntityDetails;
     },
     enabled: isOpen && !!entityId,
     staleTime: 60_000,
@@ -793,6 +799,26 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     headerMediaItems.find((item) => isVisualMediaItem(item)) || headerMediaItems[0];
 
   const headerPhotoUrl = resolveEntityPhotoUrl(headerPhoto, true);
+
+  if (isError && !entity) {
+    return (
+      <SheetDialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) onClose();
+        }}
+        title="Unable to load entity"
+        description="The entity request failed. Try loading the profile again."
+      >
+        <TailoredErrorFallback
+          errorType="network"
+          onRetry={() => {
+            void refetch();
+          }}
+        />
+      </SheetDialog>
+    );
+  }
 
   if (isMobile) {
     return (

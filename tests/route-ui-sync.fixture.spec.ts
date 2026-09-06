@@ -26,6 +26,11 @@ test.describe('Fixture-backed route sync', () => {
     await page.getByTestId('subject-card').first().click();
     await expect(page).toHaveURL(/\/entity\/101$/);
     await expect(page.getByTestId('evidence-modal')).toBeVisible({ timeout: 20000 });
+    await expect(
+      page
+        .getByTestId('evidence-modal')
+        .getByRole('heading', { name: 'Ada Lovelace', exact: true }),
+    ).toBeVisible();
 
     await page.getByRole('button', { name: 'Close entity profile' }).click();
     await expect(page).toHaveURL(/\/people(?:\?|$)/, { timeout: 20000 });
@@ -41,6 +46,11 @@ test.describe('Fixture-backed route sync', () => {
 
     await page.goto('/entity/101');
     await expect(page.getByTestId('evidence-modal')).toBeVisible({ timeout: 20000 });
+    await expect(
+      page
+        .getByTestId('evidence-modal')
+        .getByRole('heading', { name: 'Ada Lovelace', exact: true }),
+    ).toBeVisible();
 
     await page.getByRole('button', { name: 'Close entity profile' }).click();
     await expect(page).toHaveURL(/\/people(?:\?|$)/, { timeout: 20000 });
@@ -60,6 +70,36 @@ test.describe('Fixture-backed route sync', () => {
     await expect(page).toHaveURL(/\/people(?:\?|$)/, { timeout: 20000 });
     await expect(page.getByTestId('evidence-modal')).toHaveCount(0);
     await expect(page.getByTestId('subject-card').first()).toBeVisible({ timeout: 20000 });
+  });
+
+  test('entity lookup failure shows a retry action instead of an empty profile', async ({
+    page,
+  }) => {
+    await mockHealthyApi(page);
+    await mockPeopleEntityApis(page);
+    await prepareDesktopPage(page);
+    await page.route('**/api/entities/101', (route) =>
+      route.fulfill({
+        status: 404,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'Entity not found' }),
+      }),
+    );
+    await page.goto('/people');
+    await page.getByTestId('subject-card').first().click();
+    await expect(page.getByRole('heading', { name: 'Unable to load entity' })).toBeVisible({
+      timeout: 20000,
+    });
+    await expect(page.getByRole('button', { name: 'Try Again' })).toBeVisible();
+    await expect(page.getByText('No biographical data available.')).toHaveCount(0);
+    await page.unroute('**/api/entities/101');
+    await mockPeopleEntityApis(page);
+    await page.getByRole('button', { name: 'Try Again' }).click();
+    await expect(
+      page
+        .getByTestId('evidence-modal')
+        .getByRole('heading', { name: 'Ada Lovelace', exact: true }),
+    ).toBeVisible();
   });
 
   test('document modal tab sync works deterministically without live data', async ({ page }) => {
