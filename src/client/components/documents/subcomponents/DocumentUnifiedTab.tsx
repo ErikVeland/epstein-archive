@@ -235,7 +235,14 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
   ];
 
   const renderViewModeToolbar = () => (
-    <Flex align="center" justify="between" wrap="wrap" gap="sm" className={styles.toolbar}>
+    <Flex
+      direction={isMobile ? 'row' : 'column'}
+      align="center"
+      justify="between"
+      wrap={isMobile ? 'nowrap' : 'wrap'}
+      gap="sm"
+      className={styles.toolbar}
+    >
       <div className={styles.modeGroup}>
         <AnimatedSegmentedControl
           ariaLabel="Document view mode"
@@ -245,11 +252,17 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
           minItemWidth={isMobile ? '0' : '8.75rem'}
           fullWidth={isMobile}
           compact
+          orientation={isMobile ? 'horizontal' : 'vertical'}
           className={styles.modeControl}
         />
       </div>
 
-      <Flex align="center" gap="sm">
+      <Flex
+        direction={isMobile ? 'row' : 'column'}
+        align="center"
+        gap="sm"
+        className={styles.annotationActions}
+      >
         {annotationsLoading ? (
           <LqText variant="xs" color="muted">
             Loading\u2026

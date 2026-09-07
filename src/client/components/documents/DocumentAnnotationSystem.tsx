@@ -1,3 +1,4 @@
+import { getReadingBlocks } from '@client/utils/readableText';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon, { IconName } from '@client/components/common/Icon';
@@ -256,11 +257,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
   const renderedContent = useMemo(() => {
     if (!content) return null;
 
-    if (!showAnnotations) {
-      return renderSearchHighlighted(content, 'plain-all');
-    }
-
-    const normalized = annotations
+    const normalized = (showAnnotations ? annotations : [])
       .map((annotation) => ({
         ...annotation,
         start: clamp(annotation.position?.start ?? 0, 0, content.length),
@@ -269,54 +266,51 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
       .filter((annotation) => annotation.end > annotation.start)
       .sort((a, b) => a.start - b.start || a.end - b.end);
 
-    const fragments: React.ReactNode[] = [];
-    let cursor = 0;
-
-    for (let i = 0; i < normalized.length; i += 1) {
-      const annotation = normalized[i];
-      if (annotation.start < cursor) continue;
-
-      if (annotation.start > cursor) {
-        const plain = content.slice(cursor, annotation.start);
+    return getReadingBlocks(content).map((block) => {
+      const fragments: React.ReactNode[] = [];
+      let cursor = block.start;
+      for (const annotation of normalized) {
+        const start = Math.max(block.start, annotation.start);
+        const end = Math.min(block.end, annotation.end);
+        if (end <= start || start < cursor) continue;
+        if (start > cursor) {
+          fragments.push(
+            <React.Fragment key={`plain-${cursor}`}>
+              {renderSearchHighlighted(content.slice(cursor, start), `plain-${cursor}`)}
+            </React.Fragment>,
+          );
+        }
+        const isActive = annotation.id === activeAnnotationId;
+        const typeMeta = getTypeMeta(annotation.type);
         fragments.push(
-          <React.Fragment key={`plain-${cursor}`}>
-            {renderSearchHighlighted(plain, `plain-${cursor}`)}
+          <Button
+            unstyled
+            key={`ann-${annotation.id}-${start}`}
+            type="button"
+            className={`${styles.annotationTrigger} ${styles[typeMeta.styleKey]} ${
+              isActive ? styles.annotationTriggerActive : styles.annotationTriggerHover
+            }`}
+            title={`${typeMeta.label}: ${annotation.note || annotation.selectedText}`}
+            onClick={() => setActiveAnnotationId(annotation.id)}
+          >
+            {renderSearchHighlighted(content.slice(start, end), `ann-${annotation.id}-${start}`)}
+          </Button>,
+        );
+        cursor = end;
+      }
+      if (cursor < block.end) {
+        fragments.push(
+          <React.Fragment key={`tail-${cursor}`}>
+            {renderSearchHighlighted(content.slice(cursor, block.end), `tail-${cursor}`)}
           </React.Fragment>,
         );
       }
-
-      const highlighted = content.slice(annotation.start, annotation.end);
-      const isActive = annotation.id === activeAnnotationId;
-      const typeMeta = getTypeMeta(annotation.type);
-
-      fragments.push(
-        <Button
-          unstyled
-          key={`ann-${annotation.id}`}
-          type="button"
-          className={`${styles.annotationTrigger} ${styles[typeMeta.styleKey]} ${
-            isActive ? styles.annotationTriggerActive : styles.annotationTriggerHover
-          }`}
-          title={`${typeMeta.label}: ${annotation.note || annotation.selectedText}`}
-          onClick={() => setActiveAnnotationId(annotation.id)}
-        >
-          {renderSearchHighlighted(highlighted, `ann-${annotation.id}`)}
-        </Button>,
+      return (
+        <div key={block.start} className={styles.readingBlock} data-kind={block.kind}>
+          {fragments}
+        </div>
       );
-
-      cursor = annotation.end;
-    }
-
-    if (cursor < content.length) {
-      const tail = content.slice(cursor);
-      fragments.push(
-        <React.Fragment key={`plain-tail-${cursor}`}>
-          {renderSearchHighlighted(tail, `plain-tail-${cursor}`)}
-        </React.Fragment>,
-      );
-    }
-
-    return fragments;
+    });
   }, [annotations, content, activeAnnotationId, renderSearchHighlighted, showAnnotations]);
 
   return (

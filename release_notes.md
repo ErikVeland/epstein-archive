@@ -1,5 +1,23 @@
 # Release Notes
 
+## 22.6.18 - 2026-09-07 - Vertical Viewer Controls and Readable Emails
+
+### Document viewer
+
+- Move desktop view controls into a vertical floating bar on the right, with a separate column that keeps controls clear of the document text during scrolling.
+- Keep compact horizontal controls on mobile and support vertical orientation in the shared segmented control.
+
+### Email and text readability
+
+- Format clean text with readable paragraph widths, sentence-based sections for long passages, email header blocks, quoted replies and list spacing.
+- Preserve spacing in text columns and retain every source character and annotation offset. Raw OCR and original documents remain unchanged.
+- Remove email header stripping that could discard opening body lines.
+
+### Validation and operations
+
+- Add eight formatting tests and verify desktop and mobile layouts, source preservation and selection offsets across paragraphs.
+- This release changes application code only. It adds no database migration, extracted-media promotion or access-policy change.
+
 ## 22.6.17 - 2026-09-06 - Restore Entity Profile Loading
 
 ### Entity profiles

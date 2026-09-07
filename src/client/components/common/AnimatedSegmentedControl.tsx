@@ -20,6 +20,7 @@ interface AnimatedSegmentedControlProps<T extends string> {
   minItemWidth?: string;
   fullWidth?: boolean;
   compact?: boolean;
+  orientation?: 'horizontal' | 'vertical';
 }
 
 export function AnimatedSegmentedControl<T extends string>({
@@ -32,6 +33,7 @@ export function AnimatedSegmentedControl<T extends string>({
   minItemWidth = '3.25rem',
   fullWidth = false,
   compact = false,
+  orientation = 'horizontal',
 }: AnimatedSegmentedControlProps<T>) {
   const activeIndex = Math.max(
     0,
@@ -42,6 +44,7 @@ export function AnimatedSegmentedControl<T extends string>({
     <div
       className={cn(
         styles.root,
+        orientation === 'vertical' && styles.vertical,
         fullWidth && styles.fullWidth,
         compact && styles.compact,
         className,

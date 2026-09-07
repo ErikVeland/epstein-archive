@@ -116,3 +116,27 @@
     transition: none;
   }
 }
+
+.vertical {
+  grid-template-columns: minmax(var(--segment-min-width), 1fr);
+  grid-template-rows: repeat(var(--segment-count), var(--segment-height));
+}
+
+.vertical .item {
+  justify-content: flex-start;
+}
+
+.vertical .blob {
+  left: var(--segment-padding);
+  top: calc(var(--segment-padding) + var(--segment-active-index) * var(--segment-height));
+  bottom: auto;
+  width: calc(100% - var(--segment-padding) * 2);
+  height: var(--segment-height);
+  transition: top 340ms cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vertical .blob {
+    transition: none;
+  }
+}

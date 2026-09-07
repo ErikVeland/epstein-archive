@@ -4,6 +4,7 @@
  * Displays correspondence evidence in email client style
  */
 
+import { getReadingBlocks } from '@client/utils/readableText';
 import Icon from '@client/components/common/Icon';
 import styles from './EmailViewer.module.css';
 
@@ -32,24 +33,6 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
-
-  // Extract email body (everything after headers)
-  const getEmailBody = () => {
-    const lines = extractedText.split('\n');
-    let bodyStartIndex = 0;
-
-    // Find where headers end (first empty line or specific patterns)
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim() === '' && i > 5) {
-        bodyStartIndex = i + 1;
-        break;
-      }
-    }
-
-    return lines.slice(bodyStartIndex).join('\n').trim();
-  };
-
-  const emailBody = getEmailBody();
 
   return (
     <div className={styles.container}>
@@ -143,7 +126,13 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
       {/* Email Body */}
       <div className={styles.emailBody}>
-        <div className={styles.bodyText}>{emailBody || extractedText}</div>
+        <div className={styles.bodyText}>
+          {getReadingBlocks(extractedText).map((block) => (
+            <div key={block.start} className={styles.readingBlock} data-kind={block.kind}>
+              {extractedText.slice(block.start, block.end)}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

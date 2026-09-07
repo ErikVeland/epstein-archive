@@ -272,3 +272,42 @@
     padding: var(--space-6) var(--space-4);
   }
 }
+
+@media (min-width: 768px) {
+  .root {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    align-items: start;
+    column-gap: var(--space-3);
+  }
+
+  .toolbar {
+    grid-column: 2;
+    grid-row: 1;
+    top: var(--space-4);
+    margin: var(--space-4) var(--space-3) var(--space-4) 0;
+    padding: var(--space-2);
+    flex-direction: column;
+    flex-wrap: nowrap;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow-soft);
+    max-height: calc(100dvh - var(--space-8));
+    overflow-y: auto;
+  }
+
+  .annotationActions {
+    flex-direction: column;
+    padding-block: var(--space-2);
+  }
+
+  .contentArea {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .root > :last-child:not(.contentArea) {
+    grid-column: 1 / -1;
+  }
+}
