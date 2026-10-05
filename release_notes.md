@@ -1,5 +1,24 @@
 # Release Notes
 
+## 22.7.0 - 2026-10-05 - AI OCR Cleanup Milestone
+
+### OCR cleanup milestone
+
+- Celebrate the end of the AI OCR cleanup pass on 5 October 2026. The final local checkpoint records 19,625 processed documents: 19,583 successes and 42 failures.
+- Record this as a finished processing pass. The 42 failures remain unresolved and are not counted as successful cleanup or archive-wide completion.
+
+### Evidence preservation and review
+
+- Confirm 26,503 versioned OCR cleanup artifacts in the local database on 5 October 2026, all pending review. This total covers work across runs.
+- Keep generated cleanup as versioned, pending-review artifacts with source and output hashes, model identity, prompt identity and deterministic preservation checks.
+- Preserve raw and canonical evidence text. Cleanup does not automatically replace canonical OCR, and generated text still requires human review.
+
+### Release operations
+
+- Mark the milestone with version 22.7.0 and retain the document-viewer, email-readability and entity-profile improvements documented in 22.6.14 through 22.6.18.
+- This release changes version metadata and release notes only. It adds no schema migration, access-policy change or extracted-media bundle.
+- The local processing milestone does not establish production data synchronisation or completion of other pipeline stages.
+
 ## 22.6.18 - 2026-09-07 - Vertical Viewer Controls and Readable Emails
 
 ### Document viewer
