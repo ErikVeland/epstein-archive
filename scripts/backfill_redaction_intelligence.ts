@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { basename, isAbsolute, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { promisify } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import { Pool, type PoolClient } from 'pg';
 import {
   AIEnrichmentService,
@@ -77,8 +78,8 @@ function resolveCorpusPath(filePath: string): string {
   return candidates.find(existsSync) || candidates[0];
 }
 
-async function storeOverlayFindings(pool: Pool, document: DocumentRow): Promise<void> {
-  if (!document.file_path || !document.file_path.toLowerCase().endsWith('.pdf')) return;
+async function storeOverlayFindings(pool: Pool, document: DocumentRow): Promise<boolean> {
+  if (!document.file_path || !document.file_path.toLowerCase().endsWith('.pdf')) return false;
   let client: PoolClient | null = null;
   try {
     const findings = await scanPdf(resolveCorpusPath(document.file_path));
@@ -119,6 +120,7 @@ async function storeOverlayFindings(pool: Pool, document: DocumentRow): Promise<
       [document.id, document.content_hash, SCANNER_VERSION],
     );
     await client.query('COMMIT');
+    return true;
   } catch (error) {
     await client?.query('ROLLBACK').catch(() => undefined);
     await pool.query(
@@ -127,6 +129,7 @@ async function storeOverlayFindings(pool: Pool, document: DocumentRow): Promise<
        ON CONFLICT (document_id) DO UPDATE SET error_text = EXCLUDED.error_text, updated_at = NOW()`,
       [document.id, SCANNER_VERSION, String(error).slice(0, 1000)],
     );
+    return false;
   } finally {
     client?.release();
   }
@@ -255,6 +258,19 @@ async function storeContextFindings(pool: Pool, document: DocumentRow): Promise<
   }
 }
 
+export async function processRedactionDocument(
+  pool: Pool,
+  document: DocumentRow,
+  scanMode: 'overlay' | 'context' | 'all',
+): Promise<boolean> {
+  if (scanMode !== 'context' && !(await storeOverlayFindings(pool, document))) {
+    // Preserve the PDF scan error. Context success must not make this row eligible again.
+    return false;
+  }
+  if (scanMode !== 'overlay') await storeContextFindings(pool, document);
+  return true;
+}
+
 async function runWorkers(
   documents: DocumentRow[],
   task: (document: DocumentRow) => Promise<void>,
@@ -279,6 +295,7 @@ async function main(): Promise<void> {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: CONCURRENCY + 2 });
   try {
     let processed = 0;
+    let failed = 0;
     while (MAX_DOCUMENTS === 0 || processed < MAX_DOCUMENTS) {
       const remaining =
         MAX_DOCUMENTS === 0 ? BATCH_SIZE : Math.min(BATCH_SIZE, MAX_DOCUMENTS - processed);
@@ -298,18 +315,22 @@ async function main(): Promise<void> {
       );
       if (result.rows.length === 0) break;
       await runWorkers(result.rows, async (document) => {
-        if (mode === 'overlay' || mode === 'all') await storeOverlayFindings(pool, document);
-        if (mode === 'context' || mode === 'all') await storeContextFindings(pool, document);
+        if (!(await processRedactionDocument(pool, document, mode))) failed++;
       });
       processed += result.rows.length;
-      console.log(`[redactions] processed ${processed} documents`);
+      console.log(
+        `[redactions] attempted ${processed}: ${processed - failed} succeeded, ${failed} failed`,
+      );
     }
+    if (failed > 0) process.exitCode = 1;
   } finally {
     await pool.end();
   }
 }
 
-main().catch((error) => {
-  console.error('[redactions] backfill failed:', error);
-  process.exitCode = 1;
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error('[redactions] backfill failed:', error);
+    process.exitCode = 1;
+  });
+}

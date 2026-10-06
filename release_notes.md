@@ -1,5 +1,23 @@
 # Release Notes
 
+## 22.8.0 - 2026-10-06 - 100% OCR Cleanup Pass Complete
+
+### Milestone
+
+- Celebrate the AI OCR cleanup pass reaching 100% of its queue. The pass processed all 19,625 of 19,625 documents.
+- Of these documents, 19,583 succeeded and 42 failed. The 42 failures stay open and are not counted as successful cleanup.
+- "100%" means every queued document received a cleanup attempt. It does not mean every document has accepted cleanup text.
+
+### Evidence preservation and review
+
+- Keep all generated cleanup as versioned artifacts that wait for human review. Each artifact records source and output hashes, model identity and prompt identity.
+- Keep raw and canonical OCR text unchanged. Cleanup never replaces canonical text without review.
+
+### Release operations
+
+- Change version metadata and release notes only. This release adds no schema migration, access-policy change or extracted-media bundle.
+- This release does not show that production data is synchronized or that other pipeline stages are complete.
+
 ## 22.7.0 - 2026-10-05 - AI OCR Cleanup Milestone
 
 ### OCR cleanup milestone

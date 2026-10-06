@@ -63,6 +63,10 @@ export class AIEnrichmentService {
     1000,
     parseInt(process.env.EXO_DISCOVERY_TIMEOUT_MS || '8000', 10) || 8000,
   );
+  private static EXO_PROBE_TIMEOUT_MS = Math.max(
+    1000,
+    parseInt(process.env.EXO_PROBE_TIMEOUT_MS || '30000', 10) || 30000,
+  );
   private static AI_REQUEST_TIMEOUT_MS = Math.max(
     1000,
     parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '120000', 10) || 120000,
@@ -82,9 +86,8 @@ export class AIEnrichmentService {
    * Return model IDs that are backed by a live Exo instance.
    *
    * Exo's /v1/models endpoint is a hub catalog, not a list of running
-   * instances. A one-token completion probe is therefore the authoritative
-   * availability check. Preferred IDs are tested first, but every catalog
-   * model can be selected when its instance is callable.
+   * instances. Read /state to select loaded instances, then confirm them with
+   * a completion probe. Catalog discovery supports older Exo versions only.
    */
   static async discoverCallableExoModels(preferredModels: string[] = []): Promise<string[]> {
     const now = Date.now();
@@ -97,23 +100,47 @@ export class AIEnrichmentService {
 
     await throttleExoForUserActivity();
 
-    const modelsResponse = await fetch(`${this.EXO_HOST}/v1/models`, {
-      signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
-    });
-    if (!modelsResponse.ok) {
-      throw new Error(`Exo discovery failed: ${modelsResponse.status}`);
+    let candidates: string[] | null = null;
+    try {
+      const stateResponse = await fetch(`${this.EXO_HOST}/state`, {
+        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+      });
+      if (stateResponse.ok) {
+        const state = (await stateResponse.json()) as {
+          instances?: Record<string, Record<string, unknown>>;
+        };
+        if (state.instances && typeof state.instances === 'object') {
+          candidates = Object.values(state.instances).flatMap((entry) => {
+            // Current Exo wraps instances in their type (for example MlxRingInstance).
+            const instance = (entry.shardAssignments ? entry : Object.values(entry)[0]) as
+              | { shardAssignments?: { modelId?: string } }
+              | undefined;
+            const modelId = instance?.shardAssignments?.modelId;
+            return typeof modelId === 'string' && modelId.trim() ? [modelId.trim()] : [];
+          });
+        }
+      }
+    } catch (err: unknown) {
+      logger.debug({ err }, 'Exo instance discovery failed; checking the model catalog');
     }
 
-    const payload = (await modelsResponse.json()) as {
-      data?: Array<{ id?: string }>;
-    };
-    const catalog = (payload.data || [])
-      .map((entry) => entry.id?.trim())
-      .filter((id): id is string => Boolean(id));
-    const catalogSet = new Set(catalog);
+    if (candidates === null) {
+      const modelsResponse = await fetch(`${this.EXO_HOST}/v1/models`, {
+        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+      });
+      if (!modelsResponse.ok) {
+        throw new Error(`Exo discovery failed: ${modelsResponse.status}`);
+      }
+      const payload = (await modelsResponse.json()) as { data?: Array<{ id?: string }> };
+      candidates = (payload.data || [])
+        .map((entry) => entry.id?.trim())
+        .filter((id): id is string => Boolean(id));
+    }
+
+    const candidateSet = new Set(candidates);
     const orderedCandidates = [
-      ...preferredModels.filter((id) => catalogSet.has(id)),
-      ...catalog,
+      ...preferredModels.filter((id) => candidateSet.has(id)),
+      ...candidates,
     ].filter((id, index, all) => all.indexOf(id) === index);
 
     const callable = new Set<string>();
@@ -132,19 +159,28 @@ export class AIEnrichmentService {
               temperature: 0,
               enable_thinking: false,
             }),
-            signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+            signal: AbortSignal.timeout(this.EXO_PROBE_TIMEOUT_MS),
           });
           if (response.ok) {
-            callable.add(model);
-            this.exoUnavailableModels.delete(model);
+            // EXO can send HTTP 200 headers before inference completes.
+            // Consume the body under the probe deadline before reporting success.
+            const completion = (await response.json()) as { choices?: unknown[] };
+            if (Array.isArray(completion.choices) && completion.choices.length > 0) {
+              callable.add(model);
+              this.exoUnavailableModels.delete(model);
+            }
           } else {
             const detail = await response.text();
+            logger.warn({ model, status: response.status }, 'Exo completion probe failed');
             if (response.status === 404 && detail.includes('No instance found')) {
               this.exoUnavailableModels.add(model);
             }
           }
-        } catch {
-          // A failed probe does not make the complete Exo cluster unavailable.
+        } catch (err: unknown) {
+          logger.warn(
+            { model, timeoutMs: this.EXO_PROBE_TIMEOUT_MS, err },
+            'Exo completion probe failed; the instance may be busy',
+          );
         }
       }
     };
