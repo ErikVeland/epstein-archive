@@ -40,6 +40,7 @@ export const AssetService = {
         source_collection, is_original, is_derivative, 
         derivative_kind, derivative_params_json, phash
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      ON CONFLICT (sha256) WHERE sha256 IS NOT NULL DO NOTHING
       RETURNING id
     `,
       [
@@ -60,7 +61,13 @@ export const AssetService = {
       ],
     );
 
-    return rows[0].id;
+    if (rows[0]) return rows[0].id;
+    const existing = await pool.query<{ id: number }>(
+      'SELECT id FROM file_assets WHERE sha256 = $1',
+      [data.sha256],
+    );
+    if (!existing.rows[0]) throw new Error('Asset hash conflict could not be resolved');
+    return existing.rows[0].id;
   },
 
   /**

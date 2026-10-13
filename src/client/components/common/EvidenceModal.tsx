@@ -301,7 +301,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     staleTime: 60_000,
   });
 
-  const { data: entityEvidence } = useQuery<EntityEvidenceResponse>({
+  const {
+    data: entityEvidence,
+    status: entityEvidenceStatus,
+    isFetching: isEvidenceFetching,
+    refetch: refetchEvidence,
+  } = useQuery<EntityEvidenceResponse>({
     queryKey: ['entity-evidence-summary', entityId],
     queryFn: async () => {
       return (await apiClient.get(`/entities/${entityId}/evidence`)) as EntityEvidenceResponse;
@@ -853,6 +858,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 mediaItems={mediaItems}
                 overviewEvidenceTypesCount={overviewEvidenceTypesCount}
                 overviewSignificantPassages={overviewSignificantPassages}
+                evidenceStatus={
+                  isEvidenceFetching && !entityEvidence ? 'pending' : entityEvidenceStatus
+                }
+                onRetryEvidence={() => void refetchEvidence()}
                 openDocumentFromEvidence={openDocumentFromEvidence}
                 navigateFromModal={navigateFromModal}
                 blackBookSectionRef={blackBookSectionRef}
@@ -1004,6 +1013,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 mediaItems={mediaItems}
                 overviewEvidenceTypesCount={overviewEvidenceTypesCount}
                 overviewSignificantPassages={overviewSignificantPassages}
+                evidenceStatus={
+                  isEvidenceFetching && !entityEvidence ? 'pending' : entityEvidenceStatus
+                }
+                onRetryEvidence={() => void refetchEvidence()}
                 openDocumentFromEvidence={openDocumentFromEvidence}
                 navigateFromModal={navigateFromModal}
                 blackBookSectionRef={blackBookSectionRef}

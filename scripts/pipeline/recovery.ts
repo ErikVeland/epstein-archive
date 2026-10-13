@@ -141,6 +141,9 @@ export async function ensureServiceHealthyOrRecover(
   fatalMessage: string,
 ): Promise<void> {
   if (await isServiceHealthy(service)) return;
+  if (process.env.PIPELINE_RECOVERY_DISABLED === 'true') {
+    throw new PipelineBlockedError(fatalMessage, service);
+  }
 
   if (service === 'exo' && process.env.PIPELINE_ALLOW_EXO_RESTART !== 'true') {
     writeLiveStatus({

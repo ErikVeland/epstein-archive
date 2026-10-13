@@ -228,6 +228,21 @@ export const PipelineService = {
     }
   },
 
+  async failActiveStageRuns(
+    runId: number | null | undefined,
+    stageName: string,
+    message: string,
+  ): Promise<void> {
+    if (!runId) return;
+    const pool = getApiPool();
+    await pool.query(
+      `UPDATE document_stage_runs SET status = 'failed', error_message = $3,
+         finished_at = NOW(), updated_at = NOW()
+       WHERE run_id = $1 AND stage_name = $2 AND status = 'running'`,
+      [runId, stageName, message],
+    );
+  },
+
   async upsertAiArtifact(params: {
     runId?: number | null;
     stageRunId?: number | null;

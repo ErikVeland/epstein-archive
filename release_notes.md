@@ -1,5 +1,38 @@
 # Release Notes
 
+## 22.8.1 - 2026-10-13 - Entity Loading and Pipeline Reliability
+
+### Entity profiles
+
+- Add indexes for document and file-path media links. The local evidence lookup decreased from 8.2 seconds to 5.6 milliseconds without changing the returned documents.
+- Show a loading state while evidence is pending and a retry action when the request fails. Show an empty result only after a successful request.
+- Preserve evidence passages already loaded by the profile repository in the API response.
+
+### Pipeline operations
+
+- Run one finite corpus pass and require an explicit restart after failure. Respect the stop marker, disable automatic restarts, and support explicit maintenance and corpus passes.
+- Track ingestion and stage outcomes under the active run. Preserve unknown counts, distinguish skipped documents from successful processing, and fail passes that contain errors.
+- Preserve recorded extraction, OCR cleanup and VLM failures until an explicit retry. Propagate strict inference failures instead of treating them as successful empty output.
+- Separate canonical ingestion and image OCR from optional AI enrichment. Extract embedded media before visual analysis and forward shutdown signals to stage subprocesses.
+
+### Artifacts and evidence preservation
+
+- Retain generated summaries and OCR cleanup as versioned artifacts with provenance and review state. Preserve raw and canonical evidence text.
+- Preserve extracted-media object provenance, source and derived hashes, and availability metadata. Register existing assets safely when their hashes already exist.
+- Write extracted images atomically, enforce extraction timeouts, and stop ingestion or extraction when the source volume reaches its reserved free-space floor.
+- Keep VLM analysis restricted to verified or source-verified photographs. Keep scans and text images on the OCR path.
+
+### Schema and validation
+
+- Restore the processing job queue and its status/lock index. Add the two media-link lookup indexes and refresh the schema hash.
+- Include regression coverage for entity evidence states, profile passages, pipeline lifecycle, stage selection, strict inference and asset registration.
+
+### Release operations
+
+- Include all pending pipeline code, migrations, tests and operating documentation in patch 22.8.1.
+- Package the latest local generated artifacts separately under `.media-releases/22.8.1`: 473,823 summaries, 26,503 OCR cleanup artifacts, and their pipeline run and stage audit records.
+- Include the extracted-media catalog and asset manifest in that versioned bundle. Promote generated data separately, with identity checks and a dry run before applying it to production.
+
 ## 22.8.0 - 2026-10-06 - 100% OCR Cleanup Pass Complete
 
 ### Milestone

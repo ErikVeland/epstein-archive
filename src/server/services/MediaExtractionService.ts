@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import sharp from 'sharp';
-import { execFileSync } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
+import { promisify } from 'node:util';
 import { MediaService } from './MediaService.js';
 import { logger } from './Logger.js';
 import { dataPath } from '../utils/pathResolver.js';
@@ -57,10 +58,12 @@ export class MediaExtractionService {
     filePath: string,
     docName: string,
     sourceCollection?: string,
+    options: { throwOnError?: boolean } = {},
   ): Promise<number> {
     const absPath = path.isAbsolute(filePath) ? filePath : path.join(process.cwd(), filePath);
     if (!fs.existsSync(absPath)) {
       logger.error({ filePath: absPath }, 'PDF file not found for extraction');
+      if (options.throwOnError) throw new Error(`PDF source file is missing: ${filePath}`);
       return 0;
     }
 
@@ -78,10 +81,31 @@ export class MediaExtractionService {
       const objectManifest = parsePdfImagesList(listOutput);
       const sourceDocumentSha256 = await this.hashFile(absPath);
 
-      execFileSync(this.pdfImagesPath, ['-all', absPath, path.join(docTempDir, 'img')], {
-        stdio: 'pipe',
-        maxBuffer: 64 * 1024 * 1024,
-      });
+      const controller = new AbortController();
+      const minimumFreeBytes =
+        Math.max(1, Number(process.env.MEDIA_EXTRACTION_MIN_FREE_GIB || 10)) * 1024 ** 3;
+      const capacityTimer = setInterval(() => {
+        try {
+          const volume = fs.statfsSync(docTempDir);
+          if (volume.bavail * volume.bsize < minimumFreeBytes)
+            controller.abort(new Error('Media volume reached its reserved free-space floor'));
+        } catch {
+          controller.abort(new Error('Media volume is unavailable'));
+        }
+      }, 5000);
+      try {
+        await promisify(execFile)(
+          this.pdfImagesPath,
+          ['-png', '-j', absPath, path.join(docTempDir, 'img')],
+          {
+            maxBuffer: 64 * 1024 * 1024,
+            timeout: 300000,
+            signal: controller.signal,
+          },
+        );
+      } finally {
+        clearInterval(capacityTimer);
+      }
 
       const files = fs.readdirSync(docTempDir).sort();
       for (const file of files) {
@@ -100,6 +124,7 @@ export class MediaExtractionService {
           sourceObject,
           sourceDocumentSha256,
           sourceCollection,
+          throwOnError: options.throwOnError,
         });
 
         if (success) extractedCount++;
@@ -110,6 +135,7 @@ export class MediaExtractionService {
         { err: message, docId: documentId, executable: this.pdfImagesPath },
         'Failed to extract images via pdfimages',
       );
+      if (options.throwOnError) throw err;
     } finally {
       try {
         fs.rmSync(docTempDir, { recursive: true, force: true });
@@ -129,6 +155,7 @@ export class MediaExtractionService {
     sourceObject?: PdfImageObject;
     sourceDocumentSha256: string;
     sourceCollection?: string;
+    throwOnError?: boolean;
   }): Promise<boolean> {
     const {
       tempPath,
@@ -203,9 +230,21 @@ export class MediaExtractionService {
         : null;
       const savePath =
         existingPath && fs.existsSync(existingPath) ? existingPath : generatedSavePath;
+      const volume = fs.statfsSync(docSubDir);
+      if (
+        volume.bavail * volume.bsize <
+        Math.max(1, Number(process.env.MEDIA_EXTRACTION_MIN_FREE_GIB || 10)) * 1024 ** 3
+      )
+        throw new Error('Media volume reached its reserved free-space floor');
 
       if (!fs.existsSync(savePath)) {
-        await sharpImage.jpeg({ quality: 90 }).toFile(savePath);
+        const temporaryPath = `${savePath}.${process.pid}.tmp.jpg`;
+        try {
+          await sharpImage.jpeg({ quality: 90 }).toFile(temporaryPath);
+          fs.renameSync(temporaryPath, savePath);
+        } finally {
+          fs.rmSync(temporaryPath, { force: true });
+        }
       }
 
       const savedFileStats = fs.statSync(savePath);
@@ -217,6 +256,7 @@ export class MediaExtractionService {
         sha256: extractedObjectSha256,
         extracted_object_sha256: extractedObjectSha256,
         derived_file_sha256: derivedFileSha256,
+        source_file_status: 'available',
         source_document: docName,
         source_document_id: String(documentId),
         source_collection: sourceCollection,
@@ -312,6 +352,7 @@ export class MediaExtractionService {
         { err: err instanceof Error ? err.message : String(err), tempPath },
         'Error processing extracted asset',
       );
+      if (params.throwOnError) throw err;
       return false;
     }
   }

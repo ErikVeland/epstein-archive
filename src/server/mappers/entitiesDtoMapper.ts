@@ -235,9 +235,11 @@ export const mapEntityDetailDto = (entity: UnknownRecord): EntityDetailDto => {
       : [];
   const blackBookEntries = Array.isArray(entity.blackBookEntries) ? entity.blackBookEntries : [];
   const photos = Array.isArray(entity.photos) ? entity.photos : [];
-  const significantPassages = Array.isArray(entity.significant_passages)
-    ? entity.significant_passages
-    : [];
+  const significantPassages = Array.isArray(entity.significantPassages)
+    ? entity.significantPassages
+    : Array.isArray(entity.significant_passages)
+      ? entity.significant_passages
+      : [];
   const bio = String(entity.bio || entity.summary || '');
 
   return {

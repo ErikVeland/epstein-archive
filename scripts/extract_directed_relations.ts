@@ -24,6 +24,8 @@ async function main() {
 
   const pool = getIngestPool();
   let processed = 0;
+  let failed = 0;
+  let lastDocumentId = 0;
   let relationsAdded = 0;
 
   console.log('\n' + '='.repeat(70));
@@ -41,16 +43,20 @@ async function main() {
       SELECT id, content_refined, file_name
       FROM documents
       WHERE content_refined IS NOT NULL
+        AND length(content_refined) >= 100
+        AND id > $2
+        AND metadata_json->>'graph_relations_error_at' IS NULL
         AND (metadata_json IS NULL OR metadata_json->>'graph_relations_at' IS NULL)
       ORDER BY id ASC
       LIMIT $1
     `,
-      [BATCH_SIZE],
+      [BATCH_SIZE, lastDocumentId],
     );
 
     if (docs.length === 0) break;
 
     for (const doc of docs) {
+      lastDocumentId = Number(doc.id);
       try {
         // Get entity names mentioned in this document
         const { rows: mentions } = await pool.query<{ full_name: string; entity_id: number }>(
@@ -152,22 +158,31 @@ async function main() {
           process.stdout.write(`\r   ⏳ ${processed} docs | ${relationsAdded} relations`);
         }
       } catch (err) {
+        failed++;
         console.error(`   ❌ Doc ${doc.id}:`, (err as Error).message);
-        // Mark as processed anyway so we don't retry indefinitely on parse errors
+        // Keep the failure separate from completion so it is not retried automatically.
         await pool.query(
           `
           UPDATE documents
-          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_relations_at', $1::text)
+          SET metadata_json = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('graph_relations_error_at', $1::text, 'graph_relations_error', $3::text)
           WHERE id = $2::bigint
         `,
-          [new Date().toISOString(), doc.id],
+          [new Date().toISOString(), doc.id, (err as Error).message],
         );
+        if (
+          /fetch failed|No callable Exo|has no callable instance|timed out|Exo cluster returned (?:5\d\d|429)/i.test(
+            (err as Error).message,
+          )
+        )
+          throw err;
       }
     }
   }
 
   console.log(`\n   ✅ Done — ${processed} docs, ${relationsAdded} relations written`);
+  console.log(`Failed documents retained for review: ${failed}`);
   await pool.end();
+  if (failed > 0) process.exitCode = 1;
 }
 
 main().catch((e) => {

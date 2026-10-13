@@ -10,7 +10,7 @@ import { SignalMetrics, DriverChip } from '@client/utils/forensics';
 import s from './EvidenceOverviewTab.module.css';
 import { FlagButton } from '@client/components/common/FlagButton';
 
-import { Button } from '@client/design-system/lib';
+import { Button, EmptyState } from '@client/design-system/lib';
 import { InteractiveBadge } from '@client/components/common/InteractiveBadge';
 
 const INITIAL_MEDIA_PREVIEW_COUNT = 4;
@@ -55,6 +55,8 @@ interface EvidenceOverviewTabProps {
   mediaItems: EntityPhoto[];
   overviewEvidenceTypesCount: number;
   overviewSignificantPassages: SignificantPassage[];
+  evidenceStatus: 'pending' | 'error' | 'success';
+  onRetryEvidence: () => void;
   openDocumentFromEvidence: (
     id: string | number | undefined,
     options?: { newTab?: boolean },
@@ -71,6 +73,8 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
   mediaItems,
   overviewEvidenceTypesCount,
   overviewSignificantPassages,
+  evidenceStatus,
+  onRetryEvidence,
   openDocumentFromEvidence,
   navigateFromModal,
   blackBookSectionRef,
@@ -377,13 +381,24 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
               />
             ))}
           </div>
-        ) : (
-          <div className={s.emptyEvidence}>
-            <p>No high-significance evidence passages currently extracted for this entity.</p>
-            <p className={s.emptySubtext}>
-              Full document mentions are available in the Documents tab.
-            </p>
+        ) : evidenceStatus === 'pending' ? (
+          <div role="status" aria-live="polite" aria-busy="true" className={s.loadingStack}>
+            <p>Loading evidence passages…</p>
+            <Skeleton className={s.skeletonCard} aria-hidden="true" />
+            <Skeleton className={s.skeletonCard} aria-hidden="true" />
           </div>
+        ) : evidenceStatus === 'error' ? (
+          <EmptyState
+            role="alert"
+            title="Unable to load evidence passages"
+            description="The evidence request failed. Try again to check this entity’s evidence."
+            actions={<Button onClick={onRetryEvidence}>Try again</Button>}
+          />
+        ) : (
+          <EmptyState
+            title="No high-significance evidence passages currently extracted for this entity."
+            description="Full document mentions are available in the Evidence tab."
+          />
         )}
       </div>
 

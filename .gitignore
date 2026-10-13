@@ -157,3 +157,9 @@ api-server.log
 .env.local
 .worktrees/
 PRODUCTION_HARDENING_FINAL_AUDIT.md
+
+# Local maintenance receipts and supervisor backups
+ops/corpus-shutdown-20261012/
+
+# Transient PDF extraction workspace
+data/temp_extraction/

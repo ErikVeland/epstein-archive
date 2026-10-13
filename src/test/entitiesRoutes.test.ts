@@ -56,6 +56,17 @@ describe('entity detail responses', () => {
     });
   }, 10000);
 
+  it.each(['significantPassages', 'significant_passages'])(
+    'preserves evidence passages from %s in the profile response',
+    async (field) => {
+      const passages = [{ documentId: '42', passage: 'Fixture evidence passage' }];
+      getEntityById.mockResolvedValue({ id: '3', fullName: 'Fixture entity', [field]: passages });
+      const response = await request(buildApp()).get('/api/entities/3');
+      expect(response.status).toBe(200);
+      expect(response.body.significantPassages).toEqual(passages);
+    },
+  );
+
   it('returns 404 for a missing entity', async () => {
     getEntityById.mockResolvedValue(null);
     const response = await request(buildApp()).get('/api/entities/3');

@@ -87,6 +87,10 @@ async function main() {
           }
         }
 
+        const volume = fs.statfsSync(path.dirname(originalAbsPath));
+        if (volume.bavail * volume.bsize < 10 * 1024 ** 3)
+          throw new Error('Media volume reached its reserved free-space floor');
+
         // Generate thumbnail
         const generatedPath = await media.generateThumbnail(originalAbsPath, thumbnailDir, {
           orientation: legacy.orientation || 1,
@@ -106,6 +110,7 @@ async function main() {
       } catch (err) {
         failed += 1;
         console.error(`[Backfill] Failed for image ${image.id}:`, (err as Error).message);
+        if (/reserved free-space floor/.test((err as Error).message)) throw err;
       }
     }
 
@@ -115,7 +120,8 @@ async function main() {
     );
   }
 
-  console.log('Thumbnail backfill complete.');
+  console.log('Thumbnail backfill pass finished.');
+  if (failed > 0) process.exitCode = 1;
   console.log(
     `Summary: processed=${processed} generated=${generated} reused=${reused} failed=${failed}`,
   );

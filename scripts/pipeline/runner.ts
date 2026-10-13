@@ -37,14 +37,19 @@ import {
  * Run a subprocess and stream its output. A heartbeat keepalive timer fires
  * every 30s so the watchdog does not falsely detect a stall.
  */
-export function runScript(scriptPath: string, args: string[] = []): Promise<number> {
+export function runScript(
+  scriptPath: string,
+  args: string[] = [],
+  environment: NodeJS.ProcessEnv = {},
+): Promise<number> {
   return new Promise((resolve, reject) => {
     const tsxBin = join(process.cwd(), 'node_modules', '.bin', 'tsx');
     console.log(`\n📜 Running: ${tsxBin} ${scriptPath} ${args.join(' ')}`);
     const child = spawn(tsxBin, [scriptPath, ...args], {
       stdio: 'inherit',
       cwd: process.cwd(),
-      env: process.env,
+      detached: process.platform !== 'win32',
+      env: { ...process.env, ...environment },
     });
 
     // Periodic heartbeat while subprocess is active to prevent watchdog timeouts
@@ -52,7 +57,27 @@ export function runScript(scriptPath: string, args: string[] = []): Promise<numb
       updateHeartbeat();
     }, 30_000);
 
+    let shutdownTimer: NodeJS.Timeout | null = null;
+    const signalChild = (signal: NodeJS.Signals) => {
+      if (!child.pid) return;
+      try {
+        if (process.platform === 'win32') child.kill(signal);
+        else process.kill(-child.pid, signal);
+      } catch {
+        // The child may have already exited.
+      }
+    };
+    const stopChild = () => {
+      signalChild('SIGTERM');
+      if (!shutdownTimer) shutdownTimer = setTimeout(() => signalChild('SIGKILL'), 10000);
+    };
+    process.once('SIGTERM', stopChild);
+    process.once('SIGINT', stopChild);
+
     const cleanup = () => {
+      process.removeListener('SIGTERM', stopChild);
+      process.removeListener('SIGINT', stopChild);
+      if (shutdownTimer) clearTimeout(shutdownTimer);
       clearInterval(keepAliveTimer);
     };
 
@@ -151,7 +176,11 @@ export async function runRegisteredScriptStage(
   });
 
   const startedAt = Date.now();
-  const exitCode = await runScript(stage.script, stage.args || []);
+  const exitCode = await runScript(
+    stage.script,
+    stage.args || [],
+    stage.name === 'image-ocr' ? { ENABLE_AI_ENRICHMENT: 'false' } : {},
+  );
   await PipelineService.finishStageRun(stageRun?.id, {
     status: exitCode === 0 ? 'succeeded' : 'failed',
     errorMessage: exitCode === 0 ? null : `${stage.script} exited with ${exitCode}`,
@@ -173,7 +202,7 @@ export async function runRegisteredScriptStage(
 export async function runIngestPhase(
   sourceDir: string,
   currentPipelineRun: PipelineRun | null,
-): Promise<{ filesProcessed: number; errors: number }> {
+): Promise<{ filesProcessed: number | null; errors: number }> {
   console.log('\n' + '='.repeat(70));
   console.log('📥 PHASE 1: INGEST (OCR, Extraction, Parsing)');
   console.log('='.repeat(70));
@@ -184,7 +213,7 @@ export async function runIngestPhase(
 
   if (!existsSync(sourceDir)) {
     console.log(`   ⚠️  Source directory not found: ${sourceDir}`);
-    return { filesProcessed: 0, errors: 0 };
+    throw new Error(`Source directory is unavailable: ${sourceDir}`);
   }
 
   const stage = stageByName('ingest');
@@ -195,7 +224,9 @@ export async function runIngestPhase(
     metrics: { sourceDir },
   });
   const startedAt = Date.now();
-  const exitCode = await runScript('scripts/ingest_pipeline.ts');
+  const exitCode = await runScript('scripts/ingest_pipeline.ts', [], {
+    ENABLE_AI_ENRICHMENT: 'false',
+  });
   await PipelineService.finishStageRun(stageRun?.id, {
     status: exitCode === 0 ? 'succeeded' : 'failed',
     errorMessage: exitCode === 0 ? null : `ingest_pipeline exited with ${exitCode}`,
@@ -203,7 +234,7 @@ export async function runIngestPhase(
   });
 
   return {
-    filesProcessed: exitCode === 0 ? 1 : 0,
+    filesProcessed: null,
     errors: exitCode !== 0 ? 1 : 0,
   };
 }
@@ -213,7 +244,7 @@ export async function runIngestPhase(
  */
 export async function runIntelPhase(
   currentPipelineRun: PipelineRun | null,
-): Promise<{ entitiesExtracted: number; relationsFound: number }> {
+): Promise<{ entitiesExtracted: number | null; relationsFound: number | null }> {
   console.log('\n' + '='.repeat(70));
   console.log('🔍 PHASE 2: INTELLIGENCE (Entity Extraction, Relations)');
   console.log('='.repeat(70));
@@ -235,9 +266,11 @@ export async function runIntelPhase(
     metrics: { durationMs: Date.now() - startedAt },
   });
 
+  if (exitCode !== 0) throw new Error(`ingest_intelligence exited with ${exitCode}`);
+
   return {
-    entitiesExtracted: exitCode === 0 ? 1 : 0,
-    relationsFound: 0,
+    entitiesExtracted: null,
+    relationsFound: null,
   };
 }
 
@@ -313,6 +346,7 @@ export async function runEnrichPhase(
   const enrichTotal = Number(enrichTotalRow?.total || 0);
 
   let documentsEnriched = 0;
+  let failedDocuments = 0;
   let summariesGenerated = 0;
   const startTime = Date.now();
 
@@ -578,6 +612,7 @@ export async function runEnrichPhase(
               modelUsage,
             });
           } catch (error) {
+            failedDocuments++;
             console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
             await PipelineService.finishStageRun(documentStageRun?.id, {
               status: 'failed',
@@ -599,7 +634,10 @@ export async function runEnrichPhase(
 
             if (
               error instanceof PipelineBlockedError ||
-              String((error as Error)?.message || '').includes('timed out')
+              String((error as Error)?.message || '').includes('timed out') ||
+              /fetch failed|No callable Exo|has no callable instance|Exo cluster returned (?:5\d\d|429)/i.test(
+                String((error as Error)?.message || ''),
+              )
             ) {
               throw error;
             }
@@ -633,8 +671,9 @@ export async function runEnrichPhase(
   pipelineRuntime.currentFile = null;
   pipelineRuntime.currentDocStartedAt = 0;
   await PipelineService.finishStageRun(aggregateStageRun?.id, {
-    status: 'succeeded',
+    status: failedDocuments > 0 ? 'failed' : 'succeeded',
     metrics: {
+      failedDocuments,
       documentsEnriched,
       summariesGenerated,
       mode,
@@ -645,5 +684,8 @@ export async function runEnrichPhase(
       modelUsage,
     },
   });
+  if (failedDocuments > 0) {
+    throw new Error(`${failedDocuments} documents failed enrichment. Explicit review is required.`);
+  }
   return { documentsEnriched, summariesGenerated };
 }

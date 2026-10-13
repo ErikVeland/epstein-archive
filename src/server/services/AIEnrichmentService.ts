@@ -500,6 +500,7 @@ export class AIEnrichmentService {
 
         if (attempt > retryCount) {
           logger.error({ err: e }, `❌ AI Enrichment failed after ${retryCount + 1} attempts`);
+          if (process.env.PIPELINE_STRICT_AI === 'true') throw e;
           return '';
         }
 
@@ -626,6 +627,7 @@ Do not identify a person unless their identity is established by clearly visible
       return result || '';
     } catch (e) {
       logger.warn({ err: e }, '⚠️ analyzeVerifiedPhotograph failed');
+      if (process.env.PIPELINE_STRICT_AI === 'true') throw e;
       return '';
     }
   }
@@ -1001,6 +1003,8 @@ ${entityNames.join(', ')}
         temperature: 0.1,
         task: 'graph',
       });
+      if (!result && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Empty relationship inference output');
       if (!result || result === 'NONE') return [];
 
       // Parse: "[Entity A] -[RELATIONSHIP]-> [Entity B]: 0.85"
@@ -1024,8 +1028,11 @@ ${entityNames.join(', ')}
         }
       }
 
+      if (relationships.length === 0 && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Unparseable relationship inference output');
       return relationships;
     } catch (_e) {
+      if (process.env.PIPELINE_STRICT_AI === 'true') throw _e;
       // Keep enrichment best-effort, but don't fail silently (debug to avoid noise).
       logger.debug({ err: _e }, '[AIEnrichment] extractRelationships failed; returning []');
       return [];
@@ -1071,6 +1078,7 @@ Content: "${content.slice(0, 2000)}"
 
       return null;
     } catch (_e) {
+      if (process.env.PIPELINE_STRICT_AI === 'true') throw _e;
       logger.warn({ err: _e }, '⚠️ AI Summarization failed - returning null');
       return null;
     }
@@ -1115,8 +1123,12 @@ Return [] if no clearly dated events found.
         temperature: 0.1,
         task: 'graph',
       });
+      if (!result && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Empty graph inference output');
       if (!result || result.trim() === '[]') return [];
       const match = result.match(/\[[\s\S]*\]/);
+      if (!match && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Unparseable graph inference output');
       if (!match) return [];
       const parsed = JSON.parse(match[0]);
       if (!Array.isArray(parsed)) return [];
@@ -1127,7 +1139,8 @@ Return [] if no clearly dated events found.
           typeof (e as Record<string, unknown>).title === 'string' &&
           typeof (e as Record<string, unknown>).date === 'string',
       );
-    } catch {
+    } catch (error) {
+      if (process.env.PIPELINE_STRICT_AI === 'true') throw error;
       return [];
     }
   }
@@ -1176,8 +1189,12 @@ Return [] if no financial transactions found.
         temperature: 0.1,
         task: 'graph',
       });
+      if (!result && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Empty graph inference output');
       if (!result || result.trim() === '[]') return [];
       const match = result.match(/\[[\s\S]*\]/);
+      if (!match && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Unparseable graph inference output');
       if (!match) return [];
       const parsed = JSON.parse(match[0]);
       if (!Array.isArray(parsed)) return [];
@@ -1188,7 +1205,8 @@ Return [] if no financial transactions found.
           typeof (e as Record<string, unknown>).from_entity === 'string' &&
           typeof (e as Record<string, unknown>).to_entity === 'string',
       );
-    } catch {
+    } catch (error) {
+      if (process.env.PIPELINE_STRICT_AI === 'true') throw error;
       return [];
     }
   }
@@ -1347,8 +1365,12 @@ Return JSON only with subject,predicate,object,confidence,modality. Use ALLEGED 
         temperature: 0.1,
         task: 'graph',
       });
+      if (!result && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Empty graph inference output');
       if (!result || result.trim() === '[]') return this.fallbackClaimTriples(excerpt, entityNames);
       const match = result.match(/\[[\s\S]*\]/);
+      if (!match && process.env.PIPELINE_STRICT_AI === 'true')
+        throw new Error('Unparseable graph inference output');
       if (!match) return this.fallbackClaimTriples(excerpt, entityNames);
       const parsed = JSON.parse(match[0]);
       if (!Array.isArray(parsed)) return this.fallbackClaimTriples(excerpt, entityNames);
@@ -1361,7 +1383,8 @@ Return JSON only with subject,predicate,object,confidence,modality. Use ALLEGED 
           typeof (e as Record<string, unknown>).object === 'string',
       );
       return triples.length > 0 ? triples : this.fallbackClaimTriples(excerpt, entityNames);
-    } catch {
+    } catch (error) {
+      if (process.env.PIPELINE_STRICT_AI === 'true') throw error;
       return this.fallbackClaimTriples(content.slice(0, 2000), entityNames);
     }
   }

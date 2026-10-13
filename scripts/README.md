@@ -7,7 +7,22 @@
 
 ### `unified_pipeline.ts` — **The Evidence Orchestrator**
 
-Continuous processing engine that runs ingestion, intelligence, and AI enrichment in a loop.
+The orchestrator runs one finite pass and exits. Failed passes require an explicit maintenance action.
+It does not repeat empty cycles or retry an entire failed pass.
+`pipeline_checkpoints/STOPPED` blocks automatic and manual orchestrator starts before database recovery.
+Use `--maintenance-pass` for an explicitly requested pass while the stop marker remains in place.
+Use `--corpus-pass` to include every registered workload once.
+Maintenance passes leave service recovery and the restart watchdog disabled.
+Keep the pipeline LaunchAgents disabled and the watchdog cron entry absent during intentional shutdown.
+The website and PostgreSQL services run independently.
+
+Media extraction advances by document ID and retains failure metadata.
+Use `MEDIA_EXTRACTION_RETRY_FAILED=true` only after fixing the recorded failure.
+Use `MEDIA_EXTRACTION_DOCUMENT_ID=<id>` for a targeted maintenance repair.
+OCR cleanup and VLM skip recorded failures by default. After fixing the failure,
+use `AI_OCR_CLEAN_RETRY_FAILED=true` or `VLM_RETRY_FAILED=true` for an explicit retry.
+
+Processing engine that runs the selected ingestion, intelligence and enrichment stages once.
 
 ```bash
 npx tsx scripts/unified_pipeline.ts --mode ingest  # New data only

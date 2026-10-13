@@ -67,6 +67,7 @@ const OCR_CANDIDATE_CTE = `
 `;
 const ELIGIBLE_SQL = `
   document.content IS NOT NULL
+  AND (${process.env.AI_OCR_CLEAN_RETRY_FAILED === 'true' ? 'TRUE' : "document.metadata_json->'ocr_cleanup_v2'->>'status' IS DISTINCT FROM 'failed'"})
   AND length(document.content) >= 100
   AND COALESCE(document.file_type, '') NOT LIKE 'image/%'
   AND NOT EXISTS (
@@ -479,6 +480,7 @@ async function main(): Promise<void> {
     completedAt: new Date().toISOString(),
   });
   console.log('[ocr-clean-v2] complete', { processed, succeeded, failed, reused });
+  if (failed > 0) process.exitCode = 1;
 }
 
 main().catch((error) => {

@@ -3,7 +3,7 @@
 // ============================================================================
 
 import { join, extname, basename } from 'path';
-import { statSync, existsSync } from 'fs';
+import { statSync, statfsSync, existsSync } from 'fs';
 import { opendir } from 'fs/promises';
 import { WorkerPool, intFromEnv } from '../../src/server/queue/index.js';
 import { INGEST_EXTENSIONS } from './config.js';
@@ -57,7 +57,7 @@ export async function processCollection(
 
   if (!existsSync(collection.rootPath)) {
     console.log(`   ⚠️  Directory not found, skipping...`);
-    return { processed: 0, skipped: 0, errors: 0 };
+    return { processed: 0, skipped: 0, errors: 1 };
   }
 
   // Stream files via walkDir (fs.opendir) — reads one entry at a time to avoid
@@ -71,13 +71,21 @@ export async function processCollection(
     errors: 0,
   };
 
+  let filesVisited = 0;
   for await (const file of walkDir(collection.rootPath)) {
+    if (filesVisited++ % 1000 === 0) {
+      const disk = statfsSync(collection.rootPath);
+      if (disk.bavail * disk.bsize < 10 * 1024 ** 3) {
+        await pool.drain();
+        throw new Error('Source volume has less than 10 GiB free; ingestion stopped');
+      }
+    }
     await pool.waitForCapacity(CONCURRENCY_LIMIT);
 
     pool.run(async () => {
       try {
         const result = await processDocument(file, collection, ctx);
-        if (result.success && result.documentId) {
+        if (result.success && result.documentId && !result.skipped) {
           results.processed++;
           if (results.processed % 50 === 0) {
             process.stdout.write(

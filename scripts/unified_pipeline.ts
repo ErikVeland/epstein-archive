@@ -20,7 +20,6 @@ import {
   isShuttingDown,
   PipelineBlockedError,
   updateHeartbeat,
-  sleep,
   installSignalHandlers,
 } from './pipeline/status.js';
 import {
@@ -50,7 +49,7 @@ async function runCycle(
   mode: string,
   sourceDir: string,
   currentPipelineRun: PipelineRun | null,
-): Promise<void> {
+): Promise<PipelineStats> {
   const stats: PipelineStats = {
     mode,
     startTime: new Date().toISOString(),
@@ -80,55 +79,71 @@ async function runCycle(
       activeStageDescription: stage.description,
     });
 
-    if (stage.name === 'ai-enrichment') {
-      const enrichMode =
-        typedMode === 'backfill' ? 'backfill' : typedMode === 'ingest' ? 'new' : 'all';
-      stats.enrichStats = await runEnrichPhase(enrichMode, currentPipelineRun);
-      stats.stageStats![stage.name] = { exitCode: 0, status: 'succeeded' };
-      continue;
-    }
+    try {
+      if (stage.name === 'ai-enrichment') {
+        const enrichMode =
+          typedMode === 'backfill' ? 'backfill' : typedMode === 'ingest' ? 'new' : 'all';
+        stats.enrichStats = await runEnrichPhase(enrichMode, currentPipelineRun);
+        stats.stageStats![stage.name] = { exitCode: 0, status: 'succeeded' };
+        continue;
+      }
 
-    if (stage.name === 'ingest') {
-      stats.ingestStats = await runIngestPhase(sourceDir, currentPipelineRun);
+      if (stage.name === 'ingest') {
+        stats.ingestStats = await runIngestPhase(sourceDir, currentPipelineRun);
+        stats.stageStats![stage.name] = {
+          exitCode: stats.ingestStats.errors === 0 ? 0 : 1,
+          status: stats.ingestStats.errors === 0 ? 'succeeded' : 'failed',
+        };
+        continue;
+      }
+
+      if (stage.name === 'entity-intelligence') {
+        stats.intelStats = await runIntelPhase(currentPipelineRun);
+        stats.stageStats![stage.name] = { exitCode: 0, status: 'succeeded' };
+        continue;
+      }
+
+      const exitCode = await runRegisteredScriptStage(stage, currentPipelineRun);
       stats.stageStats![stage.name] = {
-        exitCode: stats.ingestStats.errors === 0 ? 0 : 1,
-        status: stats.ingestStats.errors === 0 ? 'succeeded' : 'failed',
+        exitCode,
+        status: exitCode === 0 ? 'succeeded' : 'failed',
       };
-      continue;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      stats.stageStats![stage.name] = { exitCode: 1, status: 'failed' };
+      await PipelineService.failActiveStageRuns(currentPipelineRun?.id, stage.name, message);
+      console.error(`Stage ${stage.name} failed. Continuing the finite corpus pass: ${message}`);
+      updateHeartbeat({ lastError: message, activeStageExitCode: 1 });
     }
-
-    if (stage.name === 'entity-intelligence') {
-      stats.intelStats = await runIntelPhase(currentPipelineRun);
-      stats.stageStats![stage.name] = { exitCode: 0, status: 'succeeded' };
-      continue;
-    }
-
-    const exitCode = await runRegisteredScriptStage(stage, currentPipelineRun);
-    stats.stageStats![stage.name] = {
-      exitCode,
-      status: exitCode === 0 ? 'succeeded' : 'failed',
-    };
   }
 
   updateHeartbeat({ phase: 'Idle' });
 
   console.log('\n' + '='.repeat(70));
-  console.log('✅ CYCLE COMPLETE — restarting in 30s');
+  console.log('Pipeline pass finished. No automatic cycle restart.');
   console.log('='.repeat(70));
 
   if (!existsSync(CHECKPOINT_DIR)) {
     mkdirSync(CHECKPOINT_DIR, { recursive: true });
   }
   writeFileSync(join(CHECKPOINT_DIR, `run_${Date.now()}.json`), JSON.stringify(stats, null, 2));
+  return stats;
 }
 
 /**
- * Main orchestrator — runs continuously until killed.
+ * Run one finite pass. Failed work requires an explicit maintenance action.
  */
-async function main() {
+export async function main() {
   const args = process.argv.slice(2);
   if (args.includes('--list-stages')) {
     process.stdout.write(JSON.stringify(UNIFIED_STAGES, null, 2) + '\n');
+    return;
+  }
+
+  if (existsSync(join(CHECKPOINT_DIR, 'STOPPED')) && !args.includes('--maintenance-pass')) {
+    console.log(
+      'Corpus pipeline is intentionally stopped. Explicit maintenance is required to resume.',
+    );
     return;
   }
 
@@ -149,11 +164,12 @@ async function main() {
   console.log('\n' + '╔' + '═'.repeat(68) + '╗');
   console.log('║' + ' '.repeat(20) + 'UNIFIED EVIDENCE PIPELINE' + ' '.repeat(23) + '║');
   console.log('╚' + '═'.repeat(68) + '╝');
-  console.log('   Mode: ' + mode + '  (runs continuously until killed)');
+  console.log('   Mode: ' + mode + '  (one finite pass)');
 
   updateHeartbeat({ running: true, crashed: false, phase: 'Starting' });
 
-  await ensureDatabaseRunning();
+  if (args.includes('--maintenance-pass')) process.env.PIPELINE_RECOVERY_DISABLED = 'true';
+  else await ensureDatabaseRunning();
   await ensureServiceHealthyOrRecover(
     'postgres',
     'Postgres health check failed during pipeline startup',
@@ -162,6 +178,8 @@ async function main() {
   const currentPipelineRun: PipelineRun | null = await PipelineService.startRun(PIPELINE_VERSION, {
     mode,
     sourceDir,
+    maintenancePass: args.includes('--maintenance-pass'),
+    corpusPass: args.includes('--corpus-pass'),
     stages: stagesForMode(mode).map((stage) => ({
       name: stage.name,
       version: stage.version,
@@ -177,72 +195,63 @@ async function main() {
     pipelineVersion: PIPELINE_VERSION,
     unifiedStages: stagesForMode(mode).map((stage) => stage.name),
   });
-  startWatchdog();
+  process.env.PIPELINE_RUN_ID = String(currentPipelineRun.id);
+  process.env.PIPELINE_ROOT_PID = String(process.pid);
+  if (!args.includes('--maintenance-pass')) startWatchdog();
 
-  let cycleCount = 0;
-  while (!isShuttingDown()) {
-    cycleCount++;
-    console.log(`\n[Cycle ${cycleCount} — ${new Date().toLocaleTimeString()}]`);
-    try {
-      await runCycle(mode, sourceDir, currentPipelineRun);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      const blocked = error instanceof PipelineBlockedError;
-      console.error('\n❌ Cycle error (will retry in 60s):', error);
-      pipelineRuntime.currentDocId = null;
-      pipelineRuntime.currentFile = null;
-      pipelineRuntime.currentDocStartedAt = 0;
-      updateHeartbeat({
-        phase: 'Error',
-        lastError: msg,
-        lastErrorAt: new Date().toISOString(),
-        blocked,
-        blockedReason: msg,
-        currentFile: null,
-        currentDocId: null,
-        currentDocStartedAt: null,
-      });
-      if (currentPipelineRun) {
-        await PipelineService.updateRunStatus(
-          currentPipelineRun.id,
-          blocked ? 'failed' : 'running',
-          msg,
-        );
-      }
-      if (!isShuttingDown()) {
-        for (let i = 0; i < 60; i++) {
-          if (isShuttingDown()) break;
-          await sleep(1000);
-        }
-      }
-      continue;
+  let exitCode = 0;
+  let outcome: 'succeeded' | 'failed' | 'cancelled' = 'succeeded';
+  try {
+    const stats = await runCycle(mode, sourceDir, currentPipelineRun);
+    const failedStages = Object.entries(stats.stageStats || {})
+      .filter(([, result]) => result.status === 'failed')
+      .map(([name]) => name);
+    if (isShuttingDown()) {
+      outcome = 'cancelled';
+    } else if (failedStages.length > 0) {
+      outcome = 'failed';
+      exitCode = 1;
+      pipelineRuntime.exitReason = `Failed stages require review: ${failedStages.join(', ')}`;
     }
-    if (!isShuttingDown()) {
-      for (let i = 0; i < 30; i++) {
-        if (isShuttingDown()) break;
-        await sleep(1000);
-        updateHeartbeat({ phase: 'Idle' });
-      }
-    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    outcome = isShuttingDown() ? 'cancelled' : 'failed';
+    exitCode = outcome === 'failed' ? 1 : 0;
+    pipelineRuntime.exitReason = message;
+    console.error('Pipeline pass stopped. No automatic retry:', error);
+    updateHeartbeat({
+      lastError: message,
+      blocked: error instanceof PipelineBlockedError,
+      blockedReason: message,
+    });
+  } finally {
+    if (pipelineRuntime.watchdog) clearInterval(pipelineRuntime.watchdog);
   }
-  if (pipelineRuntime.watchdog) clearInterval(pipelineRuntime.watchdog);
-  pipelineRuntime.exitReason = pipelineRuntime.exitReason || 'Pipeline stopped cleanly';
-  if (currentPipelineRun && !isShuttingDown()) {
-    await PipelineService.updateRunStatus(currentPipelineRun.id, 'succeeded');
-  }
+  pipelineRuntime.exitReason ||=
+    outcome === 'succeeded'
+      ? 'Pipeline pass finished. Corpus completion requires workload verification.'
+      : 'Pipeline stopped by request';
+  await PipelineService.updateRunStatus(
+    currentPipelineRun.id,
+    outcome,
+    outcome === 'succeeded' ? undefined : pipelineRuntime.exitReason,
+  );
   updateHeartbeat({
     running: false,
-    phase: 'Stopped',
+    phase: outcome === 'failed' ? 'Failed' : 'Stopped',
     exitReason: pipelineRuntime.exitReason,
     currentFile: null,
     currentDocId: null,
     currentDocStartedAt: null,
   });
-  console.log('✅ Pipeline stopped cleanly.');
-  process.exit(0);
+  console.log(`Pipeline stopped with run status: ${outcome}`);
+  process.exit(exitCode);
 }
 
 import { pathToFileURL } from 'url';
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch(console.error);
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
 }

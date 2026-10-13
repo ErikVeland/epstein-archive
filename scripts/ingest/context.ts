@@ -21,12 +21,19 @@ export async function initDb(): Promise<Pool> {
   return db;
 }
 
-export async function startPipelineRun(_db: Pool): Promise<PipelineRun> {
+export async function startPipelineRun(db: Pool): Promise<PipelineRun> {
   console.log(`🚀 Initializing Pipeline Run v${PIPELINE_VERSION}...`);
-  const currentRun = await PipelineService.startRun(PIPELINE_VERSION, {
-    collections: COLLECTIONS.filter((c) => c.enabled).map((c) => c.name),
-    step_versions: STEP_VERSIONS,
-  });
+  const parentRunId = process.env.PIPELINE_RUN_ID;
+  const parentRun = parentRunId
+    ? (await db.query<PipelineRun>('SELECT * FROM pipeline_runs WHERE id = $1', [parentRunId]))
+        .rows[0]
+    : undefined;
+  const currentRun =
+    parentRun ||
+    (await PipelineService.startRun(PIPELINE_VERSION, {
+      collections: COLLECTIONS.filter((c) => c.enabled).map((c) => c.name),
+      step_versions: STEP_VERSIONS,
+    }));
   console.log(`   Run UUID: ${currentRun.run_uuid}`);
 
   // Register basic steps
@@ -41,6 +48,13 @@ export async function startPipelineRun(_db: Pool): Promise<PipelineRun> {
 export async function verifyDatabase(db: Pool): Promise<boolean> {
   console.log('✅ Verifying database connection...');
   try {
+    const queue = await db.query<{ queue: string | null }>(
+      "SELECT to_regclass('public.processing_jobs')::text AS queue",
+    );
+    if (!queue.rows[0]?.queue)
+      throw new Error(
+        'Required processing_jobs queue table is missing; apply the queue migration before ingestion',
+      );
     const count = ((await db.query('SELECT COUNT(*) as count FROM documents')).rows[0] ?? null) as {
       count: number;
     };

@@ -163,6 +163,7 @@ async function backfillOcr() {
   }
 
   await pool.end();
+  if (failCount > 0) process.exitCode = 1;
 }
 
 backfillOcr().catch((err) => {

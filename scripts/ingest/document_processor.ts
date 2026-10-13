@@ -123,7 +123,7 @@ export async function processDocument(
   collection: CollectionConfig,
   ctx: IngestContext,
   metaOverride?: any,
-): Promise<{ success: boolean; error?: string; documentId?: number }> {
+): Promise<{ success: boolean; skipped?: boolean; error?: string; documentId?: number }> {
   let documentId: number | undefined;
   let existingDoc: any;
 
@@ -163,6 +163,13 @@ export async function processDocument(
       ).rows[0] ?? null;
 
     let sha256: string = '';
+    if (pathCheck?.processing_status === 'failed' && process.env.INGEST_RETRY_FAILED !== 'true') {
+      return {
+        success: false,
+        documentId: pathCheck.id,
+        error: 'Recorded ingestion failure; explicit retry required',
+      };
+    }
 
     if (pathCheck && pathCheck.content_sha256 && !ctx.shouldRehash) {
       // Use existing hash and skip expensive readFileSync/sha256
@@ -175,7 +182,7 @@ export async function processDocument(
         pathCheck.has_content
       ) {
         console.log(`   ⏭️  Fast-Skipping (${pathCheck.processing_status}): ${basename(filePath)}`);
-        return { success: true, documentId: pathCheck.id };
+        return { success: true, skipped: true, documentId: pathCheck.id };
       }
 
       console.log(`   ♻️  Resuming (existing hash): ${basename(filePath)}`);
@@ -263,7 +270,7 @@ export async function processDocument(
       existingDoc.has_content
     ) {
       console.log(`   ⏭️  Skipping (${existingDoc.processing_status}): ${basename(filePath)}`);
-      return { success: true, documentId: existingDoc.id };
+      return { success: true, skipped: true, documentId: existingDoc.id };
     }
 
     // Ensure job exists and try to lease it
@@ -284,10 +291,10 @@ export async function processDocument(
     // Attempt to lease specifically for this document
     const leaseResult = await ctx.db.query(
       `UPDATE processing_jobs
-       SET status = 'running', locked_by = $1, locked_at = CURRENT_TIMESTAMP, attempts = attempts + 1, updated_at = CURRENT_TIMESTAMP
+       SET status = 'running', locked_by = $1, locked_at = CURRENT_TIMESTAMP, attempts = attempts + 1, updated_at = CURRENT_TIMESTAMP, run_id = $3
        WHERE target_type = 'document' AND target_id = $2 AND step_name = 'ingestion'
          AND (status = 'queued' OR (status = 'running' AND locked_at < NOW() - INTERVAL '10 minutes'))`,
-      [ctx.currentRun?.run_uuid, (existingDoc as any).id],
+      [ctx.currentRun?.run_uuid, (existingDoc as any).id, ctx.currentRun?.id],
     );
 
     if (leaseResult.rowCount === 0) {

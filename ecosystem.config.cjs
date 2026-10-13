@@ -99,7 +99,7 @@ module.exports = {
       args: 'scripts/unified_pipeline.ts --mode backfill',
       instances: 1,
       exec_mode: 'fork',
-      autorestart: true, // Auto-restart on exit or watchdog-triggered crash
+      autorestart: false, // Corpus passes require an explicit start
       watch: false,
       max_memory_restart: '2G',
       env: {

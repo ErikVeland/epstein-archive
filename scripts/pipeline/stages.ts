@@ -5,8 +5,8 @@
 export interface PipelineStats {
   mode: string;
   startTime: string;
-  ingestStats?: { filesProcessed: number; errors: number };
-  intelStats?: { entitiesExtracted: number; relationsFound: number };
+  ingestStats?: { filesProcessed: number | null; errors: number };
+  intelStats?: { entitiesExtracted: number | null; relationsFound: number | null };
   enrichStats?: { documentsEnriched: number; summariesGenerated: number };
   graphStats?: { subPhasesRun: number };
   stageStats?: Record<string, { exitCode: number; status: string }>;
@@ -84,6 +84,14 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     modes: ['backfill'],
   },
   {
+    name: 'media-extraction',
+    description: 'Extract media with page-level object provenance and repair legacy records',
+    script: 'scripts/extract_media_from_docs.ts',
+    phase: 'Embedded Media Extraction',
+    version: 'media-extract-v2',
+    modes: ['backfill'],
+  },
+  {
     name: 'vlm-visuals',
     description: 'Analyze only source-verified media classified as probable photographs',
     script: 'scripts/backfill_vlm_visuals.ts',
@@ -115,14 +123,6 @@ export const UNIFIED_STAGES: UnifiedStage[] = [
     script: 'scripts/backfill_extracted_date.ts',
     phase: 'Extracted Date Backfill',
     version: 'dates-v1',
-    modes: ['backfill'],
-  },
-  {
-    name: 'media-extraction',
-    description: 'Extract media with page-level object provenance and repair legacy records',
-    script: 'scripts/extract_media_from_docs.ts',
-    phase: 'Embedded Media Extraction',
-    version: 'media-extract-v2',
     modes: ['backfill'],
   },
   {
@@ -230,7 +230,9 @@ export function stagesForMode(mode: 'full' | 'ingest' | 'backfill'): UnifiedStag
       .filter(Boolean),
   );
   const stages = UNIFIED_STAGES.filter(
-    (stage) => stage.modes.includes(mode) && !skippedStages.has(stage.name),
+    (stage) =>
+      (process.argv.includes('--corpus-pass') || stage.modes.includes(mode)) &&
+      !skippedStages.has(stage.name),
   );
   if (!requestedStage) return stages;
 

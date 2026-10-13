@@ -76,8 +76,19 @@ async function ensureVisionModelReady(processed: number, total: number): Promise
   const exoHost = process.env.EXO_HOST || 'http://127.0.0.1:52415';
   let lastPlaceAttempt = 0;
   let ready = false;
+  const deadline =
+    Date.now() +
+    Math.max(
+      5000,
+      Number.parseInt(process.env.VLM_MODEL_READY_TIMEOUT_MS || '120000', 10) || 120000,
+    );
 
   while (!ready) {
+    if (Date.now() >= deadline) {
+      throw new Error(
+        `Vision model ${modelId} stayed unavailable. Explicit maintenance is required.`,
+      );
+    }
     try {
       const response = await fetch(`${exoHost}/state`, { signal: AbortSignal.timeout(5000) });
       const state = (await response.json()) as {
@@ -151,10 +162,12 @@ async function backfillVlm(): Promise<void> {
   let failCount = 0;
   let skippedCount = 0;
   let processedThisRun = 0;
+  const attemptedIds: string[] = [];
 
   const targetQuery = `
     FROM media_items media
     WHERE ${ELIGIBILITY_SQL}
+      AND (${process.env.VLM_RETRY_FAILED === 'true' ? 'TRUE' : "media.metadata_json->'ai_visual'->>'error' IS NULL"})
       AND COALESCE(media.metadata_json->'ai_visual'->>'indexed', 'false') <> 'true'
       AND COALESCE(media.metadata_json->'ai_visual'->>'failedPermanently', 'false') <> 'true'
   `;
@@ -188,9 +201,10 @@ async function backfillVlm(): Promise<void> {
     const result = await pool.query<MediaRow>(
       `SELECT media.id, media.file_path
        ${targetQuery}
+       AND NOT (media.id = ANY($2::text[]))
        ORDER BY COALESCE(media.red_flag_rating, 0) DESC, media.created_at ASC, media.id ASC
        LIMIT $1::integer`,
-      [Math.min(VLM_BATCH_SIZE, remainingCap)],
+      [Math.min(VLM_BATCH_SIZE, remainingCap), attemptedIds],
     );
     if (result.rows.length === 0) {
       hasMore = false;
@@ -198,6 +212,7 @@ async function backfillVlm(): Promise<void> {
     }
 
     for (const media of result.rows) {
+      attemptedIds.push(media.id);
       writeLiveStatus(successCount + failCount + skippedCount, totalMedia, media.file_path);
       const fullPath = resolveMediaPath(media.file_path);
       if (!fullPath || !existsSync(fullPath)) {
@@ -280,6 +295,12 @@ async function backfillVlm(): Promise<void> {
         const nextAttempts = Number(attemptsResult.rows[0]?.attempts || 0) + 1;
         await recordFailure(media.id, message, nextAttempts >= 3);
         failCount += 1;
+        if (
+          /fetch failed|No callable Exo|has no callable instance|timed out|Exo cluster returned (?:5\d\d|429)/i.test(
+            message,
+          )
+        )
+          throw error;
       }
       processedThisRun += 1;
     }
@@ -300,6 +321,7 @@ async function backfillVlm(): Promise<void> {
   });
 
   await pool.end();
+  if (failCount > 0 || skippedCount > 0) process.exitCode = 1;
 }
 
 backfillVlm().catch((error) => {

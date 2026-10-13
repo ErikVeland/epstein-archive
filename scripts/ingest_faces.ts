@@ -32,6 +32,11 @@ async function runPythonStep(label: string, scriptName: string): Promise<void> {
 async function main() {
   console.log('🚀 Launching unified face intelligence pipeline...');
 
+  for (const script of ['scan_faces_deepface.py', 'cluster_faces.py', 'generate_face_crops.py']) {
+    if (!existsSync(join(process.cwd(), 'scripts', script)))
+      throw new Error(`Face pipeline dependency is missing: ${script}`);
+  }
+
   await runPythonStep('DeepFace scan and embedding extraction', 'scan_faces_deepface.py');
   await runPythonStep('Embedding migration and cluster assignment', 'cluster_faces.py');
   await runPythonStep('Representative face crop generation', 'generate_face_crops.py');

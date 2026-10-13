@@ -11,9 +11,9 @@
 
 import { pathToFileURL } from 'url';
 
-// Default AI integration to Exo cluster unless explicitly disabled
+// Preserve the caller's choice. Canonical ingestion does not require LLM repair.
 if (!process.env.ENABLE_AI_ENRICHMENT) {
-  process.env.ENABLE_AI_ENRICHMENT = 'true';
+  process.env.ENABLE_AI_ENRICHMENT = 'false';
 }
 if (!process.env.AI_PROVIDER) {
   process.env.AI_PROVIDER = 'exo_cluster';
@@ -41,10 +41,7 @@ async function main() {
   console.log(`🔄 Rehash: ${shouldRehash}`);
   console.log();
 
-  // Enforce Exo Cluster for Max Performance
-  process.env.AI_PROVIDER = 'exo_cluster';
-  process.env.ENABLE_AI_ENRICHMENT = 'true';
-  console.log('🚀 Configuring AI Provider: Exo Cluster (Concurrency Enabled)');
+  console.log(`AI enrichment during ingestion: ${process.env.ENABLE_AI_ENRICHMENT}`);
   if (process.env.EXO_MODEL) {
     console.log(`   🎯 Targeting Exo Model: ${process.env.EXO_MODEL}`);
   } else {
@@ -107,6 +104,8 @@ async function main() {
   console.log(`Total documents skipped:    ${stats.totalSkipped}`);
   console.log(`Total errors:               ${stats.totalErrors}`);
 
+  if (stats.totalErrors > 0) process.exitCode = 1;
+
   // Current database stats
   const finalCount = ((await ctx.db.query('SELECT COUNT(*) as count FROM documents')).rows[0] ??
     null) as {
@@ -115,7 +114,12 @@ async function main() {
   console.log(`\nFinal database count:       ${finalCount.count} documents`);
 
   // End Pipeline Run
-  await PipelineService.updateRunStatus(ctx.currentRun.id, 'succeeded');
+  if (!process.env.PIPELINE_RUN_ID) {
+    await PipelineService.updateRunStatus(
+      ctx.currentRun.id,
+      stats.totalErrors > 0 ? 'failed' : 'succeeded',
+    );
+  }
 
   if (stats.totalProcessed > 0) {
     await ctx.db.query('ANALYZE documents');
@@ -139,10 +143,10 @@ async function main() {
   }
 
   console.log('='.repeat(80));
-  console.log('✅ Ingestion complete! Now starting Intelligence Pipeline...');
+  console.log('Ingestion pass finished.');
 
-  // Phase 2: Process from Queue (Reprocessing Lane)
-  await processQueue(ctx);
+  // Explicit enrichment stages handle maintenance passes without retrying the legacy queue.
+  if (process.env.ENABLE_AI_ENRICHMENT === 'true') await processQueue(ctx);
 }
 
 // Run the pipeline

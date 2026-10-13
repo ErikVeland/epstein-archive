@@ -86,6 +86,7 @@ async function backfill() {
     console.log(`✅ Successfully backfilled ${missingItems.length} media items.`);
   } catch (err) {
     console.error('❌ Backfill failed:', err);
+    process.exitCode = 1;
   } finally {
     await pool.end();
   }
