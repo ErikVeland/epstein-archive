@@ -1,5 +1,26 @@
 # Release Notes
 
+## 22.8.2 - 2026-11-04 - Repository Cleanup and Database Verification
+
+### Repository cleanup
+
+- Remove obsolete agent plans, session metadata, duplicated guidance, unused source files, and orphaned stylesheets.
+- Remove unused dependencies, redundant export aliases, duplicate workspace lockfiles, and unused static data exports.
+- Keep the evidence corpus outside Git while preserving existing local files. Retain release history, migrations, and operational safeguards.
+
+### Build and release operations
+
+- Make bundle analysis an explicit command instead of generating a report on every build.
+- Check unused source files and dependencies without the old blanket exclusions or findings baseline.
+- Preserve evidence directories and corpus symlinks during deployment and rollback across the change in Git tracking.
+- Keep installed dependencies, configuration, and evidence intact during session cleanup. Reject staged artifacts even when their working copies are missing.
+
+### Database verification
+
+- Correct the database recovery runbook to use PostgreSQL 16, committed migrations, and `docs/schema.hash`.
+- Remove obsolete hash paths and bypass instructions. Require connection and migration checks before changing a schema baseline.
+- Verify the existing schema hash against a fresh PostgreSQL 16 database with all 101 migrations. This release does not change the database schema or its recorded hash.
+
 ## 22.8.1 - 2026-10-13 - Entity Loading and Pipeline Reliability
 
 ### Entity profiles
