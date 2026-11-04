@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.8.3 - 2026-11-04 - Corpus-independent Download Tests
+
+### Test reliability
+
+- Create and remove a temporary PDF fixture for download tests instead of requiring a local corpus document.
+- Keep attachment filename and content-type assertions. Verify that downloads return the original fixture bytes.
+- Run the unit suite from a fresh project copy without the evidence corpus to catch undeclared fixture dependencies.
+
 ## 22.8.2 - 2026-11-04 - Repository Cleanup and Database Verification
 
 ### Repository cleanup
