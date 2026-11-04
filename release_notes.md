@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.8.4 - 2026-11-05 - PostgreSQL 16 CI Toolchain
+
+### Release operations
+
+- Pin database-backed CI and production deployment workflows to Ubuntu 24.04, which includes PostgreSQL 16 client tools.
+- Search the standard versioned Linux client directory when selecting `pg_dump` for database validation.
+- Keep the client/server major-version check, schema hash check, and all production gates enforced.
+
 ## 22.8.3 - 2026-11-04 - Corpus-independent Download Tests
 
 ### Test reliability

@@ -106,6 +106,7 @@ fi
 SERVER_MAJOR="$("$PSQL_CMD" "$DATABASE_URL" -Atc "SHOW server_version_num" 2>/dev/null | cut -c1-2)"
 if [[ -n "$SERVER_MAJOR" ]]; then
   for candidate in \
+    "/usr/lib/postgresql/${SERVER_MAJOR}/bin/pg_dump" \
     "/opt/homebrew/opt/postgresql@${SERVER_MAJOR}/bin/pg_dump" \
     "/usr/local/opt/postgresql@${SERVER_MAJOR}/bin/pg_dump" \
     "/opt/postgresql@${SERVER_MAJOR}/bin/pg_dump"; do
@@ -121,8 +122,7 @@ if ! command -v "$PG_DUMP_CMD" >/dev/null 2>&1; then
 fi
 
 # Check pg_dump version matches server version to avoid "server version mismatch" errors.
-# Local machines often have multiple Postgres clients installed; prefer a versioned
-# Homebrew client matching the server before failing closed.
+# Prefer a versioned Linux or Homebrew client that matches the server.
 PGDUMP_MAJOR="$("$PG_DUMP_CMD" --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
 if [[ -n "$PGDUMP_MAJOR" && -n "$SERVER_MAJOR" && "$PGDUMP_MAJOR" != "$SERVER_MAJOR" ]]; then
   fail "❌ pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR); set PG_DUMP_CMD to a matching client"
