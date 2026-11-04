@@ -209,5 +209,3 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
     </div>
   );
 };
-
-export default CollapsibleSplitPane;

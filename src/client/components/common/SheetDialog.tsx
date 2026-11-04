@@ -56,5 +56,3 @@ export function SheetDialog({
     </Dialog>
   );
 }
-
-export default SheetDialog;

@@ -279,5 +279,3 @@ export const MediaAndArticlesTab: React.FC = () => {
     </div>
   );
 };
-
-export default MediaAndArticlesTab;

@@ -1,151 +1,107 @@
-# Getting Started with Epstein Archive
+# Getting started
 
-Welcome! This guide will help you get up and running with the Epstein Archive project for local development and ingestion.
+## Install
 
-## 🚀 Quick Start (UI + API)
+Use Node.js 20.19 or later, pnpm, and PostgreSQL 16 or Docker.
 
-Perfect for developers who want to contribute to the UI, run the API locally, and iterate quickly. The app can run without any ingested corpus data (it will show empty states until you ingest).
+1. Install dependencies.
 
-### 1. Setup
+   ```bash
+   pnpm install --frozen-lockfile
+   ```
+
+2. Copy the environment template.
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Set `DATABASE_URL` in `.env`. For the Docker database, use:
+
+   ```dotenv
+   DATABASE_URL=postgresql://epstein:epstein@localhost:5432/epstein_archive
+   ```
+
+4. Start the Docker database, run migrations, and create the minimal seed.
+
+   ```bash
+   pnpm local:setup
+   ```
+
+   For an existing database, run `pnpm db:migrate:pg` and `pnpm seed:minimal` instead.
+
+5. Start the API.
+
+   ```bash
+   pnpm server
+   ```
+
+6. In a second terminal, start the frontend.
+
+   ```bash
+   pnpm dev
+   ```
+
+7. Open <http://localhost:3002>.
+
+The API listens on port 3012. `pnpm dev` starts only the frontend.
+Without `DATABASE_URL`, the API can run in degraded development mode. Data views remain unavailable until a database is configured.
+
+## Verify the local stack
 
 ```bash
-# Clone the repo
-git clone <repo-url>
-cd epstein-archive
-
-# Install dependencies
-pnpm install
-```
-
-### 2. Configure Environment
-
-```bash
-# .env.local
-NODE_ENV=development
-DATABASE_URL=postgresql://epstein:epstein@localhost:5432/epstein_archive
-```
-
-If you are only working on frontend shell behavior or wiring, you can omit `DATABASE_URL`.
-The API will start in degraded development mode so the local UI and health endpoints still boot.
-
-### 3. Migrate + Start
-
-```bash
-# Recommended (Docker Postgres + migrate + minimal seed)
-pnpm local:setup
-
-# Or, if you already have Postgres running with DATABASE_URL configured:
-pnpm db:migrate:pg
-pnpm dev
-# App will run at http://localhost:5173
-```
-
-For a quick local stack smoke test that boots both services together:
-
-```bash
+pnpm test:unit
 pnpm local:smoke
 pnpm exec playwright test tests/local-stack-smoke.spec.ts --project=chromium --workers=1
 ```
 
----
+Unit tests run without the full corpus. Integration and browser tests require their database, service, or fixture dependencies.
 
-## 🏗️ Ingestion (Real Data)
+## Add evidence
 
-For researchers or server admins setting up a full instance.
+Evidence is managed outside Git. The `data/` directory stores source files, OCR text, extracted media, and optional face models.
+Existing local files remain available after repository cleanup. A fresh clone contains application code, not the corpus.
 
-### Prerequisites
+1. Create the data directories.
 
-- **Storage:** 300GB+ SSD (recommended for full corpus + DB)
-- **RAM:** 8GB+ (16GB recommended)
-- **CPU:** 4+ Cores (for OCR/Tesseract)
+   ```bash
+   pnpm seed:structure
+   ```
 
-### 1. Data Structure
+2. Place source files under `data/ingest/`.
 
-The ingestion scripts expect raw data to be organized in the `data/` directory.
+3. Run ingestion.
 
-```
-data/
-  ingest/           # Drop new PDF/Email folders here
-    DOJ_VOL_1/
-    DOJ_VOL_2/
-  media/            # Extracted/Processed media
-  thumbnails/       # Generated thumbnails
-```
+   ```bash
+   pnpm pipeline:ingest
+   ```
 
-### 2. Run the Pipeline
+4. Run enrichment when the required providers are configured.
 
-The pipeline handles OCR, text extraction, hashing, and entity discovery.
+   ```bash
+   pnpm ingest:intelligence
+   ```
 
-```bash
-# Run the core pipeline (processes 'data/ingest')
-pnpm pipeline:ingest
+For optional face recognition, download the models with `pnpm exec tsx scripts/download_face_models.ts`.
+See [Pipeline operations](scripts/README.md) for stage controls and [Pipeline architecture](docs/native-corpus-pipeline.md) for storage and provenance rules.
 
-# Run the intelligence layer (entity linking & scoring)
-pnpm ingest:intelligence
-```
-
-**Note:** This process can take **days** for the full multi-terabyte corpus.
-
-- Logs are written to `ingestion_log.txt` (if piped) or stdout.
-- The pipeline is idempotent; restarting it continues where it left off.
-
-### 3. Monitor Progress
-
-You can check progress via the terminal or by querying the database:
+## Keep the repository clean
 
 ```bash
-psql "$DATABASE_URL" -c "SELECT count(*) FROM documents;"
+pnpm check:hygiene
+pnpm check:unused
+pnpm hygiene:clean
 ```
 
----
+The hygiene check rejects tracked evidence and agent session output. The cleanup command removes session output while preserving dependencies, configuration, evidence, and worktrees.
 
-## 🛠️ Common Tasks
+Builds, logs, test reports, local environment files, and generated data are ignored. `public/data/dashboard_snapshot.json` is retained because the client uses it as a fallback.
 
-### Database Management
+Run `pnpm precheck` before submitting changes. Use `/tmp` for temporary investigation scripts and reports.
 
-- **Backup:** `pg_dump "$DATABASE_URL" > epstein-archive.pg.sql`
-- **Reset:** drop/recreate schema and re-run migrations (`pnpm db:migrate:pg`)
+## Troubleshoot
 
-### Troubleshooting
-
-- **Missing Images?** Ensure `data/thumbnails` is populated and permissions are correct.
-- **Node Errors?** Make sure you're using Node v20.19+ (`node -v`).
-
----
-
-## 🧹 Repo Hygiene (LLM/agent + local artifacts)
-
-This repo is designed to avoid “cruft” (LLM handovers, explain traces, local dependency stores, etc.) from being accidentally committed.
-
-### What is always local-only (never commit)
-
-- `docs/llm_handover/` (LLM/agent task briefs)
-- `docs/explain/` (local explain artifacts)
-- `.claude/` (local agent/tool configuration)
-- `.pnpm-store/` (local pnpm store, if created in-repo)
-- `.playwright-mcp/` (local playwright MCP state)
-
-These paths are gitignored and also blocked by a pre-commit hygiene check.
-
-### Hygiene commands
-
-```bash
-# Remove local-only artifacts (safe to run repeatedly)
-pnpm run hygiene:clean
-
-# Verify you are not staging forbidden local-only artifacts
-pnpm run check:hygiene
-
-# Run the full strict pre-check contract used before CI/deploy gates
-pnpm run precheck
-
-# Run the staged-file version used by the commit hook
-pnpm run precheck:staged
-```
-
-### Recurring cleanup procedure (recommended)
-
-- Before opening a PR: run `pnpm run precheck`
-- If you’ve been doing LLM-assisted work: run `pnpm run hygiene:clean`
-- If you see Rollup/Vite native module issues after switching machines/architectures:
-  - delete `node_modules/` and reinstall via `pnpm install`
+- If the frontend cannot reach the API, confirm that `pnpm server` is running on port 3012.
+- If images are missing, check the source files and generated thumbnails under `data/`.
+- If native dependencies fail after a machine change, reinstall dependencies with pnpm.
+- If a production build fails a schema check, follow the [schema runbook](docs/runbooks/05-schema-hash-mismatch.md).

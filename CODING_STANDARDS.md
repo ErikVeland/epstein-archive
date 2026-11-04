@@ -1,100 +1,87 @@
-# Epstein Archive Strict Coding Standards
+# Coding standards
 
-All developers—both **human** and **agentic AI**—must adhere strictly to these engineering, architecture, styling, and quality standards before making commits, creating pull requests, or deploying updates.
+## Required checks
 
----
-
-## 1. Quality Gates & Pre-Checks
-
-Before pushing code or preparing a release, the following pipeline checks **MUST** be run locally:
+Run these checks before submitting code or preparing a release:
 
 ```bash
-pnpm type-check         # Verify no TypeScript compile-time errors or "any" violations
-pnpm lint               # Run ESLint validation
-pnpm format:check       # Ensure formatting aligns with Prettier specs
-pnpm check:boundaries   # Verify src/client never imports from src/server
-pnpm schema:hash:check  # Check PostgreSQL schema hash integrity
-pnpm check:shared-component-drift # Verify shared design-system components are not hand-rolled
+pnpm precheck
+pnpm type-check
+pnpm type-check:server
+pnpm lint
+pnpm format:check
+pnpm test:unit
+pnpm check:boundaries
+pnpm schema:hash:check
+pnpm check:shared-component-drift
 ```
 
-No code with warnings or errors under these gates may be committed.
+Resolve failures before committing. Do not relax compiler options, checks, or baselines to hide failures.
 
-### Release metadata gate
+## Code and architecture
 
-Every production deployment must include a new semantic version and a new release-note entry. Reusing the currently deployed version is forbidden.
+- Use strict TypeScript. Use `unknown` and type guards instead of `any`.
+- Keep client code in `src/client`, server code in `src/server`, and browser-safe shared code in `src/shared`.
+- Keep shared DTOs and Zod response contracts in `src/shared/dto`, `src/shared/contracts`, and `src/shared/schemas`.
+- Validate client-server payloads with shared Zod contracts. Use shared DTOs as the single source of truth.
+- Keep database queries in repositories under `src/server/db`. Routes must call repositories.
+- Use parameterised SQL or pgTyped queries. Name selected columns explicitly.
+- Use `getApiPool()` for API queries, `getIngestPool()` for ingestion, and `getMaintenancePool()` for maintenance.
+- Do not log secrets, raw SQL payloads, or document excerpts.
+- Keep source evidence, model downloads, generated output, and session artifacts outside Git.
 
-- Increase `package.json` from the previous deployed version.
-- Add the matching entry at the top of `release_notes.md`.
-- Use `## x.y.z - YYYY-MM-DD - Descriptive title` with the current Brisbane date.
-- Include named sections and bullets that cover all material changes in the deployment.
-- Commit the implementation, version, and release notes together.
-- Run `pnpm check:release-metadata -- --base <previous-deployment-ref>` before deployment.
+## Frontend
 
-The deploy script and production workflow must stop when this gate fails. Humans and AI agents must not bypass or weaken it.
+- Use functional React components and shared UI primitives.
+- Use CSS Modules and design tokens for styling.
+- Reuse generic controls, viewer shells, loading states, and empty states.
+- Promote recurring UI patterns into shared components.
+- Keep feature CSS focused on layout and domain-specific composition.
+- Preserve lazy loading for feature views.
+- Keep tooltips from shifting page layout.
 
-### Extracted media promotion gate
+## Releases
 
-Git ignores extracted media files. A normal code deployment cannot publish those assets or their related local database rows.
+Every production deployment requires a new semantic version and matching release notes.
 
-- Export locally generated media as a versioned release bundle.
-- Copy assets without deleting or replacing unrelated production files.
-- Run the importer in dry-run mode before apply mode.
-- Verify bundle checksums, asset presence, row counts, classifications, and database fingerprints.
-- Keep the active media bundle on production so later deployments can verify parity.
-- Do not report a synchronized media release until the production verifier passes.
-- Run VLM analysis only for `probable_photograph` media with `verified` or `source_verified` status.
-- Use OCR, not VLM, for document scans and scanned PDF pages.
-- Keep raw and canonical OCR immutable during LLM cleanup. Generated cleanup must be a versioned, reviewable artifact and must pass deterministic checks for numeric and evidence-identifier preservation before storage.
+1. Increase the version in `package.json` from the previous deployed version.
+2. Add a top entry to `release_notes.md` with the same version.
+3. Use the Brisbane date and the heading `## x.y.z - YYYY-MM-DD - Descriptive title`.
+4. Describe user-visible, operational, schema, and security changes in named sections with bullets.
+5. Commit the version, release notes, and implementation together.
+6. Run `pnpm check:release-metadata -- --base <previous-deployment-ref>`.
 
----
+Do not deploy, push a production-bound commit, or start a production workflow if this guard fails.
+Never reuse a deployed version or bypass the release guard.
 
-## 2. Type Safety & Contract Design
+After a schema migration, run `pnpm schema:hash:update` and commit `docs/schema.hash`.
 
-- **No Impicit or Explicit `any`**: All variables, function parameters, and return types must be explicitly typed.
-- **Zod Contracts**: All client-server communication must be validated using Zod contracts located in `src/shared/contracts/`.
-- **Shared Types**: DTO models must reside in `src/shared/dto/` and represent the single source of truth for payloads.
+## Extracted media and OCR
 
----
+A code deployment does not publish local media assets or database rows.
 
-## 3. Database Layer & Pool Management
+1. Export a versioned media bundle.
+2. Copy assets without replacing or deleting unrelated production files.
+3. Run the importer in dry-run mode.
+4. Apply the import.
+5. Run `pnpm media:release:verify` against the active bundle.
 
-- **Repository Pattern Only**: Direct query execution or inline database pools in route handlers are **forbidden**. Route handlers must interact exclusively with repository classes located in `src/server/db/`.
-- **Pool Allocation**:
-  - **Ingest Pipeline & Heavy Loads**: Must use `getIngestPool()` (8 maximum active connections, high priority).
-  - **Maintenance & Repair**: Must use `getMaintenancePool()` (long query timeouts, `256MB work_mem`).
-  - **General Client API**: Must use read-only `getApiPool()`.
-- **pgTyped Queries**: Use pgTyped to autogenerate TypeScript types directly from raw SQL files.
+Verify checksums, assets, row counts, classifications, and database fingerprints before reporting media parity.
+Keep the active bundle on production for later verification.
 
----
+Run visual analysis only on `probable_photograph` media with a `verified` or `source_verified` status.
+Use OCR for document scans and text images. Do not send unknown, missing, or unverified assets to a vision model.
 
-## 4. Frontend & Styling Architecture
+LLM OCR cleanup must preserve raw and canonical evidence text.
+Store cleanup as a versioned artifact pending review, with source/output hashes, model identity, and prompt identity.
+Reject output that changes numeric tokens or evidence identifiers.
+Never let automated cleanup overwrite canonical OCR.
 
-- **React 18 Standards**: Use functional components, custom hooks, and strict props interfaces.
-- **Component Splitting**: Feature-specific views must reside in separate chunks (e.g., `feature-media`, `feature-documents`) to optimize bundle delivery.
-- **No Hand-Rolled Shared UI**: If a design-system primitive or shared pattern exists, it **must** be used. Feature code must not recreate generic buttons, segmented controls, toggles, switches, inputs, selects, tabs, badges, cards, modals, drawers, tooltips, empty states, loading states, or browser/viewer shells locally.
-- **Promote Repeated Patterns**: If a feature needs a generic UI pattern that does not exist yet and is likely to recur, create or promote a shared component before duplicating local markup and CSS.
-- **Feature CSS Scope**: CSS Modules may express feature layout and domain-specific composition, but must not re-implement shared interaction states, focus rings, active states, density controls, or generic component chrome.
-- **Liquid Glass Aesthetics**: All new components must use the customized CSS Modules styling system matching the macOS liquid-glass visual theme:
-  - Leverage CSS variables for dynamic themes (`hsl(...)`).
-  - Use relative/absolute tooltips to avoid disrupting underlying grid layouts.
-  - Standardize transitions (`transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);`).
+## Pipeline status
 
----
-
-## 5. Security & Hardening Protocols
-
-- **Zero-Logging of Sensitive Data**: Never write raw SQL payloads, JWT secrets, passwords, or scanned document excerpts to application log files.
-- **Strict SQL Sanitization**: Always use parameterized queries or pgTyped query structures. String concatenation in SQL statements is strictly **forbidden**.
-- **Slow-Query Audits**: Queries exceeding the defined `PG_SLOW_QUERY_LOG_MS` threshold are logged automatically. Keep sub-queries clean and leverage indexes on all searchable keys.
-
----
-
-## 6. Schema Consistency Check
-
-If database columns, indexes, or materialized views are updated through committed migrations, run:
-
-```bash
-pnpm schema:hash:update
-```
-
-Commit the resulting `docs/schema.hash` file so that it matches database schemas exactly during GitHub Actions CI validation.
+- Count only successful work as completed.
+- Treat a zero or unavailable target as unknown.
+- Report global completion only when every applicable workload has a known target, zero failures, and all work completed.
+- Scope live telemetry to the active pipeline run. Keep historical stage rows as audit history.
+- Existing entity or graph rows show data availability. They do not prove extraction is complete.
+- Keep ingestion, media cataloguing, summaries, normalisation, OCR cleanup, verified-photo analysis, entities, and graph extraction as separate status domains.

@@ -112,5 +112,3 @@ export const ConnectionsList: React.FC<ConnectionsListProps> = ({ entityId, enti
     </div>
   );
 };
-
-export default ConnectionsList;

@@ -58,9 +58,7 @@ The orchestrator registers every stage in `pipeline_steps`, records aggregate
 and document-level stage attempts in `document_stage_runs`, and stores AI
 outputs in `document_ai_artifacts` with model, prompt version, provenance,
 confidence, and review state. Legacy `documents.metadata_json` markers remain
-for compatibility, but backfill safety now comes from stage version + input hash
-
-- model identity.
+for compatibility. Backfill safety uses the stage version, input hash, and model identity.
 
 ### `deploy.sh` — **Canonical Production Deployer**
 
@@ -141,12 +139,3 @@ Only the explicit `--all` form removes the row limit. The passage table keeps so
 values separate from the deterministic document revision hash used to build citations.
 
 ---
-
-## ⚠️ Deprecated (Purged)
-
-The following legacy systems are no longer supported:
-
-- All RTF-specific one-off extraction scripts.
-- `scan_faces.py`: superseded by the unified DeepFace-backed `face-ingest` stage.
-- `generate_gallery.py`: local HTML preview artifact; face review now uses app surfaces.
-- `fix_broken_aliases.py`, `fix_deep_imports.py`, `fix_deep_imports_v2.py`: completed one-time migrations.

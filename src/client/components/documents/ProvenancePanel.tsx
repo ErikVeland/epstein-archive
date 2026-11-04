@@ -393,5 +393,3 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
     </Box>
   );
 };
-
-export default ProvenancePanel;

@@ -34,4 +34,3 @@ export const testimoniesRepository = {
     }
   },
 };
-export default testimoniesRepository;

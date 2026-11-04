@@ -1,6 +1,6 @@
 import React from 'react';
 import { EnhancedAnalytics } from '@client/components/pages/EnhancedAnalytics';
-import { type AnalyticsData } from '@client/components/visualizations/DataVisualization';
+import type { GlobalStatsPayload } from '@client/types/api';
 import ScopedErrorBoundary from '@client/components/common/ScopedErrorBoundary';
 import { DegradedBanner } from '@client/components/shared/DegradedBanner';
 import { Person } from '@client/types';
@@ -11,7 +11,7 @@ import styles from './AnalyticsPage.module.css';
 
 interface AnalyticsPageProps {
   filteredPeople?: Person[];
-  analyticsData?: AnalyticsData;
+  analyticsData?: GlobalStatsPayload;
   loading: boolean;
   error: string | null;
   onRetry: () => void;

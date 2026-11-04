@@ -1,50 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-# Fails the commit if forbidden local-only artifacts are staged.
-# This prevents accidental commits even if files are force-added.
-
-forbidden_patterns=(
-  '^docs/llm_handover/'
-  '^docs/explain/'
-  '^docs/superpowers/'
-  '^\.playwright-mcp/'
-  '^\.pnpm-store/'
-  '^\.claude/'
-  '^scratch/'
-  '^src/server/scratch/'
-  '^src/client/hooks/scratch/'
-  '^(build_output|build_output_lint|errors|full_lint|lint|lint_output|tsc_errors|tsc_output(_v[0-9]+)?|hashes_dump|redaction_dump)\.(txt|json|csv)$'
-)
-
-staged="$(git diff --cached --name-only)"
-tracked="$(git ls-files | while IFS= read -r file; do [[ -e "${file}" ]] && echo "${file}"; done)"
-
-scan_input="${staged}"
-if [[ -n "${tracked}" ]]; then
-  scan_input="${scan_input}"$'\n'"${tracked}"
-fi
-
+# Read the index once. Staged deletions are absent from this list.
+forbidden_pattern='^(data/|docs/(llm_handover|explain|superpowers)/|\.(superpowers|kiro|playwright-mcp|pnpm-store|claude|codex|chuck|trae|tmp)/|scratch/|src/(server/scratch|client/hooks/scratch)/)|(^|/)(\.DS_Store|[^/]+\.tsbuildinfo)$|^(build_output|build_output_lint|errors|full_lint|lint|lint_output|tsc_errors|tsc_output(_v[0-9]+)?|hashes_dump|redaction_dump)\.(txt|json|csv)$'
 violations=()
-while IFS= read -r file; do
-  [[ -z "${file}" ]] && continue
-  for pat in "${forbidden_patterns[@]}"; do
-    if [[ "${file}" =~ ${pat} ]]; then
-      violations+=("${file}")
-      break
-    fi
-  done
-done <<< "${scan_input}"
+while IFS= read -r -d '' file; do
+  if [[ "$file" =~ $forbidden_pattern ]] ||
+    [[ "$file" == public/data/* && "$file" != public/data/dashboard_snapshot.json ]]; then
+    violations+=("$file")
+  fi
+done < <(git ls-files --cached -z)
 
 if (( ${#violations[@]} > 0 )); then
-  echo "❌ Repo hygiene check failed: local-only/generated artifacts are tracked or staged:"
-  printf '%s\n' "${violations[@]}" | sort -u | while IFS= read -r v; do
-    echo "  - ${v}"
-  done
-  echo ""
-  echo "Fix:"
-  echo "  1) Unstage them: git restore --staged <path>"
-  echo "  2) Remove them locally: pnpm run hygiene:clean"
+  echo 'Repository hygiene failed. Remove these local artifacts from Git tracking:'
+  printf '  %s\n' "${violations[@]}"
   exit 1
 fi
 
@@ -60,48 +30,17 @@ retired_paths=(
   'src/client/hooks/scratch'
   'scratch'
 )
-
-retired_import_patterns=(
-  'performanceCache'
-  'utils/perfCache'
-  'OptimizedDataService'
-  'optimizedDataLoader'
-  'server/pipeline/workerPool'
-  'server/pipeline/workerConfig'
-  'services/JobManager'
-)
-
-architecture_violations=()
 for file in "${retired_paths[@]}"; do
-  if [[ -e "${file}" ]]; then
-    architecture_violations+=("${file} exists after retirement")
+  if [[ -e "$file" ]]; then
+    echo "Repository hygiene failed. Retired path exists: $file"
+    exit 1
   fi
 done
 
-for pat in "${retired_import_patterns[@]}"; do
-  if rg -n "${pat}" src scripts packages \
-    --glob '*.ts' --glob '*.tsx' --glob '*.js' --glob '*.mjs' \
-    --glob '!scripts/check_hygiene.sh' >/tmp/epstein_hygiene_rg.$$ 2>/dev/null; then
-    while IFS= read -r line; do
-      architecture_violations+=("${line}")
-    done </tmp/epstein_hygiene_rg.$$
-  fi
-  rm -f /tmp/epstein_hygiene_rg.$$
-done
-
-if (( ${#architecture_violations[@]} > 0 )); then
-  echo "❌ Repo hygiene check failed: retired duplicate architecture surfaces were found:"
-  printf '%s\n' "${architecture_violations[@]}" | sort -u | while IFS= read -r v; do
-    echo "  - ${v}"
-  done
-  echo ""
-  echo "Use the canonical replacements:"
-  echo "  - server cache: src/server/cache/cacheService.ts"
-  echo "  - HTTP cache middleware: src/server/middleware/cache.ts"
-  echo "  - client data access: src/client/services/apiClient.ts with React Query"
-  echo "  - queue/workers: src/server/queue/ (JobManager, WorkerPool, workerConfig)"
-  echo "  - scratch work: use /tmp or a gitignored local directory, never src/"
+if rg -n 'performanceCache|utils/perfCache|OptimizedDataService|optimizedDataLoader|server/pipeline/workerPool|server/pipeline/workerConfig|services/JobManager' \
+  src scripts packages --glob '*.ts' --glob '*.tsx' --glob '*.js' --glob '*.mjs' 2>/dev/null; then
+  echo 'Repository hygiene failed. Replace retired imports with the canonical cache, API client, or queue modules.'
   exit 1
 fi
 
-exit 0
+echo 'Repository hygiene passed.'

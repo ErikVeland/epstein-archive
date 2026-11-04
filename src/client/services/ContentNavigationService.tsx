@@ -74,5 +74,3 @@ const NavigationProviderImpl = ({ children }: { children: ReactNode }) => {
 export const NavigationProvider: React.FC<{ children: ReactNode }> = ({ children }) => (
   <NavigationProviderImpl>{children}</NavigationProviderImpl>
 );
-
-export default NavigationProvider;

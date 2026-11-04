@@ -33,8 +33,7 @@
     "scripts/**/*.ts",
     "scripts/**/*.tsx",
     "vitest.config.ts",
-    "playwright.config.ts",
-    "tests/**/*.ts"
+    "playwright.config.ts"
   ],
   "exclude": [
     "node_modules",
@@ -42,7 +41,6 @@
     "**/*.test.tsx",
     "**/*.test.ts",
     "src/server",
-    "dist",
     "build_output*.txt",
     "tsc*.txt"
   ]

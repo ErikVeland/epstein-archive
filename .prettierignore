@@ -1,22 +1,31 @@
-# Artifacts & Build
-dist
-build
-coverage
+# Dependencies, builds, and generated files
+node_modules/
+.pnpm-store/
+dist/
+build/
+coverage/
+packages/db/src/queries/__generated__/
+pnpm-lock.yaml
+bundle-analysis.html
 
-# Dependencies
-node_modules
-.pnpm-store
-.venv
-venv
-
-# Data & Binary Assets
+# Evidence and local state
 data/
 public/data/
 uploads/
-assets/
-*.dump
-*.sqlite
-*.db
-
-# Docs Archive (Static/Historical)
-docs_archive/
+backups/
+logs/
+pipeline_checkpoints/
+pipeline_runs/
+.media-releases/
+ops/
+.worktrees/
+.tmp/
+.claude/
+.kiro/
+.trae/
+.superpowers/
+.playwright-mcp/
+docs/llm_handover/
+docs/explain/
+docs/superpowers/
+.env*

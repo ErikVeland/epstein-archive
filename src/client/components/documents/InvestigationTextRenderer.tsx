@@ -681,5 +681,3 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     </Box>
   );
 };
-
-export default InvestigationTextRenderer;

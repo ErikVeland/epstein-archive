@@ -98,5 +98,3 @@ export const MobileAlbumDropdown: React.FC<MobileAlbumDropdownProps> = ({
     </Box>
   );
 };
-
-export default MobileAlbumDropdown;

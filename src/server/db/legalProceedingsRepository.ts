@@ -37,4 +37,3 @@ export const legalProceedingsRepository = {
     }
   },
 };
-export default legalProceedingsRepository;

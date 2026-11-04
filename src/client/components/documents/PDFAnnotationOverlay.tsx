@@ -66,5 +66,3 @@ export const PDFAnnotationOverlay: React.FC<PDFAnnotationOverlayProps> = ({
     </div>
   );
 };
-
-export default PDFAnnotationOverlay;

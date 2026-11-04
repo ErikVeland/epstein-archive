@@ -128,5 +128,3 @@ export const PathFinderModal: React.FC<PathFinderModalProps> = ({
 
   return createPortal(modal, document.body);
 };
-
-export default PathFinderModal;

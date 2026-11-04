@@ -230,5 +230,3 @@ export const DocumentInsightsDrawer: React.FC<DocumentInsightsDrawerProps> = ({
     </Box>
   );
 };
-
-export default DocumentInsightsDrawer;

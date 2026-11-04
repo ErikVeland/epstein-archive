@@ -224,5 +224,3 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
     document.body,
   );
 };
-
-export default ChainOfCustodyModal;

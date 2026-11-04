@@ -245,5 +245,3 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
     </div>
   );
 };
-
-export default RedactedLogo;

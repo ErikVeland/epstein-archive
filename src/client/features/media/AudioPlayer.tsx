@@ -543,5 +543,3 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     </Surface>
   );
 };
-
-export default AudioPlayer;

@@ -73,5 +73,3 @@ export function SensitiveWarningBanner({
     </div>
   );
 }
-
-export default SensitiveWarningBanner;

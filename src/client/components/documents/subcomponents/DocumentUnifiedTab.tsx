@@ -420,5 +420,3 @@ export const DocumentUnifiedTab: React.FC<DocumentUnifiedTabProps> = ({
     </Box>
   );
 };
-
-export default DocumentUnifiedTab;

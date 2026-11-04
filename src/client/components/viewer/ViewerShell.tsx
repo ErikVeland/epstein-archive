@@ -62,5 +62,3 @@ export const ViewerShell: React.FC<ViewerShellProps> = ({
     </div>
   );
 };
-
-export default ViewerShell;

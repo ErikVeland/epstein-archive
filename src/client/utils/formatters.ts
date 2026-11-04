@@ -11,3 +11,8 @@ export function formatNumber(value: number | null | undefined): string {
   if (value === null || value === undefined || isNaN(value)) return '0';
   return new Intl.NumberFormat('en-US').format(value);
 }
+
+export function formatCompactNumber(value: number): string {
+  if (value >= 1000) return (value / 1000).toFixed(1) + 'k';
+  return value.toString();
+}

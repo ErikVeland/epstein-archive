@@ -73,5 +73,3 @@ export const AlbumSidebar: React.FC<AlbumSidebarProps> = ({
     </Box>
   );
 };
-
-export default AlbumSidebar;

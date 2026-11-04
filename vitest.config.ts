@@ -12,11 +12,11 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
     },
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@client': path.resolve(__dirname, './src/client'),
-      '@server': path.resolve(__dirname, './src/server'),
-      '@shared': path.resolve(__dirname, './src/shared'),
-      '@epstein/db': path.resolve(__dirname, './packages/db/src/index.ts'),
+      '@': path.resolve(import.meta.dirname, './src'),
+      '@client': path.resolve(import.meta.dirname, './src/client'),
+      '@server': path.resolve(import.meta.dirname, './src/server'),
+      '@shared': path.resolve(import.meta.dirname, './src/shared'),
+      '@epstein/db': path.resolve(import.meta.dirname, './packages/db/src/index.ts'),
     },
   },
 });

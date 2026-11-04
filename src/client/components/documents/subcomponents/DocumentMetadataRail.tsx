@@ -342,5 +342,3 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
     </Box>
   );
 };
-
-export default DocumentMetadataRail;

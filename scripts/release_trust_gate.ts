@@ -14,7 +14,7 @@ type Finding = {
 
 const testFilePatterns = ['tests/**/*.spec.ts', 'src/test/**/*.test.ts'];
 
-const acceptanceMatrix = 'docs/20.0/ACCEPTANCE_MATRIX.md';
+const acceptanceMatrix = 'docs/release-acceptance.md';
 const requiredClaimProvenanceFields = [
   'sourceDocumentId',
   'sourceHash',

@@ -66,4 +66,3 @@ class ResourcePreloader {
 }
 
 export const preloader = new ResourcePreloader();
-export default preloader;

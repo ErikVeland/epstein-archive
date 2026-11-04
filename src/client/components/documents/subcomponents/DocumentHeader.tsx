@@ -112,5 +112,3 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
     </Box>
   );
 };
-
-export default DocumentHeader;

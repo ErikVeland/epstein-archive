@@ -1,95 +1,113 @@
-# Dependencies
+# Dependencies and build output
 node_modules/
-
-# Build outputs
+.pnpm-store/
 dist/
 build/
+coverage/
+*.tsbuildinfo
+/packages/*/pnpm-lock.yaml
+bundle-analysis.html
 
-# Environment files
+# Local configuration and secrets
 .env
 .env.*
 !.env.example
 !.env.deploy.example
 temp.env
+.vscode/
+.idea/
+.vercel/
+.worktrees/
+/config/
 
-# Logs
-*.log
-*.log.*
-
-# Database and backup files
-*.db
-!sample.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.db.gz
-*.db.bak
-*.db.snapshot
-*.db.snapshot-shm
-*.db.snapshot-wal
-*.db.snapshot-journal
-*.db.corrupt
-*.sql.gz
-dump.sql
+# Evidence, models, generated data, and operational state
+/data
+/public/data/*
+!/public/data/dashboard_snapshot.json
 /db/
-epstein_dump.dump
-
-# Pipeline and enrichment output
+uploads/
+thumbnails/
+originals/
+backups/
+database_backups/
+analysis/
+logs/
 pipeline_results/
+pipeline_runs/
 pipeline_checkpoints/
 enrichment_results/
-ingestion_log.txt
+consolidation_reports/
+validation_reports/
 .media-releases/
+ops/corpus-shutdown-20261012/
+eng.traineddata
+ingestion_log.txt
+*.log
+*.log.*
+*.db
+*.db-*
+*.db.*
+*.sqlite
+*.sqlite-*
+*.dump
+*.sql.gz
+dump.sql
 
-# Migration SQL (auto-generated, not version-controlled)
-scripts/migrations/*.sql
-
-# Temporary and scratch files
+# Temporary files and archives
+.tmp/
+tmp/
+temp/
+scratch/
+src/server/scratch/
+src/client/hooks/scratch/
+/check_*.ts
+/test_*.ts
 *.tmp
 *.temp
 *.bak
 *.old
 *.backup
 *.backup-*
+*.local-backup-*
 *.corrupted
 *.part*
-/check_*.ts
-/test_*.ts
-tmp/
-temp/
-scratch/
-src/server/scratch/
-src/client/hooks/scratch/
-mempalace.yaml
-entities.json
-
-# Compressed archives
 *.gz
-*.tar.gz
 *.zip
+entities.json
+gallery.html
+lint_output*.json
+aggressive_consolidation_audit.json
+data_quality_report.json
+timeline-normalisation.rtf
+test-promotion.db
 
-# Large binaries and Archival Data
-eng.traineddata
-data/media/
-data/thumbnails/
-data/derivatives/
-data/faces_crops/
-data/temp/
-thumbnails/
-originals/
+# Local agent configuration and session output
+.claude/
+.codex/
+.chuck/
+.kiro/
+.trae/
+.superpowers/
+.playwright-mcp/
+skiils/
+mempalace.yaml
+.handover/
+docs/llm_handover/
+docs/explain/
+docs/superpowers/
+PRODUCTION_HARDENING_FINAL_AUDIT.md
 
-# Specific large data dirs
-data/ingest
-backups/
-database_backups/
-uploads/
-analysis/
-logs/
-consolidation_reports/
-validation_reports/
-/config/
+# Test output
+test-results/
+playwright-report/
 
-# OS generated files
+# Python environments and cache
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Operating system files
 .DS_Store
 .DS_Store?
 ._*
@@ -97,69 +115,3 @@ validation_reports/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# IDE and tool-local state
-.vscode/
-.idea/
-.chuck/
-.trae/
-.claude/
-.playwright-mcp/
-.pnpm-store/
-
-# Claude Code local plugins (not project code)
-skiils/
-
-# Superpowers AI planning docs (session artifacts, not project code)
-docs/superpowers/
-.superpowers/
-
-# LLM/agent handover + explain artifacts (local-only; never commit)
-docs/llm_handover/
-docs/explain/
-.handover/
-
-# Test results
-test-results/
-playwright-report/
-
-# Node debug logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Python
-venv/
-.venv/
-__pycache__/
-*.pyc
-
-# Build artifacts and generated reports
-bundle-analysis.html
-gallery.html
-lint_output*.json
-aggressive_consolidation_audit.json
-data_quality_report.json
-timeline-normalisation.rtf
-epstein-archive-deployment-*.tar.gz
-*.local-backup-*
-
-# CI/deploy specific
-dist.tar.gz
-prod_*.gz
-local_prod_*.gz
-test-promotion.db
-server.log
-api-server.log
-.vercel
-.env*.local
-.env.production
-.env.local
-.worktrees/
-PRODUCTION_HARDENING_FINAL_AUDIT.md
-
-# Local maintenance receipts and supervisor backups
-ops/corpus-shutdown-20261012/
-
-# Transient PDF extraction workspace
-data/temp_extraction/

@@ -869,5 +869,3 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     </Box>
   );
 };
-
-export default ForensicDocumentAnalyzer;

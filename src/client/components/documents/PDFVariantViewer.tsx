@@ -409,5 +409,3 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
     </div>
   );
 };
-
-export default PDFVariantViewer;

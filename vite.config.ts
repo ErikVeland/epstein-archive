@@ -4,11 +4,10 @@ import { readFileSync } from 'fs';
 import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 
-const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'));
 const apiBaseUrl = process.env.VITE_API_URL || 'http://localhost:3012/api';
 const apiProxyTarget = apiBaseUrl.replace(/\/api\/?$/, '');
 
-// https://vitejs.dev/config/
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(packageJson.version),
@@ -18,33 +17,20 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@client': path.resolve(__dirname, 'src/client'),
-      '@server': path.resolve(__dirname, 'src/server'),
-      '@shared': path.resolve(__dirname, 'src/shared'),
-      '@root': path.resolve(__dirname, '.'),
+      '@client': path.resolve(import.meta.dirname, 'src/client'),
+      '@server': path.resolve(import.meta.dirname, 'src/server'),
+      '@shared': path.resolve(import.meta.dirname, 'src/shared'),
+      '@root': path.resolve(import.meta.dirname, '.'),
     },
     dedupe: ['react', 'react-dom'],
   },
   plugins: [
     react(),
-    visualizer({
-      open: false,
-      filename: 'bundle-analysis.html',
-      gzipSize: true,
-      brotliSize: true,
-    }),
+    ...(process.env.ANALYZE === '1'
+      ? [visualizer({ filename: 'bundle-analysis.html', gzipSize: true, brotliSize: true })]
+      : []),
   ],
   build: {
-    rollupOptions: {
-      output: {
-        // manualChunks removed to fix initialization order issues
-        /*
-        manualChunks(id) {
-          ...
-        }
-        */
-      },
-    },
     chunkSizeWarningLimit: 1000,
     reportCompressedSize: true,
   },

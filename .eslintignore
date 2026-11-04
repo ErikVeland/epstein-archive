@@ -1,21 +1,20 @@
-# Artifacts & Build
-dist
-build
-coverage
-
-# Dependencies
-node_modules
-.venv
-venv
-
-# Data & Binary Assets
+node_modules/
+.pnpm-store/
+dist/
+build/
+coverage/
 data/
 public/data/
 uploads/
-assets/
-*.dump
-*.sqlite
-*.db
+.worktrees/
+.tmp/
+.claude/
+.kiro/
+.trae/
+.superpowers/
+.playwright-mcp/
+venv/
+.venv/
 scratch/
 /check_*.ts
 /test_*.ts

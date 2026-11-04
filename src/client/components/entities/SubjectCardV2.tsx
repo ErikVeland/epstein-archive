@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SubjectCardDTO } from '@client/types';
-import { formatNumber } from '@client/utils/search';
+import { formatCompactNumber } from '@client/utils/formatters';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { CardActionSheet } from '../common/CardActionSheet';
 import Icon from '../common/Icon';
@@ -295,7 +295,7 @@ const Metric = ({
       <span
         className={`${styles.metricValue} ${highlight ? styles.metricValueHighlight : ''} data-emphasis`}
       >
-        {formatNumber(value)}
+        {formatCompactNumber(value)}
       </span>
     </span>
   );

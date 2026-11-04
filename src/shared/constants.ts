@@ -1,1 +1,0 @@
-export const CLIENT_SERVER_BOUNDARY_VERSION = 1;

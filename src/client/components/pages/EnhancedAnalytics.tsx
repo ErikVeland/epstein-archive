@@ -457,5 +457,3 @@ export function EnhancedAnalytics() {
     </div>
   );
 }
-
-export default EnhancedAnalytics;

@@ -752,5 +752,3 @@ export const VideoBrowser: React.FC = () => {
     </>
   );
 };
-
-export default VideoBrowser;

@@ -19,7 +19,7 @@ Deprecated compatibility surfaces may continue to exist temporarily during migra
 
 `src/client/index.css` is the runtime source of truth for CSS custom properties.
 
-- `src/designTokens.ts` is now a JS helper layer only.
+- `src/client/design-system/lib/tokens.ts` provides typed token references.
 - Design tokens must not be redefined in JS or injected into the document at runtime.
 - New token work should prefer semantic names such as `--nav-flights`, `--risk-high`, and `--accent-warning` over raw palette literals.
 

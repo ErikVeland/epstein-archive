@@ -1136,5 +1136,3 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     </div>
   );
 };
-
-export default NetworkGraph;

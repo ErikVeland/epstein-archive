@@ -130,5 +130,3 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({
     </article>
   );
 };
-
-export default ConnectionCard;

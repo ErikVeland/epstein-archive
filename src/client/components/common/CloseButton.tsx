@@ -36,5 +36,3 @@ export const CloseButton: React.FC<CloseButtonProps> = ({
     <Icon name="X" size={iconSizes[size]} ariaHidden />
   </Button>
 );
-
-export default CloseButton;

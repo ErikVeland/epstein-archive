@@ -52,6 +52,12 @@ remote_ssh() {
   fi
 }
 
+# Update code without deleting or replacing local evidence across release versions.
+reset_code_preserving_data() {
+  git restore --source="$1" --staged --worktree -- . ':(exclude)data' &&
+    git reset --mixed "$1"
+}
+
 ensure_local_git_identity() {
   local current_name current_email fallback_name fallback_email
   current_name=$(git config user.name || true)
@@ -434,7 +440,8 @@ perform_rollback() {
     if [ \"$DB_ONLY\" = false ] && [ -f .rollback_commit ]; then
       TARGET=\$(cat .rollback_commit)
       echo \"Rolling back code to \$TARGET...\"
-      git reset --hard \$TARGET
+      $(declare -f reset_code_preserving_data)
+      reset_code_preserving_data \$TARGET
 
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
@@ -711,8 +718,9 @@ if [ "$DEPLOY_DB" = true ]; then
 
       echo 'Syncing code from origin/main for migration phase...'
       git fetch origin
-      git reset --hard origin/main
-      git clean -fd -e dist -e .releases -e .media-releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
+      $(declare -f reset_code_preserving_data)
+      reset_code_preserving_data origin/main
+      git clean -fd -e data -e dist -e .releases -e .media-releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
 
       export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
@@ -916,8 +924,9 @@ if [ "$DB_ONLY" = false ]; then
       mv -Tf .dist_next dist
 
       echo 'Syncing live source tree to promoted commit...'
-      git reset --hard \"\$TARGET_SHA\"
-      git clean -fd -e dist -e .releases -e .media-releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
+      $(declare -f reset_code_preserving_data)
+      reset_code_preserving_data \"\$TARGET_SHA\"
+      git clean -fd -e data -e dist -e .releases -e .media-releases -e .deploy.lock -e .rollback_dist.tgz -e .rollback_dist_target -e .rollback_commit
 
       # CERT_STEP: static_root_invariant
       # git clean has removed symlinked build roots on some filesystems even with
