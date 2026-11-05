@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "22.8.4",
+  "version": "22.8.5",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -120,7 +120,8 @@
     "check:release-trust": "node --import tsx/esm scripts/release_trust_gate.ts",
     "check:release-metadata": "node --import tsx/esm scripts/release_metadata_guard.ts",
     "check:unused": "knip --include files,dependencies,unlisted,unresolved",
-    "build:analyze": "ANALYZE=1 vite build"
+    "build:analyze": "ANALYZE=1 vite build",
+    "backup:pg": "node --import tsx/esm scripts/backup_database.ts"
   },
   "dependencies": {
     "@epstein/db": "workspace:*",

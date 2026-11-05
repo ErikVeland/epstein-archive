@@ -10,6 +10,10 @@ import type {
   LeadPriority,
 } from '@shared/dto/investigations';
 
+const nullableText = (value: unknown): string | null => (typeof value === 'string' ? value : null);
+const nullableTimestamp = (value: unknown): string | null =>
+  value instanceof Date ? value.toISOString() : nullableText(value);
+
 export const mapInvestigativeLeadDto = (row: Record<string, unknown>): InvestigativeLeadDto => ({
   id: Number(row.id || 0),
   investigationId: Number(row.investigationId ?? row.investigation_id ?? 0),
@@ -21,11 +25,11 @@ export const mapInvestigativeLeadDto = (row: Record<string, unknown>): Investiga
     (row.sourceDocumentId ?? row.source_document_id) != null
       ? Number(row.sourceDocumentId ?? row.source_document_id)
       : null,
-  sourceEftaRef: typeof row.sourceEftaRef === 'string' ? row.sourceEftaRef : null,
-  assignedTo: typeof row.assignedTo === 'string' ? row.assignedTo : null,
-  createdBy: typeof row.createdBy === 'string' ? row.createdBy : null,
-  resolvedAt: typeof row.resolvedAt === 'string' ? row.resolvedAt : null,
-  resolutionNotes: typeof row.resolutionNotes === 'string' ? row.resolutionNotes : null,
+  sourceEftaRef: nullableText(row.sourceEftaRef ?? row.source_efta_ref),
+  assignedTo: nullableText(row.assignedTo ?? row.assigned_to),
+  createdBy: nullableText(row.createdBy ?? row.created_by),
+  resolvedAt: nullableTimestamp(row.resolvedAt ?? row.resolved_at),
+  resolutionNotes: nullableText(row.resolutionNotes ?? row.resolution_notes),
   createdAt: String(row.createdAt ?? row.created_at ?? ''),
   updatedAt: String(row.updatedAt ?? row.updated_at ?? ''),
   leadKind: (row.leadKind ?? row.lead_kind) as InvestigativeLeadDto['leadKind'],

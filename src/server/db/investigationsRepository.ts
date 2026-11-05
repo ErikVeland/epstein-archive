@@ -995,16 +995,14 @@ export const investigationsRepository = {
 
   getInvestigationsByEntityId: async (entityId: number) => {
     const pool = getApiPool();
-    // 1. Find investigations linked via leads and forensic signals
-    // 2. Find investigations linked via evidence that mentions the entity in documents
     const result = await pool.query(
       `
       WITH linked_via_leads AS (
         SELECT DISTINCT i.id
         FROM investigations i
         JOIN investigation_leads l ON i.id = l.investigation_id
-        JOIN forensic_signal_entities fse ON l.forensic_signal_id = fse.signal_id
-        WHERE fse.entity_id = $1::bigint
+        JOIN entity_mentions em ON l.source_document_id = em.document_id
+        WHERE em.entity_id = $1::bigint
       ),
       linked_via_mentions AS (
         SELECT DISTINCT i.id
@@ -1041,26 +1039,12 @@ export const investigationsRepository = {
     const pool = getApiPool();
     let sql = `
       SELECT 
-        l.*, 
-        d.title AS document_title,
-        fs.signal_type as "signalType",
-        fs.confidence,
-        fs.risk_score as "riskScore",
-        fs.metadata_json as "signalMetadata",
-        (
-          SELECT ARRAY_AGG(fse.entity_id)
-          FROM forensic_signal_entities fse
-          WHERE fse.signal_id = fs.id
-        ) as "entityIds",
-        (
-          SELECT ARRAY_AGG(e.full_name)
-          FROM forensic_signal_entities fse
-          JOIN entities e ON e.id = fse.entity_id
-          WHERE fse.signal_id = fs.id
-        ) as "entityNames"
+        l.id, l.investigation_id, l.title, l.description, l.status, l.priority,
+        l.source_document_id, l.source_efta_ref, l.assigned_to, l.created_by,
+        l.resolved_at, l.resolution_notes, l.created_at, l.updated_at,
+        d.title AS document_title
       FROM investigation_leads l
       LEFT JOIN documents d ON l.source_document_id = d.id
-      LEFT JOIN forensic_signals fs ON l.forensic_signal_id = fs.id
       WHERE l.investigation_id = $1
     `;
     const queryParams: unknown[] = [investigationId];
@@ -1112,8 +1096,7 @@ export const investigationsRepository = {
           resolved_at,
           resolution_notes,
           created_at,
-          updated_at,
-          forensic_signal_id`,
+          updated_at`,
       [
         investigationId,
         data.title,
@@ -1161,7 +1144,10 @@ export const investigationsRepository = {
     };
 
     for (const [key, col] of Object.entries(fieldMap)) {
-      if (Object.prototype.hasOwnProperty.call(updates, key)) {
+      if (
+        Object.prototype.hasOwnProperty.call(updates, key) &&
+        (updates as Record<string, unknown>)[key] !== undefined
+      ) {
         setClauses.push(`${col} = $${idx++}`);
         values.push((updates as Record<string, unknown>)[key] ?? null);
       }
@@ -1190,8 +1176,7 @@ export const investigationsRepository = {
         resolved_at,
         resolution_notes,
         created_at,
-        updated_at,
-        forensic_signal_id
+        updated_at
     `;
 
     const result = await pool.query(query, values);

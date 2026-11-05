@@ -2,6 +2,7 @@ import { mediaQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import { resolveCanonicalEntityId } from '../utils/id_utils.js';
+import { ENTITY_TAB_LIMIT_CAP } from '../utils/paginationGuards.js';
 import { browsableVisualMediaWhereSql, normalMediaEvidenceWhereSql } from './mediaEvidenceScope.js';
 
 export interface MediaItem {
@@ -306,44 +307,13 @@ export const mediaRepository = {
         WITH canonical_entities AS (
           SELECT id, full_name
           FROM entities
-          WHERE COALESCE(canonical_id, id) = $1::bigint
-        )
-        SELECT
-          m.id,
-          m.entity_id as "entityId",
-          m.document_id as "documentId",
-          m.file_path as "filePath",
-          m.thumbnail_path as "thumbnailPath",
-          m.file_type as "fileType",
-          m.file_size as "fileSize",
-          m.width,
-          m.height,
-          m.title,
-          m.description,
-          m.is_sensitive as "isSensitive",
-          m.verification_status as "verificationStatus",
-          m.red_flag_rating as "redFlagRating",
-          m.metadata_json as "metadataJson",
-          m.date_taken as "dateTaken",
-          m.created_at as "createdAt",
-          tags.tagged_people as "taggedPeople"
-        FROM media_items m
-        LEFT JOIN LATERAL (
-          SELECT ARRAY_REMOVE(ARRAY_AGG(DISTINCT tagged_name), NULL) as tagged_people
-          FROM (
-            SELECT e.full_name as tagged_name
-            FROM media_item_people mip2
-            JOIN entities e ON e.id = mip2.entity_id
-            WHERE mip2.media_item_id::text = m.id::text
-            UNION
-            SELECT e2.full_name as tagged_name
-            FROM faces f2
-            JOIN face_clusters fc2 ON fc2.id = f2.cluster_id
-            JOIN entities e2 ON e2.id = fc2.entity_id
-            WHERE f2.media_item_id::text = m.id::text
-              AND fc2.entity_id IS NOT NULL
-          ) tagged_people_union
-        ) tags ON true
+          WHERE id = $1::bigint OR canonical_id = $1::bigint
+        ), matched_media AS MATERIALIZED (
+          SELECT m.id, m.entity_id, m.document_id, m.file_path, m.thumbnail_path,
+            m.file_type, m.file_size, m.width, m.height, m.title, m.description,
+            m.is_sensitive, m.verification_status, m.red_flag_rating, m.metadata_json,
+            m.date_taken, m.created_at, m.album_id
+          FROM media_items m
         WHERE (
           m.entity_id IN (SELECT id FROM canonical_entities)
           OR EXISTS (
@@ -365,14 +335,65 @@ export const mediaRepository = {
           OR EXISTS (
             SELECT 1
             FROM canonical_entities ce
-            WHERE ce.full_name ILIKE ANY(ARRAY['%' || m.title || '%', '%' || m.description || '%'])
-               OR m.title ILIKE '%' || ce.full_name || '%'
+            WHERE (NULLIF(btrim(m.title), '') IS NOT NULL AND (
+              ce.full_name ILIKE '%' || m.title || '%' OR m.title ILIKE '%' || ce.full_name || '%'
+            )) OR CASE
+              WHEN octet_length(m.description) BETWEEN 1 AND octet_length(ce.full_name)
+              THEN NULLIF(btrim(m.description), '') IS NOT NULL
+                AND ce.full_name ILIKE '%' || m.description || '%'
+              ELSE false
+            END
           )
         )
-          AND ${normalMediaEvidenceWhereSql('m')}
-        ORDER BY m.red_flag_rating DESC, m.created_at DESC
+        ), selected_media AS MATERIALIZED (
+          SELECT m.id, m.entity_id, m.document_id, m.file_path, m.thumbnail_path,
+            m.file_type, m.file_size, m.width, m.height, m.title, m.description,
+            m.is_sensitive, m.verification_status, m.red_flag_rating, m.metadata_json,
+            m.date_taken, m.created_at
+          FROM matched_media m
+          WHERE ${normalMediaEvidenceWhereSql('m')}
+          ORDER BY m.red_flag_rating DESC, m.created_at DESC, m.id DESC
+          LIMIT $2
+        )
+        SELECT
+          m.id,
+          m.entity_id as "entityId",
+          m.document_id as "documentId",
+          m.file_path as "filePath",
+          m.thumbnail_path as "thumbnailPath",
+          m.file_type as "fileType",
+          m.file_size as "fileSize",
+          m.width,
+          m.height,
+          m.title,
+          m.description,
+          m.is_sensitive as "isSensitive",
+          m.verification_status as "verificationStatus",
+          m.red_flag_rating as "redFlagRating",
+          m.metadata_json as "metadataJson",
+          m.date_taken as "dateTaken",
+          m.created_at as "createdAt",
+          tags.tagged_people as "taggedPeople"
+        FROM selected_media m
+        LEFT JOIN LATERAL (
+          SELECT ARRAY_REMOVE(ARRAY_AGG(DISTINCT tagged_name), NULL) as tagged_people
+          FROM (
+            SELECT e.full_name as tagged_name
+            FROM media_item_people mip2
+            JOIN entities e ON e.id = mip2.entity_id
+            WHERE mip2.media_item_id::text = m.id::text
+            UNION
+            SELECT e2.full_name as tagged_name
+            FROM faces f2
+            JOIN face_clusters fc2 ON fc2.id = f2.cluster_id
+            JOIN entities e2 ON e2.id = fc2.entity_id
+            WHERE f2.media_item_id::text = m.id::text
+              AND fc2.entity_id IS NOT NULL
+          ) tagged_people_union
+        ) tags ON true
+        ORDER BY m.red_flag_rating DESC, m.created_at DESC, m.id DESC
       `,
-      [canonicalId],
+      [canonicalId, ENTITY_TAB_LIMIT_CAP],
     );
 
     const rows = result.rows as MediaItemRow[];
@@ -393,7 +414,7 @@ export const mediaRepository = {
       return {
         ...item,
         id: Number(item.id),
-        fileSize: 0,
+        fileSize: Number(item.fileSize || 0),
         redFlagRating: Number(item.redFlagRating || 0),
         taggedPeople: Array.isArray(item.taggedPeople)
           ? item.taggedPeople.filter(

@@ -187,12 +187,19 @@ router.get('/:entityId/media', async (req: Request, res: Response, next: NextFun
   const { entityId } = req.params as { entityId: string };
   try {
     const { mediaRepository } = await import('../db/mediaRepository.js');
-    const result = await withEntityTabTimeout(
-      'media',
-      entityId,
-      mediaRepository.getMediaItems(entityId),
-      [],
-    );
+    const result = await withTimeoutFallback(mediaRepository.getMediaItems(entityId), null, {
+      timeoutMs: 5_000,
+    });
+
+    if (result === null) {
+      res.set('Retry-After', '5');
+      return res.status(503).json({
+        error: {
+          code: 'ENTITY_MEDIA_TIMEOUT',
+          message: 'Media is taking longer to load. Please retry.',
+        },
+      });
+    }
 
     if (!result || result.length === 0) {
       // Return 200 OK with empty array instead of 204 No Content

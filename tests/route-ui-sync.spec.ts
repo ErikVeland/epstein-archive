@@ -2,9 +2,10 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 
 const apiPort = Number(process.env.PW_API_PORT || 3312);
 const useProductionBaseUrl = process.env.PW_USE_PROD_BASE_URL === '1';
-const API_BASE = useProductionBaseUrl
-  ? 'https://epstein.academy/api'
-  : `${process.env.PW_API_BASE_URL || `http://127.0.0.1:${apiPort}`}/api`;
+const API_BASE = `${
+  process.env.PW_API_BASE_URL ||
+  (useProductionBaseUrl ? 'https://epstein.academy' : `http://127.0.0.1:${apiPort}`)
+}/api`;
 
 const resolveFirstEntityId = async (request: APIRequestContext): Promise<string | null> => {
   const response = await request.get(
@@ -68,26 +69,30 @@ const resolveInvestigationAndEvidence = async (
   request: APIRequestContext,
 ): Promise<{ investigationId: string; evidenceId: string } | null> => {
   const response = await request.get(`${API_BASE}/investigations?limit=5`);
-  if (!response.ok()) return null;
+  expect(response.status(), 'Investigation fixture list must be available').toBe(200);
   const payload = await response.json();
-  const first = Array.isArray(payload?.data)
-    ? payload.data.find((item: Record<string, unknown>) => Number.isFinite(Number(item?.id)))
-    : null;
-  if (!first) return null;
-
-  const investigationId = String(first.uuid || first.id);
-  const evidenceResponse = await request.get(
-    `${API_BASE}/investigations/${investigationId}/evidence-by-type`,
-  );
-  if (!evidenceResponse.ok()) return null;
-  const evidencePayload = await evidenceResponse.json();
-  const evidenceItem = Array.isArray(evidencePayload?.all) ? evidencePayload.all[0] : null;
-  if (!evidenceItem) return null;
-
-  return {
-    investigationId,
-    evidenceId: String(evidenceItem.investigation_evidence_id || evidenceItem.id),
-  };
+  const cases = Array.isArray(payload?.data) ? payload.data : [];
+  for (const investigation of cases) {
+    const evidenceResponse = await request.get(
+      `${API_BASE}/investigations/${investigation.id}/evidence-by-type`,
+    );
+    expect(evidenceResponse.ok()).toBeTruthy();
+    const evidencePayload = await evidenceResponse.json();
+    const evidenceItem = Array.isArray(evidencePayload?.all)
+      ? evidencePayload.all.find(
+          (item: Record<string, unknown>) =>
+            item.targetType === 'document' ||
+            item.documentId ||
+            String(item.sourcePath).startsWith('document:'),
+        )
+      : null;
+    if (evidenceItem)
+      return {
+        investigationId: String(investigation.uuid || investigation.id),
+        evidenceId: String(evidenceItem.investigationEvidenceId),
+      };
+  }
+  return null;
 };
 
 const resolveThreadAndMessage = async (
@@ -169,31 +174,28 @@ test.describe('Route to UI state synchronization', () => {
     }
 
     await preparePage(page);
+    const detailRequests: string[] = [];
+    page.on('request', (request) => {
+      const pathname = new URL(request.url()).pathname;
+      if (/^\/api\/entities\/\d+$/.test(pathname)) detailRequests.push(pathname);
+    });
     await page.goto(`/entity/${entityId}`);
-    const quickAction = page.getByTestId('entity-modal-action-blackbook');
-    const visibleFromRoute = await quickAction.isVisible({ timeout: 20000 }).catch(() => false);
-    if (!visibleFromRoute) {
-      await page.goto('/people');
-      const openEntity = page
-        .locator('button:has-text("VIEW"), a:has-text("VIEW"), button:has-text("View")')
-        .first();
-      if (!(await openEntity.isVisible().catch(() => false))) {
-        expect(true, 'No entity card action available to open Evidence modal').toBeFalsy();
-        return;
-      }
-      await openEntity.click();
-    }
-
-    await expect(page.getByTestId('entity-modal-action-blackbook')).toBeVisible({ timeout: 20000 });
-
-    await page.getByTestId('entity-modal-action-timeline').click();
+    const modal = page.getByTestId('evidence-modal');
+    await expect(modal).toBeVisible({ timeout: 30000 });
+    await modal.getByRole('button', { name: 'Timeline', exact: true }).click();
     await expect(page.getByRole('tab', { name: 'Network' })).toHaveAttribute(
       'aria-selected',
       'true',
     );
     await expect(page.getByTestId('entity-modal-tab-network')).toBeVisible();
+    expect(detailRequests.filter((pathname) => pathname !== `/api/entities/${entityId}`)).toEqual(
+      [],
+    );
+    expect(
+      detailRequests.filter((pathname) => pathname === `/api/entities/${entityId}`),
+    ).toHaveLength(1);
 
-    await page.getByTestId('entity-modal-action-search').click();
+    await modal.getByRole('button', { name: 'Search', exact: true }).click();
     await expect(page.getByRole('tab', { name: 'Evidence' })).toHaveAttribute(
       'aria-selected',
       'true',
@@ -203,13 +205,8 @@ test.describe('Route to UI state synchronization', () => {
       '',
     );
 
-    await page.getByTestId('entity-modal-action-blackbook').click();
-    await expect(page.getByRole('tab', { name: 'Overview' })).toHaveAttribute(
-      'aria-selected',
-      'true',
-    );
-    await expect(page.getByTestId('entity-modal-tab-overview')).toBeVisible();
-    await expect(page.getByTestId('entity-modal-context')).toContainText('Black Book');
+    await modal.getByRole('button', { name: 'Black Book Entry', exact: true }).click();
+    await expect(page).toHaveURL(/\/blackbook\?search=/);
   });
 
   test('document modal tab changes preserve size and single primary scroll region', async ({
@@ -223,19 +220,9 @@ test.describe('Route to UI state synchronization', () => {
     }
 
     await preparePage(page);
-    await page.goto(`/documents/${documentId}?modalTab=analysis`);
+    await page.goto(`/documents/${documentId}?modalTab=viewer`);
 
     const modal = page.locator('#DocumentModal');
-    const openedFromRoute = await modal.isVisible({ timeout: 20000 }).catch(() => false);
-    if (!openedFromRoute) {
-      await page.goto('/documents');
-      const firstCard = page.locator('.document-card').first();
-      if (!(await firstCard.isVisible().catch(() => false))) {
-        expect(true, 'No document cards available to open Document modal').toBeFalsy();
-        return;
-      }
-      await firstCard.click();
-    }
     await expect(modal).toBeVisible({ timeout: 20000 });
 
     const initialBox = await modal.boundingBox();
@@ -244,7 +231,7 @@ test.describe('Route to UI state synchronization', () => {
     await expect(page.getByTestId('document-modal-scroll-region')).toHaveCount(1);
 
     const scrollRegionCount = await page
-      .locator('#DocumentModal .flex-1.min-h-0.relative')
+      .getByTestId('document-modal-scroll-region')
       .evaluate((container) => {
         const nodes = Array.from(container.querySelectorAll<HTMLElement>('*'));
         return nodes.filter((node) => {
@@ -257,13 +244,22 @@ test.describe('Route to UI state synchronization', () => {
       });
     expect(scrollRegionCount).toBeLessThanOrEqual(1);
 
-    await page.getByText('Clean Text').click();
-    await expect(page).toHaveURL(/textMode=clean/);
-    await expect(page.getByTestId('document-modal-tabpanel-analysis')).toBeVisible();
+    const modes = page.getByRole('radiogroup', { name: 'Document view mode' });
+    await modes.getByRole('radio', { name: 'Clean Text', exact: true }).click();
+    await expect(page).toHaveURL(/viewMode=clean/);
+    await expect(modes.getByRole('radio', { name: 'Clean Text', exact: true })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await expect(page.getByTestId('document-modal-tabpanel-viewer')).toBeVisible();
 
-    await page.getByText('Raw OCR').click();
-    await expect(page).toHaveURL(/textMode=ocr/);
-    await expect(page.getByTestId('document-modal-tabpanel-analysis')).toBeVisible();
+    await modes.getByRole('radio', { name: 'Raw OCR', exact: true }).click();
+    await expect(page).toHaveURL(/viewMode=ocr/);
+    await expect(modes.getByRole('radio', { name: 'Raw OCR', exact: true })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    );
+    await expect(page.getByTestId('document-modal-tabpanel-viewer')).toBeVisible();
 
     const afterBox = await modal.boundingBox();
     expect(afterBox).toBeTruthy();
@@ -307,16 +303,14 @@ test.describe('Route to UI state synchronization', () => {
     await page.goto('/people');
 
     const firstCard = page.getByTestId('subject-card').first();
-    const hasCard = await firstCard.isVisible({ timeout: 20000 }).catch(() => false);
-    if (!hasCard) {
-      expect(true, 'No subject cards available').toBeFalsy();
-      return;
-    }
-
-    await firstCard.click();
+    await expect(firstCard).toBeVisible({ timeout: 30000 });
+    await firstCard.getByRole('button', { name: 'View', exact: true }).click();
     await expect(page).toHaveURL(/\/entity\/\d+/);
 
-    await page.getByRole('button', { name: 'Go back' }).click();
+    await page
+      .getByTestId('evidence-modal')
+      .getByRole('button', { name: 'Close entity profile', exact: true })
+      .click();
     await expect(page).toHaveURL(/\/people(?:\?|$)/, { timeout: 20000 });
     await expect(page.getByTestId('subject-card').first()).toBeVisible({ timeout: 20000 });
   });
@@ -342,18 +336,16 @@ test.describe('Route to UI state synchronization', () => {
     await expect(messageCard).toBeVisible({ timeout: 30000 });
 
     const evidenceButton = messageCard.getByRole('button', { name: 'Evidence' }).first();
-    const evidenceVisible = await evidenceButton.isVisible({ timeout: 5000 }).catch(() => false);
-    if (!evidenceVisible) {
-      expect(true, 'Evidence button not available for selected email message').toBeFalsy();
-      return;
-    }
-
+    await expect(evidenceButton).toBeVisible({ timeout: 20000 });
     await evidenceButton.click();
     await expect(page).toHaveURL(
       new RegExp(`/documents/${encodeURIComponent(resolved.messageId)}(?:\\?|$)`),
     );
 
-    await page.getByRole('button', { name: 'Go back' }).click();
+    await page
+      .locator('#DocumentModal')
+      .getByRole('button', { name: 'Close', exact: true })
+      .click();
     await expect(page).toHaveURL(
       new RegExp(
         `/emails\\?[^#]*threadId=${encodeURIComponent(resolved.threadId)}[^#]*messageId=${encodeURIComponent(resolved.messageId)}`,
@@ -367,6 +359,14 @@ test.describe('Route to UI state synchronization', () => {
 
   test('intelligence dashboard renders review queues or empty states', async ({ page }) => {
     await preparePage(page);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    const review = page.waitForResponse((response) =>
+      response.url().includes('/api/intelligence/review'),
+    );
+    const readiness = page.waitForResponse((response) =>
+      response.url().includes('/api/intelligence/readiness'),
+    );
     await page.goto('/intelligence');
 
     // Should load the page heading
@@ -374,29 +374,11 @@ test.describe('Route to UI state synchronization', () => {
       timeout: 20000,
     });
 
-    // Should render queue cards (regardless of whether they have data or show empty)
-    const queueCards = page.locator('[class*="queueCard"]');
-    const cardCount = await queueCards.count().catch(() => 0);
-
-    // Either queue cards are visible, or the loading state resolved cleanly
-    const loadingText = await page
-      .getByText(/loading intelligence queues/i)
-      .isVisible()
-      .catch(() => false);
-    if (!loadingText) {
-      // After loading, we expect either queue cards or the readiness widget
-      const hasQueues = cardCount > 0;
-      const hasReadiness = await page
-        .locator('[class*="readinessTile"]')
-        .count()
-        .catch(() => 0);
-      expect(hasQueues || hasReadiness > 0).toBeTruthy();
-    }
-
-    // No JavaScript errors on this page
-    const errors: string[] = [];
-    page.on('pageerror', (e) => errors.push(e.message));
-    await page.waitForTimeout(1000);
+    expect((await review).status()).toBe(200);
+    expect((await readiness).status()).toBe(200);
+    await expect(page.getByText(/loading intelligence queues/i)).toBeHidden();
+    await expect(page.locator('[class*="queueCard"]').first()).toBeVisible();
+    await expect(page.locator('[class*="readinessTile"]').first()).toBeVisible();
     expect(errors).toHaveLength(0);
   });
 
@@ -419,23 +401,8 @@ test.describe('Route to UI state synchronization', () => {
       timeout: 10000,
     });
 
-    // After loading, should show queue items or the empty state — never a blank screen
-    const queueResolved = await Promise.race([
-      page
-        .locator('[class*="queueItem"]')
-        .first()
-        .isVisible({ timeout: 15000 })
-        .catch(() => false),
-      page
-        .getByText(/queue is empty/i)
-        .isVisible({ timeout: 15000 })
-        .catch(() => false),
-      page
-        .getByText(/loading queue/i)
-        .isVisible({ timeout: 5000 })
-        .catch(() => false),
-    ]);
-    expect(queueResolved).toBeTruthy();
+    await expect(page.getByRole('alert')).toContainText('administrator', { timeout: 20000 });
+    await expect(page.getByText(/queue is empty/i)).toHaveCount(0);
   });
 
   test('investigation evidence deep links reconstruct case-folder UI for both route patterns', async ({
@@ -458,25 +425,12 @@ test.describe('Route to UI state synchronization', () => {
 
     for (const path of deepLinkPaths) {
       await page.goto(path);
-      const caseFolderButton = page
-        .locator(
-          'button:has-text("Case Folder"), button[title="Case Folder"], button[aria-label="Case Folder"]',
-        )
-        .first();
-      const hasCaseFolder = await caseFolderButton.isVisible({ timeout: 60000 }).catch(() => false);
-      if (!hasCaseFolder) {
-        expect(
-          true,
-          'Investigation workspace deep-link controls not available in this fixture',
-        ).toBeFalsy();
-        return;
-      }
-      await expect(caseFolderButton).toBeVisible({ timeout: 60000 });
-      await caseFolderButton.click();
-
       const row = page.locator(`[data-evidence-row-id="${evidenceId}"]`);
+      await expect(page.getByRole('navigation', { name: 'Case sections' })).toBeVisible({
+        timeout: 60000,
+      });
       await expect(row).toBeVisible({ timeout: 12000 });
-      await expect(row).toHaveClass(/border-cyan-400/);
+      await expect(row).toHaveAttribute('aria-current', 'true');
 
       await expect(page.locator('#DocumentModal, [role="dialog"][aria-modal="true"]')).toBeVisible({
         timeout: 12000,

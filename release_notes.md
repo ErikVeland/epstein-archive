@@ -1,5 +1,40 @@
 # Release Notes
 
+## 22.8.5 - 2026-11-05 - Restore audit writes and production health
+
+### Fixes
+
+- Restore evidence access with audit writes that match the migrated PostgreSQL schema.
+- Preserve selected evidence in numeric, UUID, and legacy investigation links.
+- Keep indirect graph links out of direct connection views.
+- Add desktop email evidence navigation and an explicit retry for failed message bodies.
+- Show review access and request failures instead of an empty queue.
+- Restore document-backed lead reads, partial updates, and source details.
+- Preserve text mention IDs through review actions and normalise declared numeric response IDs.
+
+### Performance
+
+- Reuse entity and relationship queries and remove profile requests used only to resolve names.
+- Stop automatic email-body retries after a failed request.
+- Bound entity media previews before tag enrichment and return a retryable error on timeout.
+- Share pending dataset revision lookups and start their cache lifetime after completion.
+- Share intelligence dashboard calculations and retain results that finish after a request times out.
+
+### Operations
+
+- Measure heap usage against the V8 limit and check resident memory separately.
+- Report all deep-health warnings in the overall status.
+- Support a shared backup directory and publish backup archives only after they complete.
+- Add a database backup command and update live browser checks for current controls and routes.
+- Require healthy deep checks and audited evidence access before a deployment succeeds.
+- Use direct relationship records while the optional connection signals view is unpopulated.
+
+### Security
+
+- Keep audit failures fatal in production and retain administrator-only review queues.
+- Check unauthenticated rejection and authenticated review response contracts separately.
+- Isolate response cache entries by full route and exclude signed-in requests from shared caching.
+
 ## 22.8.4 - 2026-11-05 - PostgreSQL 16 CI Toolchain
 
 ### Release operations

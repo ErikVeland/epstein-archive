@@ -398,6 +398,8 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                 return (
                   <Surface
                     key={item.id}
+                    data-evidence-row-id={resolveEvidenceKey(item)}
+                    aria-current={isLinked ? 'true' : undefined}
                     variant={isLinked ? 'glass-highlight' : 'glass'}
                     className={cn(
                       'transition-all',

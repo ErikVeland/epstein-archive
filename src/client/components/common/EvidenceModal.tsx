@@ -5,6 +5,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { apiClient } from '@client/services/apiClient';
+import { getNetworkRelationships } from '@client/utils/entityNetwork';
+import type { GraphResponseDto } from '@shared/dto/graph';
 import { useScrollLock } from '@client/hooks/useScrollLock';
 import { useModalFocusTrap } from '@client/hooks/useModalFocusTrap';
 import { TabItem } from './Tabs';
@@ -538,8 +540,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     loadNextPage,
   ]);
 
-  const { data: relationshipSummary = [] } = useQuery<Record<string, unknown>[]>({
-    queryKey: ['relationships-summary', entityId],
+  const { data: relationshipSummary = [], isSuccess: relationshipsReady } = useQuery<
+    Record<string, unknown>[]
+  >({
+    queryKey: ['relationships', entityId],
     queryFn: async () => {
       const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as Record<
         string,
@@ -556,49 +560,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const { data: relationships = [], isLoading: networkLoading } = useQuery<
     Record<string, unknown>[]
   >({
-    queryKey: ['relationships', entityId],
+    queryKey: ['entity-network', entityId],
     queryFn: async () => {
-      const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as Record<
-        string,
-        unknown
-      >;
-      let rels = (resp.relationships as Record<string, unknown>[]) || [];
-      if (!rels.length) {
-        const graphResp = (await apiClient.get(`/entities/${entityId}/graph?depth=2`)) as Record<
-          string,
-          unknown
-        >;
-        const graphEdges = Array.isArray(graphResp?.edges)
-          ? (graphResp.edges as Record<string, unknown>[])
-          : [];
-        rels = graphEdges.slice(0, 80).map((edge) => ({
-          entity_id:
-            String(edge.source_id) === String(entityId)
-              ? String(edge.target_id)
-              : String(edge.source_id),
-          relationship_type: edge.relationship_type || 'associated_with',
-          strength: Number(edge.proximity_score || edge.weight || 0),
-          confidence: Number(edge.confidence || 0),
-        }));
-      }
-
-      const top = rels.slice(0, 20);
-      return Promise.all(
-        top.map(async (r) => {
-          const relatedEntityId = r.related_entity_id || r.entity_id;
-          try {
-            const e = (await apiClient.get(`/entities/${relatedEntityId}`)) as Record<
-              string,
-              unknown
-            >;
-            return { ...r, name: e.fullName || e.name || relatedEntityId };
-          } catch {
-            return { ...r, name: relatedEntityId };
-          }
-        }),
-      );
+      if (relationshipSummary.length) return getNetworkRelationships(entityId, relationshipSummary);
+      const graph = await apiClient.get<GraphResponseDto>(`/entities/${entityId}/graph?depth=2`);
+      return getNetworkRelationships(entityId, [], graph);
     },
-    enabled: networkEnabled,
+    enabled: networkEnabled && relationshipsReady,
     staleTime: 60_000,
   });
 

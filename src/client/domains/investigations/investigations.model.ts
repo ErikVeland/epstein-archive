@@ -118,6 +118,12 @@ export const resolveCaseEvidenceTarget = (
     return { targetType: 'media', targetId: id ? String(id) : null, metadata };
   }
 
+  if (item.documentId != null) {
+    return { targetType: 'document', targetId: String(item.documentId), metadata };
+  }
+  if (item.mediaItemId != null) {
+    return { targetType: 'media', targetId: String(item.mediaItemId), metadata };
+  }
   return { targetType: null, targetId: null, metadata };
 };
 

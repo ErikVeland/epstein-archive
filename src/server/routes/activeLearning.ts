@@ -32,17 +32,26 @@ const IdParamSchema = z.object({
     id: z.coerce.number().int().positive(),
   }),
 });
+const MentionIdParamSchema = z.object({ params: z.object({ id: z.string().min(1) }) });
+const ReviewDecisionSchema = z.object({
+  decision: z.enum(['accept', 'reject', 'defer', 'insufficient_evidence']),
+  reason: z.string().max(1000).optional(),
+});
 
 const BulkReviewSchema = z.object({
   body: z.object({
     items: z
       .array(
-        z.object({
-          type: z.enum(['mention', 'claim']),
-          id: z.coerce.number().int().positive(),
-          decision: z.enum(['accept', 'reject', 'defer', 'insufficient_evidence']),
-          reason: z.string().max(1000).optional(),
-        }),
+        z.discriminatedUnion('type', [
+          ReviewDecisionSchema.extend({
+            type: z.literal('mention'),
+            id: z.union([z.string().min(1), z.number().int().positive()]).transform(String),
+          }),
+          ReviewDecisionSchema.extend({
+            type: z.literal('claim'),
+            id: z.coerce.number().int().positive(),
+          }),
+        ]),
       )
       .min(1)
       .max(100),
@@ -85,14 +94,14 @@ router.post(
   '/mentions/:id/verify',
   authenticateRequest,
   requireRole('admin'),
-  validate(IdParamSchema),
+  validate(MentionIdParamSchema),
   validate(VerifySchema),
   async (req, res, next) => {
     try {
-      const { id } = req.params as unknown as z.infer<typeof IdParamSchema>['params'];
+      const { id } = req.params as unknown as z.infer<typeof MentionIdParamSchema>['params'];
       const { verified_by } = req.body as unknown as z.infer<typeof VerifySchema>['body'];
       const verifiedBy = verified_by || (req as AuthRequest).user?.username || 'reviewer';
-      await reviewQueueRepository.verifyMention(Number(id), verifiedBy);
+      await reviewQueueRepository.verifyMention(id, verifiedBy);
 
       res.json({ success: true });
     } catch (e) {
@@ -106,16 +115,16 @@ router.post(
   '/mentions/:id/reject',
   authenticateRequest,
   requireRole('admin'),
-  validate(IdParamSchema),
+  validate(MentionIdParamSchema),
   validate(RejectSchema),
   async (req, res, next) => {
     try {
-      const { id } = req.params as unknown as z.infer<typeof IdParamSchema>['params'];
+      const { id } = req.params as unknown as z.infer<typeof MentionIdParamSchema>['params'];
       const { verified_by, rejection_reason } = req.body as unknown as z.infer<
         typeof RejectSchema
       >['body'];
       const verifiedBy = verified_by || (req as AuthRequest).user?.username || 'reviewer';
-      await reviewQueueRepository.rejectMention(Number(id), rejection_reason, verifiedBy);
+      await reviewQueueRepository.rejectMention(id, rejection_reason, verifiedBy);
 
       res.json({ success: true });
     } catch (e) {
@@ -198,7 +207,12 @@ router.post(
         typeof BulkReviewSchema
       >['body'];
       const reviewer = reviewed_by || (req as AuthRequest).user?.username || 'reviewer';
-      const results: Array<{ type: string; id: number; decision: string; success: boolean }> = [];
+      const results: Array<{
+        type: string;
+        id: string | number;
+        decision: string;
+        success: boolean;
+      }> = [];
 
       for (const item of items) {
         if (item.decision === 'accept') {

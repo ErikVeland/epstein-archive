@@ -163,6 +163,43 @@ async function main() {
   }
 
   const contractChecks = await Promise.all([
+    check('deep health', async () => {
+      const { status, body } = await getJson('/api/stats/health/deep');
+      assertObject(body.checks, 'deep-health.checks');
+      const warnings = Object.entries(body.checks).filter(([, value]) => {
+        return (
+          !value ||
+          typeof value !== 'object' ||
+          (value as Record<string, unknown>).status !== 'pass'
+        );
+      });
+      if (
+        status !== 200 ||
+        body.status !== 'healthy' ||
+        !Object.keys(body.checks).length ||
+        warnings.length
+      ) {
+        throw new Error(
+          `status=${status} health=${String(body.status)} checks=${warnings.map(([name]) => name).join(',')}`,
+        );
+      }
+      return 'all checks passed';
+    }),
+
+    check('evidence access and audit writes', async () => {
+      const list = await getJson('/api/documents?includeMedia=false&page=1&limit=1');
+      const documents = extractArray(list.body, ['data', 'documents']);
+      const documentId = documents[0]?.id;
+      if (list.status !== 200 || !documentId)
+        throw new Error('No public evidence document is available');
+      const { status, body } = await getJson(
+        `/api/evidence/${encodeURIComponent(String(documentId))}`,
+      );
+      if (status !== 200 || String(body.id) !== String(documentId))
+        throw new Error(`evidence status=${status}`);
+      return 'source detail is accessible with production audit logging';
+    }),
+
     check('basic health', async () => {
       const { status, body } = await getJson('/api/health');
       if (status !== 200 || body.status !== 'ok') {

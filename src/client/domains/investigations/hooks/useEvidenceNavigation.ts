@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { Location } from 'react-router-dom';
 import { investigationActions } from '../investigations.actions';
+import { getSelectedCaseEvidenceId } from '@client/features/investigation/investigationRouteUtils';
 import type {
   InvestigationCaseEvidenceItemDto,
   InvestigationEvidenceByTypeResponseDto,
@@ -8,6 +9,7 @@ import type {
 
 interface UseEvidenceNavigationArgs {
   selectedInvestigationId: string | null;
+  selectedInvestigationUuid?: string | null;
   location: Location;
   activeTab: string;
   navigateToTab: (tab: string) => void;
@@ -21,6 +23,7 @@ interface UseEvidenceNavigationArgs {
 
 export const useEvidenceNavigation = ({
   selectedInvestigationId,
+  selectedInvestigationUuid,
   location,
   activeTab,
   navigateToTab,
@@ -28,20 +31,12 @@ export const useEvidenceNavigation = ({
   openEvidence,
   addToast,
 }: UseEvidenceNavigationArgs) => {
-  const pathMatch =
-    location.pathname.match(/^\/investigate\/case\/([^/]+)\/evidence\/([^/?#]+)/) ||
-    location.pathname.match(/^\/investigations\/([^/]+)\/evidence\/([^/?#]+)/);
-  const queryEvidenceId = new URLSearchParams(location.search).get('evidenceId');
-
-  const routeInvestigationId = pathMatch?.[1] || selectedInvestigationId;
-  const routeEvidenceId = pathMatch?.[2] || queryEvidenceId;
-
-  const deepLinkedEvidenceId =
-    selectedInvestigationId &&
-    routeEvidenceId &&
-    String(routeInvestigationId) === String(selectedInvestigationId)
-      ? String(routeEvidenceId)
-      : null;
+  const deepLinkedEvidenceId = getSelectedCaseEvidenceId(
+    location.pathname,
+    location.search,
+    selectedInvestigationId,
+    selectedInvestigationUuid,
+  );
 
   useEffect(() => {
     if (!deepLinkedEvidenceId) return;
@@ -51,7 +46,7 @@ export const useEvidenceNavigation = ({
 
       try {
         const payload = await loadCaseFolder();
-        const match = investigationActions.resolveDeepLinkedItem(payload, routeEvidenceId);
+        const match = investigationActions.resolveDeepLinkedItem(payload, deepLinkedEvidenceId);
         if (match) {
           await openEvidence(match, null);
         } else {
@@ -70,15 +65,7 @@ export const useEvidenceNavigation = ({
     };
 
     void openEvidenceFromRoute();
-  }, [
-    activeTab,
-    addToast,
-    deepLinkedEvidenceId,
-    loadCaseFolder,
-    navigateToTab,
-    openEvidence,
-    routeEvidenceId,
-  ]);
+  }, [activeTab, addToast, deepLinkedEvidenceId, loadCaseFolder, navigateToTab, openEvidence]);
 
   return { deepLinkedEvidenceId };
 };

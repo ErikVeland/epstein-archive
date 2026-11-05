@@ -24,6 +24,8 @@ interface RevisionToken {
 export class DatasetRevisionManager {
   private cachedToken: RevisionToken | null = null;
   private cacheExpiry: number = 0;
+  private pendingRefresh: Promise<RevisionToken> | null = null;
+  private generation = 0;
   private readonly CACHE_TTL = 5000; // 5s cache to avoid DB hits
 
   constructor(_db?: unknown) {}
@@ -39,17 +41,27 @@ export class DatasetRevisionManager {
       return this.cachedToken;
     }
 
-    const components = await this.getRevisionComponents();
-    const token = this.computeToken(components);
+    if (this.pendingRefresh) return this.pendingRefresh;
 
-    this.cachedToken = {
-      token,
-      components,
-      generatedAt: new Date().toISOString(),
-    };
-    this.cacheExpiry = now + this.CACHE_TTL;
-
-    return this.cachedToken;
+    const generation = this.generation;
+    const refresh = this.getRevisionComponents().then((components) => {
+      const revision = {
+        token: this.computeToken(components),
+        components,
+        generatedAt: new Date().toISOString(),
+      };
+      if (this.generation === generation) {
+        this.cachedToken = revision;
+        this.cacheExpiry = Date.now() + this.CACHE_TTL;
+      }
+      return revision;
+    });
+    this.pendingRefresh = refresh;
+    try {
+      return await refresh;
+    } finally {
+      if (this.pendingRefresh === refresh) this.pendingRefresh = null;
+    }
   }
 
   /**
@@ -118,6 +130,8 @@ export class DatasetRevisionManager {
    * Invalidate cache (force recomputation on next call)
    */
   invalidate(): void {
+    this.generation += 1;
+    this.pendingRefresh = null;
     this.cachedToken = null;
     this.cacheExpiry = 0;
   }

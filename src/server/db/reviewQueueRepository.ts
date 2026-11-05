@@ -53,20 +53,20 @@ export const reviewQueueRepository = {
     }));
   },
 
-  async verifyMention(id: number, verifiedBy: string = 'system') {
-    await reviewQueries.verifyMention.run({ id: String(id), verifiedBy }, getApiPool());
+  async verifyMention(id: string, verifiedBy: string = 'system') {
+    await reviewQueries.verifyMention.run({ id, verifiedBy }, getApiPool());
     return { success: true };
   },
 
-  async rejectMention(id: number, reason: string, verifiedBy: string = 'system') {
-    await reviewQueries.rejectMention.run({ id: String(id), reason, verifiedBy }, getApiPool());
+  async rejectMention(id: string, reason: string, verifiedBy: string = 'system') {
+    await reviewQueries.rejectMention.run({ id, reason, verifiedBy }, getApiPool());
     return { success: true };
   },
 
   async getClaimsQueue(limit: number = 50) {
     const rows = await reviewQueries.getClaimsQueue.run({ limit }, getApiPool());
     return rows.map((r) => ({
-      id: r.id,
+      id: Number(r.id),
       subject_entity_id: r.subjectEntityId,
       subject_entity_name: (r as unknown as Record<string, unknown>).subjectEntityName ?? null,
       predicate: r.predicate,
@@ -93,13 +93,12 @@ export const reviewQueueRepository = {
     userId: string,
     notes?: string,
   ) {
-    const numericId = Number(id);
-    if (Number.isNaN(numericId)) return false;
+    if (!id.trim()) return false;
 
     if (status === 'reviewed') {
-      await reviewQueueRepository.verifyMention(numericId, userId);
+      await reviewQueueRepository.verifyMention(id, userId);
     } else {
-      await reviewQueueRepository.rejectMention(numericId, notes || '', userId);
+      await reviewQueueRepository.rejectMention(id, notes || '', userId);
     }
 
     return true;

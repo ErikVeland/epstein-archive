@@ -43,7 +43,7 @@ export function useEntityModalUrlSync(params: {
   );
 
   const { data: urlEntityData } = useQuery<EntityDetailDto | null>({
-    queryKey: ['urlEntity', urlEntityId],
+    queryKey: ['entity', String(urlEntityId)],
     queryFn: async () => {
       if (!urlEntityId) return null;
       return apiClient.getEntity(String(urlEntityId));

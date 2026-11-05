@@ -8,8 +8,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const tsconfigPath = path.join(rootDir, 'tsconfig.json');
 const testPatterns = [
-  'src/test/**/*.test.ts',
-  'tests/unit/**/*.test.ts',
+  'src/test/**/*.test.{ts,tsx}',
+  'tests/unit/**/*.test.{ts,tsx}',
   'tests/query-count.test.ts',
 ];
 

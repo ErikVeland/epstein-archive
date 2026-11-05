@@ -2,7 +2,7 @@ import { getApiPool } from '../db/connection.js';
 import { createHash } from 'crypto';
 import { logger } from '../services/Logger.js';
 
-type AuditLogMode = 'modern' | 'legacy_user' | 'legacy_operation' | 'none';
+type AuditLogMode = 'modern' | 'canonical' | 'legacy_user' | 'legacy_operation' | 'none';
 let auditLogModeCache: AuditLogMode | null = null;
 
 type AuditV2Mode = 'present' | 'absent';
@@ -158,12 +158,13 @@ const detectAuditLogMode = async (): Promise<AuditLogMode> => {
 
     if (
       columns.has('actor_id') &&
-      columns.has('actor_type') &&
       columns.has('action') &&
       columns.has('target_type') &&
-      columns.has('target_id')
+      columns.has('target_id') &&
+      columns.has('payload_json') &&
+      columns.has('ip_address')
     ) {
-      auditLogModeCache = 'modern';
+      auditLogModeCache = columns.has('actor_type') ? 'modern' : 'canonical';
       return auditLogModeCache;
     }
 
@@ -252,6 +253,19 @@ export const logAudit = async (
   }
 
   try {
+    if (mode === 'canonical') {
+      await pool.query(
+        `
+          INSERT INTO audit_log (
+            actor_id, action, target_type, target_id, payload_json, ip_address
+          )
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `,
+        [actorId, action, objectType, objectId, payloadWithRequestId, ip || null],
+      );
+      return;
+    }
+
     if (mode === 'modern') {
       await pool.query(
         `

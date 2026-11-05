@@ -16,6 +16,7 @@ import { promisify } from 'util';
 import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 import { getDbMetaPayload } from '../services/dbMetaService.js';
 import { withTimeoutReject } from '../utils/asyncTimeout.js';
+import { getHeapStatistics } from 'node:v8';
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
@@ -268,18 +269,22 @@ router.get('/health/deep', async (_req, res) => {
     // 6. Memory check
     const memUsage = process.memoryUsage();
     const heapUsedMB = Math.round(memUsage.heapUsed / 1024 / 1024);
-    const heapTotalMB = Math.round(memUsage.heapTotal / 1024 / 1024);
-    const heapPercentage = Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100);
-    if (heapPercentage > 90) {
+    const heapLimit = getHeapStatistics().heap_size_limit;
+    const heapLimitMB = Math.round(heapLimit / 1024 / 1024);
+    const heapPercentage = Math.round((memUsage.heapUsed / heapLimit) * 100);
+    const rssMB = Math.round(memUsage.rss / 1024 / 1024);
+    const rssLimitMB = Math.max(1, Number(process.env.MEMORY_RSS_LIMIT_MB) || 1500);
+    const memoryMessage = `Heap: ${heapUsedMB}MB / ${heapLimitMB}MB (${heapPercentage}% of limit). RSS: ${rssMB}MB / ${rssLimitMB}MB.`;
+    if (heapPercentage > 90 || rssMB > rssLimitMB * 0.9) {
       checks.memory = {
         status: 'warn',
-        message: `High memory usage: ${heapUsedMB}MB / ${heapTotalMB}MB (${heapPercentage}%)`,
+        message: memoryMessage,
       };
       if (overallStatus === 'healthy') overallStatus = 'degraded';
     } else {
       checks.memory = {
         status: 'pass',
-        message: `${heapUsedMB}MB / ${heapTotalMB}MB (${heapPercentage}%)`,
+        message: memoryMessage,
       };
     }
 
@@ -331,6 +336,12 @@ router.get('/health/deep', async (_req, res) => {
       message: `Health check crashed: ${e instanceof Error ? e.message : String(e)}`,
     };
     overallStatus = 'critical';
+  }
+
+  if (Object.values(checks).some((check) => check.status === 'fail')) {
+    overallStatus = 'critical';
+  } else if (Object.values(checks).some((check) => check.status === 'warn')) {
+    overallStatus = 'degraded';
   }
 
   const totalDuration = Date.now() - startTime;

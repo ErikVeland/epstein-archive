@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const mentionQueueItemSchema = z.object({
-  id: z.number(),
+  id: z.string().min(1),
   entity_name: z.string(),
   document_id: z.union([z.number(), z.string()]).transform(Number),
   file_name: z.string(),

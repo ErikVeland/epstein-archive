@@ -11,7 +11,9 @@ export interface BackupInfo {
 }
 
 export class BackupService {
-  private static BACKUP_DIR = path.join(process.cwd(), 'backups');
+  private static get BACKUP_DIR(): string {
+    return process.env.POSTGRES_BACKUP_DIR || path.join(process.cwd(), 'backups');
+  }
 
   private static ensureBackupDir() {
     if (!fs.existsSync(this.BACKUP_DIR)) {
@@ -25,6 +27,7 @@ export class BackupService {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const snapshotPath = path.join(this.BACKUP_DIR, `snapshot-${timestamp}.dump`);
     const zipPath = path.join(this.BACKUP_DIR, `backup-${timestamp}.zip`);
+    const partialPath = `${zipPath}.partial`;
 
     logger.info(`[BackupService] Starting Postgres backup to ${snapshotPath}...`);
 
@@ -33,7 +36,8 @@ export class BackupService {
 
       logger.info(`[BackupService] Snapshot created. Compressing to ${zipPath}...`);
 
-      await this.compressFile(snapshotPath, zipPath);
+      await this.compressFile(snapshotPath, partialPath);
+      fs.renameSync(partialPath, zipPath);
 
       if (fs.existsSync(snapshotPath)) {
         fs.unlinkSync(snapshotPath);
@@ -46,6 +50,7 @@ export class BackupService {
     } catch (error) {
       logger.error({ err: error }, '[BackupService] Backup failed');
       if (fs.existsSync(snapshotPath)) fs.unlinkSync(snapshotPath);
+      if (fs.existsSync(partialPath)) fs.unlinkSync(partialPath);
       throw error;
     }
   }
@@ -55,15 +60,18 @@ export class BackupService {
 
     return fs
       .readdirSync(this.BACKUP_DIR)
-      .filter((file) => file.endsWith('.zip'))
+      .filter((file) => file.startsWith('backup-') && file.endsWith('.zip'))
       .map((file) => {
         const stats = fs.statSync(path.join(this.BACKUP_DIR, file));
         return {
           filename: file,
           size: stats.size,
           createdAt: stats.mtime.toISOString(),
+          isFile: stats.isFile(),
         };
       })
+      .filter((backup) => backup.isFile && backup.size > 0)
+      .map(({ filename, size, createdAt }) => ({ filename, size, createdAt }))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
@@ -73,6 +81,7 @@ export class BackupService {
       const archive = archiver('zip', { zlib: { level: 9 } });
 
       output.on('close', () => resolve());
+      output.on('error', reject);
       archive.on('error', (err) => reject(err));
 
       archive.pipe(output);

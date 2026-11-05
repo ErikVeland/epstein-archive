@@ -453,7 +453,11 @@ class ApiClient {
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new Event('auth:logout'));
           }
-          throw new Error('Unauthorized: Session expired');
+          throw new ApiResponseError('Unauthorized: Session expired', {
+            status: 401,
+            code: 'UNAUTHORIZED',
+            url,
+          });
         }
       }
 

@@ -31,9 +31,8 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: useProductionBaseUrl
-      ? 'https://epstein.academy'
-      : process.env.PW_BASE_URL || localBaseUrl,
+    baseURL:
+      process.env.PW_BASE_URL || (useProductionBaseUrl ? 'https://epstein.academy' : localBaseUrl),
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',

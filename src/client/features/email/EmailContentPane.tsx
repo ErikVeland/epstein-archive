@@ -150,9 +150,22 @@ export const EmailContentPane: React.FC<EmailContentPaneProps> = ({
                               </Button>
                             </div>
                             <div className={styles.mimeContent}>
-                              {body?.loading
-                                ? 'Loading...'
-                                : body?.data?.cleanedText || 'No body content.'}
+                              {body?.loading ? (
+                                'Loading...'
+                              ) : body?.error ? (
+                                <div role="alert">
+                                  {body.error}
+                                  <Button
+                                    onClick={() => onToggleMessage(message.messageId, true)}
+                                    variant="secondary"
+                                    size="sm"
+                                  >
+                                    Try again
+                                  </Button>
+                                </div>
+                              ) : (
+                                body?.data?.cleanedText || 'No body content.'
+                              )}
                             </div>
                           </div>
                         )}
@@ -280,6 +293,19 @@ export const EmailContentPane: React.FC<EmailContentPaneProps> = ({
 
                           <div className={styles.messageActionRow}>
                             <Button
+                              onClick={() =>
+                                navigate(`/documents/${message.messageId}`, {
+                                  state: backLinkState,
+                                })
+                              }
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className={styles.messageActionButton}
+                            >
+                              Evidence
+                            </Button>
+                            <Button
                               onClick={() => void copyText(citation)}
                               type="button"
                               variant="ghost"
@@ -334,7 +360,16 @@ export const EmailContentPane: React.FC<EmailContentPaneProps> = ({
                                 </span>
                               </div>
                             ) : body?.error ? (
-                              <div className={styles.bodyError}>{body.error}</div>
+                              <div role="alert" className={styles.bodyError}>
+                                {body.error}
+                                <Button
+                                  onClick={() => onToggleMessage(message.messageId, true)}
+                                  variant="secondary"
+                                  size="sm"
+                                >
+                                  Try again
+                                </Button>
+                              </div>
                             ) : body?.showRaw ? (
                               <pre className={styles.rawPre}>
                                 {body.raw || 'No raw content available.'}

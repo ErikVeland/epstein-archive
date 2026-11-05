@@ -83,6 +83,10 @@ Copy `.env.deploy.example` to `.env.deploy.local` and configure the connection s
 
 Every deployment requires a new version and matching release notes. Extracted media requires a separate verified release bundle.
 
+Run `pnpm backup:pg` to create a PostgreSQL backup. The service keeps the seven most recent completed archives. Set `POSTGRES_BACKUP_DIR` to an absolute shared directory in production so staged builds can verify backup health.
+
+Live API contract checks require `PW_ADMIN_TOKEN` for administrator-only endpoints. Keep the token outside Git and use a short expiry.
+
 ## Use
 
 This project is for research and educational use. Source references and review states accompany evidence so researchers can assess its reliability.

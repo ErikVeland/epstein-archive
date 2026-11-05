@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import type { AuthRequest } from '../auth/middleware.js';
 import { cacheService } from '../cache/cacheService.js';
 import { getRevisionTokenAsync } from '../revisionManager.js';
 import { withTimeoutFallback } from '../utils/asyncTimeout.js';
@@ -33,14 +34,20 @@ function stableStringify(obj: unknown): string {
 
 export const cacheResponse = (ttlSeconds: number) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    if (req.method !== 'GET') {
+    if (
+      req.method !== 'GET' ||
+      req.headers.authorization ||
+      req.headers.cookie ||
+      (req as AuthRequest).user
+    ) {
       return next();
     }
 
     const revision = await withTimeoutFallback(getRevisionTokenAsync(), 'no-rev', {
       timeoutMs: 250,
     }).catch(() => 'no-rev');
-    const cacheKey = `${revision}:${req.method}:${req.path}:${stableStringify(req.query)}`;
+    const pathname = req.originalUrl.split('?')[0];
+    const cacheKey = `${revision}:${req.method}:${pathname}:${stableStringify(req.query)}`;
     const cachedData = apiCache.get<string>(cacheKey);
 
     if (cachedData) {

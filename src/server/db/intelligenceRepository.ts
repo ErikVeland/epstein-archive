@@ -205,7 +205,7 @@ export const intelligenceRepository = {
         [QUEUE_LIMIT],
       );
       return result.rows.map((r) => ({
-        documentId: r.document_id,
+        documentId: Number(r.document_id),
         fileName: r.file_name,
         avgOcrConfidence: r.avg_ocr_confidence !== null ? Number(r.avg_ocr_confidence) : null,
         ocrFlagCount: Number(r.ocr_flag_count),
@@ -251,7 +251,7 @@ export const intelligenceRepository = {
         [QUEUE_LIMIT],
       );
       return result.rows.map((r) => ({
-        entityId: r.entity_id,
+        entityId: Number(r.entity_id),
         entityName: r.entity_name,
         aliasName: r.alias_name,
         similarityScore: r.similarity_score !== null ? Number(r.similarity_score) : null,
@@ -298,7 +298,7 @@ export const intelligenceRepository = {
         [QUEUE_LIMIT],
       );
       return result.rows.map((r) => ({
-        entityId: r.entity_id,
+        entityId: Number(r.entity_id),
         entityName: r.entity_name,
         riskLevel: r.risk_level,
         evidenceCount: Number(r.evidence_count),

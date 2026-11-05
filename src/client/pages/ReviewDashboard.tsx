@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '@client/components/common/Icon';
-import { apiClient } from '@client/services/apiClient';
+import { apiClient, ApiResponseError } from '@client/services/apiClient';
 import { useToasts } from '@client/components/common/useToasts';
 import {
   Surface,
@@ -18,30 +18,10 @@ import {
 } from '@client/design-system/lib';
 import type { SpaceValue } from '@client/design-system/lib/resolveSpace';
 import styles from './ReviewDashboard.module.css';
-
-interface MentionQueueItem {
-  id: number;
-  entity_name: string;
-  document_id: number;
-  file_name: string;
-  mention_context: string;
-  confidence_score: number;
-  signal_score: number;
-}
-
-interface ClaimQueueItem {
-  id: number;
-  subject_entity_id: number;
-  subject_entity_name: string | null;
-  predicate: string;
-  object_text: string;
-  confidence: number;
-  signal_score: number;
-  file_name: string;
-}
+import type { MentionQueueItem, ClaimQueueItem } from '@shared/schemas/reviewQueueSchema';
 
 interface RejectState {
-  id: number;
+  id: string | number;
   type: 'mentions' | 'claims';
   reason: string;
 }
@@ -52,32 +32,43 @@ export function ReviewDashboard() {
   const [mentions, setMentions] = useState<MentionQueueItem[]>([]);
   const [claims, setClaims] = useState<ClaimQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [queueError, setQueueError] = useState<'access' | 'request' | null>(null);
+  const queueRequest = useRef(0);
   const [rejectState, setRejectState] = useState<RejectState | null>(null);
   const [isRejecting, setIsRejecting] = useState(false);
 
   const fetchQueue = useCallback(async () => {
+    const requestId = ++queueRequest.current;
     setLoading(true);
+    setQueueError(null);
     try {
       if (activeTab === 'mentions') {
         const json = await apiClient.get<MentionQueueItem[]>('/review/mentions/queue?limit=50');
+        if (requestId !== queueRequest.current) return;
         setMentions(Array.isArray(json) ? json : []);
       } else {
         const json = await apiClient.get<ClaimQueueItem[]>('/review/claims/queue?limit=50');
+        if (requestId !== queueRequest.current) return;
         setClaims(Array.isArray(json) ? json : []);
       }
     } catch (e) {
-      addToast({ text: 'Failed to load review queue', type: 'error' });
-      console.error(e);
+      if (requestId !== queueRequest.current) return;
+      const accessDenied = e instanceof ApiResponseError && (e.status === 401 || e.status === 403);
+      setQueueError(accessDenied ? 'access' : 'request');
+      if (!accessDenied) addToast({ text: 'Failed to load review queue', type: 'error' });
     } finally {
-      setLoading(false);
+      if (requestId === queueRequest.current) setLoading(false);
     }
   }, [activeTab, addToast]);
 
   useEffect(() => {
-    fetchQueue();
+    void fetchQueue();
+    return () => {
+      queueRequest.current += 1;
+    };
   }, [fetchQueue]);
 
-  const verifyItem = async (id: number, type: 'mentions' | 'claims') => {
+  const verifyItem = async (id: string | number, type: 'mentions' | 'claims') => {
     try {
       await apiClient.post(`/review/${type}/${id}/verify`, {});
       if (type === 'mentions') setMentions((p) => p.filter((x) => x.id !== id));
@@ -89,7 +80,7 @@ export function ReviewDashboard() {
     }
   };
 
-  const openRejectDialog = (id: number, type: 'mentions' | 'claims') => {
+  const openRejectDialog = (id: string | number, type: 'mentions' | 'claims') => {
     setRejectState({ id, type, reason: '' });
   };
 
@@ -115,8 +106,10 @@ export function ReviewDashboard() {
     }
   };
 
-  const confidenceClassName = (value: number) =>
-    value > 0.8 ? styles.scorePillHigh : styles.scorePillMedium;
+  const confidenceClassName = (value: number | null) =>
+    value != null && value > 0.8 ? styles.scorePillHigh : styles.scorePillMedium;
+  const scoreLabel = (value: number | null) =>
+    value == null ? 'Unknown' : `${(value * 100).toFixed(0)}%`;
 
   return (
     <Box className={`app-backdrop ${styles.page}`}>
@@ -160,6 +153,18 @@ export function ReviewDashboard() {
         <Surface variant="glass" className={styles.surfaceShell}>
           {loading ? (
             <Box className={styles.loadingState}>Loading queue...</Box>
+          ) : queueError ? (
+            <Box role="alert" p="lg">
+              <LqText as="p" variant="body">
+                {queueError === 'access'
+                  ? 'Sign in with an administrator account to view this queue.'
+                  : 'Unable to load the review queue.'}
+              </LqText>
+              {queueError === 'access' && <Link to="/login">Sign in</Link>}
+              <Button variant="secondary" onClick={() => void fetchQueue()}>
+                Try again
+              </Button>
+            </Box>
           ) : (
             <Flex direction="column" className={styles.queueList}>
               {activeTab === 'mentions' &&
@@ -172,10 +177,10 @@ export function ReviewDashboard() {
                         <span
                           className={`${styles.scorePill} ${confidenceClassName(item.confidence_score)}`}
                         >
-                          Conf: {(item.confidence_score * 100).toFixed(0)}%
+                          Conf: {scoreLabel(item.confidence_score)}
                         </span>
                         <span className={styles.signalPill}>
-                          Signal: {(item.signal_score * 100).toFixed(0)}
+                          Signal: {scoreLabel(item.signal_score)}
                         </span>
                       </Flex>
                       <LqText as="p" variant="body" color="primary" className={styles.quoteBlock}>
@@ -219,7 +224,7 @@ export function ReviewDashboard() {
                         <span
                           className={`${styles.scorePill} ${confidenceClassName(item.confidence)}`}
                         >
-                          Conf: {(item.confidence * 100).toFixed(0)}%
+                          Conf: {scoreLabel(item.confidence)}
                         </span>
                       </Flex>
                       <LqText
@@ -232,7 +237,7 @@ export function ReviewDashboard() {
                           {item.subject_entity_name ?? `Entity #${item.subject_entity_id}`}
                         </span>{' '}
                         <span className={styles.claimPredicate}>
-                          {item.predicate.toLowerCase().replace(/_/g, ' ')}
+                          {(item.predicate || 'Unknown relation').toLowerCase().replace(/_/g, ' ')}
                         </span>{' '}
                         <span className={styles.claimObject}>{item.object_text}</span>
                       </LqText>
@@ -275,7 +280,7 @@ export function ReviewDashboard() {
                     Queue is Empty
                   </LqText>
                   <LqText as="p" variant="body" color="muted" className={styles.emptyBody}>
-                    All pending items for this queue have been verified or rejected. Great work.
+                    No pending items remain in this queue.
                   </LqText>
                 </Flex>
               )}

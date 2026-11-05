@@ -37,7 +37,10 @@ import {
 } from '@client/domains/investigations';
 import type { InvestigationCaseEvidenceItemDto } from '@shared/dto/investigations';
 import { PerformanceMonitor } from '@client/utils/performanceMonitor';
-import { getCaseFolderEvidenceReturnPath } from './investigationRouteUtils';
+import {
+  getCanonicalInvestigationPath,
+  getCaseFolderEvidenceReturnPath,
+} from './investigationRouteUtils';
 import { trackInvestigationEvent } from '@client/utils/investigationTelemetry';
 
 // UI Library
@@ -338,7 +341,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         const { investigation, raw: inv } = loaded;
 
         const shareId = inv.uuid || inv.id;
-        const nextPathname = `/investigations/${shareId}`;
+        const nextPathname = getCanonicalInvestigationPath(location.pathname, String(shareId));
         if (location.pathname !== nextPathname) {
           navigate(`${nextPathname}${location.search}`, { replace: true });
         }
@@ -628,6 +631,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   const { deepLinkedEvidenceId } = useEvidenceNavigation({
     selectedInvestigationId: selectedInvestigation ? String(selectedInvestigation.id) : null,
+    selectedInvestigationUuid: selectedInvestigation?.uuid,
     location,
     activeTab,
     navigateToTab,

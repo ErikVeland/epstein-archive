@@ -240,10 +240,11 @@ export function useEmailWorkspaceData({
   );
 
   const loadMessageBody = useCallback(
-    async (messageId: string, showQuoted: boolean = false) => {
+    async (messageId: string, showQuoted: boolean = false, retry: boolean = false) => {
       const state = bodyState[messageId];
       if (state?.loading) return;
-      if (state?.data && state.showQuoted === showQuoted) return;
+      if (state?.error && !retry) return;
+      if (state?.data && !state.error && state.showQuoted === showQuoted) return;
 
       setBodyState((prev) => ({
         ...prev,
@@ -305,7 +306,7 @@ export function useEmailWorkspaceData({
       setExpandedMessages((prev) => ({ ...prev, [messageId]: expanded }));
       updateUrlState({ messageId: expanded ? messageId : null });
       if (expanded) {
-        void loadMessageBody(messageId, bodyState[messageId]?.showQuoted || false);
+        void loadMessageBody(messageId, bodyState[messageId]?.showQuoted || false, true);
       }
     },
     [bodyState, loadMessageBody, updateUrlState],
@@ -353,7 +354,7 @@ export function useEmailWorkspaceData({
   const handleToggleQuoted = useCallback(
     (messageId: string) => {
       const showQuoted = !(bodyState[messageId]?.showQuoted || false);
-      void loadMessageBody(messageId, showQuoted);
+      void loadMessageBody(messageId, showQuoted, true);
     },
     [bodyState, loadMessageBody],
   );

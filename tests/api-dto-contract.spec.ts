@@ -91,16 +91,15 @@ async function resolveHighMentionEntityId(request: APIRequestContext): Promise<s
 
 async function resolveEntityWithVerifiedMedia(request: APIRequestContext): Promise<string | null> {
   const response = await request.get(
-    `${API_BASE_URL}/api/entities?limit=50&sortBy=mentions&sortOrder=desc`,
+    `${API_BASE_URL}/api/entities/subjects?page=1&limit=50&sortBy=mentions`,
   );
-  if (!response.ok()) return null;
-  const body = await response.json();
-  const items: Record<string, unknown>[] = Array.isArray(body?.data)
-    ? (body.data as Record<string, unknown>[])
-    : Array.isArray(body)
-      ? (body as Record<string, unknown>[])
-      : [];
-  const match = items.find((item) => Number(item?.verifiedMedia ?? item?.verified_media ?? 0) > 0);
+  expect(response.status()).toBe(200);
+  const body = assertSchema(
+    subjectsListResponseSchema,
+    await response.json(),
+    'verified media subjects',
+  );
+  const match = body.subjects.find((subject) => subject.stats.verifiedMedia > 0);
   return match?.id != null ? String(match.id) : null;
 }
 
@@ -528,46 +527,27 @@ test.describe('API DTO Contracts', () => {
 });
 
 test.describe('Review Queue contract tests', () => {
-  test('GET /review/mentions/queue returns valid mention queue shape', async ({ request }) => {
-    // This endpoint requires admin auth — if unavailable, skip gracefully
-    const res = await request.get(`${API_BASE_URL}/api/review/mentions/queue?limit=10`, {
-      timeout: 15000,
+  for (const [queue, schema] of [
+    ['mentions', mentionsQueueResponseSchema],
+    ['claims', claimsQueueResponseSchema],
+  ] as const) {
+    test(`${queue} queue rejects unauthenticated access`, async ({ request }) => {
+      const response = await request.get(`${API_BASE_URL}/api/review/${queue}/queue?limit=10`);
+      expect(response.status()).toBe(401);
+      expect(await response.json()).toHaveProperty('error');
     });
-    if (res.status() === 401 || res.status() === 403) {
-      expect(
-        true,
-        'Review queue requires admin auth — skipping in unauthenticated context',
-      ).toBeFalsy();
-      return;
-    }
-    if (!res.ok()) {
-      expect(true, `Review mentions queue not available (${res.status()})`).toBeFalsy();
-      return;
-    }
-    const payload = await res.json();
-    assertSchema(mentionsQueueResponseSchema, payload, 'GET /review/mentions/queue');
-  });
 
-  test('GET /review/claims/queue returns valid claims queue shape with entity names', async ({
-    request,
-  }) => {
-    const res = await request.get(`${API_BASE_URL}/api/review/claims/queue?limit=10`, {
-      timeout: 15000,
+    test(`${queue} queue returns its schema for an administrator`, async ({ request }) => {
+      const token = process.env.PW_ADMIN_TOKEN;
+      expect(token, 'PW_ADMIN_TOKEN is required for administrator contract checks').toBeTruthy();
+      const response = await request.get(`${API_BASE_URL}/api/review/${queue}/queue?limit=10`, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 15000,
+      });
+      expect(response.status()).toBe(200);
+      assertSchema<unknown>(schema, await response.json(), `GET /review/${queue}/queue`);
     });
-    if (res.status() === 401 || res.status() === 403) {
-      expect(
-        true,
-        'Review queue requires admin auth — skipping in unauthenticated context',
-      ).toBeFalsy();
-      return;
-    }
-    if (!res.ok()) {
-      expect(true, `Review claims queue not available (${res.status()})`).toBeFalsy();
-      return;
-    }
-    const payload = await res.json();
-    assertSchema(claimsQueueResponseSchema, payload, 'GET /review/claims/queue');
-  });
+  }
 });
 
 test.describe('Intelligence dashboard contract tests', () => {

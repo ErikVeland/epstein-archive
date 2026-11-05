@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import type { Location } from 'react-router-dom';
 import ScopedErrorBoundary from '../components/common/ScopedErrorBoundary';
 import LoadingIndicator from '../components/common/LoadingIndicator';
@@ -43,6 +43,7 @@ import {
 import { LoginPage } from '../pages/LoginPage';
 import { Box } from '../design-system/lib';
 import styles from '../App.module.css';
+import { getCanonicalInvestigationPath } from '../features/investigation/investigationRouteUtils';
 
 export type DataStats = {
   totalPeople: number;
@@ -223,6 +224,16 @@ export const AppRoutes: React.FC<AppRoutesProps> = (props) => {
           >
             <ReviewDashboard />
           </Suspense>
+        }
+      />
+      <Route
+        path="/investigate/case/:id/evidence/:evidenceId"
+        element={
+          <Navigate
+            to={`${getCanonicalInvestigationPath(props.location.pathname, props.location.pathname.split('/')[3])}${props.location.search}`}
+            state={props.location.state}
+            replace
+          />
         }
       />
       <Route
