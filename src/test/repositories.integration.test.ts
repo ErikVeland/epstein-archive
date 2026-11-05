@@ -1,5 +1,8 @@
 import 'dotenv/config';
 import { randomUUID } from 'node:crypto';
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import request from 'supertest';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { analyticsRepository } from '../server/db/analyticsRepository.js';
@@ -214,6 +217,29 @@ describe('repository integration tests', () => {
       assertSchema(degradedResultShape, result, 'high-risk transactions fallback');
     });
   });
+
+  it('serves authenticated correlations against the migrated schema', async () => {
+    const secret = 'synthetic-correlation-regression-key';
+    vi.stubEnv('JWT_SECRET', secret);
+    try {
+      const { default: routes } = await import('../server/routes/analytics.js');
+      const app = express().use('/api/analytics', routes);
+      const token = jwt.sign({ id: 'synthetic-investigator', role: 'investigator' }, secret, {
+        expiresIn: '1m',
+      });
+      const response = await request(app)
+        .get('/api/analytics/correlations')
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+        dataSources: expect.arrayContaining([expect.objectContaining({ id: 'documents' })]),
+        correlations: expect.any(Array),
+        rules: expect.any(Array),
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  }, 30_000);
 
   describe('statsRepository + withSafeStatsContract', () => {
     it('getStatistics resolves and withSafeStatsContract produces valid shape', async () => {

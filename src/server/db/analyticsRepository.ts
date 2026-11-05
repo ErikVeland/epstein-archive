@@ -74,9 +74,8 @@ export interface RiskDistributionRow {
 
 export interface TopEntitySummaryRow {
   id: number | string;
-  canonicalId?: number | string | null;
-  fullName?: string | null;
-  name?: string | null;
+  canonicalId: number | string | null;
+  fullName: string | null;
 }
 
 export interface AnalyticsTotalsRow {
@@ -173,11 +172,11 @@ export const analyticsRepository = {
 
   getTopEntityByMentions: async (): Promise<TopEntitySummaryRow | null> => {
     const result = await getApiPool().query<TopEntitySummaryRow>(`
-      SELECT e.id, e.canonical_id AS "canonicalId", e.full_name AS "fullName", e.name
+      SELECT e.id, e.canonical_id AS "canonicalId", e.full_name AS "fullName"
       FROM entities e
       JOIN entity_mentions em ON e.id = em.entity_id
-      GROUP BY e.id, e.canonical_id, e.full_name, e.name
-      ORDER BY COUNT(*) DESC
+      GROUP BY e.id
+      ORDER BY COUNT(*) DESC, e.id ASC
       LIMIT 1
     `);
     return result.rows[0] ?? null;

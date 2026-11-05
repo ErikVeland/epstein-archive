@@ -1,5 +1,12 @@
 # Release Notes
 
+## 22.8.10 - 2026-11-05 - Restore authenticated correlations
+
+### Fixes
+
+- Read the entity name from the current PostgreSQL schema.
+- Test the authenticated correlation endpoint against a migrated database.
+
 ## 22.8.9 - 2026-11-05 - Run all repository integration tests
 
 ### Reliability

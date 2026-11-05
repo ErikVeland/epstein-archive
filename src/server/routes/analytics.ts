@@ -249,7 +249,7 @@ router.get('/correlations', authenticateRequest, async (_req, res, next) => {
 
     if (topEntity) {
       const topEntityId = topEntity.canonicalId || topEntity.id;
-      const topEntityName = topEntity.fullName || topEntity.name || String(topEntityId);
+      const topEntityName = topEntity.fullName || String(topEntityId);
 
       // 3. Relationships Correlations
       const relationshipRows =
