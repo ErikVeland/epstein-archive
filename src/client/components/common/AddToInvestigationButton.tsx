@@ -59,6 +59,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
     investigations: contextInvestigations,
     addToInvestigation,
     createInvestigation,
+    loadInvestigations,
     selectedInvestigation,
   } = useInvestigations();
   const [showModal, setShowModal] = useState(false);
@@ -78,15 +79,26 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   const canEditInvestigations =
     isAuthenticated && (user?.role === 'admin' || user?.role === 'investigator');
 
-  const openPicker = (event: React.SyntheticEvent) => {
+  const openPicker = async (event: React.SyntheticEvent) => {
     maybeStopPropagation(event);
     if (!canEditInvestigations) {
       const returnTo = `${location.pathname}${location.search}`;
       navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
       return;
     }
-    if (!hasInvestigations) setIsCreatingNew(true);
-    setShowModal(true);
+    setIsLoading(true);
+    try {
+      const choices = propInvestigations ?? (await loadInvestigations());
+      setIsCreatingNew(choices.length === 0);
+      setSelectedInvestigationId(
+        defaultInvestigationId ?? selectedInvestigation?.id ?? choices[0]?.id ?? '',
+      );
+      setShowModal(true);
+    } catch {
+      showToast('Could not load cases. Try again.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Set default investigation
@@ -157,19 +169,22 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       navigate(`/login?returnTo=${encodeURIComponent(returnTo)}`);
       return;
     }
-    if (!selectedInvestigationId) {
-      if (!hasInvestigations) setIsCreatingNew(true);
-      setShowModal(true);
-      return;
-    }
-
     setIsLoading(true);
 
     try {
+      const choices = selectedInvestigationId
+        ? investigations
+        : (propInvestigations ?? (await loadInvestigations()));
+      const targetId = selectedInvestigationId || selectedInvestigation?.id || choices[0]?.id;
+      if (!targetId) {
+        setIsCreatingNew(true);
+        setShowModal(true);
+        return;
+      }
       if (addToInvestigation) {
-        await addToInvestigation(selectedInvestigationId, item, 'medium');
+        await addToInvestigation(targetId, item, 'medium');
       } else if (onAddToInvestigation) {
-        onAddToInvestigation(selectedInvestigationId, item, 'medium');
+        onAddToInvestigation(targetId, item, 'medium');
       }
       showToast('Added to investigation!', 'success');
     } catch (error) {
@@ -215,25 +230,27 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       {variant === 'button' && (
         <Button
           type="button"
-          onClick={openPicker}
+          onClick={(event) => {
+            void openPicker(event);
+          }}
+          disabled={isLoading}
           variant="primary"
           size={size}
           className={`${s.triggerButton} ${className}`}
           title={canEditInvestigations ? 'Add to investigation' : 'Sign in to add to a case'}
         >
           <Icon name="Plus" size="sm" />
-          {canEditInvestigations
-            ? hasInvestigations
-              ? 'Add to case'
-              : 'Create case and add'
-            : 'Sign in to add'}
+          {canEditInvestigations ? 'Add to case' : 'Sign in to add'}
         </Button>
       )}
 
       {variant === 'icon' && (
         <Button
           type="button"
-          onClick={openPicker}
+          onClick={(event) => {
+            void openPicker(event);
+          }}
+          disabled={isLoading}
           iconOnly
           variant="ghost"
           size="sm"
@@ -249,7 +266,10 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
         <div className={s.dropdownWrapper}>
           <Button
             type="button"
-            onClick={openPicker}
+            onClick={(event) => {
+              void openPicker(event);
+            }}
+            disabled={isLoading}
             variant="ghost"
             size={size}
             className={`${s.triggerDropdown} ${className}`}

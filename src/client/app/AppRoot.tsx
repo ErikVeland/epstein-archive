@@ -174,7 +174,7 @@ function AppRootContent() {
     setShowDateRangePicker(false);
   }, [isMobile]);
 
-  const { isInitializing, dataStats, loadingProgress } = useAppBootstrap({ apiEnabled });
+  const { dataStats } = useAppBootstrap({ apiEnabled, pathname: location.pathname });
 
   const { analyticsData, analyticsLoading, analyticsError, refetchAnalytics } = useAnalyticsQuery({
     apiEnabled,
@@ -275,9 +275,7 @@ function AppRootContent() {
         setFilters={setFilters}
         showDateRangePicker={showDateRangePicker}
         setShowDateRangePicker={setShowDateRangePicker}
-        isInitializing={isInitializing}
         analyticsLoading={analyticsLoading}
-        loadingProgress={loadingProgress}
       >
         <AppRoutes
           apiStatus={apiStatus}

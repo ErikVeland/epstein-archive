@@ -120,7 +120,6 @@ export const ModalHost: React.FC<ModalHostProps> = (props) => {
             props.setShowCreateEntityModal(false);
             void props.queryClient.invalidateQueries({ queryKey: ['entities'] });
             void props.queryClient.invalidateQueries({ queryKey: ['globalStats'] });
-            void props.queryClient.invalidateQueries({ queryKey: ['initDataService'] });
           }}
         />
       )}

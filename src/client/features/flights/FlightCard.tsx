@@ -5,6 +5,7 @@ import { Surface, Flex, Box, LqText, cn } from '@client/design-system/lib';
 import { CardActionSheet } from '@client/components/common/CardActionSheet';
 import { useLongPress } from '@client/hooks/useLongPress';
 import { useInvestigations } from '@client/contexts/InvestigationsContext';
+import { useToasts } from '@client/components/common/useToasts';
 import type { Flight } from './types';
 import styles from './FlightCard.module.css';
 import { assessFlightInterest } from './flightInterest';
@@ -16,7 +17,8 @@ interface FlightCardProps {
 
 export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) => {
   const navigate = useNavigate();
-  const { addToInvestigation, selectedInvestigation, investigations } = useInvestigations();
+  const { addToInvestigation, selectedInvestigation, loadInvestigations } = useInvestigations();
+  const { addToast } = useToasts();
   const [menuOpen, setMenuOpen] = useState(false);
   const interest = assessFlightInterest(flight);
 
@@ -32,8 +34,12 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
   };
 
   const handleQuickAdd = async () => {
-    const targetId = selectedInvestigation?.id ?? investigations[0]?.id;
-    if (!targetId) return;
+    const targetId = selectedInvestigation?.id ?? (await loadInvestigations())[0]?.id;
+    if (!targetId) {
+      addToast({ text: 'Create a case before adding evidence.', type: 'info' });
+      navigate('/investigations');
+      return;
+    }
     await addToInvestigation(
       targetId,
       {
@@ -155,7 +161,9 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, formatDate }) =>
             label: 'Add to Investigation',
             icon: 'Plus',
             onClick: () => {
-              void handleQuickAdd();
+              void handleQuickAdd().catch(() =>
+                addToast({ text: 'Could not add to the case. Try again.', type: 'error' }),
+              );
             },
           },
         ]}

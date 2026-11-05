@@ -54,9 +54,7 @@ export function AppShellLayout(props: {
   setFilters: (next: { timeRange: [string | null, string | null] }) => void;
   showDateRangePicker: boolean;
   setShowDateRangePicker: React.Dispatch<React.SetStateAction<boolean>>;
-  isInitializing: boolean;
   analyticsLoading: boolean;
-  loadingProgress: string;
   children: ReactNode;
 }) {
   const {
@@ -86,9 +84,7 @@ export function AppShellLayout(props: {
     setFilters,
     showDateRangePicker,
     setShowDateRangePicker,
-    isInitializing,
     analyticsLoading,
-    loadingProgress,
     children,
   } = props;
 
@@ -415,10 +411,7 @@ export function AppShellLayout(props: {
       </header>
 
       <div className={cn(styles.contentShell, styles.mainShell)}>
-        <LoadingIndicator
-          isLoading={isInitializing || analyticsLoading}
-          label={isInitializing ? loadingProgress : undefined}
-        />
+        <LoadingIndicator isLoading={analyticsLoading} />
 
         <SegmentedNav
           activeTab={activeTab}

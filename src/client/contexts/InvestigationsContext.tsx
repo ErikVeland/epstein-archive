@@ -2,7 +2,7 @@ import React, {
   createContext,
   useContext,
   useState,
-  useEffect,
+  useRef,
   ReactNode,
   useCallback,
   useMemo,
@@ -23,7 +23,7 @@ interface InvestigationsContextType {
   selectedInvestigation: Investigation | null;
   isLoading: boolean;
   error: string | null;
-  loadInvestigations: () => Promise<void>;
+  loadInvestigations: () => Promise<Investigation[]>;
   selectInvestigation: (id: string) => void;
   createInvestigation: (
     data: Omit<Investigation, 'id' | 'createdAt' | 'updatedAt' | 'team' | 'permissions' | 'tags'>,
@@ -50,29 +50,35 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const loadInvestigations = useCallback(async () => {
+  const pendingLoad = useRef<Promise<Investigation[]> | null>(null);
+
+  const loadInvestigations = useCallback(async (): Promise<Investigation[]> => {
+    if (pendingLoad.current) return pendingLoad.current;
     if (apiStatus === 'down') {
-      setIsLoading(false);
-      setError(
-        isDev
-          ? 'API not available. Start the backend with "pnpm server" (default http://localhost:3012/api).'
-          : 'Service temporarily unavailable. Please try again shortly.',
-      );
-      return;
+      const message = isDev
+        ? 'API not available. Start the backend with "pnpm server" (default http://localhost:3012/api).'
+        : 'Service temporarily unavailable. Please try again shortly.';
+      setError(message);
+      throw new Error(message);
     }
     setIsLoading(true);
     setError(null);
-    try {
-      const payload = await apiClient.getInvestigations();
-      const mapped: Investigation[] = payload.data.map(mapApiInvestigation);
-      setInvestigations(mapped);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load investigations';
-      setError(errorMessage);
-      console.error('Error loading investigations:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    const request = (async () => {
+      try {
+        const payload = await apiClient.getInvestigations();
+        const mapped = payload.data.map(mapApiInvestigation);
+        setInvestigations(mapped);
+        return mapped;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load investigations');
+        throw err;
+      } finally {
+        pendingLoad.current = null;
+        setIsLoading(false);
+      }
+    })();
+    pendingLoad.current = request;
+    return request;
   }, [apiStatus, isDev]);
 
   const selectInvestigation = useCallback(
@@ -100,7 +106,6 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
           scope: data.hypothesis,
         });
         if (!inv) throw new Error('The server did not return the new case.');
-        await loadInvestigations(); // Refresh the list
 
         const newInvestigation: Investigation = {
           id: String(inv.id),
@@ -136,6 +141,10 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
           priority: 'medium',
         };
 
+        setInvestigations((current) => [
+          newInvestigation,
+          ...current.filter((item) => item.id !== newInvestigation.id),
+        ]);
         return newInvestigation;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to create investigation';
@@ -146,7 +155,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
         setIsLoading(false);
       }
     },
-    [loadInvestigations, user],
+    [user],
   );
 
   const addToInvestigation = useCallback(
@@ -189,10 +198,6 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
     },
     [user],
   );
-
-  useEffect(() => {
-    loadInvestigations();
-  }, [loadInvestigations]);
 
   const contextValue = useMemo(
     () => ({

@@ -19,6 +19,7 @@ import { useIsTouch } from '@client/hooks/useIsTouch';
 import { useBackLinkState } from '@client/hooks/useReliableBackNavigation';
 import { useLongPress } from '@client/hooks/useLongPress';
 import { useInvestigations } from '@client/contexts/InvestigationsContext';
+import { useToasts } from '@client/components/common/useToasts';
 import styles from './SubjectCardV2.module.css';
 
 interface SubjectCardV2Props {
@@ -31,7 +32,8 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
   const navigate = useNavigate();
   const backLinkState = useBackLinkState();
   const isTouch = useIsTouch();
-  const { addToInvestigation, selectedInvestigation, investigations } = useInvestigations();
+  const { addToInvestigation, selectedInvestigation, loadInvestigations } = useInvestigations();
+  const { addToast } = useToasts();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const {
@@ -70,8 +72,12 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
   };
 
   const handleQuickAddToInvestigation = async () => {
-    const targetId = selectedInvestigation?.id ?? investigations[0]?.id;
-    if (!targetId) return;
+    const targetId = selectedInvestigation?.id ?? (await loadInvestigations())[0]?.id;
+    if (!targetId) {
+      addToast({ text: 'Create a case before adding evidence.', type: 'info' });
+      navigate('/investigations');
+      return;
+    }
     await addToInvestigation(
       targetId,
       {
@@ -262,7 +268,9 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
             label: 'Add to Investigation',
             icon: 'Plus',
             onClick: () => {
-              void handleQuickAddToInvestigation();
+              void handleQuickAddToInvestigation().catch(() =>
+                addToast({ text: 'Could not add to the case. Try again.', type: 'error' }),
+              );
             },
           },
         ]}

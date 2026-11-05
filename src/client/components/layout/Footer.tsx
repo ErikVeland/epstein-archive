@@ -25,19 +25,12 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
     queryKey: ['footer-health'],
     queryFn: async (): Promise<SystemStatus> => {
       try {
-        const [health, stats] = await Promise.all([
-          apiClient.readinessCheck(),
-          apiClient.getStats(),
-        ]);
+        const health = await apiClient.readinessCheck();
 
         const dbOk = health.checks?.db?.ok === true;
-        const statsEntities = Number(stats.totalEntities || 0);
-        const statsDocuments = Number(stats.totalDocuments || 0);
-        const entities = Number(health.checks?.data?.entities ?? statsEntities);
-        const documents = Number(health.checks?.data?.documents ?? statsDocuments);
-
-        const hasMinimumData =
-          entities > 0 && documents > 0 && statsEntities > 0 && statsDocuments > 0;
+        const entities = Number(health.checks?.data?.entities ?? 0);
+        const documents = Number(health.checks?.data?.documents ?? 0);
+        const hasMinimumData = entities > 0 && documents > 0;
 
         if (health.status === 'ok' && dbOk && hasMinimumData) {
           return { status: 'operational' };

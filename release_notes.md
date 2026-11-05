@@ -1,5 +1,21 @@
 # Release Notes
 
+## 22.8.8 - 2026-11-05 - Remove unused page preload work
+
+### Performance
+
+- Remove the unused people-page preload from application startup.
+- Request people counters only on the People route.
+- Use readiness counts for footer health without loading archive statistics.
+- Load investigation choices when a case action needs them.
+- Share concurrent case-list requests.
+
+### Reliability
+
+- Keep case-load errors separate from an empty case list.
+- Use loaded choices for case pickers and quick-add actions.
+- Add route ownership, concurrent request, and retry regression tests.
+
 ## 22.8.7 - 2026-11-05 - Share public statistics calculations
 
 ### Performance
