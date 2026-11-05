@@ -173,8 +173,12 @@ export const intelligenceRepository = {
       const pool = getApiPool();
       const result = await pool.query(`
         SELECT 
-          (SELECT COUNT(*) FROM documents d WHERE NOT EXISTS (SELECT 1 FROM entity_mentions em WHERE em.document_id = d.id)) +
-          (SELECT COUNT(*) FROM (SELECT 1 FROM entity_mentions GROUP BY document_id HAVING COUNT(*) = 1) sub)
+          (SELECT COUNT(*) FROM documents) -
+          (SELECT COUNT(*) FROM (
+            SELECT em.document_id FROM entity_mentions em
+            JOIN documents d ON d.id = em.document_id
+            GROUP BY em.document_id HAVING COUNT(*) > 1
+          ) documented)
         AS cnt
       `);
       return Number(result.rows[0]?.cnt ?? 0);
@@ -217,11 +221,13 @@ export const intelligenceRepository = {
     return safeCount('countLowOcrDocs', async () => {
       const pool = getApiPool();
       const result = await pool.query(`
-        SELECT COUNT(DISTINCT d.id) AS cnt
-        FROM documents d
-        JOIN document_ocr_results ocr ON ocr.document_id = d.id
-        GROUP BY d.id
-        HAVING AVG(ocr.confidence_score) < 0.6 OR COUNT(CASE WHEN ocr.quality_flag IS NOT NULL THEN 1 END) > 0
+        SELECT COUNT(*) AS cnt FROM (
+          SELECT d.id
+          FROM documents d
+          JOIN document_ocr_results ocr ON ocr.document_id = d.id
+          GROUP BY d.id
+          HAVING AVG(ocr.confidence_score) < 0.6 OR COUNT(CASE WHEN ocr.quality_flag IS NOT NULL THEN 1 END) > 0
+        ) flagged_documents
       `);
       return Number(result.rows[0]?.cnt ?? 0);
     });
@@ -276,53 +282,65 @@ export const intelligenceRepository = {
    * High-risk entities with thin supporting evidence — the most important targets
    * to review when evidence coverage is weak.
    */
-  async getThinHighRiskEntities(): Promise<ThinHighRiskEntity[]> {
-    return safeQuery('thinHighRiskEntities', async () => {
-      const pool = getApiPool();
-      const result = await pool.query(
-        `
-        SELECT
-          e.id AS entity_id,
-          e.full_name AS entity_name,
-          e.risk_level,
-          COUNT(DISTINCT em.id) AS evidence_count,
-          COUNT(DISTINCT em.document_id) AS document_count
+  async getThinHighRiskSummary(): Promise<{ items: ThinHighRiskEntity[]; total: number }> {
+    const result = await getApiPool().query<{
+      total: string;
+      items: Array<{
+        entity_id: string | number;
+        entity_name: string;
+        risk_level: string;
+        evidence_count: string | number;
+        document_count: string | number;
+      }>;
+    }>(
+      `
+      WITH thin_entities AS MATERIALIZED (
+        SELECT e.id, e.full_name, e.risk_level
         FROM entities e
-        LEFT JOIN entity_mentions em ON em.entity_id = e.id
         WHERE e.risk_level = 'HIGH'
-        GROUP BY e.id, e.full_name, e.risk_level
-        HAVING COUNT(DISTINCT em.document_id) < 3
-        ORDER BY COUNT(DISTINCT em.id) ASC, e.id ASC
+          AND (
+            SELECT COUNT(*) FROM (
+              SELECT DISTINCT em.document_id
+              FROM entity_mentions em
+              WHERE em.entity_id = e.id AND em.document_id IS NOT NULL
+              LIMIT 3
+            ) document_probe
+          ) < 3
+      ), queue AS (
+        SELECT e.id AS entity_id, e.full_name AS entity_name, e.risk_level,
+          counts.evidence_count, counts.document_count
+        FROM thin_entities e
+        CROSS JOIN LATERAL (
+          SELECT COUNT(*) AS evidence_count, COUNT(DISTINCT em.document_id) AS document_count
+          FROM entity_mentions em WHERE em.entity_id = e.id
+        ) counts
+        ORDER BY counts.evidence_count ASC, e.id ASC
         LIMIT $1
-        `,
-        [QUEUE_LIMIT],
-      );
-      return result.rows.map((r) => ({
-        entityId: Number(r.entity_id),
-        entityName: r.entity_name,
-        riskLevel: r.risk_level,
-        evidenceCount: Number(r.evidence_count),
-        documentCount: Number(r.document_count),
-      }));
-    });
+      )
+      SELECT (SELECT COUNT(*) FROM thin_entities) AS total,
+        COALESCE((SELECT jsonb_agg(to_jsonb(queue) ORDER BY evidence_count, entity_id) FROM queue), '[]'::jsonb) AS items
+    `,
+      [QUEUE_LIMIT],
+    );
+    const summary = result.rows[0];
+    return {
+      total: Number(summary?.total ?? 0),
+      items: (summary?.items ?? []).map((row) => ({
+        entityId: Number(row.entity_id),
+        entityName: row.entity_name,
+        riskLevel: row.risk_level,
+        evidenceCount: Number(row.evidence_count),
+        documentCount: Number(row.document_count),
+      })),
+    };
+  },
+
+  async getThinHighRiskEntities(): Promise<ThinHighRiskEntity[]> {
+    return (await intelligenceRepository.getThinHighRiskSummary()).items;
   },
 
   async countThinHighRiskEntities(): Promise<number> {
-    return safeCount('countThinHighRiskEntities', async () => {
-      const pool = getApiPool();
-      const result = await pool.query(`
-        SELECT COUNT(*) AS cnt
-        FROM (
-          SELECT e.id
-          FROM entities e
-          LEFT JOIN entity_mentions em ON em.entity_id = e.id
-          WHERE e.risk_level = 'HIGH'
-          GROUP BY e.id
-          HAVING COUNT(DISTINCT em.document_id) < 3
-        ) sub
-      `);
-      return Number(result.rows[0]?.cnt ?? 0);
-    });
+    return (await intelligenceRepository.getThinHighRiskSummary()).total;
   },
 
   /**
@@ -488,49 +506,77 @@ export const intelligenceRepository = {
    * Aggregate all queues and their total counts in a single call.
    */
   async getFullReview(): Promise<IntelligenceReviewQueues> {
-    const [
-      weakProvenanceDocs,
-      lowOcrDocs,
-      fuzzyEntityAliases,
-      thinHighRiskEntities,
-      unlinkedClaims,
-      reviewableFinancialItems,
-      weakProvenanceCount,
-      lowOcrCount,
-      fuzzyAliasCount,
-      thinHighRiskCount,
-      unlinkedClaimCount,
-      reviewableFinancialCount,
-    ] = await Promise.all([
-      intelligenceRepository.getWeakProvenanceDocs(),
-      intelligenceRepository.getLowOcrDocs(),
-      intelligenceRepository.getFuzzyEntityAliases(),
-      intelligenceRepository.getThinHighRiskEntities(),
-      intelligenceRepository.getUnlinkedClaims(),
-      intelligenceRepository.getReviewableFinancialItems(),
-      intelligenceRepository.countWeakProvenanceDocs(),
-      intelligenceRepository.countLowOcrDocs(),
-      intelligenceRepository.countFuzzyEntityAliases(),
-      intelligenceRepository.countThinHighRiskEntities(),
-      intelligenceRepository.countUnlinkedClaims(),
-      intelligenceRepository.countReviewableFinancialItems(),
-    ]);
-
-    return {
-      weakProvenanceDocs,
-      lowOcrDocs,
-      fuzzyEntityAliases,
-      thinHighRiskEntities,
-      unlinkedClaims,
-      reviewableFinancialItems,
+    const result: IntelligenceReviewQueues = {
+      weakProvenanceDocs: [],
+      lowOcrDocs: [],
+      fuzzyEntityAliases: [],
+      thinHighRiskEntities: [],
+      unlinkedClaims: [],
+      reviewableFinancialItems: [],
       counts: {
-        weakProvenanceDocs: weakProvenanceCount,
-        lowOcrDocs: lowOcrCount,
-        fuzzyEntityAliases: fuzzyAliasCount,
-        thinHighRiskEntities: thinHighRiskCount,
-        unlinkedClaims: unlinkedClaimCount,
-        reviewableFinancialItems: reviewableFinancialCount,
+        weakProvenanceDocs: 0,
+        lowOcrDocs: 0,
+        fuzzyEntityAliases: 0,
+        thinHighRiskEntities: 0,
+        unlinkedClaims: 0,
+        reviewableFinancialItems: 0,
       },
     };
+    const tasks = [
+      async () => {
+        result.weakProvenanceDocs = await intelligenceRepository.getWeakProvenanceDocs();
+      },
+      async () => {
+        result.lowOcrDocs = await intelligenceRepository.getLowOcrDocs();
+      },
+      async () => {
+        result.fuzzyEntityAliases = await intelligenceRepository.getFuzzyEntityAliases();
+      },
+      async () => {
+        const summary = await intelligenceRepository.getThinHighRiskSummary();
+        result.thinHighRiskEntities = summary.items;
+        result.counts.thinHighRiskEntities = summary.total;
+      },
+      async () => {
+        result.unlinkedClaims = await intelligenceRepository.getUnlinkedClaims();
+      },
+      async () => {
+        result.reviewableFinancialItems =
+          await intelligenceRepository.getReviewableFinancialItems();
+      },
+      async () => {
+        result.counts.weakProvenanceDocs = await intelligenceRepository.countWeakProvenanceDocs();
+      },
+      async () => {
+        result.counts.lowOcrDocs = await intelligenceRepository.countLowOcrDocs();
+      },
+      async () => {
+        result.counts.fuzzyEntityAliases = await intelligenceRepository.countFuzzyEntityAliases();
+      },
+      async () => {
+        result.counts.unlinkedClaims = await intelligenceRepository.countUnlinkedClaims();
+      },
+      async () => {
+        result.counts.reviewableFinancialItems =
+          await intelligenceRepository.countReviewableFinancialItems();
+      },
+    ];
+    let next = 0;
+    let failed = false;
+    let failure: unknown;
+    await Promise.all(
+      Array.from({ length: 4 }, async () => {
+        while (!failed && next < tasks.length) {
+          try {
+            await tasks[next++]();
+          } catch (error) {
+            if (!failed) failure = error;
+            failed = true;
+          }
+        }
+      }),
+    );
+    if (failed) throw failure;
+    return result;
   },
 };

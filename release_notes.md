@@ -1,5 +1,23 @@
 # Release Notes
 
+## 22.8.6 - 2026-11-05 - Bound cold dashboard database work
+
+### Performance
+
+- Limit intelligence dashboard calculations to four concurrent queries.
+- Qualify thin-evidence entities with a three-document index probe and share the preview and exact total.
+- Count weak-provenance documents without a full correlated anti-join.
+
+### Schema
+
+- Index dataset revision timestamps and the latest recorded ingest run without blocking writes.
+- Record the schema hash after migration 102.
+
+### Fixes
+
+- Count every document that qualifies for the OCR review queue.
+- Add database plan, count, and concurrency regression tests for cold dashboard requests.
+
 ## 22.8.5 - 2026-11-05 - Restore audit writes and production health
 
 ### Fixes
