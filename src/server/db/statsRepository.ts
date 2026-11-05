@@ -2,9 +2,11 @@ import { statsQueries } from '@epstein/db';
 import { execFileSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
-import { getApiPool } from './connection.js';
+import { getApiPool, getMaintenancePool } from './connection.js';
 import { logger } from '../services/Logger.js';
 import type { ArchiveStatusDto } from '../../shared/schemas/stats.js';
+import { cacheService, CacheKeys } from '../cache/cacheService.js';
+import { waitForAll, runConcurrent } from '../utils/asyncWork.js';
 
 interface CollectionCountRow {
   sourceCollection: string | null;
@@ -160,7 +162,7 @@ const getCollectionStatsHelper = async () => {
   try {
     const rows = (await statsQueries.getCollectionCounts.run(
       undefined,
-      getApiPool(),
+      getMaintenancePool(),
     )) as CollectionCountRow[];
 
     return rows
@@ -214,21 +216,27 @@ const getMinimumStatisticsFallback = async () => {
       mentionRows,
       redFlagRows,
       investigationRows,
-    ] = await Promise.all([
-      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM entities'),
-      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM documents'),
-      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM entity_relationships'),
-      pool.query<{ total: string }>(
-        'SELECT COALESCE(SUM(COALESCE(mentions, 0)), 0)::text AS total FROM entities',
-      ),
-      pool.query<{ rating: string; count: string }>(
-        `SELECT COALESCE(red_flag_rating, 0)::text AS rating, COUNT(*)::text AS count
+    ] = await runConcurrent(
+      [
+        () => pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM entities'),
+        () => pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM documents'),
+        () =>
+          pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM entity_relationships'),
+        () =>
+          pool.query<{ total: string }>(
+            'SELECT COALESCE(SUM(COALESCE(mentions, 0)), 0)::text AS total FROM entities',
+          ),
+        () =>
+          pool.query<{ rating: string; count: string }>(
+            `SELECT COALESCE(red_flag_rating, 0)::text AS rating, COUNT(*)::text AS count
            FROM entities
            GROUP BY COALESCE(red_flag_rating, 0)
            ORDER BY COALESCE(red_flag_rating, 0)`,
-      ),
-      pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM investigations'),
-    ]);
+          ),
+        () => pool.query<{ count: string }>('SELECT COUNT(*)::text AS count FROM investigations'),
+      ],
+      3,
+    );
 
     const redFlagDistribution = redFlagRows.rows.map((row) => ({
       rating: Number(row.rating || 0),
@@ -304,7 +312,21 @@ const getMinimumStatisticsFallback = async () => {
 };
 
 export const statsRepository = {
-  getMinimumStatistics: getMinimumStatisticsFallback,
+  getMinimumStatistics: () =>
+    cacheService.getOrCompute(
+      'query',
+      `${CacheKeys.statistics()}:minimum`,
+      getMinimumStatisticsFallback,
+      5,
+    ),
+
+  getCachedPipelineProgress: async (): Promise<Record<string, unknown>> =>
+    cacheService.getOrCompute(
+      'query',
+      `${CacheKeys.statistics()}:pipeline`,
+      () => statsRepository.getPipelineProgress(),
+      15,
+    ),
 
   getStatistics: async () => {
     let pipelineProgress,
@@ -325,24 +347,26 @@ export const statsRepository = {
         collectionCountsRows,
         activeInvestigationsRows,
         topEntitiesRows,
-      ] = await Promise.all([
-        statsRepository.getPipelineProgress(),
-        statsQueries.getGlobalStats.run(undefined, getApiPool()),
-        getApiPool().query<{ count: string }>(
-          'SELECT COUNT(*)::text AS count FROM entity_relationships',
-        ),
-        statsQueries.getTopRoles.run({ limit: 10 }, getApiPool()),
-        statsQueries.getRedFlagDistribution.run(undefined, getApiPool()),
-        statsQueries.getCollectionCounts.run(undefined, getApiPool()),
-        statsQueries.getActiveInvestigationsCount.run(undefined, getApiPool()),
-        (async () => {
-          // topEntities CTE is heavy — run in a transaction with an extended local timeout
-          const client = await getApiPool().connect();
-          try {
-            await client.query('BEGIN');
-            await client.query("SET LOCAL statement_timeout = '60000ms'");
-            const result = await client.query(
-              `
+      ] = await runConcurrent(
+        [
+          () => statsRepository.getCachedPipelineProgress(),
+          () => statsQueries.getGlobalStats.run(undefined, getMaintenancePool()),
+          () =>
+            getMaintenancePool().query<{ count: string }>(
+              'SELECT COUNT(*)::text AS count FROM entity_relationships',
+            ),
+          () => statsQueries.getTopRoles.run({ limit: 10 }, getMaintenancePool()),
+          () => statsQueries.getRedFlagDistribution.run(undefined, getMaintenancePool()),
+          () => statsQueries.getCollectionCounts.run(undefined, getMaintenancePool()),
+          () => statsQueries.getActiveInvestigationsCount.run(undefined, getMaintenancePool()),
+          async () => {
+            // Bound the people preview transaction to sixty seconds.
+            const client = await getMaintenancePool().connect();
+            try {
+              await client.query('BEGIN');
+              await client.query("SET LOCAL statement_timeout = '60000ms'");
+              const result = await client.query(
+                `
             WITH candidates AS (
               SELECT id, full_name, mentions, red_flag_rating, primary_role
               FROM entities
@@ -391,20 +415,22 @@ export const statsRepository = {
             ORDER BY mentions DESC, "redFlagRating" DESC, name ASC
             LIMIT 30
             `,
-            );
-            await client.query('ROLLBACK');
-            return result.rows;
-          } catch (err) {
-            await client.query('ROLLBACK').catch(() => {});
-            throw err;
-          } finally {
-            client.release();
-          }
-        })(),
-      ]);
+              );
+              await client.query('ROLLBACK');
+              return result.rows;
+            } catch (err) {
+              await client.query('ROLLBACK').catch(() => {});
+              throw err;
+            } finally {
+              client.release();
+            }
+          },
+        ],
+        2,
+      );
     } catch (e) {
       logger.error({ err: e }, 'Failed to fetch core statistics — returning minimum safe payload');
-      return getMinimumStatisticsFallback();
+      return statsRepository.getMinimumStatistics();
     }
     const totalRelationships = Number(totalRelationshipsRes.rows[0]?.count || 0);
 
@@ -489,7 +515,7 @@ export const statsRepository = {
 
     const resultsMap = new Map<string, number>();
     try {
-      const countsRes = await getApiPool().query(
+      const countsRes = await getMaintenancePool().query(
         'SELECT source_collection, COUNT(*) as count FROM documents WHERE source_collection = ANY($1) GROUP BY source_collection',
         [datasets.map((d) => d.name)],
       );
@@ -521,7 +547,7 @@ export const statsRepository = {
     const remaining = Math.max(0, totalTarget - totalIngested);
 
     // Media Progress Stats
-    const mediaStatsRes = await getApiPool().query(
+    const mediaStatsRes = await getMaintenancePool().query(
       'SELECT count(*) as total, count(*) filter (where has_text is not null) as processed FROM media_items',
     );
     const media = {
@@ -534,11 +560,11 @@ export const statsRepository = {
     };
 
     // Current Run Control Signal
-    const currentRunRes = await getApiPool().query(
+    const currentRunRes = await getMaintenancePool().query(
       "SELECT id, status, control_signal FROM pipeline_runs WHERE status IN ('running', 'paused') ORDER BY started_at DESC LIMIT 1",
     );
     const currentRun = currentRunRes.rows[0] || null;
-    const stageRows = await getApiPool()
+    const stageRows = await getMaintenancePool()
       .query<{
         stage_name: string;
         status: string;
@@ -565,7 +591,7 @@ export const statsRepository = {
       return acc;
     }, {});
 
-    const artifactRows = await getApiPool()
+    const artifactRows = await getMaintenancePool()
       .query<{ total: string; reviewed: string }>(
         `
         SELECT
@@ -583,7 +609,7 @@ export const statsRepository = {
     try {
       const recentProcessedRows = await statsQueries.getRecentProcessedCount.run(
         { seconds: 300 },
-        getApiPool(),
+        getMaintenancePool(),
       );
       const recentProcessedCount = Number(recentProcessedRows[0]?.count || 0);
 
@@ -594,7 +620,10 @@ export const statsRepository = {
       logger.warn({ detail: e }, 'Failed to calculate dynamic throughput');
     }
 
-    const activeWorkersRows = await statsQueries.getActiveWorkersCount.run(undefined, getApiPool());
+    const activeWorkersRows = await statsQueries.getActiveWorkersCount.run(
+      undefined,
+      getMaintenancePool(),
+    );
     const activeWorkers = Number(activeWorkersRows[0]?.count || 0);
 
     if (throughput_docs_sec === 0 && activeWorkers > 0) {
@@ -803,7 +832,7 @@ export const statsRepository = {
 
   getArchiveStatus: async (): Promise<ArchiveStatusDto> => {
     const pool = getApiPool();
-    const [{ rows: ingestRows }, { rows: countRows }] = await Promise.all([
+    const [{ rows: ingestRows }, { rows: countRows }] = await waitForAll([
       pool.query<{ last_ingested_at: Date | string | null }>(
         `
         SELECT MAX(COALESCE(finished_at, created_at)) AS last_ingested_at

@@ -8,6 +8,7 @@
 
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
+import { runConcurrent } from '../utils/asyncWork.js';
 
 const QUEUE_LIMIT = 50;
 
@@ -561,22 +562,7 @@ export const intelligenceRepository = {
           await intelligenceRepository.countReviewableFinancialItems();
       },
     ];
-    let next = 0;
-    let failed = false;
-    let failure: unknown;
-    await Promise.all(
-      Array.from({ length: 4 }, async () => {
-        while (!failed && next < tasks.length) {
-          try {
-            await tasks[next++]();
-          } catch (error) {
-            if (!failed) failure = error;
-            failed = true;
-          }
-        }
-      }),
-    );
-    if (failed) throw failure;
+    await runConcurrent(tasks, 4);
     return result;
   },
 };

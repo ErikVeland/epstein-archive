@@ -17,6 +17,7 @@ import { mapStatsDto, RawStatsRow } from '../mappers/statsDtoMapper.js';
 import { getDbMetaPayload } from '../services/dbMetaService.js';
 import { withTimeoutReject } from '../utils/asyncTimeout.js';
 import { getHeapStatistics } from 'node:v8';
+import { cacheService, CacheKeys } from '../cache/cacheService.js';
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
@@ -42,7 +43,13 @@ router.get('/', cacheMiddleware(300), async (_req, res, next) => {
     let stats: RawStatsRow;
     try {
       stats = await withTimeoutReject(
-        statsRepository.getStatistics() as unknown as Promise<RawStatsRow>,
+        cacheService.getOrCompute(
+          'query',
+          CacheKeys.statistics(),
+          () => statsRepository.getStatistics() as unknown as Promise<RawStatsRow>,
+          300,
+          (value) => !mapStatsDto(value)._meta?.degraded,
+        ),
         {
           timeoutMs: STATS_TIMEOUT_MS,
           timeoutMessage: 'Aggregate statistics query timed out',
@@ -63,34 +70,10 @@ router.get('/', cacheMiddleware(300), async (_req, res, next) => {
   }
 });
 
-const PIPELINE_STATUS_CACHE_MS = 15_000;
-let pipelineStatusCache: { expiresAt: number; value: unknown } | null = null;
-let pipelineStatusInFlight: Promise<unknown> | null = null;
-
-const getCachedPipelineProgress = async (): Promise<unknown> => {
-  const now = Date.now();
-  if (pipelineStatusCache && pipelineStatusCache.expiresAt > now) {
-    return pipelineStatusCache.value;
-  }
-  if (!pipelineStatusInFlight) {
-    pipelineStatusInFlight = statsRepository
-      .getPipelineProgress()
-      .then((value) => {
-        pipelineStatusCache = { value, expiresAt: Date.now() + PIPELINE_STATUS_CACHE_MS };
-        return value;
-      })
-      .finally(() => {
-        pipelineStatusInFlight = null;
-      });
-  }
-  return pipelineStatusInFlight;
-};
-
-// Pipeline database aggregates are coalesced so every viewer does not start
-// another archive-wide count while the worker is using the ingest pool.
+// Share archive-wide progress without consuming interactive query connections.
 router.get('/pipeline', async (_req, res, next) => {
   try {
-    const progress = await getCachedPipelineProgress();
+    const progress = await statsRepository.getCachedPipelineProgress();
     res.json(progress);
   } catch (e) {
     next(e);

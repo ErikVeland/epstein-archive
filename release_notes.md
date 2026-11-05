@@ -1,5 +1,21 @@
 # Release Notes
 
+## 22.8.7 - 2026-11-05 - Share public statistics calculations
+
+### Performance
+
+- Share public statistics calculations across page loads and retain complete results after a response deadline.
+- Share short-lived minimum totals while a full calculation is pending.
+- Reuse pipeline progress calculations across the statistics endpoints.
+- Run archive-wide statistics in the maintenance pool.
+- Limit background statistics to two concurrent tasks.
+
+### Reliability
+
+- Keep degraded statistics out of the normal cache.
+- Wait for active aggregate queries before releasing a failed calculation for retry.
+- Add concurrent-viewer, late-result, and failure regression tests.
+
 ## 22.8.6 - 2026-11-05 - Bound cold dashboard database work
 
 ### Performance

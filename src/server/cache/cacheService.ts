@@ -93,6 +93,7 @@ export class CacheService {
     key: string,
     compute: () => Promise<T>,
     ttlSeconds?: number,
+    shouldCache?: (value: T) => boolean,
   ): Promise<T> {
     const cached = this.get<T>(namespace, key);
     if (cached !== undefined) return cached;
@@ -105,7 +106,7 @@ export class CacheService {
     this.inFlight.set(fullKey, { promise: promise as Promise<unknown>, startedAt: Date.now() });
     try {
       const value = await promise;
-      this.set(namespace, key, value, ttlSeconds);
+      if (!shouldCache || shouldCache(value)) this.set(namespace, key, value, ttlSeconds);
       return value;
     } finally {
       this.inFlight.delete(fullKey);
