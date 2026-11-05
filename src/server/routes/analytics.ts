@@ -320,8 +320,7 @@ router.get('/correlations', authenticateRequest, async (_req, res, next) => {
           id: 'communication-flight',
           type: 'communication',
           confidence: 75,
-          description:
-            'Cluster of communications referencing flight or logistics activity around a key entity.',
+          description: `Emails linked to ${topEntityName} that mention flights.`,
           sources: ['communication'],
           entities: [topEntityName, ...peers],
           timeRange: { start: 'Unknown', end: 'Unknown' },

@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.8.9 - 2026-11-05 - Run all repository integration tests
+
+### Reliability
+
+- Run all 16 repository integration tests in the standard release gate.
+- Read flight communications from linked email documents in the current schema.
+- Check real query results and test database errors separately.
+
 ## 22.8.8 - 2026-11-05 - Remove unused page preload work
 
 ### Performance

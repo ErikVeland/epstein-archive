@@ -44,6 +44,8 @@ pnpm build:prod
 
 `pnpm check:unused` checks source files and dependencies without a findings baseline. Use `pnpm build:analyze` to generate a bundle report when needed.
 
+Use a migrated PostgreSQL test database for `pnpm test:unit`. This command includes the repository integration tests. Run `pnpm test:integration` to check those repositories separately.
+
 Production builds also require a database for schema and query checks. See [Coding standards](CODING_STANDARDS.md) for release requirements.
 
 ## Structure

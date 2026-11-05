@@ -1,5 +1,7 @@
 import { getApiPool } from './runtime.js';
 import { logger } from '../services/Logger.js';
+import { readEmailParticipants } from './communicationsRepository.js';
+import { normalDocumentEvidenceWhereSql } from './mediaEvidenceScope.js';
 
 /**
  * getTopConnectedPeople reads directly from the mv_top_connected materialized
@@ -234,17 +236,25 @@ export const analyticsRepository = {
     entityId: string | number,
   ): Promise<CommunicationCorrelationRow[] | DegradedResult<CommunicationCorrelationRow>> => {
     try {
-      const result = await getApiPool().query<CommunicationCorrelationRow>(
+      const result = await getApiPool().query<{ metadata_json: Record<string, unknown> | null }>(
         `
-          SELECT "from", "to"
-          FROM communications
-          WHERE (sender_id = $1 OR receiver_ids @> ARRAY[$1]::integer[])
-            AND content ILIKE '%flight%'
+          SELECT d.metadata_json
+          FROM documents d
+          WHERE d.evidence_type = 'email'
+            AND COALESCE(d.is_hidden, 0) = 0
+            AND d.is_sensitive IS NOT TRUE
+            AND d.content ILIKE '%flight%'
+            AND ${normalDocumentEvidenceWhereSql('d')}
+            AND EXISTS (
+              SELECT 1 FROM entity_mentions em
+              WHERE em.entity_id = $1 AND em.document_id = d.id
+            )
+          ORDER BY d.date_created DESC NULLS LAST, d.id DESC
           LIMIT 200
         `,
         [entityId],
       );
-      return result.rows;
+      return result.rows.map((row) => readEmailParticipants(row.metadata_json ?? {}));
     } catch (err) {
       logger.error(
         { err },

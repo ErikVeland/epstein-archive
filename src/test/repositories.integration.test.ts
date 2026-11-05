@@ -1,22 +1,14 @@
-/**
- * Repository integration tests — require a live PostgreSQL database.
- *
- * These tests require a live PostgreSQL database and fail closed when
- * DATABASE_URL is absent. They verify that:
- *
- *   1. Repository functions return the expected data shapes (schema conformance)
- *   2. Functions fixed in Phase 1 (silent-failure removal) now propagate errors
- *      instead of swallowing them
- *   3. The DegradedResult<T> pattern works correctly for optional sub-queries
- */
-
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import 'dotenv/config';
+import { randomUUID } from 'node:crypto';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-
-const describeIntegration = process.env.RUN_INTEGRATION === '1' ? describe : describe.skip;
-
-// ── Schema fixtures ──────────────────────────────────────────────────────────
-// Minimal shapes — enough to catch regressions without over-specifying.
+import { analyticsRepository } from '../server/db/analyticsRepository.js';
+import { blackBookRepository } from '../server/db/blackBookRepository.js';
+import { drainPools, getApiPool } from '../server/db/connection.js';
+import { flightsRepository } from '../server/db/flightsRepository.js';
+import { statsRepository } from '../server/db/statsRepository.js';
+import { timelineRepository } from '../server/db/timelineRepository.js';
+import { withSafeStatsContract } from '../server/utils/stats.js';
 
 const flightShape = z.object({
   id: z.number(),
@@ -42,8 +34,6 @@ const degradedResultShape = z.object({
   degraded: z.literal(true),
 });
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 function assertSchema<T>(schema: z.ZodSchema<T>, value: unknown, label: string): T {
   const result = schema.safeParse(value);
   if (!result.success) {
@@ -53,31 +43,15 @@ function assertSchema<T>(schema: z.ZodSchema<T>, value: unknown, label: string):
   return result.data;
 }
 
-// ── Suite ────────────────────────────────────────────────────────────────────
-
-describeIntegration('repository integration tests', () => {
-  // Lazy-import repositories only when we actually have a DB connection.
-  // This prevents pool initialization errors during regular unit test runs.
-  let flightsRepository: typeof import('../server/db/flightsRepository.js').flightsRepository;
-  let timelineRepository: typeof import('../server/db/timelineRepository.js').timelineRepository;
-  let blackBookRepository: typeof import('../server/db/blackBookRepository.js').blackBookRepository;
-  let analyticsRepository: typeof import('../server/db/analyticsRepository.js').analyticsRepository;
-  let statsRepository: typeof import('../server/db/statsRepository.js').statsRepository;
-  let withSafeStatsContract: typeof import('../server/utils/stats.js').withSafeStatsContract;
-
-  beforeAll(async () => {
+describe('repository integration tests', () => {
+  beforeAll(() => {
     if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL must be set when RUN_INTEGRATION=1');
+      throw new Error('Set DATABASE_URL to a migrated PostgreSQL test database.');
     }
-    ({ flightsRepository } = await import('../server/db/flightsRepository.js'));
-    ({ timelineRepository } = await import('../server/db/timelineRepository.js'));
-    ({ blackBookRepository } = await import('../server/db/blackBookRepository.js'));
-    ({ analyticsRepository } = await import('../server/db/analyticsRepository.js'));
-    ({ statsRepository } = await import('../server/db/statsRepository.js'));
-    ({ withSafeStatsContract } = await import('../server/utils/stats.js'));
   });
 
-  // ── Flights ───────────────────────────────────────────────────────────────
+  afterEach(() => vi.restoreAllMocks());
+  afterAll(() => drainPools());
 
   describe('flightsRepository', () => {
     it('getFlights returns { flights, total } shape', async () => {
@@ -105,7 +79,7 @@ describeIntegration('repository integration tests', () => {
       expect(result).toBeNull();
     });
 
-    it('getAirportCoords returns an array', async () => {
+    it('getAirportCoords returns airport coordinates by code', async () => {
       const result = await flightsRepository.getAirportCoords();
       expect(result).toBeTypeOf('object');
       expect(Object.keys(result).length).toBeGreaterThan(0);
@@ -127,8 +101,6 @@ describeIntegration('repository integration tests', () => {
       }
     });
   });
-
-  // ── Timeline ─────────────────────────────────────────────────────────────
 
   describe('timelineRepository', () => {
     it('getTimelineEvents returns an array', async () => {
@@ -155,24 +127,11 @@ describeIntegration('repository integration tests', () => {
       expect(result).toBeNull();
     });
 
-    it('throws on real DB errors (no silent swallow)', async () => {
-      // Simulate a DB error by temporarily replacing the query function on the pool
-      const { getApiPool } = await import('../server/db/connection.js');
-      const pool = getApiPool();
-      const originalQuery = pool.query.bind(pool);
-      const queryError = new Error('Simulated DB failure');
-
-      // Patch query to throw
-      pool.query = vi.fn().mockRejectedValue(queryError) as typeof pool.query;
-
+    it('propagates query errors', async () => {
+      vi.spyOn(getApiPool(), 'query').mockRejectedValue(new Error('Simulated DB failure'));
       await expect(timelineRepository.getTimelineEvents()).rejects.toThrow('Simulated DB failure');
-
-      // Restore
-      pool.query = originalQuery;
     });
   });
-
-  // ── BlackBook ────────────────────────────────────────────────────────────
 
   describe('blackBookRepository', () => {
     it('getBlackBookEntries returns entries for letter A', async () => {
@@ -192,56 +151,69 @@ describeIntegration('repository integration tests', () => {
       expect(Array.isArray(entries)).toBe(true);
     });
 
-    it('getBlackBookReviewStats throws on DB error (Phase 1 fix)', async () => {
-      const { getApiPool } = await import('../server/db/connection.js');
-      const pool = getApiPool();
-      const originalQuery = pool.query.bind(pool);
-
-      pool.query = vi.fn().mockRejectedValue(new Error('DB error')) as typeof pool.query;
-
+    it('getBlackBookReviewStats propagates query errors', async () => {
+      vi.spyOn(getApiPool(), 'query').mockRejectedValue(new Error('DB error'));
       await expect(blackBookRepository.getBlackBookReviewStats()).rejects.toThrow('DB error');
-
-      pool.query = originalQuery;
     });
   });
 
-  // ── Analytics / DegradedResult ───────────────────────────────────────────
-
   describe('analyticsRepository (DegradedResult pattern)', () => {
-    it('getHighRiskFinancialTransactions returns array or DegradedResult', async () => {
-      const result = await analyticsRepository.getHighRiskFinancialTransactions();
-      if (Array.isArray(result)) {
-        // Happy path — nothing to assert beyond it being an array
-      } else {
-        assertSchema(degradedResultShape, result, 'highRiskTxs degraded result');
-      }
+    it('getHighRiskFinancialTransactions reads the migrated schema', async () => {
+      expect(Array.isArray(await analyticsRepository.getHighRiskFinancialTransactions())).toBe(
+        true,
+      );
     });
 
-    it('getFlightCommunications returns array or DegradedResult', async () => {
-      const result = await analyticsRepository.getFlightCommunications(1);
-      if (Array.isArray(result)) {
-        // Happy path
-      } else {
-        assertSchema(degradedResultShape, result, 'flightComms degraded result');
+    it('returns each visible linked flight email once', async () => {
+      const pool = getApiPool();
+      const suffix = randomUUID();
+      const {
+        rows: [entity],
+      } = await pool.query('INSERT INTO entities (full_name) VALUES ($1) RETURNING id', [
+        `Synthetic ${suffix}`,
+      ]);
+      const documentPaths = ['flight', 'other', 'unlinked', 'hidden', 'sensitive', 'review'].map(
+        (name) => `${suffix}/${name}`,
+      );
+      try {
+        const {
+          rows: [flight, other, , hidden, sensitive, review],
+        } = await pool.query(
+          `INSERT INTO documents (file_name, file_path, evidence_type, content, metadata_json, is_hidden, is_sensitive)
+          VALUES ('flight.txt', $1, 'email', 'Flight details', $7, 0, false),
+                 ('other.txt', $2, 'email', 'Meeting details', '{}', 0, false),
+                 ('unlinked.txt', $3, 'email', 'Flight details', '{}', 0, false),
+                 ('hidden.txt', $4, 'email', 'Flight details', '{}', 1, false),
+                 ('sensitive.txt', $5, 'email', 'Flight details', '{}', 0, true),
+                 ('review.txt', $6, 'email', 'Flight details', '{"evidenceRole":"claim_review"}', 0, false)
+          RETURNING id`,
+          [...documentPaths, { From: 'Synthetic Sender', To: ['Recipient A', 'Recipient B'] }],
+        );
+        const linkedIds = [flight.id, flight.id, other.id, hidden.id, sensitive.id, review.id];
+        await pool.query(
+          `INSERT INTO entity_mentions (id, entity_id, document_id)
+          SELECT mention_id, $1, document_id
+          FROM UNNEST($2::text[], $3::bigint[]) AS links(mention_id, document_id)`,
+          [entity.id, linkedIds.map(() => randomUUID()), linkedIds],
+        );
+
+        expect(await analyticsRepository.getFlightCommunications(entity.id)).toEqual([
+          { from: 'Synthetic Sender', to: ['Recipient A', 'Recipient B'] },
+        ]);
+      } finally {
+        await pool.query('DELETE FROM documents WHERE file_path = ANY($1::text[])', [
+          documentPaths,
+        ]);
+        await pool.query('DELETE FROM entities WHERE id = $1', [entity.id]);
       }
     });
 
     it('getHighRiskFinancialTransactions returns DegradedResult on DB error', async () => {
-      const { getApiPool } = await import('../server/db/connection.js');
-      const pool = getApiPool();
-      const originalQuery = pool.query.bind(pool);
-
-      pool.query = vi.fn().mockRejectedValue(new Error('injected')) as typeof pool.query;
-
+      vi.spyOn(getApiPool(), 'query').mockRejectedValue(new Error('injected'));
       const result = await analyticsRepository.getHighRiskFinancialTransactions();
-      expect(Array.isArray(result)).toBe(false);
-      expect((result as { degraded: boolean }).degraded).toBe(true);
-
-      pool.query = originalQuery;
+      assertSchema(degradedResultShape, result, 'high-risk transactions fallback');
     });
   });
-
-  // ── Stats ────────────────────────────────────────────────────────────────
 
   describe('statsRepository + withSafeStatsContract', () => {
     it('getStatistics resolves and withSafeStatsContract produces valid shape', async () => {

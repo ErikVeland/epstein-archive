@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "22.8.8",
+  "version": "22.8.9",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -103,7 +103,7 @@
     "test:route-sync": "playwright test tests/route-ui-sync.spec.ts --project=chromium --workers=1",
     "test:e2e": "playwright test",
     "test:unit": "vitest run",
-    "test:integration": "RUN_INTEGRATION=1 vitest run src/test/repositories.integration.test.ts",
+    "test:integration": "vitest run src/test/repositories.integration.test.ts",
     "deploy:prod": "./deploy.sh",
     "audit:pg": "bash scripts/run_audit_suite.sh",
     "hygiene:clean": "bash scripts/cleanup_llm_artifacts.sh",

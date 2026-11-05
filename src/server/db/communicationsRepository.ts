@@ -23,6 +23,14 @@ function readString(value: unknown, fallback: string = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+export function readEmailParticipants(metadata: Record<string, unknown>) {
+  return {
+    from:
+      readString(metadata.from) || readString(metadata.From) || readString(metadata.sender) || null,
+    to: normalizeList(metadata.to || metadata.To || metadata.recipients),
+  };
+}
+
 function readOptionalString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
@@ -59,11 +67,7 @@ function mapRowToEmailDTO(row: EmailRow): EmailDTO {
     readString(metadata.Subject) ||
     readString(row.file_name) ||
     'No Subject';
-  const from =
-    readString(metadata.from) ||
-    readString(metadata.From) ||
-    readString(metadata.sender) ||
-    'Unknown Sender';
+  const { from, to } = readEmailParticipants(metadata);
   const threadId =
     readString(metadata.thread_id) || readString(metadata.emailThread) || String(row.id);
   const dateValue =
@@ -80,8 +84,8 @@ function mapRowToEmailDTO(row: EmailRow): EmailDTO {
     message_id: readString(metadata.message_id),
     date: dateValue,
     date_sort: new Date(dateValue).getTime() || 0,
-    from: String(from),
-    to: normalizeList(metadata.to || metadata.To || metadata.recipients),
+    from: from ?? 'Unknown Sender',
+    to,
     cc: normalizeList(metadata.cc || metadata.Cc),
     bcc: normalizeList(metadata.bcc || metadata.Bcc),
     subject: String(subject),
