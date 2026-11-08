@@ -90,11 +90,13 @@
 .infoColumn {
   flex: 1;
   min-width: 0;
+  padding-right: calc(var(--touch-target-min, 44px) + 6rem);
 }
 
 @media (max-width: 767px) {
   .infoColumn {
-    padding-right: var(--touch-target-min, 44px);
+    padding-right: 0;
+    padding-top: var(--space-9, 36px);
   }
 }
 

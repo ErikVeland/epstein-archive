@@ -1,0 +1,21 @@
+.share {
+  position: absolute;
+  top: var(--space-3);
+  right: calc(var(--space-4) + var(--touch-target-min, 44px) + var(--space-2));
+  z-index: var(--z-above);
+}
+.status {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: max-content;
+  max-width: 16rem;
+  color: var(--text-primary);
+  background: var(--bg-dark);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+.status:not(:empty) {
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+}
