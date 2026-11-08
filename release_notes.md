@@ -1,5 +1,17 @@
 # Release Notes
 
+## 22.8.11 - 2026-11-08 - Campaign funding profile links
+
+### User-visible changes
+
+- Add direct PACtrack campaign funding links to confirmed matching congressional profiles.
+- Check both archive identity and name before showing a link, protecting against reassigned or mismatched profile IDs.
+
+### Data and operations
+
+- Keep the archive evidence and campaign funding records separate; cross-links do not imply wrongdoing.
+- Preserve all existing evidence, database records and deployment settings.
+
 ## 22.8.10 - 2026-11-05 - Restore authenticated correlations
 
 ### Fixes
