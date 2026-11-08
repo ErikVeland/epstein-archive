@@ -1568,6 +1568,17 @@ export const AboutPage: React.FC = () => {
         </div>
       </Surface>
 
+      <section className={s.section}>
+        <div className={s.sectionHeader}>
+          <h2 className={s.sectionTitle}>Related projects</h2>
+        </div>
+        <p className={s.bodyText}>
+          <a href="https://pactrack.glasscode.academy/">PACtrack</a> is a volunteer transparency
+          project that tracks disclosed campaign contributions and outside spending by pro-Israel
+          political committees in US congressional elections.
+        </p>
+      </section>
+
       {/* Media Coverage */}
       <section className={s.section}>
         <div className={s.sectionHeader}>
