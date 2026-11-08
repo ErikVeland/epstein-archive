@@ -4,6 +4,7 @@ import { CloseButton } from '../CloseButton';
 import { Tabs, TabItem } from '../Tabs';
 import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceModalHeader.module.css';
+import { pacTrackProfileForEntity } from '@client/utils/pacTrackProfiles';
 import { FlagButton } from '@client/components/common/FlagButton';
 
 import {
@@ -61,6 +62,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
   headerPhoto,
 }) => {
   const [showProfilePopover, setShowProfilePopover] = useState(false);
+  const pacTrackProfile = pacTrackProfileForEntity(entity);
   const headerPhotoId = headerPhoto?.id ? String(headerPhoto.id) : 'header-photo';
   const activeTabDetails = tabs.find((tab) => tab.key === activeTab) ?? tabs[0];
 
@@ -164,6 +166,12 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
       {!loading && entity?.id && (
         <div className={s.actionsArea}>
           <div className={s.quickActions}>
+            {pacTrackProfile && (
+              <a className={s.pacTrackLink} href={pacTrackProfile}>
+                <Icon name="ExternalLink" size="xs" />
+                Campaign funding on PACtrack
+              </a>
+            )}
             <FlagButton
               targetType="entity"
               targetId={String(entity.id)}

@@ -1,0 +1,986 @@
+[
+  {
+    "fecId": "S8NY00082",
+    "candidateName": "Charles E. Schumer",
+    "entityId": "17491",
+    "entityName": "Chuck Schumer",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=NY-S3&profile=NY-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6AZ05083",
+    "candidateName": "Andy Biggs",
+    "entityId": "96537",
+    "entityName": "Andy Biggs",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=AZ-05&profile=AZ-05&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0AZ01259",
+    "candidateName": "Paul Gosar",
+    "entityId": "133778",
+    "entityName": "Paul Gosar",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=AZ-09&profile=AZ-09",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8CA05035",
+    "candidateName": "Nancy Pelosi",
+    "entityId": "10487",
+    "entityName": "Nancy Pelosi",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=CA-11&profile=CA-11&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4CA20082",
+    "candidateName": "Jim Costa",
+    "entityId": "17453",
+    "entityName": "Jim Costa",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-21&profile=CA-21",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6CA24113",
+    "candidateName": "Brad Sherman",
+    "entityId": "467037",
+    "entityName": "Brad Sherman",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-32&profile=CA-32",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4CA23011",
+    "candidateName": "Maxine Waters",
+    "entityId": "123410",
+    "entityName": "Maxine Waters",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-43&profile=CA-43",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4CA23011",
+    "candidateName": "Maxine Waters",
+    "entityId": "560839",
+    "entityName": "Congresswoman Maxine Waters",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-43&profile=CA-43",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0CA48024",
+    "candidateName": "Darrell Issa",
+    "entityId": "15003",
+    "entityName": "Representative Darrell Issa",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=CA-48&profile=CA-48&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0CA48024",
+    "candidateName": "Darrell Issa",
+    "entityId": "198783",
+    "entityName": "Darrell Issa",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=CA-48&profile=CA-48&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2CA50026",
+    "candidateName": "Juan Vargas",
+    "entityId": "330983",
+    "entityName": "Representative Juan Vargas",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-52&profile=CA-52",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6CO01141",
+    "candidateName": "Diana DeGette",
+    "entityId": "138243",
+    "entityName": "Diana Degette",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=CO-01&profile=CO-01&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2CT02112",
+    "candidateName": "Joe Courtney",
+    "entityId": "332844",
+    "entityName": "Joe Courtney",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CT-02&profile=CT-02",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8CT04172",
+    "candidateName": "Jim Himes",
+    "entityId": "61372",
+    "entityName": "Jim Himes",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CT-04&profile=CT-04",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8CT05245",
+    "candidateName": "Jahana Hayes",
+    "entityId": "124485",
+    "entityName": "Jahana Hayes",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CT-05&profile=CT-05",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4FL08168",
+    "candidateName": "Mike Haridopolos",
+    "entityId": "562077",
+    "entityName": "Senator Mike Haridopolos",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=FL-08&profile=FL-08",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6FL13148",
+    "candidateName": "Vern Buchanan",
+    "entityId": "129421",
+    "entityName": "Vern Buchanan",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=FL-16&profile=FL-16&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6WY00068",
+    "candidateName": "John Barrasso",
+    "entityId": "48359",
+    "entityName": "Chairman John Barrasso",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=WY-S1&profile=WY-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6WY00068",
+    "candidateName": "John Barrasso",
+    "entityId": "371679",
+    "entityName": "Senator John Barrasso",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=WY-S1&profile=WY-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0CO00211",
+    "candidateName": "Michael F. Bennet",
+    "entityId": "128778",
+    "entityName": "Michael Bennet",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=CO-S3&profile=CO-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8TN00337",
+    "candidateName": "Marsha Blackburn",
+    "entityId": "122724",
+    "entityName": "Marsha Blackburn",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=TN-S1&profile=TN-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0CT00177",
+    "candidateName": "Richard Blumenthal",
+    "entityId": "21846",
+    "entityName": "Richard Blumenthal",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=CT-S3&profile=CT-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4NJ00185",
+    "candidateName": "Cory Booker",
+    "entityId": "116595",
+    "entityName": "Cory Booker",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=NJ-S2&profile=NJ-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8WA00194",
+    "candidateName": "Maria Cantwell",
+    "entityId": "48376",
+    "entityName": "Maria Cantwell",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=WA-S1&profile=WA-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4WV00159",
+    "candidateName": "Shelley Capito",
+    "entityId": "140166",
+    "entityName": "Shelley Moore Capito",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=WV-S2&profile=WV-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4LA00107",
+    "candidateName": "Bill Cassidy",
+    "entityId": "120544",
+    "entityName": "Bill Cassidy",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=LA-S2&profile=LA-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6ME00159",
+    "candidateName": "Susan M. Collins",
+    "entityId": "98165",
+    "entityName": "Susan Collins",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=ME-S2&profile=ME-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0DE00092",
+    "candidateName": "Chris Coons",
+    "entityId": "125602",
+    "entityName": "Chris Coons",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=DE-S2&profile=DE-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2TX00106",
+    "candidateName": "John Cornyn",
+    "entityId": "479208",
+    "entityName": "John Cornyn",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=TX-S2&profile=TX-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6NV00200",
+    "candidateName": "Catherine Cortez Masto",
+    "entityId": "48432",
+    "entityName": "Catherine Cortez Masto",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=NV-S3&profile=NV-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4AR00103",
+    "candidateName": "Tom Cotton",
+    "entityId": "132288",
+    "entityName": "Tom Cotton",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=AR-S2&profile=AR-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8ND00120",
+    "candidateName": "Kevin Cramer",
+    "entityId": "129932",
+    "entityName": "Kevin Cramer",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=ND-S1&profile=ND-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8ID00027",
+    "candidateName": "Mike Crapo",
+    "entityId": "48177",
+    "entityName": "Mike Crapo",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=ID-S3&profile=ID-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8ID00027",
+    "candidateName": "Mike Crapo",
+    "entityId": "48401",
+    "entityName": "Chairman Mike Crapo",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=ID-S3&profile=ID-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2TX00312",
+    "candidateName": "Ted Cruz",
+    "entityId": "19404",
+    "entityName": "Ted Cruz",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=TX-S1&profile=TX-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6IL00292",
+    "candidateName": "Tammy Duckworth",
+    "entityId": "147259",
+    "entityName": "Tammy Duckworth",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=IL-S3&profile=IL-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6IL00151",
+    "candidateName": "Richard J. Durbin",
+    "entityId": "133057",
+    "entityName": "Richard Durbin",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=IL-S2&profile=IL-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4IA00129",
+    "candidateName": "Joni Ernst",
+    "entityId": "233580",
+    "entityName": "Joni Ernst",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=IA-S2&profile=IA-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6PA00274",
+    "candidateName": "John Fetterman",
+    "entityId": "123288",
+    "entityName": "Big John Fetterman",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=PA-S3&profile=PA-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2NE00094",
+    "candidateName": "Deb Fischer",
+    "entityId": "122385",
+    "entityName": "Deb Fischer",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=NE-S1&profile=NE-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0NY00410",
+    "candidateName": "Kirsten E. Gillibrand",
+    "entityId": "121274",
+    "entityName": "Kirsten Gillibrand",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=NY-S1&profile=NY-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0IA00028",
+    "candidateName": "Chuck Grassley",
+    "entityId": "21745",
+    "entityName": "Chuck Grassley",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=IA-S3&profile=IA-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8MO00160",
+    "candidateName": "Josh Hawley",
+    "entityId": "10187",
+    "entityName": "Josh Hawley",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=MO-S1&profile=MO-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0CO00575",
+    "candidateName": "John Hickenlooper",
+    "entityId": "129151",
+    "entityName": "John Hickenlooper",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=CO-S2&profile=CO-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2HI00106",
+    "candidateName": "Mazie K. Hirono",
+    "entityId": "21782",
+    "entityName": "Senator Mazie Hirono",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=HI-S1&profile=HI-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0WI00197",
+    "candidateName": "Ron Johnson",
+    "entityId": "48383",
+    "entityName": "Chairman Ron Johnson",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=WI-S3&profile=WI-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2VA00142",
+    "candidateName": "Tim Kaine",
+    "entityId": "47707",
+    "entityName": "Tim Kaine",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=VA-S1&profile=VA-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6MN00267",
+    "candidateName": "Amy Klobuchar",
+    "entityId": "125589",
+    "entityName": "Amy Klobuchar",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=MN-S1&profile=MN-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0UT00165",
+    "candidateName": "Mike Lee",
+    "entityId": "121297",
+    "entityName": "Mike Lee",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=UT-S3&profile=UT-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0WY00137",
+    "candidateName": "Cynthia M. Lummis",
+    "entityId": "141363",
+    "entityName": "Cynthia Lummis",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=WY-S2&profile=WY-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4MA00028",
+    "candidateName": "Edward Markey",
+    "entityId": "128787",
+    "entityName": "Edward Markey",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=MA-S2&profile=MA-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8OR00207",
+    "candidateName": "Jeff Merkley",
+    "entityId": "30222",
+    "entityName": "Jeff Merkley",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=OR-S2&profile=OR-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0KS00091",
+    "candidateName": "Jerry Moran",
+    "entityId": "21844",
+    "entityName": "Jerry Moran",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=KS-S3&profile=KS-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4AK00099",
+    "candidateName": "Lisa Murkowski",
+    "entityId": "98166",
+    "entityName": "Lisa Murkowski",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=AK-S3&profile=AK-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4AK00099",
+    "candidateName": "Lisa Murkowski",
+    "entityId": "48357",
+    "entityName": "Chairman Lisa Murkowski",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=AK-S3&profile=AK-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2WA00189",
+    "candidateName": "Patty Murray",
+    "entityId": "312246",
+    "entityName": "Patty Murray",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=WA-S3&profile=WA-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8GA00180",
+    "candidateName": "Jon Ossoff",
+    "entityId": "137534",
+    "entityName": "Jon Ossoff",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=GA-S2&profile=GA-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0KY00156",
+    "candidateName": "Rand Paul",
+    "entityId": "100293",
+    "entityName": "Rand Paul",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=KY-S3&profile=KY-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6RI00163",
+    "candidateName": "Jack Reed",
+    "entityId": "48397",
+    "entityName": "Jack Reed",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=RI-S2&profile=RI-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4HI00136",
+    "candidateName": "Brian Schatz",
+    "entityId": "21847",
+    "entityName": "Brian Schatz",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=HI-S3&profile=HI-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4CA00555",
+    "candidateName": "Adam B. Schiff",
+    "entityId": "26432",
+    "entityName": "Adam Schiff",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=CA-S1&profile=CA-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8FL00273",
+    "candidateName": "Rick Scott",
+    "entityId": "9963",
+    "entityName": "Rick Scott",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=FL-S1&profile=FL-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0NH00219",
+    "candidateName": "Jeanne Shaheen",
+    "entityId": "405538",
+    "entityName": "Jeanne Shaheen",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=NH-S2&profile=NH-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2SD00068",
+    "candidateName": "John Thune",
+    "entityId": "48234",
+    "entityName": "John Thune",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=SD-S3&profile=SD-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2SD00068",
+    "candidateName": "John Thune",
+    "entityId": "48405",
+    "entityName": "Chairman John Thune",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=SD-S3&profile=SD-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4NC00162",
+    "candidateName": "Thom Tillis",
+    "entityId": "136318",
+    "entityName": "Thom Tillis",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=NC-S2&profile=NC-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0AL00230",
+    "candidateName": "Tommy Tuberville",
+    "entityId": "133739",
+    "entityName": "Tommy Tuberville",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/compare?seat=AL-S2&profile=AL-S2&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6MD03441",
+    "candidateName": "Chris Van Hollen",
+    "entityId": "115243",
+    "entityName": "Chris Van Hollen",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=MD-S3&profile=MD-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6VA00093",
+    "candidateName": "Mark Warner",
+    "entityId": "98161",
+    "entityName": "Mark Warner",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=VA-S2&profile=VA-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S0GA00559",
+    "candidateName": "Raphael G. Warnock",
+    "entityId": "137535",
+    "entityName": "Raphael Warnock",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=GA-S3&profile=GA-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S2MA00170",
+    "candidateName": "Elizabeth Warren",
+    "entityId": "21865",
+    "entityName": "Elizabeth Warren",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=MA-S1&profile=MA-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6RI00221",
+    "candidateName": "Sheldon Whitehouse",
+    "entityId": "126211",
+    "entityName": "Sheldon Whitehouse",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=RI-S1&profile=RI-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S8MS00196",
+    "candidateName": "Roger F. Wicker",
+    "entityId": "21845",
+    "entityName": "Roger Wicker",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=MS-S1&profile=MS-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6OR00110",
+    "candidateName": "Ron Wyden",
+    "entityId": "99065",
+    "entityName": "Ron Wyden",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=OR-S3&profile=OR-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6NC00407",
+    "candidateName": "Roy Cooper",
+    "entityId": "134837",
+    "entityName": "Roy Cooper",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=NC-S2&profile=NC-S2",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S6OH00163",
+    "candidateName": "Sherrod Brown",
+    "entityId": "48178",
+    "entityName": "Sherrod Brown",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=OH-S3&profile=OH-S3",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2FL14053",
+    "candidateName": "Lois Frankel",
+    "entityId": "18875",
+    "entityName": "Lois Frankel",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=FL-23&profile=FL-23",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0FL17068",
+    "candidateName": "Frederica S. Wilson",
+    "entityId": "49388",
+    "entityName": "Frederica Wilson",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=FL-24&profile=FL-24&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4FL20023",
+    "candidateName": "Debbie Wasserman Schultz",
+    "entityId": "14145",
+    "entityName": "Debbie Wasserman Schultz",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=FL-20&profile=FL-20",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0IA04145",
+    "candidateName": "Randy Feenstra",
+    "entityId": "134750",
+    "entityName": "Randy Feenstra",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=IA-04&profile=IA-04&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0IN03198",
+    "candidateName": "Marlin Stutzman",
+    "entityId": "312033",
+    "entityName": "Marlin Stutzman",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=IN-03&profile=IN-03",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2KY04121",
+    "candidateName": "Thomas Massie",
+    "entityId": "133925",
+    "entityName": "Thomas Massie",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=KY-04&profile=KY-04&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0KY05015",
+    "candidateName": "Hal Rogers",
+    "entityId": "511919",
+    "entityName": "Hal Rogers",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=KY-05&profile=KY-05",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0LA01087",
+    "candidateName": "Steve Scalise",
+    "entityId": "123484",
+    "entityName": "Steve Scalise",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=LA-01&profile=LA-01",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4CA33119",
+    "candidateName": "Ted Lieu",
+    "entityId": "131226",
+    "entityName": "Ted Lieu",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-36&profile=CA-36",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8CA39174",
+    "candidateName": "Gil Cisneros",
+    "entityId": "131978",
+    "entityName": "By Gil Cisneros",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-31&profile=CA-31",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4MI00470",
+    "candidateName": "Elissa Slotkin",
+    "entityId": "131983",
+    "entityName": "Elissa Slotkin",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=MI-S1&profile=MI-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4CA16049",
+    "candidateName": "Zoe Lofgren",
+    "entityId": "163808",
+    "entityName": "Zoe Lofgren",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=CA-18&profile=CA-18",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4MA06090",
+    "candidateName": "Seth Moulton",
+    "entityId": "75807",
+    "entityName": "Seth Moulton",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=MA-06&profile=MA-06&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4MA06090",
+    "candidateName": "Seth Moulton",
+    "entityId": "75808",
+    "entityName": "Representative Seth Moulton",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=MA-06&profile=MA-06&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8MA07032",
+    "candidateName": "Ayanna Pressley",
+    "entityId": "131164",
+    "entityName": "Ayanna Pressley",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=MA-07&profile=MA-07",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2MD05155",
+    "candidateName": "Steny H. Hoyer",
+    "entityId": "163794",
+    "entityName": "Steny Hoyer",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=MD-05&profile=MD-05&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6MD08457",
+    "candidateName": "Jamie Raskin",
+    "entityId": "128121",
+    "entityName": "Jamie Raskin",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=MD-08&profile=MD-08",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H0MI02094",
+    "candidateName": "Bill Huizenga",
+    "entityId": "48167",
+    "entityName": "Bill Huizenga",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=MI-04&profile=MI-04&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4MI12079",
+    "candidateName": "Debbie Dingell",
+    "entityId": "128814",
+    "entityName": "Debbie Dingell",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=MI-06&profile=MI-06",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8MI13250",
+    "candidateName": "Rashida Tlaib",
+    "entityId": "127972",
+    "entityName": "Rashida Tlaib",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=MI-12&profile=MI-12",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8MN05239",
+    "candidateName": "Ilhan Omar",
+    "entityId": "17254",
+    "entityName": "Ilhan Omar",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=MN-05&profile=MN-05",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4MT01041",
+    "candidateName": "Ryan K. Zinke",
+    "entityId": "117936",
+    "entityName": "Ryan Zinke",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=MT-01&profile=MT-01&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4NC05146",
+    "candidateName": "Virginia Foxx",
+    "entityId": "332838",
+    "entityName": "Virginia Foxx",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=NC-05&profile=NC-05&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4NC05146",
+    "candidateName": "Virginia Foxx",
+    "entityId": "48349",
+    "entityName": "Chairman Virginia Foxx",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=NC-05&profile=NC-05&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4NC08066",
+    "candidateName": "Mark Harris",
+    "entityId": "128913",
+    "entityName": "Mark Harris",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=NC-08&profile=NC-08",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "S4VT00033",
+    "candidateName": "Bernard Sanders",
+    "entityId": "9881",
+    "entityName": "Bernie Sanders",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/senate/seats?seat=VT-S1&profile=VT-S1",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2NY10092",
+    "candidateName": "Hakeem Jeffries",
+    "entityId": "19542",
+    "entityName": "Hakeem Jeffries",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=NY-08&profile=NY-08",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2NY17071",
+    "candidateName": "Jerrold Nadler",
+    "entityId": "14521",
+    "entityName": "Jerrold Nadler",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=NY-12&profile=NY-12&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4NY21079",
+    "candidateName": "Elise M. Stefanik",
+    "entityId": "127606",
+    "entityName": "Elise Stefanik",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=NY-21&profile=NY-21&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4NY22051",
+    "candidateName": "Claudia Tenney",
+    "entityId": "123908",
+    "entityName": "Claudia Tenney",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=NY-24&profile=NY-24",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6OH04082",
+    "candidateName": "Jim Jordan",
+    "entityId": "96536",
+    "entityName": "Jim Jordan",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=OH-04&profile=OH-04",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2OH09031",
+    "candidateName": "Marcy Kaptur",
+    "entityId": "509248",
+    "entityName": "Marcy Kaptur",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=OH-09&profile=OH-09",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2OH09031",
+    "candidateName": "Marcy Kaptur",
+    "entityId": "510005",
+    "entityName": "Congresswoman Marcy Kaptur",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=OH-09&profile=OH-09",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8OH12180",
+    "candidateName": "Troy Balderson",
+    "entityId": "124384",
+    "entityName": "Republican Troy Balderson",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=OH-12&profile=OH-12",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H4OR05304",
+    "candidateName": "Janelle Bynum",
+    "entityId": "123694",
+    "entityName": "Janelle Bynum",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=OR-05&profile=OR-05",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2SC02059",
+    "candidateName": "Joe Wilson",
+    "entityId": "129533",
+    "entityName": "Joe Wilson",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=SC-02&profile=SC-02",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8SC05158",
+    "candidateName": "Ralph Norman",
+    "entityId": "119868",
+    "entityName": "Republican Ralph Norman",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=SC-05&profile=SC-05&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2TX14149",
+    "candidateName": "Randy Weber",
+    "entityId": "302823",
+    "entityName": "Randy Weber",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=TX-14&profile=TX-14",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8TX16109",
+    "candidateName": "Veronica Escobar",
+    "entityId": "126963",
+    "entityName": "Veronica Escobar",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=TX-16&profile=TX-16",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2TX03126",
+    "candidateName": "Pete Sessions",
+    "entityId": "236133",
+    "entityName": "Pete Sessions",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=TX-17&profile=TX-17",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2TX23082",
+    "candidateName": "Henry Cuellar",
+    "entityId": "56782",
+    "entityName": "Henry Cuellar",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=TX-28&profile=TX-28",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6WA07458",
+    "candidateName": "Pramila Jayapal",
+    "entityId": "139859",
+    "entityName": "Pramila Jayapal",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=WA-07&profile=WA-07",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H8WI01156",
+    "candidateName": "Bryan Steil",
+    "entityId": "121998",
+    "entityName": "Bryan Steil",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/compare?seat=WI-01&profile=WI-01&cohort=outgoing",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H2WI02124",
+    "candidateName": "Mark Pocan",
+    "entityId": "139609",
+    "entityName": "Mark Pocan",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=WI-02&profile=WI-02",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6NC09218",
+    "candidateName": "Richard Ojeda",
+    "entityId": "126520",
+    "entityName": "Richard Ojeda",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=NC-09&profile=NC-09",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6TX21301",
+    "candidateName": "Mark Teixeira",
+    "entityId": "492430",
+    "entityName": "Yankee Mark Teixeira",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=TX-21&profile=TX-21",
+    "verifiedAt": "2026-11-08"
+  },
+  {
+    "fecId": "H6VA02198",
+    "candidateName": "Elaine Luria",
+    "entityId": "131981",
+    "entityName": "Elaine Luria",
+    "pacTrackUrl": "https://pactrack.glasscode.academy/house/seats?seat=VA-02&profile=VA-02",
+    "verifiedAt": "2026-11-08"
+  }
+]
