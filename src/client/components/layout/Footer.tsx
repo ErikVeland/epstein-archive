@@ -191,6 +191,17 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               </li>
               <li>
                 <a
+                  href="https://pactrack.glasscode.academy/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={s.navLink}
+                >
+                  <span className={s.navLinkText}>PACtrack</span>
+                  <Icon name="ExternalLink" size="xs" className={s.navLinkIcon} />
+                </a>
+              </li>
+              <li>
+                <a
                   href="https://generik.substack.com"
                   target="_blank"
                   rel="noopener noreferrer"

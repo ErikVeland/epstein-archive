@@ -1,5 +1,11 @@
 # Release Notes
 
+## 22.8.11 - 2026-11-08 - Link to PACtrack
+
+### Updates
+
+- Add PACtrack to the footer and About page so readers can find the congressional campaign-finance tracker.
+
 ## 22.8.10 - 2026-11-05 - Restore authenticated correlations
 
 ### Fixes
