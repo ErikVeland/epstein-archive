@@ -21,6 +21,8 @@ import type { SearchFilters, SortOption } from '../../types.js';
 import type { EntityRow } from '../db/rowTypes.js';
 import { rejectDeepOffset, LIST_LIMIT_CAP, SEARCH_LIMIT_CAP } from '../utils/paginationGuards.js';
 
+import { renderEntityShareImage } from '../services/entityShareImage.js';
+
 const router = express.Router();
 router.use('/subjects', subjectsRouter);
 
@@ -117,6 +119,24 @@ router.get('/:id', validate(entityIdParamSchema), async (req, res, next) => {
     const entity = await entitiesRepository.getEntityById(req.params.id);
     if (!entity) return res.status(404).json({ error: 'Entity not found' });
     return res.json(mapEntityDetailDto(entity as unknown as Record<string, unknown>));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/:id/share-image', validate(entityIdParamSchema), async (req, res, next) => {
+  try {
+    const entity = await entitiesRepository.getEntityById(req.params.id);
+    if (!entity) return res.status(404).json({ error: 'Entity not found' });
+    const portraitPath = await mediaRepository.getEntityProfilePhoto(req.params.id);
+    const resolved = portraitPath ? resolveMediaPath(portraitPath) : null;
+    const image = await renderEntityShareImage(
+      { id: entity.id, fullName: entity.fullName || entity.name, primaryRole: entity.primaryRole },
+      resolved,
+    );
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Content-Disposition', `inline; filename="epstein-profile-${req.params.id}.png"`);
+    return res.type('png').send(image);
   } catch (error) {
     next(error);
   }

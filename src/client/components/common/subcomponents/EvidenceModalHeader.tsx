@@ -1,3 +1,4 @@
+import { EntityProfileShare } from '../EntityProfileShare';
 import React, { useState } from 'react';
 import Icon from '@client/components/common/Icon';
 import { CloseButton } from '../CloseButton';
@@ -277,6 +278,10 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
           variant="viewer"
         />
       </div>
+
+      {!loading && entity?.id && (
+        <EntityProfileShare key={entity.id} entity={{ ...entity, id: entity.id }} />
+      )}
 
       <CloseButton
         onClick={onClose}

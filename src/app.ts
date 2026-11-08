@@ -1,3 +1,4 @@
+import { entityShareDetails } from './shared/entityShare.js';
 import express, { Express, Request, Response } from 'express';
 import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
@@ -1021,30 +1022,22 @@ export class App {
       const numericId = Number(rawId);
       if (Number.isNaN(numericId) || numericId <= 0) return false;
 
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
-      const canonical = `${baseUrl}${req.originalUrl}`;
-
-      let title = `Entity ${numericId}`;
-      let description =
-        'Browse entities, mention context, and supporting references across the Epstein files archive.';
-      const image = `${baseUrl}/epstein-files.jpg`;
-      const imageAlt = 'Epstein Files Archive cover image';
-
       const entity = await entitiesRepository.getEntityById(numericId);
-      if (entity) {
-        if (entity.name && entity.name !== 'Unknown') {
-          title = entity.name;
-        }
-        const role =
-          entity.primaryRole && entity.primaryRole !== 'Unknown' ? entity.primaryRole : null;
-        const mentions = typeof entity.mentions === 'number' ? entity.mentions : 0;
-        description = role
-          ? `${role} — ${mentions} mention${mentions === 1 ? '' : 's'} in the Epstein Files archive.`
-          : `${mentions} mention${mentions === 1 ? '' : 's'} in the Epstein Files archive.`;
+      if (!entity) {
+        res.status(404).type('text').send('Profile not found');
+        return true;
       }
-
+      const details = entityShareDetails({
+        id: entity.id,
+        fullName: entity.fullName || entity.name,
+        primaryRole: entity.primaryRole,
+      });
       let html = await this.loadIndexTemplate();
-      html = this.injectOgTags(html, { title, description, image, imageAlt, canonical });
+      html = this.injectOgTags(html, {
+        ...details,
+        canonical: details.url,
+        imageType: 'image/png',
+      });
 
       res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
       res.setHeader('Pragma', 'no-cache');

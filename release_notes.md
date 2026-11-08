@@ -1,5 +1,18 @@
 # Release Notes
 
+## 22.8.12 - 2026-11-08 - Share individual archive profiles
+
+### User-visible changes
+
+- Add a top-right profile share menu with native link and image sharing, copy link and PNG download.
+- Generate individual portrait cards with name, role, profile URL and archive context.
+- Use each profile’s card and canonical URL for social previews.
+
+### Data, operations and security
+
+- Generate PNGs from existing local portraits, with a labelled fallback when a portrait is unavailable.
+- Preserve evidence, database schema and production deployment settings.
+
 ## 22.8.11 - 2026-11-08 - Campaign funding profile links
 
 ### User-visible changes
