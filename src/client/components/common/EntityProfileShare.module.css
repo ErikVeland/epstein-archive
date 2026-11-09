@@ -1,9 +1,11 @@
 .share {
-  position: absolute;
-  top: var(--space-3);
-  right: calc(var(--space-4) + var(--touch-target-min, 44px) + var(--space-2));
-  z-index: var(--z-above);
+  position: relative;
 }
+
+.menu {
+  z-index: calc(var(--z-modal) + 2);
+}
+
 .status {
   position: absolute;
   right: 0;

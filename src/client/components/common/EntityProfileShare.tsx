@@ -58,6 +58,15 @@ export function EntityProfileShare({ entity }: Props) {
     setMessage('Image saved.');
   };
 
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(details.url);
+      setMessage('Profile link copied.');
+    } catch {
+      setMessage('Could not copy the link.');
+    }
+  };
+
   const share = async (image: boolean) => {
     try {
       if (image && file) {
@@ -65,12 +74,9 @@ export function EntityProfileShare({ entity }: Props) {
           await navigator.share({ title: details.title, text: details.url, files: [file] });
         } else download();
       } else if (!image) {
-        if (navigator.share)
+        if (navigator.share) {
           await navigator.share({ title: details.title, text: details.title, url: details.url });
-        else {
-          await navigator.clipboard.writeText(details.url);
-          setMessage('Profile link copied.');
-        }
+        } else await copyLink();
       }
     } catch (error) {
       if (!(error instanceof Error && error.name === 'AbortError'))
@@ -87,12 +93,16 @@ export function EntityProfileShare({ entity }: Props) {
         }}
       >
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label={`Share ${entity.fullName || 'profile'}`}>
+          <Button
+            type="button"
+            variant="ghost"
+            aria-label={`Share ${entity.fullName || 'profile'}`}
+          >
             <Icon name="Share2" size="sm" />
             <span>Share</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className={s.menu}>
           <DropdownMenuItem
             onSelect={() => {
               void share(false);
@@ -103,10 +113,7 @@ export function EntityProfileShare({ entity }: Props) {
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => {
-              void navigator.clipboard
-                .writeText(details.url)
-                .then(() => setMessage('Profile link copied.'))
-                .catch(() => setMessage('Could not copy the link.'));
+              void copyLink();
             }}
           >
             <Icon name="Copy" size="sm" />

@@ -166,7 +166,7 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
 
       {!loading && entity?.id && (
         <div className={s.actionsArea}>
-          <div className={s.quickActions}>
+          <div className={s.quickActions} role="group" aria-label="Profile actions">
             {pacTrackProfile && (
               <a className={s.pacTrackLink} href={pacTrackProfile}>
                 <Icon name="ExternalLink" size="xs" />
@@ -279,16 +279,12 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
         />
       </div>
 
-      {!loading && entity?.id && (
-        <EntityProfileShare key={entity.id} entity={{ ...entity, id: entity.id }} />
-      )}
-
-      <CloseButton
-        onClick={onClose}
-        size="md"
-        label="Close entity profile"
-        className={s.closeBtn}
-      />
+      <div className={s.controls}>
+        {!loading && entity?.id && (
+          <EntityProfileShare key={entity.id} entity={{ ...entity, id: entity.id }} />
+        )}
+        <CloseButton onClick={onClose} label="Close entity profile" className={s.closeBtn} />
+      </div>
     </div>
   );
 };

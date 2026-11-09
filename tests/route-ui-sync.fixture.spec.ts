@@ -72,6 +72,85 @@ test.describe('Fixture-backed route sync', () => {
     await expect(page.getByTestId('subject-card').first()).toBeVisible({ timeout: 20000 });
   });
 
+  for (const [layout, preparePage] of [
+    ['desktop', prepareDesktopPage],
+    ['mobile', prepareMobilePage],
+  ] as const) {
+    test(`profile controls and section navigation fit the ${layout} dialog`, async ({ page }) => {
+      await page.addInitScript(() => {
+        let copiedText = '';
+        Object.defineProperty(navigator, 'clipboard', {
+          value: {
+            writeText: async (text: string) => {
+              copiedText = text;
+            },
+            readText: async () => copiedText,
+          },
+        });
+      });
+      await mockHealthyApi(page);
+      await mockPeopleEntityApis(page);
+      await page.route('**/api/entities/101/share-image', (route) =>
+        route.fulfill({
+          contentType: 'image/png',
+          body: Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aXuoAAAAASUVORK5CYII=',
+            'base64',
+          ),
+        }),
+      );
+      await preparePage(page);
+
+      await page.goto('/entity/101');
+      const share = page.getByRole('button', { name: 'Share Ada Lovelace' });
+      const close = page.getByRole('button', { name: 'Close entity profile' });
+      await share.click();
+      await page.getByRole('menuitem', { name: 'Copy profile link' }).click({ timeout: 5000 });
+      await expect(page.getByText('Profile link copied.')).toBeVisible();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+        'https://epstein.academy/entity/101',
+      );
+
+      await share.focus();
+      await page.keyboard.press('Enter');
+      const download = page.waitForEvent('download');
+      await page.getByRole('menuitem', { name: 'Download image' }).click();
+      expect((await download).suggestedFilename()).toBe('epstein-profile-101.png');
+
+      const shareBox = (await share.boundingBox())!;
+      const closeBox = (await close.boundingBox())!;
+      expect(shareBox.y).toBeCloseTo(closeBox.y, 0);
+      expect(shareBox.height).toBeCloseTo(closeBox.height, 0);
+
+      const navigation =
+        layout === 'desktop'
+          ? page.getByRole('tablist')
+          : page.getByTestId('mobile-section-trigger');
+      const edges = await navigation.evaluate((bar) => {
+        const nav = bar.getBoundingClientRect();
+        const content =
+          bar.parentElement!.parentElement!.nextElementSibling!.getBoundingClientRect();
+        return {
+          left: Math.abs(nav.left - content.left),
+          right: Math.abs(nav.right - content.right),
+          gap: Math.abs(nav.bottom - content.top),
+        };
+      });
+      expect(edges.left).toBeLessThanOrEqual(1);
+      expect(edges.right).toBeLessThanOrEqual(1);
+      expect(edges.gap).toBeLessThanOrEqual(1);
+
+      if (layout === 'desktop') {
+        const actions = page.getByRole('group', { name: 'Profile actions' }).getByRole('button');
+        const heights = await actions.evaluateAll((buttons) =>
+          buttons.map((button) => button.getBoundingClientRect().height),
+        );
+        expect(heights).toHaveLength(4);
+        expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(1);
+      }
+    });
+  }
+
   test('entity lookup failure shows a retry action instead of an empty profile', async ({
     page,
   }) => {

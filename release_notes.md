@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.8.14 - 2026-11-10 - Align profile dialog controls
+
+### Fixes
+
+- Keep the Share menu above the profile dialog.
+- Align Share and Close, and give the controls in each row the same height.
+- Extend the section navigation across the dialog and place it flush with the content below.
+
 ## 22.8.13 - 2026-11-09 - Preserve absolute thumbnail paths
 
 ### Fixes
