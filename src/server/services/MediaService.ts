@@ -949,11 +949,10 @@ export class MediaService {
       return imagePath;
     }
 
-    // Resolve output dir for production
+    // Resolve legacy /data paths. Preserve absolute filesystem directories.
     let resolvedOutputDir = outputDir;
-    if (outputDir.startsWith('/data/') || outputDir.startsWith('/')) {
-      const relativePath = outputDir.startsWith('/') ? outputDir.slice(1) : outputDir;
-      resolvedOutputDir = path.join(process.cwd(), relativePath);
+    if (outputDir.startsWith('/data/')) {
+      resolvedOutputDir = path.join(process.cwd(), outputDir.slice(1));
     }
 
     const filename = path.basename(imagePath);

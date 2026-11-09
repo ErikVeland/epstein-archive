@@ -1,5 +1,13 @@
 # Release Notes
 
+## 22.8.13 - 2026-11-09 - Preserve absolute thumbnail paths
+
+### Fixes
+
+- Preserve absolute output directories when generating thumbnails to prevent duplicated application paths.
+- Keep support for legacy `/data/` output paths.
+- Add regression tests that check the location and dimensions of generated thumbnails.
+
 ## 22.8.12 - 2026-11-08 - Share individual archive profiles
 
 ### User-visible changes
