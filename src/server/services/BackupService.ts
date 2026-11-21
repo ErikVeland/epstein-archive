@@ -67,16 +67,12 @@ export class BackupService {
   }
 
   private static rotateBackups() {
-    const backups = this.listBackups();
-    if (backups.length > 7) {
-      const toDelete = backups.slice(7);
-      for (const backup of toDelete) {
-        try {
-          fs.unlinkSync(path.join(this.BACKUP_DIR, backup.filename));
-          logger.info(`[BackupService] Rotated old backup: ${backup.filename}`);
-        } catch (e) {
-          logger.error({ err: e }, `[BackupService] Failed to rotate backup ${backup.filename}`);
-        }
+    for (const backup of this.listBackups().slice(2)) {
+      try {
+        fs.unlinkSync(path.join(this.BACKUP_DIR, backup.filename));
+        logger.info(`[BackupService] Rotated old backup: ${backup.filename}`);
+      } catch (e) {
+        logger.error({ err: e }, `[BackupService] Failed to rotate backup ${backup.filename}`);
       }
     }
   }
